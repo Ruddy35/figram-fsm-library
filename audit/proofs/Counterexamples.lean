@@ -130,4 +130,19 @@ example : True := by
   fail_if_success (have : timerDoc.check = [] := by decide)
   trivial
 
+/-! ## CE7: the hypothesis of the glue lemma `check_compile_wf` matters: a DOCUMENT
+(not only a hand-made Chart) with a dangling target compiles to a machine without `wf`;
+`check` rejects it (so `check = []` is what carries `wf`). -/
+
+def ghostDoc : Doc := ⟨[], [], [], [], .sec "a" [("a", .message [("go", [⟨none, "ghost", false, [], []⟩])] [] [])] [] [], []⟩
+example : ghostDoc.toChart.compile.wf = false := by decide
+#guard !ghostDoc.check.isEmpty
+#guard !ghostDoc.toChart.lint.isEmpty
+
+/-! ## CE8: `decSnapshot` really rejects what `SnapOK` forbids (sanity for `decSnapshot_sound`). -/
+#guard (decSnapshot (.obj [("at", .str "")])).toBool == false
+#guard (decSnapshot (.obj [("at", .str "a"), ("timers", .obj [("", .num 1 0)])])).toBool == false
+#guard (decSnapshot (.obj [("at", .str "a"), ("seq", .num 9007199254740992 0)])).toBool == false
+#guard (decSnapshot (.obj [("at", .str "a"), ("seq", .num 9007199254740991 0)])).toBool == true
+
 end Figram.Audit.CE
