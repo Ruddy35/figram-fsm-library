@@ -109,6 +109,9 @@ SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot
 expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), расхождений схемы и движка (\d+)$' \
   'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "снимки"
 expect "$LOGS/snapshots.log" '^граница seq: ok$' 'True' "граница seq"
+logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
+expect "$LOGS/protocol_edges.log" '^граничных случаев протокола (\d+), ответов (\d+), расхождений (\d+)$' \
+  'g[0] >= 11 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
 NFUZZ=$([ $QUICK = 1 ] && echo 5000 || echo 30000)
 logged json_fuzz python3 $P/json_fuzz.py $F $NFUZZ 1
 expect "$LOGS/json_fuzz.log" '^случаев (\d+): принято обоими (\d+), отвергнуто обоими (\d+), расхождений (\d+)$' \
