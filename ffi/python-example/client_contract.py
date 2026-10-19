@@ -59,8 +59,10 @@ eng.close()
 # Повторный need → ошибка; аварийный процесс собран без следующих запросов (V4-04).
 def state(pid):
     try:
-        return open(f"/proc/{pid}/stat").read().rsplit(")", 1)[1].split()[0]
-    except FileNotFoundError:
+        with open(f"/proc/{pid}/stat") as f:
+            return f.read().rsplit(")", 1)[1].split()[0]
+    except (FileNotFoundError, ProcessLookupError):
+        # ProcessLookupError (ESRCH): процесс собран между open() и read().
         return "собран"
 
 
