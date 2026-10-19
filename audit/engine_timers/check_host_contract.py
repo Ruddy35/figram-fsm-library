@@ -61,7 +61,9 @@ def main(host_md, format_md, engine, examples):
     fails = []
 
     # 1. the documented lost-snapshot procedure
-    reqs = [json.loads(m) for m in re.findall(r'^\{.*"op":\s*"restart".*\}$', s4, re.M)]
+    # the doc may write the high-water mark as a placeholder `N`; the test plugs in the real value
+    reqs = [json.loads(re.sub(r'"seq":\s*N\b', '"seq": 0', m))
+            for m in re.findall(r'^\{.*"op":\s*"restart".*\}$', s4, re.M)]
     if reqs:
         proc = "restart with placeholder snapshot " + json.dumps(reqs[0]["snapshot"], ensure_ascii=False)
     elif re.search(r"снимок утерян.*?`start`", s4, re.S):
