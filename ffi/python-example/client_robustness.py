@@ -254,6 +254,50 @@ report(not left and not any(t.is_alive() for t in ths),
 for p in eng._procs:   # прибрать, если тест красный
     p.close()
 
+# R6 (гонка, детерминированно): вызов прошёл проверку «закрыт?» и ждёт замка
+# замены процесса, в этот момент close() завершается целиком. Замок-обёртка
+# придерживает такой вызов до конца close().
+eng = Engine(engine_bin, pizza, processes=1, timeout=2.0)
+real_swap = eng._swap
+at_lock, closed = threading.Event(), threading.Event()
+
+
+class HoldingLock:
+    def __enter__(self):
+        if threading.current_thread() is not threading.main_thread():
+            at_lock.set()
+            closed.wait(5)
+        return real_swap.__enter__()
+
+    def __exit__(self, *exc):
+        return real_swap.__exit__(*exc)
+
+
+eng._swap = HoldingLock()
+eng._procs[0]._fail("внедрённый сбой")   # чтобы вызов пошёл в замену процесса
+out = []
+
+
+def racer():
+    try:
+        eng.start("u")
+        out.append("ответ")
+    except EngineError:
+        out.append("ошибка")
+
+
+t = threading.Thread(target=racer)
+t.start()
+at_lock.wait(5)
+eng.close()
+closed.set()
+t.join(10)
+left = wait_children(0, 1.0)
+report(out == ["ошибка"] and not left,
+       f"R6 вызов, ждавший замка во время close(): {out}, живых процессов {len(left)}")
+for p in eng._procs:   # прибрать, если тест красный
+    p.close()
+
 # R7: бинарника нет при замене процесса.
 copy = os.path.join(tmp, "engine-copy")
 shutil.copy(engine_bin, copy)
