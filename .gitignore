@@ -1,0 +1,6 @@
+/.lake
+/ffi/out
+/ffi/go-example/gofig
+/ffi/go-example/gofig-race
+__pycache__
+/verify-logs

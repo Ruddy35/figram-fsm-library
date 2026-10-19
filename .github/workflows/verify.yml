@@ -1,0 +1,26 @@
+# Полная проверка на многоядерной машине (N07): доказательства, сценарии,
+# мутации, контракт хоста, Go с детектором гонок и честной параллельностью.
+name: verify
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest          # 4 ядра
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lean 4.35.0
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.23" }
+      - run: pip install jsonschema
+      - name: verify.sh
+        run: ./verify.sh
+      - name: Go — длительный параллельный прогон на всех ядрах
+        run: |
+          nproc
+          .lake/build/bin/figram trace examples/pizza.bot.json 2000 40 11 > /tmp/long.jsonl
+          cd ffi/go-example
+          GOMAXPROCS=$(nproc) ./gofig-race -rounds 5 -bots 8 ../../examples/pizza.bot.json /tmp/long.jsonl
+          GOMAXPROCS=$(nproc) ./gofig -rounds 50 -bots 8 ../../examples/pizza.bot.json /tmp/long.jsonl

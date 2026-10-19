@@ -1,0 +1,145 @@
+{
+  "figram": 1,
+  "conditions": {
+    "is_vip": "Пользователь — VIP",
+    "local_ok": "Локальная проверка в каталоге",
+    "in_stock": "Товар есть на складе"
+  },
+  "calls": {
+    "charge": "Списать оплату",
+    "notify": "Уведомить менеджера"
+  },
+  "bot": {
+    "initial": "home",
+    "on": {
+      "cmd:start": [
+        {
+          "to": "home"
+        }
+      ],
+      "cmd:help": [
+        {
+          "to": "help"
+        }
+      ]
+    },
+    "children": {
+      "home": {
+        "on": {
+          "btn:go": [
+            {
+              "if": "is_vip",
+              "to": "vip"
+            },
+            {
+              "to": "shop"
+            }
+          ],
+          "btn:self": [
+            {
+              "to": "home"
+            }
+          ]
+        },
+        "timers": {
+          "idle": 60000
+        }
+      },
+      "help": {
+        "on": {
+          "btn:back": [
+            {
+              "to": "shop",
+              "resume": true
+            }
+          ]
+        }
+      },
+      "vip": {},
+      "paid": {},
+      "shop": {
+        "initial": "catalog",
+        "on": {
+          "btn:cancel": [
+            {
+              "to": "home"
+            }
+          ],
+          "btn:x": [
+            {
+              "to": "reminder"
+            }
+          ]
+        },
+        "children": {
+          "catalog": {
+            "on": {
+              "btn:next": [
+                {
+                  "to": "sub"
+                }
+              ],
+              "btn:x": [
+                {
+                  "if": "local_ok",
+                  "to": "item2"
+                }
+              ]
+            }
+          },
+          "sub": {
+            "initial": "item",
+            "children": {
+              "item": {
+                "on": {
+                  "btn:buy": [
+                    {
+                      "if": "in_stock",
+                      "to": "paid",
+                      "do": ["charge", "notify"]
+                    },
+                    {
+                      "to": "catalog"
+                    }
+                  ],
+                  "btn:other": [
+                    {
+                      "to": "item2"
+                    }
+                  ],
+                  "timer:remind": [
+                    {
+                      "to": "reminder"
+                    }
+                  ]
+                },
+                "timers": {
+                  "remind": 5000
+                }
+              },
+              "item2": {
+                "on": {
+                  "btn:back_item": [
+                    {
+                      "to": "item"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "reminder": {
+            "on": {
+              "btn:back": [
+                {
+                  "to": "shop",
+                  "resume": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

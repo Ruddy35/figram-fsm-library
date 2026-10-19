@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Figram: документ Telegram-бота, формат 1",
+  "description": "Структурная часть формата. Смысловые условия (уникальность идентификаторов, существование целей, описанность условий и действий) проверяет `figram check`. Неизвестные ключи разрешены везде: их сохраняют и не интерпретируют.",
+  "type": "object",
+  "required": ["figram", "bot"],
+  "properties": {
+    "figram": { "const": 1, "description": "Основная версия формата. Меняется только при несовместимом изменении." },
+    "requires": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true,
+      "maxItems": 0,
+      "description": "Смысловые расширения, без которых документ нельзя понять правильно. Читатель обязан отвергнуть документ, если не знает хотя бы одно. В версии 1 известных расширений нет."
+    },
+    "conditions": { "$ref": "#/$defs/descriptions", "description": "Условия: имя → текст, который написал дизайнер." },
+    "calls": { "$ref": "#/$defs/descriptions", "description": "Действия: имя → описание для разработчика." },
+    "variables": { "$ref": "#/$defs/descriptions", "description": "Переменные: имя → описание для разработчика." },
+    "bot": { "$ref": "#/$defs/section", "description": "Весь бот — корневой раздел." }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "descriptions": {
+      "type": "object",
+      "propertyNames": { "minLength": 1 },
+      "additionalProperties": { "type": "string" }
+    },
+    "handlers": {
+      "type": "object",
+      "description": "Событие → варианты по порядку; первый вариант с выполненным условием выигрывает.",
+      "propertyNames": { "minLength": 1 },
+      "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/variant" } }
+    },
+    "variant": {
+      "type": "object",
+      "required": ["to"],
+      "properties": {
+        "if": { "$ref": "#/$defs/id", "description": "Имя условия; без него — «иначе / всегда»." },
+        "to": { "$ref": "#/$defs/id", "description": "Сообщение или раздел." },
+        "resume": { "type": "boolean", "description": "true — вернуться в раздел «to» туда, где пользователь остановился." },
+        "do": { "type": "array", "items": { "$ref": "#/$defs/id" }, "description": "Действия по порядку." }
+      }
+    },
+    "node": {
+      "if": { "type": "object", "required": ["children"] },
+      "then": { "$ref": "#/$defs/section" },
+      "else": { "$ref": "#/$defs/message" }
+    },
+    "section": {
+      "type": "object",
+      "required": ["initial", "children"],
+      "properties": {
+        "initial": { "$ref": "#/$defs/id", "description": "С какого вложенного узла начинается раздел." },
+        "on": { "$ref": "#/$defs/handlers", "description": "Стрелки раздела работают на любом сообщении внутри." },
+        "children": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "minLength": 1 },
+          "additionalProperties": { "$ref": "#/$defs/node" }
+        }
+      },
+      "not": { "required": ["timers"] }
+    },
+    "message": {
+      "type": "object",
+      "properties": {
+        "on": { "$ref": "#/$defs/handlers" },
+        "timers": {
+          "type": "object",
+          "description": "Напоминания: имя → задержка в миллисекундах (0 … 2^53−1). Срабатывание приходит событием «timer:имя» с жетоном запуска.",
+          "propertyNames": { "minLength": 1 },
+          "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
+        }
+      },
+      "not": { "required": ["initial"] }
+    }
+  }
+}
