@@ -17,3 +17,9 @@ defaultFacets = ["static"]
 [[lean_exe]]
 name = "figram-engine"
 root = "EngineMain"
+
+# Audit proposals (not a default target: product binaries are unchanged).
+[[lean_lib]]
+name = "FigramAudit"
+srcDir = "audit/proofs"
+roots = ["FigramAudit.Glue"]
