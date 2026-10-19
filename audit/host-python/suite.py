@@ -27,7 +27,8 @@ OK = ["order-1", "order-2", "booking-1", "booking-2", "support-1", "reminders-1"
 RED = [
     ("no-dedup", "support-1", []), ("no-dedup", "order-1", []),
     ("ack-before-commit", "order-1", []), ("ack-before-commit", "failures-1", []),
-    ("outbox-after-ack", "order-1", []),
+    ("outbox-after-ack", "order-1", []), ("outbox-after-ack", "red_outbox_after_ack-1", ["--no-ref"]),
+    ("", "red_outbox_after_ack-1", ["--no-ref"]),
     ("const-guards", "order-1", []), ("const-guards", "booking-1", []), ("const-guards", "reminders-1", []),
     ("const-guards", "support-1", []), ("const-guards,no-capacity-check", "booking-1", []),
     ("no-drain", "order-1", []), ("no-drain", "support-1", []),

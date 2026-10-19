@@ -75,8 +75,10 @@ def g_slot_free(c, user, upd):
     active = c.execute("SELECT COUNT(*) FROM reservations WHERE slot=? AND active=1", (slot,)).fetchone()[0]
     mine = c.execute("SELECT COUNT(*) FROM reservations WHERE slot=? AND active=1 AND user=?", (slot, user)).fetchone()[0]
     # committed-but-not-yet-executed reservation intents of OTHER users (rule G2)
-    pending = c.execute("SELECT COUNT(*) FROM outbox WHERE state='pending' AND kind='call' AND name='reserve_slot' "
-                        "AND param=? AND user<>?", (slot, user)).fetchone()[0]
+    pending = 0
+    if upd.get("count_pending_intents", True):
+        pending = c.execute("SELECT COUNT(*) FROM outbox WHERE state='pending' AND kind='call' AND name='reserve_slot' "
+                            "AND param=? AND user<>?", (slot, user)).fetchone()[0]
     return mine == 0 and active + pending < cap[0]
 
 

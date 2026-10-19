@@ -79,7 +79,7 @@ BROKEN_VARIANTS = {
     "outbox-after-ack": "snapshot committed and acked, outbox rows written in a later transaction",
     "const-guards": "every guard is constant true",
     "no-drain": "guards computed without draining the user's pending calls (no rule G1)",
-    "no-resource-lock": "no resource lock / pending-intent accounting for scarce resources (no rule G2)",
+    "no-resource-lock": "naive scarce-resource guard: no lock, counts executed reservations only (no rule G2)",
     "seq-keys-start": "reset via `start` + deletion of the user's outbox history (ET-01 path)",
     "random-keys": "external idempotency key gets a fresh nonce on every attempt",
     "no-user-lock": "no per-user lock and no optimistic version check",
@@ -359,7 +359,9 @@ class Host:
             return "dup"
         row = c.execute("SELECT family, doc, snapshot, version, hw_seq FROM users WHERE user=?",
                         (user,)).fetchone()
-        upd = {"arg": arg, "event": event}
+        upd = {"arg": arg, "event": event,
+               # BROKEN no-resource-lock = naive host: no lock AND the guard reads executed rows only
+               "count_pending_intents": "no-resource-lock" not in self.broken}
         held = []
         guards_used = None
         note = None
@@ -403,7 +405,10 @@ class Host:
                                 lk.acquire()
                                 held.append(lk)
                         guards_used = self.compute_guards(need, c, user, upd)
-                        r = self.engine(doc).call(user, {**req, "guards": guards_used})
+                        try:
+                            r = self.engine(doc).call(user, {**req, "guards": guards_used})
+                        except EngineReplyError as e:      # deterministic: consume, never a poison loop
+                            return self._commit_error(c, user, uid, str(e))
                         if "need" in r:
                             raise EngineFailure(f"engine asked for guards twice: {r['need']}")
             if any(a.get("call") and getattr(domain.CALLS.get(a["call"]), "param", None) == "selection"
