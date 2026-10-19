@@ -254,12 +254,15 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
     wrong = []
     for u in range(users):
         exp_at, exp_orders = plan(u)[1]
+        text = next(p for ev, p in plan(u)[0] if ev == "msg:text")
         at = host.db.users[f"u{u}"]["snapshot"]["at"]
-        n = sum(1 for o in orders if o[0] == f"u{u}")
-        if at == exp_at and n == exp_orders:
+        mine = [o for o in orders if o[0] == f"u{u}"]
+        # Заказ — с непустой корзиной и с адресом из сообщения пользователя.
+        good = all(o[2]["cart"] > 0 and o[2]["address"] == text for o in mine)
+        if at == exp_at and len(mine) == exp_orders and good:
             expected_ok += 1
         else:
-            wrong.append((f"u{u}", at, n))
+            wrong.append((f"u{u}", at, len(mine), [(o[2]["cart"], o[2]["address"]) for o in mine]))
     pending = len(host.db.pending())
     total = sum(len(plan(u)[0]) for u in range(users))
     # Порядок: снимок каждого пользователя равен последовательному проигрыванию
@@ -275,7 +278,7 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
     engine.close()
     name = "НАИВНЫЙ хост" if naive else ("хост по контракту" if barrier else "хост БЕЗ барьера")
     print(f"{name}, внедрено сбоев {host.crashes}")
-    print(f"  пользователей {users}: итог как ожидалось (done/pickup, заказов 1/0) у {expected_ok}, "
+    print(f"  пользователей {users}: итог как ожидалось (done/pickup, заказов 1/0, в заказе корзина и адрес) у {expected_ok}, "
           f"заказов в CRM {len(orders)}, обработано событий {sum(len(v) for v in host.order_log.values())} "
           f"из {total} (повторные доставки), потерянных обновлений {lost}, невыполненных действий {pending}")
     if wrong:
