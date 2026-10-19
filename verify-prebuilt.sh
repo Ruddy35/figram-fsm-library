@@ -114,8 +114,8 @@ expect "$LOGS/protocol_edges.log" '^граничных случаев прото
   'g[0] >= 11 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
 NFUZZ=$([ $QUICK = 1 ] && echo 5000 || echo 30000)
 logged json_fuzz python3 $P/json_fuzz.py $F $NFUZZ 1
-expect "$LOGS/json_fuzz.log" '^случаев (\d+): принято обоими (\d+), отвергнуто обоими (\d+), расхождений (\d+)$' \
-  "g[0] == $NFUZZ and g[1] > 0 and g[2] > 0 and g[1] + g[2] == g[0] and g[3] == 0" "фаззинг JSON"
+expect "$LOGS/json_fuzz.log" '^случаев (\d+): принято обоими (\d+), отвергнуто обоими (\d+), расхождений (\d+), записей не читается обратно (\d+) из (\d+)$' \
+  "g[0] == $NFUZZ and g[1] > 0 and g[2] > 0 and g[1] + g[2] == g[0] and g[3] == 0 and g[4] == 0 and g[5] == g[1]" "фаззинг JSON"
 
 step "Клиент Python"
 clean client_faults python3 $P/client_faults.py $E examples/pizza.bot.json
@@ -133,9 +133,9 @@ fi
 
 step "Контракт хоста и нагрузка"
 logged host python3 $P/host_sim.py $E examples/pizza.bot.json
-expect "$LOGS/host.log" '^  пользователей (\d+): дошли до конца (\d+), заказов в CRM (\d+)' \
-  'g[0] > 0 and g[0] == g[1] == g[2]' "контракт хоста"
-expect "$LOGS/host.log" '^  тест ловит нарушение: да$' 'True' "контрольный хост без контракта"
+expect "$LOGS/host.log" '^  пользователей (\d+): итог как ожидалось \(.*\) у (\d+), заказов в CRM (\d+), обработано событий (\d+) из (\d+) .*потерянных обновлений (\d+), невыполненных действий (\d+)$' \
+  'g[0] > 0 and g[0] == g[1] and 0 < g[2] <= g[0] and g[3] == g[4] and g[5] == 0 and g[6] == 0' "контракт хоста"
+expect "$LOGS/host.log" '^  тест ловит нарушение: да(?: \(попыток контроля: \d+\))?$' 'True' "контрольный хост без контракта"
 logged load python3 $P/loadtest.py $E examples/pizza.bot.json "$T/pizza.jsonl" 64 2
 expect "$LOGS/load.log" '^потоков +(\d+), процессов (\d+): шагов (\d+) .*расхождений (\d+),' \
   'g[0] == 64 and g[2] > 0 and g[3] == 0' "нагрузка"
