@@ -97,10 +97,10 @@ def expText : String :=
 #guard match parse expText >>= decode with
   | .ok d => d.check.isEmpty
   | .error _ => false
--- but the canonical text written by `print (encode d)` (what `figram fmt` writes) is rejected:
-#guard match parse expText >>= decode with
-  | .ok d => (match parse (print (encode d)) with | .ok _ => false | .error _ => true)
-  | .error _ => false
+-- On baseline d69bbaf the canonical text written by `print (encode d)` (what `figram fmt`
+-- writes) is "…15e-1001" and is REJECTED by `parse` (LOGS/09-counterexamples.stdout).
+-- The fix in Figram/FormatIO.lean (`render`) makes it parse; the asserting regression test
+-- is audit/proofs/TextRoundTrip.lean. Here we only show the current behaviour:
 #eval match parse expText >>= decode with
   | .ok d => print (encode d) ++ "\n=> " ++ (match parse (print (encode d)) with
       | .ok _ => "parsed" | .error e => "parse error: " ++ e)
