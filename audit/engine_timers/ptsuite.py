@@ -39,7 +39,7 @@ class E:
     """Engine session with parsed replies."""
 
     def __init__(self, doc, mutate=None):
-        self.e = Engine(ENGINE, doc, mutate)
+        self.e = Engine(ENGINE, doc, mutate or os.environ.get("PT_MUTATE") or None)
 
     def __call__(self, **req):
         raw, rid = self.e.call(req)
@@ -637,7 +637,11 @@ def run(engine, examples_dir):
              "upgrade": upgrade_scenarios, "errors": error_scenarios, "big": big_line_scenarios,
              "mutate": mutate_scenarios}
     for k in only:
-        table[k](examples_dir, own)
+        try:
+            table[k](examples_dir, own)
+        except Exception as ex:      # a crash of a scenario group is a red result, not a pass
+            rec(f"{k}-crash", k, "FAIL", "scenario group crashed (engine reply did not have the expected shape)",
+                f"{type(ex).__name__}: {ex}")
     fails = [r["id"] for r in RESULTS if r["verdict"] == "FAIL"]
     print(json.dumps({"scenarios": len(RESULTS), "pass": sum(r["verdict"] == "PASS" for r in RESULTS),
                       "fail": fails, "obs": sum(r["verdict"] == "OBS" for r in RESULTS), "docs_dir": TMP}))
