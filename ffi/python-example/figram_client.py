@@ -29,6 +29,35 @@ class EngineError(Exception):
     pass
 
 
+# FormatIO.maxDepth: наибольшая вложенность массивов и объектов в строке запроса.
+MAX_DEPTH = 256
+
+
+def _check_wire(x, depth: int = 0) -> None:
+    """Запрос, который движок разберёт на уровне текста.
+
+    Строку, которую разобрать нельзя (повторяющийся ключ, вложенность больше
+    MAX_DEPTH, одиночный суррогат), движок отвергает ответом без id
+    (`{"id":null,...}`): к запросу его не привязать, и клиенту пришлось бы
+    считать его нарушением протокола и убивать общий процесс вместе с
+    запросами других пользователей. Поэтому такие запросы отвергаются здесь:
+    ключи — только строки (json.dumps превращает 1 и "1", True и "true" в
+    одинаковые ключи), вложенность ограничена; суррогаты отсекает кодирование.
+    """
+    if isinstance(x, dict):
+        if depth >= MAX_DEPTH:
+            raise ValueError(f"вложенность больше {MAX_DEPTH}")
+        for k, v in x.items():
+            if not isinstance(k, str):
+                raise TypeError(f"ключ {k!r} не строка")
+            _check_wire(v, depth + 1)
+    elif isinstance(x, (list, tuple)):
+        if depth >= MAX_DEPTH:
+            raise ValueError(f"вложенность больше {MAX_DEPTH}")
+        for v in x:
+            _check_wire(v, depth + 1)
+
+
 class _Process:
     """Один процесс движка.
 
@@ -74,23 +103,32 @@ class _Process:
         threading.Thread(target=self._p.wait, daemon=True).start()
 
     def _fail(self, reason: str) -> None:
-        """Пометить процесс неисправным, разбудить всех ожидающих, убить процесс."""
+        """Пометить процесс неисправным, разбудить всех ожидающих, убить процесс.
+
+        Убивает только первый вызов: следующие (читатель видит EOF, писатель —
+        EPIPE) приходят, когда фоновый wait() мог уже собрать процесс, и pid
+        свободен — SIGKILL по нему попал бы в чужую группу процессов."""
         with self._lock:
-            if self.failure is None:
+            first = self.failure is None
+            if first:
                 self.failure = reason
             pending, self._pending = self._pending, {}
         for slot in pending.values():
             slot[0].set()
-        self._outbox.put(None)
-        self._kill()
+        if first:
+            self._outbox.put(None)
+            self._kill()
 
     def call(self, request: dict) -> dict:
         deadline = time.monotonic() + self._timeout
-        # Сериализация до регистрации: неверный аргумент — ошибка вызова,
-        # таблица ожидающих и процесс не затрагиваются.
+        # Сериализация и кодирование до регистрации: неверный аргумент — ошибка
+        # вызова, таблица ожидающих и процесс не затрагиваются. UnicodeEncodeError
+        # (одиночный суррогат) — подкласс ValueError.
         try:
-            body = json.dumps(request, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
-        except (TypeError, ValueError) as e:
+            _check_wire(request)
+            body = json.dumps(request, ensure_ascii=False, separators=(",", ":"),
+                              allow_nan=False).encode()
+        except (TypeError, ValueError, RecursionError) as e:
             raise EngineError(f"запрос не сериализуется в JSON: {e}") from None
         done = threading.Event()
         slot: list = [done, None, request["op"]]
@@ -100,8 +138,8 @@ class _Process:
             rid = next(self._ids)
             self._pending[rid] = slot
         # id дописывается к уже сериализованному объекту: {"id":N,...}
-        line = '{"id":' + str(rid) + ("," + body[1:] if body != "{}" else "}")
-        self._outbox.put(line.encode() + b"\n")
+        line = b'{"id":' + str(rid).encode() + (b"," + body[1:] if body != b"{}" else b"}")
+        self._outbox.put(line + b"\n")
         if not done.wait(max(0.0, deadline - time.monotonic())):
             self._fail(f"нет ответа за {self._timeout} с")
         if slot[1] is None:
@@ -160,12 +198,21 @@ class _Process:
 
     def close(self) -> None:
         """Завершить процесс; не дольше `timeout` даже если движок завис."""
+        with self._lock:
+            # Новые вызовы — ошибка; поздний _fail читателя (EOF после выхода
+            # движка) не будет убивать уже собранный здесь pid.
+            if self.failure is None:
+                self.failure = "клиент закрыт"
+                closing = True
+            else:
+                closing = False
         self._outbox.put(None)
         self._writer.join(self._timeout)
         try:
             self._p.wait(timeout=self._timeout)
         except subprocess.TimeoutExpired:
-            self._kill()
+            if closing:
+                self._kill()   # процесс жив и не собран: pid ещё наш
             self._p.wait()
 
 
@@ -177,16 +224,24 @@ class Engine:
         self._args = (binary, document, timeout)
         self._procs = [_Process(*self._args) for _ in range(processes)]
         self._swap = threading.Lock()
+        self._closed = False
 
     def _proc(self, key: str) -> _Process:
         """Процесс пользователя; неисправный заменяется новым (текущие запросы
         к старому уже завершены ошибкой, хост повторит их по контракту)."""
+        if self._closed:
+            raise EngineError("клиент закрыт")
         i = zlib.crc32(key.encode()) % len(self._procs)
         p = self._procs[i]
         if not p.alive:
             with self._swap:
+                if self._closed:
+                    raise EngineError("клиент закрыт")
                 if not self._procs[i].alive:
-                    self._procs[i] = _Process(*self._args)
+                    try:
+                        self._procs[i] = _Process(*self._args)
+                    except OSError as e:   # нет бинарника, нет прав, EMFILE, EAGAIN
+                        raise EngineError(f"не удалось запустить движок: {e}") from None
                 p = self._procs[i]
         return p
 
@@ -239,5 +294,8 @@ class Engine:
         return response
 
     def close(self) -> None:
+        """Закрыть пул: после него вызовы — EngineError, процессы не запускаются."""
+        with self._swap:
+            self._closed = True
         for p in self._procs:
             p.close()
