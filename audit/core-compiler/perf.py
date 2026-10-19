@@ -103,12 +103,14 @@ def measure(engine, text, timeout, steps=200):
     st = json.loads(p.stdout.readline())
     snap = st["snapshot"]
     t1 = time.time()
-    reqs = "".join(json.dumps({"id": 2 + i, "op": "step", "snapshot": snap, "event": "btn:none"}) + "\n"
-                   for i in range(steps))
-    p.stdin.write(reqs)
-    p.stdin.flush()
-    for i in range(steps):
-        p.stdout.readline()
+    # small batches: writing all requests before reading can deadlock on full pipes
+    for b in range(0, steps, 8):
+        reqs = "".join(json.dumps({"id": 2 + i, "op": "step", "snapshot": snap, "event": "btn:none"}) + "\n"
+                       for i in range(b, min(steps, b + 8)))
+        p.stdin.write(reqs)
+        p.stdin.flush()
+        for i in range(b, min(steps, b + 8)):
+            p.stdout.readline()
     step_us = (time.time() - t1) / steps * 1e6
     p.stdin.close()
     p.wait()
