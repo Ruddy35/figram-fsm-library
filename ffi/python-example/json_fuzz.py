@@ -140,7 +140,8 @@ def rand_text(r, depth=0):
             return rand_num_text(r)
         if c < 0.75:
             return json.dumps(rand_str(r), ensure_ascii=r.random() < 0.5)
-        return r.choice(["true", "false", "null"])
+        # NaN/Infinity — запрещённые форматом константы: без них ограничение не проверялось бы
+        return r.choice(["true", "false", "null", "true", "false", "null", "NaN", "Infinity", "-Infinity"])
     if k < 0.65:
         items = [rand_text(r, depth + 1) for _ in range(r.randint(0, 4))]
         return "[" + ws() + ("," + ws()).join(items) + ws() + "]"

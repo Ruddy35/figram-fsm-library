@@ -15,9 +15,10 @@ figram, engine, count, size = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.ar
 if count < 1:
     raise SystemExit("число документов должно быть положительным")
 T = default_timeout()
-total = bad_docs = 0
+total = bad_docs = done = 0
 with tempfile.TemporaryDirectory() as d:
     for seed in range(count):
+        done += 1
         doc = os.path.join(d, f"r{seed}.bot.json")
         traces = os.path.join(d, f"r{seed}.jsonl")
         with open(doc, "w") as f:
@@ -30,5 +31,6 @@ with tempfile.TemporaryDirectory() as d:
         if bad:
             bad_docs += 1
             print(f"seed {seed}: {bad[0][:300]}")
-print(f"документов {count}, запросов {total}, документов с расхождениями {bad_docs}")
-sys.exit(1 if bad_docs or total == 0 else 0)
+# Печатается фактическое число проверенных документов, а не аргумент.
+print(f"документов {done}, запросов {total}, документов с расхождениями {bad_docs}")
+sys.exit(1 if bad_docs or total == 0 or done != count else 0)
