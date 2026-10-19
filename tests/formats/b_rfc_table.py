@@ -22,13 +22,14 @@ incl. exponents up to ±1000) are serialised with random spacing/escaping and
 checked with T2+T3.
 
     python3 b_rfc_table.py [--random N] [--seed S] [--break dup-last-wins|no-surrogate|float]
-                           [--strict]
+                           [--strict [fc01,fc03,...]]
 """
 
 import argparse
 import json
 import os
 import random
+import re
 import sys
 from decimal import Decimal
 
@@ -62,8 +63,10 @@ T = [
     ("n-e1001", "1e1001", "ERR", "dev"),                  # |exp| > 1000
     ("n-e-1001", "1e-1001", "ERR", "dev"),
     ("n-e+01000", "1e+01000", "OK 1e1000", "dev"),        # leading zeros in exponent are RFC-legal
-    ("n-fc01-a", "1.0e-1000", "OK 10e-1001", "fc01"),     # printed text is rejected by the parser
-    ("n-fc01-b", "-2.50e-999", "OK -250e-1001", "fc01"),
+    # FC-01: baseline prints "OK 10e-1001" / "OK -250e-1001", which the parser rejects;
+    # the oracle (common.render_num) expects the positional form.  T1 not fixed here.
+    ("n-fc01-a", "1.0e-1000", None, "fc01"),
+    ("n-fc01-b", "-2.50e-999", None, "fc01"),
     ("n-minus", "-", "ERR", "rfc"),
     ("n-plus", "+1", "ERR", "rfc"),
     ("n-dot-lead", ".5", "ERR", "rfc"),
@@ -262,7 +265,8 @@ def main():
     ap.add_argument("--random", type=int, default=4000)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--break", dest="brk", default=None)
-    ap.add_argument("--strict", action="store_true")
+    ap.add_argument("--strict", nargs="?", const="all", default=None,
+                    help="count known-finding rows as failures: all, or a comma list such as fc01,fc03")
     a = ap.parse_args()
 
     rows = [(i, t.encode("utf-8"), exp, cls) for i, t, exp, cls in T] + list(TB)
@@ -288,7 +292,7 @@ def main():
         if not ok1:
             fails.append(("T1", rid))
         if not ok2:
-            (known if cls.startswith("fc") else fails).append(("T2", rid))
+            (known if cls.startswith("fc") else fails).append(("T2", rid, cls))
     # T3 idempotence of OK outputs, by figram itself
     outs2 = run_json([g[3:].encode("utf-8") for _, _, g in reparse])
     t3 = 0
@@ -296,7 +300,7 @@ def main():
         t3 += 1
         if g2 != g:
             print(f"DIFF T3 {rid}: {g[:60]!r} -> {g2[:80]!r}")
-            (known if cls.startswith("fc") else fails).append(("T3", rid))
+            (known if cls.startswith("fc") else fails).append(("T3", rid, cls))
 
     # random well-formed values
     r = random.Random(a.seed)
@@ -307,7 +311,10 @@ def main():
     for t, got in zip(rnd, routs):
         ora = oracle_line(t, a.brk)
         if norm(got) != ora:
-            fails.append(("R", t[:80], got[:80], ora[:80]))
+            if any(int(x) > 1000 for x in re.findall(r"e-(\d+)", got)):
+                known.append(("R-T2", t[:60], "fc01"))
+            else:
+                fails.append(("R", t[:80], got[:80], ora[:80]))
         else:
             r_ok += 1
         if got.startswith("OK "):
@@ -319,7 +326,7 @@ def main():
             r_idem += 1
         elif "показатель" in g2:
             r_fc01 += 1          # FC-01: printer wrote |exponent| > 1000
-            known.append(("R-T3", g[:60]))
+            known.append(("R-T3", g[:60], "fc01"))
         else:
             fails.append(("R-T3", g[:80], g2[:80]))
     for f in fails[:12]:
@@ -329,6 +336,10 @@ def main():
           f"known-finding-diffs={len(known)} break={a.brk}")
     if not rows or not rnd:
         sys.exit(2)
+    if a.strict:
+        want = None if a.strict == "all" else set(a.strict.split(","))
+        known = [k for k in known if want is None or k[2] in want]
+        print(f"strict={a.strict}: counted known-finding diffs {len(known)}")
     sys.exit(1 if fails or (a.strict and known) else 0)
 
 

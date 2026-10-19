@@ -27,6 +27,7 @@ done
 expect 1 a-mutant-sut           env FIGRAM="$here/mutant_figram.sh" python3 "$here/a_roundtrip.py" --seeds 30 --tmp "$T"
 expect 0 b-rfc                  python3 "$here/b_rfc_table.py" --random 4000
 expect 1 b-rfc-strict           python3 "$here/b_rfc_table.py" --random 4000 --strict
+expect 1 b-rfc-strict-fc01      python3 "$here/b_rfc_table.py" --random 4000 --strict fc01
 for b in dup-last-wins no-surrogate float; do
   expect 1 "b-break-$b"         python3 "$here/b_rfc_table.py" --random 1000 --break "$b"
 done

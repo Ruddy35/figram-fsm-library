@@ -187,9 +187,13 @@ def escape(s: str) -> str:
 
 
 def render_num(m: int, e: int) -> str:
+    """FormatIO.render for numbers, with the FC-01 rule applied: scientific
+    notation only while |e| <= maxExponent (otherwise the parser could not
+    read the text back); smaller e are written positionally.  On the baseline
+    binary this differs only for e < -1000 (finding FC-01)."""
     if e == 0:
         return str(m)
-    if e > 0 or e < -30:
+    if e > 0 or -MAX_EXP <= e < -30:
         return f"{m}e{e}"
     neg = m < 0
     ds = str(abs(m))

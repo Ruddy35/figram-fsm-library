@@ -7,7 +7,8 @@ NaN/Infinity — отказ. На каждом входе сравниваетс
 
 * принят ли текст обоими или отвергнут обоими;
 * если принят — точное значение (числа как Decimal, порядок ключей учитывается);
-* печать идемпотентна: разбор нашей записи даёт то же значение.
+* печать идемпотентна: разбор нашей записи даёт то же значение, и сам Figram
+  читает свою запись обратно в ту же запись.
 
     python3 json_fuzz.py FIGRAM [случаев] [seed]
 """
@@ -216,8 +217,22 @@ def main():
             bad += 1
             if bad <= 5:
                 print(f"  РАСХОЖДЕНИЕ: {text[:150]!r}\n    эталон {exp}, наш {line[:150]!r}")
-    print(f"случаев {n}: принято обоими {accepted}, отвергнуто обоими {rejected}, расхождений {bad}")
-    sys.exit(1 if bad else 0)
+    # Идемпотентность по самому Figram: каждая запись «OK …» читается Figram обратно в ту же
+    # запись. Python здесь не годится: он принимает показатели больше 1000 (находка FC-01).
+    printed = [line[3:] for line in out if line.startswith("OK ")]
+    res2 = run_child([figram, "json"], ("\n".join(printed) + "\n").encode(), default_timeout(), "json")
+    again = res2.stdout.decode().split("\n")[:-1]
+    if res2.returncode != 0 or len(again) != len(printed):
+        raise SystemExit(f"повторный разбор: код {res2.returncode}, ответов {len(again)} из {len(printed)}")
+    unread = 0
+    for p_, a_ in zip(printed, again):
+        if a_ != "OK " + p_:
+            unread += 1
+            if unread <= 5:
+                print(f"  НЕ ЧИТАЕТСЯ ОБРАТНО: {p_[:150]!r}\n    {a_[:150]!r}")
+    print(f"случаев {n}: принято обоими {accepted}, отвергнуто обоими {rejected}, расхождений {bad}, "
+          f"записей не читается обратно {unread} из {len(printed)}")
+    sys.exit(1 if bad or unread else 0)
 
 
 if __name__ == "__main__":
