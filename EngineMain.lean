@@ -24,7 +24,7 @@ def loadOrFail (path : String) : IO (Option Machine) := do
   match Engine.load (← IO.FS.readFile path) with
   | .ok m => pure (some m)
   | .error errs =>
-    for e in errs do IO.eprintln s!"ошибка документа: {e}"
+    for e in errs do IO.eprintln s!"ошибка документа: {Format.sanitize e}"
     pure none
 
 def main (args : List String) : IO UInt32 := do

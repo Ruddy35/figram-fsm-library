@@ -27,12 +27,12 @@ def readDoc (path : String) : IO Doc := do
   let txt ← IO.FS.readFile path
   match parse txt >>= decode with
   | .ok d => pure d
-  | .error e => throw <| IO.userError s!"не удалось прочитать документ: {e}"
+  | .error e => throw <| IO.userError s!"не удалось прочитать документ: {sanitize e}"
 
 def checked (d : Doc) : IO Chart := do
   let errs := d.check
   unless errs.isEmpty do
-    for e in errs do IO.eprintln s!"ошибка: {e}"
+    for e in errs do IO.eprintln s!"ошибка: {sanitize e}"
     throw <| IO.userError "документ не прошёл проверку"
   pure d.toChart
 
@@ -54,7 +54,7 @@ def run (args : List String) : IO Unit := do
     let errs := (← readDoc p).check
     if errs.isEmpty then IO.println "ok"
     else
-      for e in errs do IO.println e
+      for e in errs do IO.println (sanitize e)
       throw <| IO.userError s!"ошибок: {errs.length}"
   | ["fmt", p] => IO.println (print (encode (← readDoc p)))
   | ["stats", p] =>

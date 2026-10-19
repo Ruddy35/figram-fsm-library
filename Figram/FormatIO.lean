@@ -15,7 +15,9 @@ import Figram.Format
 (задержки таймеров — целые от 0 до 2^53 − 1) проверяет декодер и `check`.
 
 Печать сохраняет порядок ключей модели; отступ — два пробела. Числа с
-большим отрицательным показателем печатаются в научной записи.
+большим отрицательным показателем печатаются в научной записи, если модуль
+показателя не больше `maxExponent`, иначе позиционно: всё напечатанное
+читается `parse` обратно в то же значение модели.
 Этот слой не покрыт доказательствами, он намеренно маленький.
 -/
 
@@ -187,12 +189,25 @@ def escape (s : String) : String :=
              "\\u00" ++ String.ofList [hexDigit (c.toNat / 16), hexDigit (c.toNat % 16)]
            else String.singleton c) ""
 
+/-- Текст для диагностики в терминал и журнал: управляющие символы (C0, DEL, C1)
+заменяются на `\u00XX`, поэтому имя из документа не может начать новую строку
+или послать терминалу escape-последовательность. -/
+def sanitize (s : String) : String :=
+  s.foldl (fun acc c =>
+    acc ++ if c.toNat < 0x20 || (0x7f ≤ c.toNat && c.toNat < 0xa0) then
+      "\\u00" ++ String.ofList [hexDigit (c.toNat / 16), hexDigit (c.toNat % 16)]
+    else String.singleton c) ""
+
 partial def render (ind : String) : J → String
   | .null => "null"
   | .bool b => if b then "true" else "false"
   | .num m e =>
     if e = 0 then toString m
-    else if e > 0 || e < -30 then s!"{m}e{e}"
+    -- Показатель в научной записи не больше `maxExponent` по модулю: иначе
+    -- `parse` не прочитал бы напечатанное. Такие `e` бывают только у чисел
+    -- с дробной частью (`1.0e-1000` → `10 · 10^-1001`); они печатаются
+    -- позиционно, длина записи не больше длины исходного текста плюс 1000.
+    else if e > 0 || (e < -30 && -(maxExponent : Int) ≤ e) then s!"{m}e{e}"
     else
       let neg := m < 0
       let ds := toString m.natAbs
