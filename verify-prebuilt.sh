@@ -74,6 +74,7 @@ logged json_fuzz python3 $P/json_fuzz.py $F $([ $QUICK = 1 ] && echo 5000 || ech
 step "Клиент Python"
 clean client_faults python3 $P/client_faults.py $E examples/pizza.bot.json
 clean client_contract python3 $P/client_contract.py $E examples/features.bot.json
+clean client_robustness python3 $P/client_robustness.py $E examples/pizza.bot.json examples/features.bot.json
 
 if [ $QUICK = 0 ]; then
   step "Самопроверка обвязки"

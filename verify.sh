@@ -131,6 +131,7 @@ logged c_reload "$T/harness_plain" examples/pizza.bot.json memory
 step "Клиент Python: сбои движка, контракт методов, чистый stderr"
 clean client_faults python3 $P/client_faults.py $E examples/pizza.bot.json
 clean client_contract python3 $P/client_contract.py $E examples/features.bot.json
+clean client_robustness python3 $P/client_robustness.py $E examples/pizza.bot.json examples/features.bot.json
 
 step "Тестовая обвязка ловит испорченный, неполный, пустой и зависший движок"
 $F trace examples/pizza.bot.json 20 30 7 > "$T/small.jsonl" 2>/dev/null
