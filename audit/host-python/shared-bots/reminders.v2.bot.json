@@ -1,0 +1,117 @@
+{
+  "figram": 1,
+  "conditions": {
+    "has_reminder": "У пользователя сохранён непустой текст напоминания",
+    "nag_enabled": "Напоминание отмечено как срочное (текст начинается с «!»)"
+  },
+  "calls": {
+    "save_reminder": "Сохранить текст напоминания из аргумента кнопки (пустой текст — удалить)",
+    "clear_reminder": "Удалить напоминание",
+    "log_ping": "Записать факт срабатывания напоминания",
+    "notify_owner": "Уведомить владельца через внешний сервис"
+  },
+  "bot": {
+    "initial": "idle",
+    "on": {
+      "cmd:start": [
+        {
+          "to": "idle"
+        }
+      ],
+      "cmd:stop": [
+        {
+          "to": "idle",
+          "do": [
+            "clear_reminder"
+          ]
+        }
+      ]
+    },
+    "children": {
+      "idle": {
+        "on": {
+          "btn:set": [
+            {
+              "to": "waiting",
+              "do": [
+                "save_reminder"
+              ]
+            }
+          ]
+        }
+      },
+      "waiting": {
+        "timers": {
+          "ping": 90000,
+          "nag": 45000
+        },
+        "on": {
+          "timer:nag": [
+            {
+              "if": "nag_enabled",
+              "to": "idle",
+              "do": [
+                "notify_owner"
+              ]
+            }
+          ],
+          "btn:snooze": [
+            {
+              "to": "waiting"
+            }
+          ],
+          "btn:cancel": [
+            {
+              "to": "idle",
+              "do": [
+                "clear_reminder"
+              ]
+            }
+          ],
+          "timer:ping": [
+            {
+              "if": "has_reminder",
+              "to": "ringing",
+              "do": [
+                "log_ping"
+              ]
+            },
+            {
+              "to": "idle"
+            }
+          ]
+        }
+      },
+      "ringing": {
+        "timers": {
+          "autoclose": 30000
+        },
+        "on": {
+          "btn:ack": [
+            {
+              "to": "idle",
+              "do": [
+                "clear_reminder"
+              ]
+            }
+          ],
+          "btn:snooze": [
+            {
+              "to": "waiting"
+            }
+          ],
+          "timer:autoclose": [
+            {
+              "to": "idle",
+              "do": [
+                "notify_owner",
+                "clear_reminder"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "x-note": "v2: таймер remind переименован в ping (90 с)"
+}

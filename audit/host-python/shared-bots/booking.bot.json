@@ -1,0 +1,71 @@
+{
+  "figram": 1,
+  "conditions": {
+    "slot_free": "В выбранном слоте есть свободное место (с учётом уже принятых, но ещё не исполненных броней других пользователей), и у пользователя нет брони на этот слот",
+    "has_booking": "У пользователя есть активная бронь"
+  },
+  "calls": {
+    "choose_slot": "Запомнить выбранный слот (аргумент кнопки)",
+    "reserve_slot": "Забронировать выбранный слот: уменьшить остаток, уникальность (пользователь, слот)",
+    "notify_calendar": "Отправить бронь во внешний календарь (внешний сервис, ключ идемпотентности)",
+    "release_hold": "Сбросить выбор слота",
+    "cancel_booking": "Отменить все активные брони пользователя"
+  },
+  "bot": {
+    "initial": "home",
+    "on": {
+      "cmd:start": [{"to": "home"}]
+    },
+    "children": {
+      "home": {
+        "on": {
+          "btn:book": [{"to": "booking"}],
+          "btn:my": [{"if": "has_booking", "to": "my_booking"}, {"to": "no_booking"}]
+        }
+      },
+      "no_booking": {
+        "on": {"btn:book": [{"to": "booking"}]}
+      },
+      "my_booking": {
+        "on": {
+          "btn:cancel_booking": [{"to": "home", "do": ["cancel_booking"]}],
+          "btn:book": [{"to": "booking"}]
+        }
+      },
+      "booked": {
+        "on": {
+          "btn:my": [{"to": "my_booking"}],
+          "btn:book": [{"to": "booking"}]
+        }
+      },
+      "expired": {
+        "on": {"btn:retry": [{"to": "booking"}]}
+      },
+      "booking": {
+        "initial": "pick_slot",
+        "on": {
+          "btn:cancel": [{"to": "home", "do": ["release_hold"]}]
+        },
+        "children": {
+          "pick_slot": {
+            "on": {"btn:slot": [{"to": "confirm", "do": ["choose_slot"]}]}
+          },
+          "confirm": {
+            "on": {
+              "btn:confirm": [
+                {"if": "slot_free", "to": "booked", "do": ["reserve_slot", "notify_calendar"]},
+                {"to": "sold_out"}
+              ],
+              "btn:back": [{"to": "pick_slot"}],
+              "timer:hold": [{"to": "expired", "do": ["release_hold"]}]
+            },
+            "timers": {"hold": 600000}
+          },
+          "sold_out": {
+            "on": {"btn:retry": [{"to": "pick_slot"}]}
+          }
+        }
+      }
+    }
+  }
+}
