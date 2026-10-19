@@ -48,27 +48,11 @@ for b in figram figram-engine; do cp .lake/build/bin/$b "$T/$b" && strip "$T/$b"
 # (сборка ffi/out нужна шагам C и Go ниже)
 (cd "$T" && sha256sum figram figram-engine) | diff - bin/SHA256SUMS && echo "ok: хеши совпадают побайтно"
 
-step "Теоремы без sorry"
-cat > "$T/ax.lean" <<'LEAN'
-import Figram
-open Figram Figram.Format
-#print axioms Chart.compile_correct
-#print axioms Chart.session_correct
-#print axioms Chart.chart_run_valid
-#print axioms Machine.step_state_valid
-#print axioms Machine.step_guard_local
-#print axioms decode_encode
-#print axioms encode_injective
-#print axioms decode_requires
-#print axioms toChart_strip
-#print axioms check_roundtrip
-#print axioms Engine.decSnapshot_encSnapshot
-#print axioms Engine.step_snapOK
-#print axioms Engine.handle_step
-#print axioms Engine.reply_readable
-LEAN
-lake env lean "$T/ax.lean" | tee "$T/ax.log"
-if grep -q sorry "$T/ax.log"; then exit 1; fi
+step "Теоремы: только propext, Quot.sound, Classical.choice; ядро перепроверено"
+# Все теоремы из исходников (а не список из 14), все определения модулей Figram.*,
+# запрет объявлений axiom, sorryAx, native_decide; формулировки теорем README/AUDIT
+# закреплены; leanchecker заново проверяет ядром каждое объявление.
+SHOW=4 logged proofs bash audit/proofs/strict_gate.sh
 
 step "Фиксированные сценарии совпадают с сохранёнными"
 $F golden "$T/golden" >/dev/null

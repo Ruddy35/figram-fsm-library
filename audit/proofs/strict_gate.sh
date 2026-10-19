@@ -13,6 +13,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
+# 0. static: constructs that bypass or weaken checking must not appear in project sources
+if grep -nE '\bsorry\b|\badmit\b|^[[:space:]]*(private |protected )?axiom\b|native_decide|ofReduceBool|ofReduceNat|trustCompiler|debug\.skipKernelTC|\brun_elab\b|\brun_cmd\b|\brun_meta\b|modifyEnv|addDeclCore|\bunsafe\b|@\[csimp\]' \
+     Figram/*.lean Figram.lean Main.lean EngineMain.lean; then
+  echo "STRICT GATE: forbidden construct in sources (see lines above)"; exit 1
+fi
 python3 -I audit/proofs/gen_axioms.py . audit/proofs/AllAxioms.lean audit/proofs/theorems.txt
 n=$(wc -l < audit/proofs/theorems.txt)
 lake env lean audit/proofs/AllAxioms.lean > "$T/ax.log" 2>&1
