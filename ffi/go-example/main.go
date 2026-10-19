@@ -41,6 +41,11 @@ type Bot struct {
 }
 
 func Load(doc string) (*Bot, error) {
+	// C-строка оканчивается на NUL: всё после первого NUL библиотека не увидела бы,
+	// и документ с мусором в хвосте молча загрузился бы. CLI такой текст отвергает.
+	if strings.IndexByte(doc, 0) >= 0 {
+		return nil, fmt.Errorf("документ содержит байт NUL")
+	}
 	cs := C.CString(doc)
 	defer C.free(unsafe.Pointer(cs))
 	m := C.figram_load_doc(cs)
@@ -94,7 +99,9 @@ func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	if corrupt != nil {
 		corrupt(resp)
 	}
-	variant, err := checkReply(resp, id, req["op"].(string))
+	// op может отсутствовать или быть не строкой: движок ответит error, паники нет.
+	op, _ := req["op"].(string)
+	variant, err := checkReply(resp, id, op)
 	return resp, variant, err
 }
 
@@ -232,6 +239,12 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 			return "", fmt.Errorf("error не строка")
 		}
 		return "error", nil
+	}
+	if op == "hello" && keysAre(rest, "protocol", "states") {
+		if !natOK(rest["protocol"]) || !natOK(rest["states"]) {
+			return "", fmt.Errorf("hello: %v", rest)
+		}
+		return "hello", nil
 	}
 	if op == "step" && keysAre(rest, "need") {
 		need, ok := rest["need"].([]any)
