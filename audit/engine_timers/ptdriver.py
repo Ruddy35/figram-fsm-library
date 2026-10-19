@@ -307,10 +307,12 @@ class Checker:
     def __init__(self, verbose=False):
         self.violations = []
         self.checks = 0
+        self.per = {}
         self.verbose = verbose
 
     def ok(self, cond, inv, detail):
         self.checks += 1
+        self.per[inv] = self.per.get(inv, 0) + 1
         if not cond:
             self.violations.append((inv, detail))
             if self.verbose:
@@ -706,7 +708,8 @@ def main(argv):
         ck, n = walk(a.engine, a.doc, a.mutate, a.seed, a.users, a.steps, a.v)
         print(json.dumps({"doc": a.doc, "mutate": a.mutate, "seed": a.seed, "replies": n,
                           "coverage_targets": ck.targets,
-                          "checks": ck.checks, "violations": len(ck.violations)}))
+                          "checks": ck.checks, "per_invariant": dict(sorted(ck.per.items())),
+                          "violations": len(ck.violations)}))
         for inv, d in ck.violations[:5]:
             print(f"  {inv}: {d}")
         return 1 if ck.violations or n == 0 or ck.checks == 0 else 0
