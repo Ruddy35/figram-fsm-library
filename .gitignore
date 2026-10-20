@@ -2,5 +2,6 @@
 /ffi/out
 /ffi/go-example/gofig
 /ffi/go-example/gofig-race
+/ffi/go-example/zz_figram_ldflags.go
 __pycache__
 /verify-logs

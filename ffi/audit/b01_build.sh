@@ -25,9 +25,9 @@ for a in ffi/out/lean/*.a; do
   else bad "архив $(basename "$a") пуст (заглушка)"; fi
 done
 if [ -s ffi/out/LDFLAGS ]; then
-  if ${CC:-cc} -O1 -o "$T/host" ffi/c_harness.c ffi/c_harness_io.c $(cat ffi/out/LDFLAGS) 2> "$T/link.log"; then
+  if ${CC:-cc} -O1 -pthread -o "$T/host" ffi/audit/stress.c $(cat ffi/out/LDFLAGS) 2> "$T/link.log"; then
     ok "C-хост скомпонован флагами ffi/out/LDFLAGS"
-    if "$T/host" examples/pizza.bot.json > "$T/host.out" 2>&1; then ok "C-хост: $(grep -m1 '16 потоков' "$T/host.out")"
+    if "$T/host" examples/pizza.bot.json 4 2000 1 > "$T/host.out" 2>&1; then ok "C-хост: $(tail -1 "$T/host.out")"
     else bad "C-хост завершился с кодом ≠ 0"; tail -5 "$T/host.out" | sed 's/^/    /'; fi
     echo "     ldd C-хоста: $(ldd "$T/host" | awk '{print $1}' | tr '\n' ' ')"
   else bad "C-хост не компонуется флагами ffi/out/LDFLAGS"; grep -m5 -E "error|undefined" "$T/link.log" | sed 's/^/    /'; fi

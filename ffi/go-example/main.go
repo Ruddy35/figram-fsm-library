@@ -5,7 +5,9 @@
 package main
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../out -l:libfigram.a -L${SRCDIR}/../out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic -lm -ldl -lpthread -lrt
+// Флаги компоновки libfigram.a зависят от тулчейна Lean: ffi/build.sh пишет их в
+// zz_figram_ldflags.go (рядом, генерируется) и в ffi/out/LDFLAGS. Обёртку Bot в своём
+// модуле подключайте так: CGO_LDFLAGS="$(cat путь/к/ffi/out/LDFLAGS)" go build.
 #include <stdlib.h>
 int figram_init(void);
 void* figram_load_doc(const char*);
