@@ -11,7 +11,8 @@ R1  ошибка, обнаружимая сразу (невалидный JSON, 
 R2  300 циклов «сбой → замена»: не растут потоки, дескрипторы, потомки,
     зомби; close() исправного пула мгновенный (stdin закрывается)
 R3  после сбоя таблица ожидающих пуста; вызов неисправного процесса —
-    ошибка сразу, без ожидания срока
+    ошибка сразу, без ожидания срока (и при сбое между проверкой готовности
+    и регистрацией вызова)
 R4  поздний ответ медленного движка: ошибка по сроку, процесс не убит, поздний
     ответ отброшен, следующий запрос получает свой ответ от того же процесса;
     движок под SIGSTOP: ошибка по сроку, процесс собран по hang_timeout
@@ -20,8 +21,9 @@ R6  после close(): EngineError, новых процессов нет (и п
     активных вызовов)
 R7  бинарника нет при замене процесса: EngineError
 R8  снимок, который движок не разберёт на уровне текста (ключи 1 и "1",
-    True и "true", вложенность > 256), — EngineError только этому вызову:
-    процесс не перезапускается, запросы соседей проходят
+    True и "true", вложенность > 256), отвергается клиентом до отправки —
+    EngineError только этому вызову: процесс не перезапускается, запросы
+    соседей проходят
 R9  SIGKILL группе процессов не отправляется по уже собранному pid
 
 Регрессии fix/client (двойники на Python — pyfake, плюс настоящий движок):
@@ -199,6 +201,29 @@ took = time.monotonic() - t0
 report(len(p._pending) == 0 and r == "ошибка" and took < 0.5,
        f"R3 после сбоя: ожидающих {len(p._pending)}, вызов неисправного процесса — {r} за {took:.2f} с")
 eng.close()
+# R3 (гонка, детерминированно): процесс стал неисправен между проверкой
+# готовности и регистрацией вызова — ошибка сразу, а не по сроку.
+eng = Engine(fake(HELLO + 'while read l; do :; done'), pizza, timeout=3.0)
+p = eng._procs[0]
+real_ready = p.wait_ready
+
+
+def ready_then_fail():
+    real_ready()
+    p._fail("внедрённый сбой")
+
+
+p.wait_ready = ready_then_fail
+t0 = time.monotonic()
+try:
+    p.call({"op": "start"})
+    r = "ответ"
+except EngineError:
+    r = "ошибка"
+took = time.monotonic() - t0
+eng.close()
+report(r == "ошибка" and took < 0.5 and len(p._pending) == 0,
+       f"R3 сбой между проверкой готовности и регистрацией: {r} за {took:.2f} с (срок 3 с), ожидающих {len(p._pending)}")
 
 # R4: поздний ответ и SIGSTOP. Таймаут проваливает только свой вызов (I-04):
 # процесс не убивается, поздний ответ отбрасывается, следующий запрос получает
@@ -388,8 +413,9 @@ for name, snap in BAD.items():
         try:
             eng.step("evil", snap, "btn:x")
             k = "ответ"
-        except EngineError:
-            k = "EngineError"
+        except EngineError as e:
+            # отвергнут клиентом до отправки (_check_wire), а не движком
+            k = "EngineError" if "не сериализуется" in str(e) else f"EngineError от движка: {e}"
         except Exception as e:  # noqa: BLE001
             k = type(e).__name__
         kinds[k] = kinds.get(k, 0) + 1
@@ -633,8 +659,18 @@ def r10_options():
         r = f"EngineError: {e}"
     took = time.monotonic() - t0
     left = wait_children(0, 3.0)
-    report(r.startswith("EngineError") and "hello" in r and 0.9 < took < 3.0 and not left,
+    report(r.startswith("EngineError") and "hello" in r and 0.9 < took < 1.8 and not left,
            f"R10 start_timeout 1 с, движок не отвечает на hello: «{r[:80]}», {took:.1f} с, потомков {len(left)}")
+    eng = Engine(never, pizza, timeout=0.5, start_timeout=1.0, wait_ready=False)   # никто не ждёт
+    p = eng._procs[0]
+    t0 = time.monotonic()
+    while p.alive and time.monotonic() - t0 < 5:
+        time.sleep(0.02)
+    took = time.monotonic() - t0
+    gone = not wait_children(0, 2.0)
+    eng.close()
+    report(not p.alive and took < 1.8 and gone,
+           f"R10 start_timeout 1 с без ожидающих вызовов: процесс помечен неисправным через {took:.1f} с и убит {gone}")
 
     slow = pyfake("time.sleep(2.0)\nfor r in requests():\n    result(r['id'], 'loaded')\n")
     t0 = time.monotonic()
