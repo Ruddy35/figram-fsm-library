@@ -20,7 +20,7 @@ case "${1:-}" in
   *) fail "неизвестный аргумент «$1» (допустим только --quick)";;
 esac
 MIN_MUTANTS=107        # мутаций в двух документах примеров (уменьшение — провал)
-MIN_SELFTEST_OK=35     # пройденных проверок самопроверки обвязки
+MIN_SELFTEST_OK=37     # пройденных проверок самопроверки обвязки
 F=bin/figram
 E=bin/figram-engine
 P=ffi/python-example

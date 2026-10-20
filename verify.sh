@@ -16,7 +16,7 @@ E=.lake/build/bin/figram-engine
 P=ffi/python-example
 # Нижние границы числа проверок (значения базовой версии; уменьшение — провал).
 MIN_MUTANTS=107        # мутаций в двух документах примеров
-MIN_SELFTEST_OK=35     # пройденных проверок самопроверки обвязки
+MIN_SELFTEST_OK=37     # пройденных проверок самопроверки обвязки
 WAIVED=()
 fail() { echo "НЕТ: $*"; exit 1; }
 python3 -c "import jsonschema" 2>/dev/null || fail "нужен Python-пакет jsonschema: pip install jsonschema"
