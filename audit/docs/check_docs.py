@@ -65,7 +65,17 @@ R_DEC = flat(README[README.find("### Решения спецификации"):R
 R_CHECK = flat(README[README.find("## Проверка"):README.find("## Что не покрыто")])
 
 # ---------------------------------------------------------------- numbers from the test sources
-fakes = len(re.findall(r"^\s+\"[^\"]+\": '", read("ffi/python-example/client_faults.py"), re.M))
+faults_src = read("ffi/python-example/client_faults.py")
+
+
+def dict_entries(src, name):
+    """Entries `"name": '...'` of the dict literal `NAME = {` … closing `}` (0 if absent)."""
+    m = re.search(rf"^(\s*){name} = \{{\n(.*?)^\1\}}", src, re.S | re.M)
+    return len(re.findall(r"^\s+\"[^\"]+\": '", m.group(2), re.M)) if m else 0
+
+
+fakes = dict_entries(faults_src, "FAKES")          # faults on a request (after hello)
+start_fakes = dict_entries(faults_src, "START")    # faults before the process is ready (fix-client)
 corrupt_src = read("ffi/python-example/harness_selftest.py")
 corrupt = len(re.findall(r"^\s+\"[^\"]+\": f'", corrupt_src[corrupt_src.find("CORRUPT = {"):corrupt_src.find("TOOLS = {")], re.M))
 go_src = read("ffi/go-example/main.go")
@@ -105,8 +115,11 @@ check("CV-C7", re.search(r"жетон меньше `seq`", H[3]) and re.search(r
 check("CV-C7", "отмена — оптимизация, а не условие корректности" not in H[3],
       "HOST §3: the unconditional «отмена — оптимизация» claim is gone")
 m = re.search(r"(\d+) вид\w* сбоев", H[7])
-check("D-06/PC-17", m and int(m.group(1)) == fakes and "шест" not in H[7],
-      f"HOST §7: number of client fault kinds = {fakes} (client_faults.py FAKES)")
+m2 = re.search(r"и (\d+) — до готовности", H[7])
+check("D-06/PC-17", m and int(m.group(1)) == fakes and "шест" not in H[7]
+      and (start_fakes == 0 or (m2 and int(m2.group(1)) == start_fakes)),
+      f"HOST §7: number of client fault kinds = {fakes} on a request (client_faults.py FAKES)"
+      f" and {start_fakes} before ready (START)")
 
 # ---------------------------------------------------------------- P-15 / ET-05 / ET-06
 check("ET-06", re.search(r"без перехода", H[3]) and re.search(r"остаётся в `timers`", H[3])
@@ -143,7 +156,9 @@ for name, txt in (("README", README), ("AUDIT", AUDIT), ("REVIEW", REVIEW)):
 check("D-02", "## Производительность" in README and "до оптимизации" in README,
       "README: performance section with measured numbers marked «до оптимизации» and a slot for the post-fix numbers")
 m = re.search(r"(\d+) вид\w* сбоев движка", R_CHECK)
-check("D-02", m and int(m.group(1)) == fakes, f"README: client fault kinds = {fakes}")
+m2 = re.search(r"сбоев движка[^|]*?и (\d+) — до готовности", R_CHECK)
+check("D-02", m and int(m.group(1)) == fakes and (start_fakes == 0 or (m2 and int(m2.group(1)) == start_fakes)),
+      f"README: client fault kinds = {fakes} on a request and {start_fakes} before ready")
 m = re.search(r"(\d+) вид\w* порчи ответов движка, неполном.*?\((\d+) проверок\)", R_CHECK)
 check("D-02", m and int(m.group(1)) == corrupt and int(m.group(2)) == min_selftest,
       f"README: harness corruption kinds = {corrupt}, self-test checks = {min_selftest}")
@@ -155,7 +170,9 @@ a2 = flat(section(AUDIT, 2))
 m = re.search(r"(\d+) вид\w* порчи ответов", a2[a2.find("Go-обёртка"):])
 check("D-02", m and int(m.group(1)) == go_corrupt, f"AUDIT: Go corruption kinds = {go_corrupt}")
 m = re.search(r"(\d+) вид\w* сбоев движка", a2)
-check("D-02", m and int(m.group(1)) == fakes, f"AUDIT: client fault kinds = {fakes}")
+m2 = re.search(r"сбоев движка[^|]*?и (\d+) — до готовности", a2)
+check("D-02", m and int(m.group(1)) == fakes and (start_fakes == 0 or (m2 and int(m2.group(1)) == start_fakes)),
+      f"AUDIT: client fault kinds = {fakes} on a request and {start_fakes} before ready")
 check("D-02", "4 вида порчи ответов ловятся" not in a2, "AUDIT §2: stale «4 вида порчи» claim gone")
 check("D-02", re.search(r"6 видов сбоев[^|]*на момент", flat(REVIEW)) or "6 видов сбоев" not in REVIEW,
       "REVIEW N01: «6 видов» marked as historical")
