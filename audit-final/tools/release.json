@@ -35,19 +35,11 @@
   "39381510380": "179b246: expected, Lean archive sha256 not pinned yet and bin/ stale",
   "39383775277": "f7c7fa1: flaky test R9 (N-10), fixed in 5314928",
   "39448541171": "7737933: expected, bin/ stale before the bin commit",
-  "39449543737": "a7c2495: C-ABI 16 MiB headroom bound too tight for the official toolchain (clean rc 2), fixed in 2119c8b"
+  "39449543737": "a7c2495: C-ABI 16 MiB headroom bound too tight for the official toolchain (clean rc 2), fixed in 2119c8b",
+  "39451303193": "d95a063: flaky R2 (N-11), fixed in 494bfc6",
+  "39451303189": "d95a063: Lean Action CI could not download Lean (SSL connect error), passed on the next commit"
  },
  "ci_verify_previous": {
-  "workflow": "verify.yml",
-  "run": 39385153871,
-  "commit": "53149286c578680d68eda3515e3a9387ab47a93d",
-  "conclusion": "success",
-  "verdict": "ВСЁ В ПОРЯДКЕ",
-  "artifact": 12247626063,
-  "artifact_zip_sha256": "45e3faa0725f8f1c4e118a274c54a6cb08f4ac8fad26a11111335db3797edd5e",
-  "verify_log": "VERIFY.log (verbatim verify-full.log)"
- },
- "ci_verify": {
   "workflow": "verify.yml",
   "run": 39450097996,
   "commit": "2119c8b6cbf3067b6a92e49a16bf3d10e87d9059",
@@ -64,5 +56,15 @@
   "go_runtime_reserve": "+2.16 GB -> +76 MB",
   "go_runtime_rss": "+11 MB -> +7 MB",
   "per_machine_kb": "~9"
+ },
+ "ci_verify": {
+  "workflow": "verify.yml",
+  "run": 39453038163,
+  "commit": "494bfc6bc45dad6ed1281bc221dbe09f6b5aa6a1",
+  "conclusion": "success",
+  "verdict": "ВСЁ В ПОРЯДКЕ",
+  "artifact": 12280095163,
+  "artifact_zip_sha256": "86b75658e484e9f0fb0823eec63de16cec8acaab60d0d0f884a84c62d15c8736",
+  "verify_log": "VERIFY.log (verbatim verify-full.log)"
  }
 }

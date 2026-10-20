@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-10-20T15:56:41+00:00",
+ "generated_utc": "2026-10-20T16:04:45+00:00",
  "archive": {
   "name": "figram-lean_4.zip",
   "sha256": "7769c0030bb2c516060015039263764d778ead91a92d8b2213f4fa1d9f8d1329"
@@ -56,19 +56,11 @@
    "39381510380": "179b246: expected, Lean archive sha256 not pinned yet and bin/ stale",
    "39383775277": "f7c7fa1: flaky test R9 (N-10), fixed in 5314928",
    "39448541171": "7737933: expected, bin/ stale before the bin commit",
-   "39449543737": "a7c2495: C-ABI 16 MiB headroom bound too tight for the official toolchain (clean rc 2), fixed in 2119c8b"
+   "39449543737": "a7c2495: C-ABI 16 MiB headroom bound too tight for the official toolchain (clean rc 2), fixed in 2119c8b",
+   "39451303193": "d95a063: flaky R2 (N-11), fixed in 494bfc6",
+   "39451303189": "d95a063: Lean Action CI could not download Lean (SSL connect error), passed on the next commit"
   },
   "ci_verify_previous": {
-   "workflow": "verify.yml",
-   "run": 39385153871,
-   "commit": "53149286c578680d68eda3515e3a9387ab47a93d",
-   "conclusion": "success",
-   "verdict": "ВСЁ В ПОРЯДКЕ",
-   "artifact": 12247626063,
-   "artifact_zip_sha256": "45e3faa0725f8f1c4e118a274c54a6cb08f4ac8fad26a11111335db3797edd5e",
-   "verify_log": "VERIFY.log (verbatim verify-full.log)"
-  },
-  "ci_verify": {
    "workflow": "verify.yml",
    "run": 39450097996,
    "commit": "2119c8b6cbf3067b6a92e49a16bf3d10e87d9059",
@@ -85,6 +77,16 @@
    "go_runtime_reserve": "+2.16 GB -> +76 MB",
    "go_runtime_rss": "+11 MB -> +7 MB",
    "per_machine_kb": "~9"
+  },
+  "ci_verify": {
+   "workflow": "verify.yml",
+   "run": 39453038163,
+   "commit": "494bfc6bc45dad6ed1281bc221dbe09f6b5aa6a1",
+   "conclusion": "success",
+   "verdict": "ВСЁ В ПОРЯДКЕ",
+   "artifact": 12280095163,
+   "artifact_zip_sha256": "86b75658e484e9f0fb0823eec63de16cec8acaab60d0d0f884a84c62d15c8736",
+   "verify_log": "VERIFY.log (verbatim verify-full.log)"
   }
  },
  "branches": {
@@ -123,12 +125,12 @@
   "0039-audit-TEST-ONLY-adaptation-of-ffi-build.sh-and-verif.patch",
   "0040-audit-TEST-ONLY-ffi-audit-build_audit.sh-uses-the-si.patch"
  ],
- "file_count": 5912,
+ "file_count": 5950,
  "files_sha256": {
   "ARCHITECTURE.md": "7a541ba49e157dd1179eccc7a1602945e53f5a06b7e991a112c907b178aebed9",
   "BUILD_AND_PROOFS.md": "65a7b2b1206fa329ad7481b566bdc029927d5413da0e154ea50192dd3735437c",
   "EXECUTIVE.md": "00134a8cf3466524b72065f34d764d9ec0f0e932cdd710fdb79b38a871cf4d96",
-  "FIXES.md": "5112a35c68bde4e4425572334b4a830025a48cdaefed2c4e692d4381546fb380",
+  "FIXES.md": "1ec22a1c97daf82eb25f6293543fa44be9185fda0c5859190d1d0b0840de6c35",
   "ISSUES_INTEGRATION.md": "3c5755b2af8edc46efa8fb52830b8f7c63f9d6a430259ef2b472a309d57397a1",
   "ISSUES_PRODUCT.md": "42533c64f9ef7a2431ba4e766be2f5bc65f1fd0c6ece42a1a6978775b0c30dc8",
   "ISSUES_TESTS.md": "9b6fe69219132fb3609b8293560b0b624a75b5424db9a41e47ca6e8f388ed97e",
@@ -5315,6 +5317,44 @@
   "fixes/memory/LOGS/ci-verify-39450097996/verify-logs/selftest.log": "5853725a3fef4c9a87798d230613fe81f220367774e07513d94b7d78a3463e34",
   "fixes/memory/LOGS/ci-verify-39450097996/verify-logs/snapshots.log": "3edfcf55c78d7a3c29a31fb003c8625818c400610e2249090fe6373a6de4adf4",
   "fixes/memory/LOGS/ci-verify-39450097996/verify-logs/stress.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/PROVENANCE.txt": "67984ed43f60dd6df8fdad7d824363211b036d5ef55d44776ac83a30a64c2704",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-full.log": "4604bec5049abd495e47f63f1ee460865eef60038054f2f8ce58971d9ed86476",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/c_asan.log": "270854ebce161f550ffda72bfa50aeddd6539e761115b97c21242ea8bc90487f",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/c_contract.log": "eb4c87d418257ab34cbc12417953a0ac242fbaf4a57b09f979b52405ff71b033",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/c_reload.log": "77c7f099202768e92d19b241c7448026991fe899e8a32a82e2efe95da0544e00",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/client_contract.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/client_contract.log": "593fbcd90e4924a483ef80ae9e4c5d0656041adda262e6a640bdca74ac6cf2d6",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/client_faults.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/client_faults.log": "6c83102b103affe7b19669d4c1b72010e391d91b2f92c5c5e5b1da76b4dd6257",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/client_robustness.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/client_robustness.log": "5cdd72024ed0d43bf9486aed7efb30dbe2e11beebe81453bb9fe0e31ce2bef18",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/contract.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/engine_memory.log": "fd2d36445c74c370d933a937ab04ece5c2fcb82a5895461602e84fb0688102ea",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/ffi_asan.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/ffi_build.log": "818ada7c7b50572e24f68f73ce0544d233b5b7e9812dfdd8652885fff978b8e6",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_build_race.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_conf.log": "5e8880afd95a2b6cca7567c02b41b52e6f707133db9478f51bf70819d373acbe",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_race.log": "2a59a871486a8598c11bb86bd2d4ff4daea438df207232113790bde7700f456e",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_reload.log": "666deb690fae70262d1d71d325ea4b2c925c88ec7b8df0cbb1006bfdf1d2e7bb",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_rlimit.log": "5c6f8b32c401bede321f8e6c0d219149f12f9fd66cf00b51771848b5b64918e3",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/go_shared_map.log": "827e282a664f797891860b5910d01736b60b14c4d033b75fc0f55985c0a92237",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/harness_asan.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/harness_plain.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/header_c.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/header_cxx.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/host.log": "bdf4ab4e107fbe3c41c30667962d5b57d9675794ecdb83365a777f6e19a1cd82",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/io_asan.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/json_fuzz.log": "c19312976094681c6149ebf82fac9c45d664ccbe170412b6f191098e9db29a88",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/load.log": "aa51a105aa6567495af31efbe0b38129c36e90de654dd288d7173513ffd02ccc",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/mutation.log": "37ac9b99f61d4fddd606738bc269f555c1825d936db68a9d5c00d09343abf663",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/oom.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/proofs.log": "6f2ebf3f0de7379159c0300c8754b09269114523fd08a495faca6d48f775bfb8",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/protocol_edges.log": "8243620ecbb0777c24dbd5e1613a1eed19cfffeeefce00c961cddc582d080aaa",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/random_docs.log": "f83d27a07f586b003d423693acbf817e14d86282dfdc47e0a52bb12529f71b22",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/selftest.log": "b8fc283a1c988836cd8db1c1da28e3bc231ca5ca1c95c6ec39267d7470a9d658",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/snapshots.log": "3edfcf55c78d7a3c29a31fb003c8625818c400610e2249090fe6373a6de4adf4",
+  "fixes/memory/LOGS/ci-verify-39453038163/verify-logs/stress.cc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "fixes/memory/LOGS/formats/a-break-drop-unknown.log": "872aafbd9618461088abf40da9786f70084c60814911b6b931d93467dde7294b",
   "fixes/memory/LOGS/formats/a-break-drop-unknown.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "fixes/memory/LOGS/formats/a-break-drop-unknown.stdout": "00975c355b1b51a8fded6332584d07d1a294c6aa21b9b193883197f8967ab471",
@@ -6035,7 +6075,7 @@
   "tools/finalize.py": "10d095a3ed4f89d29670681eee263da4ebf739fdbbc5f3e874b8bfd6946b2561",
   "tools/gate.sh": "781951d1639f56a623b43d9bf019e3a2ab740878ac6c7680b0fc4fe4b06817a8",
   "tools/package_fixes.py": "ffc414aee51b9d20f737060a205d7a9fe8912cf4ac31537c7cd858c433c95eb2",
-  "tools/release.json": "045799863d9d6ba68ee4a640fd855f384df01dc90ba58d36914542d52369665b",
+  "tools/release.json": "cd18c9339d2f9043f15e897069d5975c86b63681c5fed0ce8b1529805f2c8305",
   "tools/run.sh": "d813faadd37aa8dc72ab75ebdf0edd7fdb85cf4f910530fe2f90e3a274179869"
  }
 }

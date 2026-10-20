@@ -1,0 +1,13 @@
+=== RUN   TestFixInitUnderRlimitAS
+    fix_test.go:134: FIGRAM_CHILD_AS_HEADROOM=268435456: child <nil>
+        RLIMIT_AS=1959677952: figram_init=0
+        RLIMIT_AS=1959677952: loaded (enough address space)
+    fix_test.go:134: FIGRAM_CHILD_AS_HEADROOM=1073741824: child <nil>
+        RLIMIT_AS=2764984320: figram_init=0
+        RLIMIT_AS=2764984320: loaded (enough address space)
+    fix_test.go:134: FIGRAM_CHILD_AS=3000000000: child <nil>
+        RLIMIT_AS=3000000000: figram_init=0
+        RLIMIT_AS=3000000000: loaded (enough address space)
+--- PASS: TestFixInitUnderRlimitAS (0.01s)
+PASS
+ok  	gofig	0.017s
