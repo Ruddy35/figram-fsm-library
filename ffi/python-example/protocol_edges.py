@@ -329,7 +329,9 @@ except ValueError:
 check_cli("--mutate: hello сообщает мутацию, предупреждение в stderr",
           r.returncode == 0 and mresp == {"id": 1, **HELLO, "mutant": spec} and spec.encode() in r.stderr, r)
 r = cli(["--mutate", "redirect:999", doc], hello, env=mutant_env())
-check_cli("--mutate redirect:999 (нет в списке мутаций) — отказ", r.returncode != 0 and r.stdout == b"", r)
+check_cli("--mutate redirect:999 (номера нет в автомате) — отказ", r.returncode == 2 and r.stdout == b"", r)
+r = cli(["--mutate", "drop-call:nope", doc], hello, env=mutant_env())
+check_cli("--mutate drop-call:nope (действия нет в автомате) — отказ", r.returncode == 2 and r.stdout == b"", r)
 r = cli(["--mutate", "bogus", doc], hello, env=mutant_env())
 check_cli("--mutate bogus — отказ", r.returncode != 0 and r.stdout == b"", r)
 for bad_args in (["--max-request", "abc", doc], ["--max-request", "-5", doc], ["--max-request", doc],

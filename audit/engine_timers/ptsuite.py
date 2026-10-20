@@ -660,7 +660,7 @@ def mutate_scenarios(ex, own):
                        capture_output=True, timeout=20, env=noenv)
     hard("M2", "mutate", p.returncode == 2 and p.stdout == b"" and q.returncode == 2 and z.returncode != 0
          and z.stdout == b"",
-         "mutation not in the --mutants list (redirect:999) and unknown spec -> exit 2; without "
+         "mutation index outside the machine (redirect:999) and unknown spec -> exit 2; without "
          "FIGRAM_ALLOW_MUTANTS=1 --mutate is refused",
          {"redirect:999": [p.returncode, p.stdout.decode()], "bogus": [q.returncode, q.stderr.decode()[:120]],
           "no-env": [z.returncode, z.stderr.decode()[:160]]})

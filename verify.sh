@@ -228,7 +228,7 @@ expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), ра�
 expect "$LOGS/snapshots.log" '^граница seq: ok$' 'True' "граница seq"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^граничных случаев протокола (\d+), ответов (\d+), расхождений (\d+)$' \
-  'g[0] >= 105 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
+  'g[0] >= 106 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
 
 step "Текстовый слой JSON: дифференциально против Python json"
 logged json_fuzz python3 $P/json_fuzz.py $F 30000 1
