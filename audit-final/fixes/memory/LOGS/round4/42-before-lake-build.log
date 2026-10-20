@@ -1,0 +1,12 @@
+command: lake build 
+cwd: /home/user/figram-audit-worktrees/before-p22
+start: 2026-10-20T19:51:15.007Z
+end: 2026-10-20T19:51:17.677Z
+exit_code: 0
+--- stdout (216 bytes, last 200 lines)
+✔ [47/50] Built figram/figram_exe.o (179ms)
+✔ [48/50] Built figram/figram_rt.o (205ms)
+✔ [49/50] Built figram:exe (375ms)
+✔ [50/50] Built «figram-engine»:exe (377ms)
+Build completed successfully (50 jobs).
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,33 @@
+command: sh audit/core-compiler/run_all.sh /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram /home/user/figram-audit/fixes/memory/LOGS/round4/cc 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T19:56:38.541Z
+end: 2026-10-20T20:05:08.009Z
+exit_code: 0
+--- stdout (979 bytes, last 200 lines)
+ok    directed-conformance (exit 0)
+ok    directed-findings (exit 0)
+ok    directed-designer-oracle (exit 0)
+ok    red-directed-drop-exit (exit 0)
+ok    red-directed-drop-remember (exit 0)
+ok    red-directed-resume-default (exit 0)
+ok    red-directed-drop-timer-start (exit 0)
+ok    diff-random (exit 0)
+ok    red-oracle-no-exit (exit 0)
+ok    red-oracle-resume-initial (exit 0)
+ok    red-oracle-accept-any-token (exit 0)
+ok    red-oracle-need-own-only (exit 0)
+ok    red-oracle-first-variant-only (exit 0)
+ok    red-oracle-calls-after-entry (exit 0)
+ok    red-oracle-no-restart-self (exit 0)
+ok    designer-same-version (exit 0)
+ok    designer-upgrades (exit 0)
+ok    mutants (exit 0)
+ok    metamorphic (exit 0)
+ok    red-metamorphic-rename_nodes (exit 0)
+ok    red-metamorphic-annotations (exit 0)
+ok    red-metamorphic-unreachable_resume (exit 0)
+ok    red-metamorphic-shuffle_children (exit 0)
+ok    check-diff (exit 0)
+ok    red-check-diff (exit 0)
+ok    lint-gaps (exit 0)
+--- stderr (0 bytes, last 100 lines)

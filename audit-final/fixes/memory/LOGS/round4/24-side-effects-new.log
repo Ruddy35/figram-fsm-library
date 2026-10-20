@@ -1,0 +1,9 @@
+command: ffi/audit/out/contract side_effects 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T19:54:29.518Z
+end: 2026-10-20T19:54:29.527Z
+exit_code: 0
+--- stdout (196 bytes, last 200 lines)
+before init threads=1 VmSize=11240 KB SIGPIPE=SIG_DFL SIGSEGV=SIG_DFL sigaltstack=disabled size=0
+after init  threads=1 VmSize=12008 KB SIGPIPE=SIG_DFL SIGSEGV=SIG_DFL sigaltstack=disabled size=0
+--- stderr (0 bytes, last 100 lines)

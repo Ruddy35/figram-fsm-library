@@ -1,0 +1,133 @@
+command: nice -n 10 timeout 2400 ./verify.sh 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T19:45:31.775Z
+end: 2026-10-20T19:50:21.851Z
+exit_code: 3
+--- stdout (9063 bytes, last 200 lines)
+
+== Происхождение прогона
+дата: 2026-10-20T19:45:31Z; ядер: 4
+коммит: 6c20e10ba8d55f557fc8e59022294de2abdfcf79; изменённых отслеживаемых файлов: 12
+verify.sh sha256: 0b3fae36edfef1775f6b564fc78e0ef8426adbab14da784ec97d4622178989f9
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (52 jobs).
+
+== Приложенные бинарники bin/ собраны ровно из этих исходников
+ok: пересборка совпадает с /home/user/figram-audit/fixes/memory/sums/SUMS (bin/ с исходниками НЕ сверялись)
+
+== Теоремы: только стандартные аксиомы, формулировки закреплены
+'Figram.Chart.compile_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.run_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.session_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.chart_run_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_state_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.compile_eq_spec' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.wfDirect_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.lint_nil_wf' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.wfFast_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+'Figram.Format.toChart_decls' does not depend on any axioms
+'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.step_snapOK' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.guards_irrelevant' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.missing_nil_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startAt_snapOK' depends on axioms: [propext, Quot.sound]
+теорем 23: аксиомы только из ['Classical.choice', 'Quot.sound', 'propext']
+формулировки 23 теорем совпадают с ci/THEOREMS.expected
+в исходниках нет axiom, native_decide, implemented_by, extern, sorry, admit
+
+== Теоремы: строгий шлюз — все теоремы исходников и окружения, формулировки, leanchecker
+axiom set []: 373 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 48 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+
+== Фиксированные сценарии совпадают с сохранёнными
+ok (сценариев: 12)
+
+== Соответствие движка: фиксированные и случайные сценарии
+покрыто вариантов стрелок: 42 из 42
+покрыто вариантов стрелок: 36 из 36
+запросов 18103, расхождений 0
+
+== Соответствие на 100 случайных документах
+документов 100, запросов 96455, документов с расхождениями 0
+
+== Мутационное тестирование
+examples/pizza.bot.json: мутаций 56
+examples/features.bot.json: мутаций 51
+обнаружено 107 из 107 мутаций (100%)
+
+== Контракт хоста
+контракт выполнен
+
+== CLI: ошибки аргументов дают ненулевой код
+ok
+
+== Огромный показатель степени: быстрый контролируемый отказ
+ok (код 1, figram: не удалось прочитать документ: показатель степени по модулю больше 1000)
+
+== Память движка: запуск под ulimit -v 32, 64 и 256 МБ, резерв адресов ≤ 64 МБ, занято ≤ 16 МБ, один поток, сообщение о переполнении стека
+память движка: резерв адресов 12 МБ, занято 6 МБ, потоков 1
+
+== Снимок: схема и движок согласованы, граница seq; restart, условия, жетоны, hello
+снимков 24, ответов 24, расхождений схемы и движка 0
+граница seq: ok
+граничных случаев протокола 106, ответов 106, расхождений 0
+
+== Текстовый слой JSON: дифференциально против Python json
+случаев 30000: принято обоими 8962, отвергнуто обоими 21038, расхождений 0, записей не читается обратно 0 из 8962
+контроль: парсер без ограничений обнаружен (случаев 3000: принято обоими 809, отвергнуто обоими 1229, расхождений 962, записей не читается обратно 0 из 1771)
+
+== C-прослойка: невалидный UTF-8, огромные входы, 16 потоков, ASan и UBSan (инструментирована только прослойка)
+строка 5 МБ → {"id":null,"error":"запрос длиннее предела 1048576 байт"
+16 потоков × 20000 вызовов к одному автомату: расхождений 0
+5000 загрузок и выгрузок: рост памяти 56 КБ; без выгрузки (контроль): 45996 КБ
+
+== C-ABI ffi/figram.h: init без падения хоста, NULL, дескрипторы, NUL, UTF-8, предел, сигналы
+регрессионных проверок C-ABI 34, провалено 0
+ffi/figram.h компилируется как C99 и C++ без предупреждений
+
+== Рантайм Lean без цикла событий libuv (P-22): шаги запуска и недостижимость
+проверок 4, отказов 0
+шаги запуска рантайма: штатные 9 без initialize_libuv; у библиотеки ещё без initialize_stack_overflow
+проверок 6, отказов 0
+проверок 6, отказов 0
+проверок 8, отказов 0
+проверок 6, отказов 0
+
+== Клиент Python: сбои движка, контракт методов, чистый stderr
+клиент устойчив
+контракт клиента выполнен
+клиент устойчив
+
+== Тестовая обвязка ловит испорченный, неполный, пустой и зависший движок
+обвязка ловит порчу
+
+== Нагрузочный тест: 64 потока, 2 процесса
+потоков  64, процессов 2: шагов 8000 (из них с запросом условий 464), расхождений 0, 4,195 шагов/с, задержка p50 12,797 мкс, p99 34,599 мкс
+
+== Go: встроенный движок, сценарии из многих горутин
+ботов 4, раундов 3, горутин 600, запросов 24600, расхождений 0, 42556 запросов/с (GOMAXPROCS=4, CPU=4)
+ботов 3, раундов 3, горутин 60, запросов 1860, расхождений 0, 16163 запросов/с (GOMAXPROCS=4, CPU=4)
+-rounds 0 и -bots 0: Go-проверка красная
+7 видов порчи ответов: Go-проверка красная
+5000 загрузок с Close (после прогрева): рост памяти 404 КБ; без Close (контроль): 46088 КБ
+общий словарь запроса из 8 горутин: гонок нет; регрессионные тесты обёртки Bot (hello, op, NUL, ленивый Load, причина отказа, too_large, коды ошибок): пройдены
+Go под RLIMIT_AS (занято + 256 МиБ, + 1 ГиБ, 3 ГБ): рантайм запускается, Load и запрос работают
+повреждённый сценарий: Go-проверка красная
+
+ПРОЙДЕНО С ОТСТУПЛЕНИЯМИ (это НЕ «ВСЁ В ПОРЯДКЕ»):
+  - хеши сверены с /home/user/figram-audit/fixes/memory/sums/SUMS, а не с bin/SHA256SUMS: соответствие bin/ исходникам не проверено
+--- stderr (0 bytes, last 100 lines)

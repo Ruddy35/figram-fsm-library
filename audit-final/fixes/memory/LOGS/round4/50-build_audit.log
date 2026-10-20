@@ -1,0 +1,12 @@
+command: bash ffi/audit/build_audit.sh 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T19:53:21.302Z
+end: 2026-10-20T19:53:50.719Z
+exit_code: 0
+--- stdout (28 bytes, last 200 lines)
+готово: ffi/audit/out
+--- stderr (290 bytes, last 100 lines)
+ffi/audit/contract.c: In function 'main':
+ffi/audit/contract.c:236:58: warning: '%s' directive argument is null [-Wformat-overflow=]
+  236 |   printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
+      |                                                          ^~

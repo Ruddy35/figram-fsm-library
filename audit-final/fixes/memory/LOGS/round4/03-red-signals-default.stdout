@@ -1,0 +1,5 @@
+ok   SIGPIPE disposition preserved: before (nil) flags 0, after (nil) flags 67108864
+FAIL SIGSEGV disposition preserved: before (nil) flags 0, after 0x562b313c82c0 flags 201326596
+FAIL SIGBUS disposition preserved: before (nil) flags 0, after 0x562b313c82c0 flags 201326596
+ok   sigaltstack of the calling thread preserved: before sp=(nil) size=0 flags=2, after sp=(nil) size=0 flags=2
+ok   library works after init: error: нужно поле «figram»: 1

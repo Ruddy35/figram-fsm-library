@@ -1,0 +1,11 @@
+command: nice lake build 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T19:32:19.298Z
+end: 2026-10-20T19:32:24.781Z
+exit_code: 0
+--- stdout (170 bytes, last 200 lines)
+✔ [50/52] Built figram/figram_init.o (241ms)
+✔ [51/52] Built figram:exe (2.3s)
+✔ [52/52] Built «figram-engine»:exe (2.3s)
+Build completed successfully (52 jobs).
+--- stderr (0 bytes, last 100 lines)

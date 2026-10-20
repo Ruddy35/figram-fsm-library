@@ -1,0 +1,12 @@
+command: ffi/audit/out/contract signals default 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T19:32:58.704Z
+end: 2026-10-20T19:32:58.712Z
+exit_code: 0
+--- stdout (424 bytes, last 200 lines)
+ok   SIGPIPE disposition preserved: before (nil) flags 0, after (nil) flags 67108864
+ok   SIGSEGV disposition preserved: before (nil) flags 0, after (nil) flags 0
+ok   SIGBUS disposition preserved: before (nil) flags 0, after (nil) flags 0
+ok   sigaltstack of the calling thread preserved: before sp=(nil) size=0 flags=2, after sp=(nil) size=0 flags=2
+ok   library works after init: error: нужно поле «figram»: 1
+--- stderr (0 bytes, last 100 lines)
