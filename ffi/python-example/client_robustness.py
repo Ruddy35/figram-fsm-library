@@ -496,13 +496,16 @@ def attempt(fn):
 
 def kill_alive(eng, i=0):
     """SIGKILL группе процесса слота, только если клиент считает его живым
-    (pid ещё не собран)."""
+    (pid ещё не собран), и дождаться, пока клиент заметит сбой (EOF вывода)."""
     p = eng._procs[i]
     if p.alive:
         try:
             os.killpg(p._p.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
+    t0 = time.monotonic()
+    while p.alive and time.monotonic() - t0 < 5:
+        time.sleep(0.01)
 
 
 def hwm_mb():
@@ -521,20 +524,20 @@ def unique_doc(n):
     return {"figram": 1, "bot": {"initial": names[0], "children": ch}}
 
 
-def neighbours(eng, n, until, check):
-    """n потоков шлют свои шаги до момента `until`; check(i, k, ответ) → bool.
-    Возвращает потоки и счётчики {ok, err, wrong, late_ok} (late_ok — ответы
-    после момента stats['after'], если он задан)."""
+def neighbours(eng, n, check):
+    """n потоков шлют свои шаги, пока не выставлен stop; check(i, k) → bool
+    (ответ свой и верный). Счётчики {ok, err, wrong, late_ok}: late_ok — верные
+    ответы после момента stats['after'], если он задан."""
     stats = {"ok": 0, "err": 0, "wrong": 0, "late_ok": 0, "after": None}
     lk = threading.Lock()
+    stop = threading.Event()
 
     def run(i):
         k = 0
-        while time.monotonic() < until:
+        while not stop.is_set():
             k += 1
             try:
-                good = check(i, k)
-                key = "ok" if good else "wrong"
+                key = "ok" if check(i, k) else "wrong"
             except EngineError:
                 key = "err"
             with lk:
@@ -546,7 +549,28 @@ def neighbours(eng, n, until, check):
     ths = [threading.Thread(target=run, args=(i,)) for i in range(n)]
     for t in ths:
         t.start()
-    return ths, stats
+    return ths, stats, stop
+
+
+def drained(eng, key, limit=60.0):
+    """Дождаться, пока процесс снова отвечает в срок (очередь медленных
+    запросов выполнена): вызывать start, пока не ответит."""
+    t0 = time.monotonic()
+    while time.monotonic() - t0 < limit:
+        if attempt(lambda: eng.start(key)) != "ошибка":
+            return True
+    return False
+
+
+def finish(ths, st, stop, eng, settle=1.0):
+    """Медленные запросы выполнены → ещё settle с работы соседей → стоп."""
+    ok = drained(eng, "drain")
+    st["after"] = time.monotonic()
+    time.sleep(settle)
+    stop.set()
+    for t in ths:
+        t.join(30)
+    return ok
 
 
 def r10_startup():
@@ -561,7 +585,6 @@ def r10_startup():
                f"R10 загрузка 2.5 с при timeout 1 с (двойник): ответы {res}, запусков движка {launches(cnt)}, "
                f"{time.monotonic() - t0:.1f} с")
         kill_alive(eng)                     # сбой прогретого процесса (cross-verify C3, вариант C)
-        time.sleep(0.3)
         t1 = time.monotonic()
         res = [attempt(lambda: eng.start("u")["snapshot"]["at"]) for _ in range(3)]
         report(res == ["loaded"] * 3 and launches(cnt) == 2,
@@ -591,7 +614,6 @@ def r10_real():
     try:
         r1 = attempt(lambda: eng.start("u")["snapshot"]["at"])
         kill_alive(eng)
-        time.sleep(0.3)
         r2 = attempt(lambda: eng.start("u")["snapshot"]["at"])
     finally:
         eng.close()
@@ -656,14 +678,11 @@ def r11_slow_request():
     eng = Engine(fake, pizza, timeout=0.6)
     try:
         pid0 = eng._procs[0]._p.pid
-        t0 = time.monotonic()
-        ths, st = neighbours(eng, 4, t0 + 4.8, lambda i, k: eng.step(
+        ths, st, stop = neighbours(eng, 4, lambda i, k: eng.step(
             f"n{i}", {"at": "x"}, f"btn:n{i}-{k}")["snapshot"]["at"] == f"step:btn:n{i}-{k}")
         time.sleep(0.2)
         poison = [attempt(lambda: eng.step("evil", {"at": "slow"}, "btn:p")) for _ in range(2)]
-        st["after"] = t0 + 3.6           # оба медленных запроса движок уже выполнил
-        for t in ths:
-            t.join(15)
+        finish(ths, st, stop, eng)
         p = eng._procs[0]
         same = p.alive and p._p.pid == pid0
         final = attempt(lambda: eng.start("u")["snapshot"]["at"])
@@ -705,14 +724,10 @@ def r11_real():
         pid0 = eng._procs[0]._p.pid
         s0 = eng.start("n")["snapshot"]
         want = eng.step("n", s0, "btn:order")["snapshot"]
-        t0 = time.monotonic()
-        ths, st = neighbours(eng, 4, t0 + 2 * took + 1.5,
-                             lambda i, k: eng.step(f"n{i}", s0, "btn:order")["snapshot"] == want)
+        ths, st, stop = neighbours(eng, 4, lambda i, k: eng.step(f"n{i}", s0, "btn:order")["snapshot"] == want)
         time.sleep(0.1)
         poison = [attempt(lambda: eng.step("evil", snap, "btn:x")) for _ in range(2)]
-        st["after"] = t0 + 2 * took + 0.6
-        for t in ths:
-            t.join(30)
+        finish(ths, st, stop, eng)
         p = eng._procs[0]
         same = p.alive and p._p.pid == pid0
     finally:
@@ -778,7 +793,7 @@ def r12_id_null():
         eng = Engine(fake, pizza, timeout=2.0)
         try:
             pid0 = eng._procs[0]._p.pid
-            ths, st = neighbours(eng, 4, time.monotonic() + 1.5, lambda i, k: eng.step(
+            ths, st, stop = neighbours(eng, 4, lambda i, k: eng.step(
                 f"n{i}", {"at": "x"}, f"btn:n{i}-{k}")["snapshot"]["at"] == f"step:btn:n{i}-{k}")
             time.sleep(0.1)
             bad = []
@@ -789,6 +804,8 @@ def r12_id_null():
                 except EngineError as e:
                     bad.append((getattr(e, "code", "?"), getattr(e, "retryable", "?")))
                 time.sleep(0.05)
+            time.sleep(0.5)
+            stop.set()
             for t in ths:
                 t.join(10)
             same = eng._procs[0].alive and eng._procs[0]._p.pid == pid0
@@ -811,8 +828,7 @@ def r12_real():
             pid0 = eng._procs[0]._p.pid
             s0 = eng.start("n")["snapshot"]
             want = eng.step("n", s0, "btn:order")["snapshot"]
-            ths, st = neighbours(eng, 4, time.monotonic() + 1.5,
-                                 lambda i, k: eng.step(f"n{i}", s0, "btn:order")["snapshot"] == want)
+            ths, st, stop = neighbours(eng, 4, lambda i, k: eng.step(f"n{i}", s0, "btn:order")["snapshot"] == want)
             time.sleep(0.1)
             bad = []
             for _ in range(5):
@@ -822,6 +838,8 @@ def r12_real():
                 except EngineError as e:
                     bad.append(getattr(e, "retryable", "?"))
                 time.sleep(0.05)
+            time.sleep(0.5)
+            stop.set()
             for t in ths:
                 t.join(10)
             same = eng._procs[0].alive and eng._procs[0]._p.pid == pid0
@@ -889,7 +907,6 @@ def r13_backoff():
         open(broken, "w").close()
         n0 = launches(cnt)
         kill_alive(eng)
-        time.sleep(0.3)
         msgs, lk = [], threading.Lock()
         stop = time.monotonic() + 3.0
 
@@ -922,7 +939,6 @@ def r13_backoff():
             time.sleep(0.1)
         back = time.monotonic() - t0
         kill_alive(eng)                   # процесс поработал — пауза сбрасывается
-        time.sleep(0.3)
         again = attempt(lambda: eng.start("u")["snapshot"]["at"])
     finally:
         eng.close()
