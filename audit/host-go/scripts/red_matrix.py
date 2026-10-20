@@ -46,9 +46,21 @@ MATRIX = [
     ("skip-external", "skip-external", "order-1", [], ["external_faults_effective", "external_effect_once_per_intent"]),
     ("no-reply-validate", "no-reply-validate", "adversarial-1", [], ["engine_faults_effective"]),
     ("busy-8000ms (test of test)", "", "failures-1", ["-busy-ms", "8000"], ["db_lock_effective"]),
-    ("strict-snapshot-timers", "strict-snapshot-timers", "migration-1", [], ["all_updates_acked", "equals_clean_run"]),
-    ("unload-no-wait (soak, reload 200ms)", "unload-no-wait", "soak", [], ["no_unexpected_host_death"]),
-    ("correct (soak, reload 200ms)", "", "soak", [], []),
+    # NP-05: after an upgrade an IGNORED step returns the snapshot with timers of the old
+    # document (FORMAT §7 rule 2); the strict validator of the first host version poison-loops.
+    # On migration-1 this needed the pre-P-04 engine (old timers survived transitions); since
+    # the P-04 fix every transition cancels them, so the trigger is the targeted corpus
+    # corpora/red_strict_timers-1 (ignored event right after the upgrade). migration-1 stays as
+    # an informational row (expected: nothing red).
+    ("strict-snapshot-timers", "strict-snapshot-timers", "repo:red_strict_timers-1", [], ["all_updates_acked"]),
+    ("correct/red_strict_timers", "", "repo:red_strict_timers-1", [], []),
+    ("strict-snapshot-timers/migration-1 (P-04 fixed)", "strict-snapshot-timers", "migration-1", [], []),
+    # Unload without waiting for in-flight calls. With the hardened C ABI (P-21: handle cells,
+    # quarantine of unloaded handles) a call after the unload gets an error instead of a
+    # use-after-free; only an unload racing a call already inside C remains UB, so the soak
+    # reloads every 2 ms (≈14 000 reloads in 30 s) — the correct host must survive the same.
+    ("unload-no-wait (soak, reload 2ms)", "unload-no-wait", "soak", [], ["no_unexpected_host_death"]),
+    ("correct (soak, reload 2ms)", "", "soak", [], []),
 ]
 
 
@@ -62,9 +74,11 @@ def run(label, broken, corpus, extra, scratch):
            "-work", os.path.join(scratch, "redwork", safe)] + (["-broken", broken] if broken else []) + extra
     if corpus.startswith("@"):  # targeted corpus of this agent (REPRODUCTIONS), shared corpora untouched
         cmd[cmd.index(os.path.join(CORPUS, corpus + ".jsonl"))] = os.path.join(REPRO, corpus[1:] + ".jsonl")
+    if corpus.startswith("repo:"):  # targeted corpus kept in this repository (audit/host-go/corpora)
+        cmd[cmd.index(os.path.join(CORPUS, corpus + ".jsonl"))] = os.path.join(HERE, "corpora", corpus[5:] + ".jsonl")
     if corpus == "soak":
         cmd = [RUNSH, os.path.join(LOGS, safe), "nice", "-n", "10", "timeout", "900", FGRUN, "soak", "-secs", "30",
-               "-users", "16", "-reload-every", "200ms", "-sample-every", "5s", "-out", out,
+               "-users", "16", "-reload-every", "2ms", "-sample-every", "5s", "-out", out,
                "-work", os.path.join(scratch, "redwork", safe)] + (["-broken", broken] if broken else []) + extra
     p = subprocess.run(cmd, capture_output=True, text=True)
     try:
