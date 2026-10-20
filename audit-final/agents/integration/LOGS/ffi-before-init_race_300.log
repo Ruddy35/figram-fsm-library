@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 900 bash ffi/audit/init_race.sh ffi/audit/out/contract 300 
+cwd: /home/user/figram-audit-worktrees/integration-ffi
+start: 2026-10-20T00:17:42.477Z
+end: 2026-10-20T00:17:47.193Z
+exit_code: 1
+--- stdout (59 bytes, last 200 lines)
+init_race: 300 runs, failed 12; exit codes: 139×12 0×288
+--- stderr (1572 bytes, last 100 lines)
+ffi/audit/init_race.sh: line 7: 28949 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29015 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29039 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29094 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29118 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29142 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29238 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29648 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29720 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 30183 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 30219 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 30495 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1

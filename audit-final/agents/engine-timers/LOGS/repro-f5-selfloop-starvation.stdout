@@ -1,0 +1,23 @@
+>> {"id":1,"op":"start"}
+<< {"id":1,"snapshot":{"at":"wait","timers":{"timeout":1,"tick":1},"seq":1},"actions":[{"start_timer":"tick","ms":1000,"token":1},{"start_timer":"timeout","ms":10000,"token":1},{"send":"wait"}]}
+>> {"id":2,"op":"step","snapshot":{"at":"wait","timers":{"timeout":1,"tick":1},"seq":1},"event":"timer:tick","token":1}
+<< {"id":2,"snapshot":{"at":"wait","timers":{"timeout":2,"tick":2},"seq":2},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":2},{"start_timer":"timeout","ms":10000,"token":2},{"send":"wait"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"wait","timers":{"timeout":2,"tick":2},"seq":2},"event":"timer:tick","token":2}
+<< {"id":3,"snapshot":{"at":"wait","timers":{"timeout":3,"tick":3},"seq":3},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":3},{"start_timer":"timeout","ms":10000,"token":3},{"send":"wait"}]}
+>> {"id":4,"op":"step","snapshot":{"at":"wait","timers":{"timeout":3,"tick":3},"seq":3},"event":"timer:tick","token":3}
+<< {"id":4,"snapshot":{"at":"wait","timers":{"timeout":4,"tick":4},"seq":4},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":4},{"start_timer":"timeout","ms":10000,"token":4},{"send":"wait"}]}
+>> {"id":5,"op":"step","snapshot":{"at":"wait","timers":{"timeout":4,"tick":4},"seq":4},"event":"timer:tick","token":4}
+<< {"id":5,"snapshot":{"at":"wait","timers":{"timeout":5,"tick":5},"seq":5},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":5},{"start_timer":"timeout","ms":10000,"token":5},{"send":"wait"}]}
+>> {"id":6,"op":"step","snapshot":{"at":"wait","timers":{"timeout":5,"tick":5},"seq":5},"event":"timer:tick","token":5}
+<< {"id":6,"snapshot":{"at":"wait","timers":{"timeout":6,"tick":6},"seq":6},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":6},{"start_timer":"timeout","ms":10000,"token":6},{"send":"wait"}]}
+>> {"id":7,"op":"step","snapshot":{"at":"wait","timers":{"timeout":6,"tick":6},"seq":6},"event":"timer:tick","token":6}
+<< {"id":7,"snapshot":{"at":"wait","timers":{"timeout":7,"tick":7},"seq":7},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":7},{"start_timer":"timeout","ms":10000,"token":7},{"send":"wait"}]}
+>> {"id":8,"op":"step","snapshot":{"at":"wait","timers":{"timeout":7,"tick":7},"seq":7},"event":"timer:tick","token":7}
+<< {"id":8,"snapshot":{"at":"wait","timers":{"timeout":8,"tick":8},"seq":8},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":8},{"start_timer":"timeout","ms":10000,"token":8},{"send":"wait"}]}
+>> {"id":9,"op":"step","snapshot":{"at":"wait","timers":{"timeout":8,"tick":8},"seq":8},"event":"timer:tick","token":8}
+<< {"id":9,"snapshot":{"at":"wait","timers":{"timeout":9,"tick":9},"seq":9},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":9},{"start_timer":"timeout","ms":10000,"token":9},{"send":"wait"}]}
+>> {"id":10,"op":"step","snapshot":{"at":"wait","timers":{"timeout":9,"tick":9},"seq":9},"event":"timer:tick","token":9}
+<< {"id":10,"snapshot":{"at":"wait","timers":{"timeout":10,"tick":10},"seq":10},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":10},{"start_timer":"timeout","ms":10000,"token":10},{"send":"wait"}]}
+>> {"id":11,"op":"step","snapshot":{"at":"wait","timers":{"timeout":10,"tick":10},"seq":10},"event":"timer:tick","token":10}
+<< {"id":11,"snapshot":{"at":"wait","timers":{"timeout":11,"tick":11},"seq":11},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"call":"ping"},{"start_timer":"tick","ms":1000,"token":11},{"start_timer":"timeout","ms":10000,"token":11},{"send":"wait"}]}
+VERDICT: after 10 ticks (1 s) the 10 s 'timeout' was restarted 10 times, timers: {'timeout': 11, 'tick': 11} -> it never fires while tick runs

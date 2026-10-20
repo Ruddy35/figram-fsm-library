@@ -1,0 +1,9 @@
+>> {"id":1,"op":"start"}
+<< {"id":1,"snapshot":{"at":"wait","timers":{"timeout":1,"tick":1},"seq":1},"actions":[{"start_timer":"tick","ms":1000,"token":1},{"start_timer":"timeout","ms":10000,"token":1},{"send":"wait"}]}
+>> {"id":2,"op":"step","snapshot":{"at":"wait","timers":{"timeout":1,"tick":1},"seq":1},"event":"btn:guarded"}
+<< {"id":2,"snapshot":{"at":"guarded","timers":{"gt":2},"seq":2},"actions":[{"cancel_timer":"tick"},{"cancel_timer":"timeout"},{"start_timer":"gt","ms":3000,"token":2},{"send":"guarded"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"guarded","timers":{"gt":2},"seq":2},"event":"timer:gt","token":2,"guards":{"ok":false}}
+<< {"id":3,"snapshot":{"at":"guarded","timers":{"gt":2},"seq":2},"actions":[]}
+>> {"id":4,"op":"step","snapshot":{"at":"guarded","timers":{"gt":2},"seq":2},"event":"timer:gt","token":2,"guards":{"ok":true}}
+<< {"id":4,"snapshot":{"at":"gone","seq":3},"actions":[{"cancel_timer":"gt"},{"send":"gone"}]}
+VERDICT: same fire (token 2) ignored with ok=false, timer kept {'gt': 2}, accepted on 2nd delivery -> gone

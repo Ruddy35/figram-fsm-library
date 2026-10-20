@@ -1,0 +1,7 @@
+command: env CC=gcc go build -o gofig . 
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:42:21.154Z
+end: 2026-10-19T23:42:22.917Z
+exit_code: 0
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

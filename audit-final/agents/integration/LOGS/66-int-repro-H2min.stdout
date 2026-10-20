@@ -1,0 +1,1 @@
+{"id":1,"snapshot":{"at":"m2","seq":2},"actions":[{"cancel_timer":"t2"},{"send":"m2"}]}

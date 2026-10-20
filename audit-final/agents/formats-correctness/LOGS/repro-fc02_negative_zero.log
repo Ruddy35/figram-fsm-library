@@ -1,0 +1,10 @@
+command: bash REPRODUCTIONS/fc02_negative_zero.sh 
+cwd: /home/user/figram-audit/agents/formats-correctness
+start: 2026-10-19T22:44:37.225Z
+end: 2026-10-19T22:44:37.473Z
+exit_code: 0
+--- stdout (49 bytes, last 200 lines)
+OK 0.0
+OK [0.00,0e5]
+python: -0.0 copysign: -1.0
+--- stderr (0 bytes, last 100 lines)

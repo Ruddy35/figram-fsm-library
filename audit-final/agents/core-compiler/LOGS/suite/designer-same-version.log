@@ -1,0 +1,8 @@
+command: timeout 600 python3 diff_random.py --engine /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler/../../bin/figram-engine --docs 300 --steps 120 --seed 9 --no-upgrade --no-perturb --no-exhaustive --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot 
+cwd: /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler
+start: 2026-10-19T22:55:05.058Z
+end: 2026-10-19T22:55:17.178Z
+exit_code: 0
+--- stdout (414 bytes, last 200 lines)
+{"stats": {"docs": 300, "requests": 51422, "events": {"timer-forged": 6196, "live": 25808, "unknown": 1057, "timer-valid": 1538, "timer-stale": 517, "named": 331}, "ignored": 11407, "steps": 35447, "transitions": 24040, "need_replies": 15122, "need_superfluous": 3141, "hits_steps": {"A3-need-superset": 3141}, "restarts": 553}, "ambiguity_hits_docs": {"A3-need-superset": 277}, "divergences": 0, "seconds": 12.0}
+--- stderr (0 bytes, last 100 lines)

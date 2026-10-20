@@ -1,0 +1,3 @@
+неисправность код ожидание последняя строка
+mutants-shrunk       0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+bin-swapped          1      1        ok sha256sum: WARNING: 1 computed checksum did NOT match

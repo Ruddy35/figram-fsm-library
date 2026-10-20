@@ -1,0 +1,801 @@
+{"ctl":"init","bot":"pizza","scenario":"load_u100","seed":7}
+{"user":"L0028","update_id":1001,"event":"cmd:start"}
+{"user":"L0040","update_id":1002,"event":"cmd:start"}
+{"user":"L0069","update_id":1003,"event":"cmd:start"}
+{"user":"L0078","update_id":1004,"event":"cmd:start"}
+{"user":"L0079","update_id":1005,"event":"cmd:start"}
+{"user":"L0058","update_id":1006,"event":"cmd:start"}
+{"user":"L0021","update_id":1007,"event":"cmd:start"}
+{"user":"L0012","update_id":1008,"event":"cmd:start"}
+{"user":"L0040","update_id":1009,"event":"btn:order"}
+{"user":"L0000","update_id":1010,"event":"cmd:start"}
+{"user":"L0057","update_id":1011,"event":"cmd:start"}
+{"user":"L0092","update_id":1012,"event":"cmd:start"}
+{"user":"L0008","update_id":1013,"event":"cmd:start"}
+{"user":"L0078","update_id":1014,"event":"btn:order"}
+{"user":"L0064","update_id":1015,"event":"cmd:start"}
+{"user":"L0035","update_id":1016,"event":"cmd:start"}
+{"user":"L0021","update_id":1017,"event":"btn:order"}
+{"user":"L0080","update_id":1018,"event":"cmd:start"}
+{"user":"L0047","update_id":1019,"event":"cmd:start"}
+{"user":"L0019","update_id":1020,"event":"cmd:start"}
+{"user":"L0077","update_id":1021,"event":"cmd:start"}
+{"user":"L0014","update_id":1022,"event":"cmd:start"}
+{"user":"L0077","update_id":1023,"event":"btn:order"}
+{"user":"L0053","update_id":1024,"event":"cmd:start"}
+{"user":"L0004","update_id":1025,"event":"cmd:start"}
+{"user":"L0024","update_id":1026,"event":"cmd:start"}
+{"user":"L0050","update_id":1027,"event":"cmd:start"}
+{"user":"L0024","update_id":1028,"event":"btn:order"}
+{"user":"L0055","update_id":1029,"event":"cmd:start"}
+{"user":"L0080","update_id":1030,"event":"btn:order"}
+{"user":"L0038","update_id":1031,"event":"cmd:start"}
+{"user":"L0085","update_id":1032,"event":"cmd:start"}
+{"user":"L0073","update_id":1033,"event":"cmd:start"}
+{"user":"L0002","update_id":1034,"event":"cmd:start"}
+{"user":"L0096","update_id":1035,"event":"cmd:start"}
+{"user":"L0056","update_id":1036,"event":"cmd:start"}
+{"user":"L0096","update_id":1037,"event":"btn:order"}
+{"user":"L0056","update_id":1038,"event":"btn:order"}
+{"user":"L0045","update_id":1039,"event":"cmd:start"}
+{"user":"L0025","update_id":1040,"event":"cmd:start"}
+{"user":"L0092","update_id":1041,"event":"btn:order"}
+{"user":"L0041","update_id":1042,"event":"cmd:start"}
+{"user":"L0013","update_id":1043,"event":"cmd:start"}
+{"user":"L0007","update_id":1044,"event":"cmd:start"}
+{"user":"L0092","update_id":1045,"event":"btn:pizza"}
+{"user":"L0081","update_id":1046,"event":"cmd:start"}
+{"user":"L0028","update_id":1047,"event":"btn:order"}
+{"user":"L0080","update_id":1048,"event":"btn:pizza"}
+{"user":"L0068","update_id":1049,"event":"cmd:start"}
+{"user":"L0076","update_id":1050,"event":"cmd:start"}
+{"user":"L0026","update_id":1051,"event":"cmd:start"}
+{"user":"L0059","update_id":1052,"event":"cmd:start"}
+{"user":"L0015","update_id":1053,"event":"cmd:start"}
+{"user":"L0003","update_id":1054,"event":"cmd:start"}
+{"user":"L0026","update_id":1055,"event":"btn:order"}
+{"user":"L0044","update_id":1056,"event":"cmd:start"}
+{"user":"L0038","update_id":1057,"event":"btn:order"}
+{"user":"L0037","update_id":1058,"event":"cmd:start"}
+{"user":"L0049","update_id":1059,"event":"cmd:start"}
+{"user":"L0040","update_id":1060,"event":"btn:pizza"}
+{"user":"L0000","update_id":1061,"event":"btn:order"}
+{"user":"L0037","update_id":1062,"event":"btn:order"}
+{"user":"L0071","update_id":1063,"event":"cmd:start"}
+{"user":"L0092","update_id":1064,"event":"btn:size","arg":"S"}
+{"user":"L0024","update_id":1065,"event":"btn:pizza"}
+{"user":"L0094","update_id":1066,"event":"cmd:start"}
+{"user":"L0011","update_id":1067,"event":"cmd:start"}
+{"user":"L0035","update_id":1068,"event":"btn:order"}
+{"user":"L0064","update_id":1069,"event":"btn:order"}
+{"user":"L0093","update_id":1070,"event":"cmd:start"}
+{"user":"L0044","update_id":1071,"event":"btn:order"}
+{"user":"L0002","update_id":1072,"event":"btn:order"}
+{"user":"L0095","update_id":1073,"event":"cmd:start"}
+{"user":"L0046","update_id":1074,"event":"cmd:start"}
+{"user":"L0045","update_id":1075,"event":"btn:order"}
+{"user":"L0080","update_id":1076,"event":"btn:size","arg":"S"}
+{"user":"L0048","update_id":1077,"event":"cmd:start"}
+{"user":"L0013","update_id":1078,"event":"btn:order"}
+{"user":"L0084","update_id":1079,"event":"cmd:start"}
+{"user":"L0007","update_id":1080,"event":"btn:order"}
+{"user":"L0065","update_id":1081,"event":"cmd:start"}
+{"user":"L0005","update_id":1082,"event":"cmd:start"}
+{"user":"L0010","update_id":1083,"event":"cmd:start"}
+{"user":"L0053","update_id":1084,"event":"btn:order"}
+{"user":"L0075","update_id":1085,"event":"cmd:start"}
+{"user":"L0088","update_id":1086,"event":"cmd:start"}
+{"user":"L0029","update_id":1087,"event":"cmd:start"}
+{"user":"L0085","update_id":1088,"event":"btn:order"}
+{"user":"L0010","update_id":1089,"event":"btn:order"}
+{"user":"L0010","update_id":1090,"event":"btn:pizza"}
+{"user":"L0048","update_id":1091,"event":"btn:order"}
+{"user":"L0089","update_id":1092,"event":"cmd:start"}
+{"user":"L0046","update_id":1093,"event":"btn:order"}
+{"user":"L0079","update_id":1094,"event":"btn:order"}
+{"user":"L0072","update_id":1095,"event":"cmd:start"}
+{"user":"L0086","update_id":1096,"event":"cmd:start"}
+{"user":"L0046","update_id":1097,"event":"btn:pizza"}
+{"user":"L0089","update_id":1098,"event":"btn:order"}
+{"user":"L0023","update_id":1099,"event":"cmd:start"}
+{"user":"L0086","update_id":1100,"event":"btn:order"}
+{"user":"L0033","update_id":1101,"event":"cmd:start"}
+{"user":"L0089","update_id":1102,"event":"btn:pizza"}
+{"user":"L0082","update_id":1103,"event":"cmd:start"}
+{"user":"L0006","update_id":1104,"event":"cmd:start"}
+{"user":"L0038","update_id":1105,"event":"btn:pizza"}
+{"user":"L0031","update_id":1106,"event":"cmd:start"}
+{"user":"L0018","update_id":1107,"event":"cmd:start"}
+{"user":"L0073","update_id":1108,"event":"btn:order"}
+{"user":"L0078","update_id":1109,"event":"btn:pizza"}
+{"user":"L0022","update_id":1110,"event":"cmd:start"}
+{"user":"L0066","update_id":1111,"event":"cmd:start"}
+{"user":"L0042","update_id":1112,"event":"cmd:start"}
+{"user":"L0016","update_id":1113,"event":"cmd:start"}
+{"user":"L0083","update_id":1114,"event":"cmd:start"}
+{"user":"L0039","update_id":1115,"event":"cmd:start"}
+{"user":"L0007","update_id":1116,"event":"btn:pizza"}
+{"user":"L0063","update_id":1117,"event":"cmd:start"}
+{"user":"L0009","update_id":1118,"event":"cmd:start"}
+{"user":"L0022","update_id":1119,"event":"btn:order"}
+{"user":"L0063","update_id":1120,"event":"btn:order"}
+{"user":"L0076","update_id":1121,"event":"btn:order"}
+{"user":"L0022","update_id":1122,"event":"btn:pizza"}
+{"user":"L0026","update_id":1123,"event":"btn:pizza"}
+{"user":"L0051","update_id":1124,"event":"cmd:start"}
+{"user":"L0019","update_id":1125,"event":"btn:order"}
+{"user":"L0054","update_id":1126,"event":"cmd:start"}
+{"user":"L0074","update_id":1127,"event":"cmd:start"}
+{"user":"L0063","update_id":1128,"event":"btn:pizza"}
+{"user":"L0038","update_id":1129,"event":"btn:size","arg":"M"}
+{"user":"L0022","update_id":1130,"event":"btn:size","arg":"S"}
+{"user":"L0084","update_id":1131,"event":"btn:order"}
+{"user":"L0025","update_id":1132,"event":"btn:order"}
+{"user":"L0098","update_id":1133,"event":"cmd:start"}
+{"user":"L0043","update_id":1134,"event":"cmd:start"}
+{"user":"L0035","update_id":1135,"event":"btn:pizza"}
+{"user":"L0027","update_id":1136,"event":"cmd:start"}
+{"user":"L0050","update_id":1137,"event":"btn:order"}
+{"user":"L0047","update_id":1138,"event":"btn:order"}
+{"user":"L0067","update_id":1139,"event":"cmd:start"}
+{"user":"L0019","update_id":1140,"event":"btn:pizza"}
+{"user":"L0023","update_id":1141,"event":"btn:order"}
+{"user":"L0018","update_id":1142,"event":"btn:order"}
+{"user":"L0075","update_id":1143,"event":"btn:order"}
+{"user":"L0054","update_id":1144,"event":"btn:order"}
+{"user":"L0087","update_id":1145,"event":"cmd:start"}
+{"user":"L0085","update_id":1146,"event":"btn:pizza"}
+{"user":"L0097","update_id":1147,"event":"cmd:start"}
+{"user":"L0095","update_id":1148,"event":"btn:order"}
+{"user":"L0080","update_id":1149,"event":"btn:add"}
+{"user":"L0090","update_id":1150,"event":"cmd:start"}
+{"user":"L0005","update_id":1151,"event":"btn:order"}
+{"user":"L0063","update_id":1152,"event":"btn:size","arg":"S"}
+{"user":"L0088","update_id":1153,"event":"btn:order"}
+{"user":"L0063","update_id":1154,"event":"btn:add"}
+{"user":"L0099","update_id":1155,"event":"cmd:start"}
+{"user":"L0094","update_id":1156,"event":"btn:order"}
+{"user":"L0022","update_id":1157,"event":"btn:add"}
+{"user":"L0006","update_id":1158,"event":"btn:order"}
+{"user":"L0036","update_id":1159,"event":"cmd:start"}
+{"user":"L0068","update_id":1160,"event":"btn:order"}
+{"user":"L0027","update_id":1161,"event":"btn:order"}
+{"user":"L0051","update_id":1162,"event":"btn:order"}
+{"user":"L0047","update_id":1163,"event":"btn:pizza"}
+{"user":"L0012","update_id":1164,"event":"btn:order"}
+{"user":"L0026","update_id":1165,"event":"btn:size","arg":"L"}
+{"user":"L0009","update_id":1166,"event":"btn:order"}
+{"user":"L0012","update_id":1167,"event":"btn:pizza"}
+{"user":"L0065","update_id":1168,"event":"btn:order"}
+{"user":"L0075","update_id":1169,"event":"btn:pizza"}
+{"user":"L0078","update_id":1170,"event":"btn:size","arg":"L"}
+{"user":"L0003","update_id":1171,"event":"btn:order"}
+{"user":"L0010","update_id":1172,"event":"btn:size","arg":"L"}
+{"user":"L0020","update_id":1173,"event":"cmd:start"}
+{"user":"L0008","update_id":1174,"event":"btn:order"}
+{"user":"L0071","update_id":1175,"event":"btn:order"}
+{"user":"L0034","update_id":1176,"event":"cmd:start"}
+{"user":"L0043","update_id":1177,"event":"btn:order"}
+{"user":"L0010","update_id":1178,"event":"btn:add"}
+{"user":"L0003","update_id":1179,"event":"btn:pizza"}
+{"user":"L0093","update_id":1180,"event":"btn:order"}
+{"user":"L0034","update_id":1181,"event":"btn:order"}
+{"user":"L0058","update_id":1182,"event":"btn:order"}
+{"user":"L0085","update_id":1183,"event":"btn:size","arg":"M"}
+{"user":"L0092","update_id":1184,"event":"btn:add"}
+{"user":"L0045","update_id":1185,"event":"btn:pizza"}
+{"user":"L0019","update_id":1186,"event":"btn:size","arg":"L"}
+{"user":"L0083","update_id":1187,"event":"btn:order"}
+{"user":"L0019","update_id":1188,"event":"btn:add"}
+{"user":"L0063","update_id":1189,"event":"btn:checkout"}
+{"user":"L0057","update_id":1190,"event":"btn:order"}
+{"user":"L0021","update_id":1191,"event":"btn:pizza"}
+{"user":"L0001","update_id":1192,"event":"cmd:start"}
+{"user":"L0067","update_id":1193,"event":"btn:order"}
+{"user":"L0060","update_id":1194,"event":"cmd:start"}
+{"user":"L0050","update_id":1195,"event":"btn:pizza"}
+{"user":"L0048","update_id":1196,"event":"btn:pizza"}
+{"user":"L0057","update_id":1197,"event":"btn:pizza"}
+{"user":"L0035","update_id":1198,"event":"btn:size","arg":"S"}
+{"user":"L0040","update_id":1199,"event":"btn:size","arg":"M"}
+{"user":"L0094","update_id":1200,"event":"btn:pizza"}
+{"user":"L0041","update_id":1201,"event":"btn:order"}
+{"user":"L0069","update_id":1202,"event":"btn:order"}
+{"user":"L0066","update_id":1203,"event":"btn:order"}
+{"user":"L0084","update_id":1204,"event":"btn:pizza"}
+{"user":"L0034","update_id":1205,"event":"btn:pizza"}
+{"user":"L0044","update_id":1206,"event":"btn:pizza"}
+{"user":"L0012","update_id":1207,"event":"btn:size","arg":"L"}
+{"user":"L0096","update_id":1208,"event":"btn:pizza"}
+{"user":"L0086","update_id":1209,"event":"btn:pizza"}
+{"user":"L0026","update_id":1210,"event":"btn:add"}
+{"user":"L0089","update_id":1211,"event":"btn:size","arg":"M"}
+{"user":"L0097","update_id":1212,"event":"btn:order"}
+{"user":"L0097","update_id":1213,"event":"btn:pizza"}
+{"user":"L0094","update_id":1214,"event":"btn:size","arg":"L"}
+{"user":"L0077","update_id":1215,"event":"btn:pizza"}
+{"user":"L0063","update_id":1216,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0004","update_id":1217,"event":"btn:order"}
+{"user":"L0076","update_id":1218,"event":"btn:pizza"}
+{"user":"L0077","update_id":1219,"event":"btn:size","arg":"L"}
+{"user":"L0043","update_id":1220,"event":"btn:pizza"}
+{"user":"L0058","update_id":1221,"event":"btn:pizza"}
+{"user":"L0084","update_id":1222,"event":"btn:size","arg":"S"}
+{"user":"L0053","update_id":1223,"event":"btn:pizza"}
+{"user":"L0022","update_id":1224,"event":"btn:checkout"}
+{"user":"L0093","update_id":1225,"event":"btn:pizza"}
+{"user":"L0073","update_id":1226,"event":"btn:pizza"}
+{"user":"L0007","update_id":1227,"event":"btn:size","arg":"S"}
+{"user":"L0020","update_id":1228,"event":"btn:order"}
+{"user":"L0014","update_id":1229,"event":"btn:order"}
+{"user":"L0061","update_id":1230,"event":"cmd:start"}
+{"user":"L0089","update_id":1231,"event":"btn:add"}
+{"user":"L0092","update_id":1232,"event":"btn:checkout"}
+{"user":"L0065","update_id":1233,"event":"btn:pizza"}
+{"user":"L0016","update_id":1234,"event":"btn:order"}
+{"user":"L0049","update_id":1235,"event":"btn:order"}
+{"user":"L0028","update_id":1236,"event":"btn:pizza"}
+{"user":"L0064","update_id":1237,"event":"btn:pizza"}
+{"user":"L0095","update_id":1238,"event":"btn:pizza"}
+{"user":"L0095","update_id":1239,"event":"btn:size","arg":"M"}
+{"user":"L0007","update_id":1240,"event":"btn:add"}
+{"user":"L0094","update_id":1241,"event":"btn:add"}
+{"user":"L0082","update_id":1242,"event":"btn:order"}
+{"user":"L0093","update_id":1243,"event":"btn:size","arg":"M"}
+{"user":"L0007","update_id":1244,"event":"btn:checkout"}
+{"user":"L0069","update_id":1245,"event":"btn:pizza"}
+{"user":"L0089","update_id":1246,"event":"btn:checkout"}
+{"user":"L0083","update_id":1247,"event":"btn:pizza"}
+{"user":"L0081","update_id":1248,"event":"btn:order"}
+{"user":"L0081","update_id":1249,"event":"btn:pizza"}
+{"user":"L0029","update_id":1250,"event":"btn:order"}
+{"user":"L0051","update_id":1251,"event":"btn:pizza"}
+{"user":"L0035","update_id":1252,"event":"btn:add"}
+{"user":"L0086","update_id":1253,"event":"btn:size","arg":"L"}
+{"user":"L0039","update_id":1254,"event":"btn:order"}
+{"user":"L0094","update_id":1255,"event":"btn:checkout"}
+{"user":"L0026","update_id":1256,"event":"btn:checkout"}
+{"user":"L0097","update_id":1257,"event":"btn:size","arg":"L"}
+{"user":"L0090","update_id":1258,"event":"btn:order"}
+{"user":"L0093","update_id":1259,"event":"btn:add"}
+{"user":"L0088","update_id":1260,"event":"btn:pizza"}
+{"user":"L0011","update_id":1261,"event":"btn:order"}
+{"user":"L0075","update_id":1262,"event":"btn:size","arg":"L"}
+{"user":"L0039","update_id":1263,"event":"btn:pizza"}
+{"user":"L0098","update_id":1264,"event":"btn:order"}
+{"user":"L0025","update_id":1265,"event":"btn:pizza"}
+{"user":"L0050","update_id":1266,"event":"btn:size","arg":"M"}
+{"user":"L0031","update_id":1267,"event":"btn:order"}
+{"user":"L0022","update_id":1268,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0003","update_id":1269,"event":"btn:size","arg":"S"}
+{"user":"L0063","update_id":1270,"event":"payment:success"}
+{"user":"L0097","update_id":1271,"event":"btn:add"}
+{"user":"L0057","update_id":1272,"event":"btn:size","arg":"L"}
+{"user":"L0046","update_id":1273,"event":"btn:size","arg":"M"}
+{"user":"L0010","update_id":1274,"event":"btn:checkout"}
+{"user":"L0065","update_id":1275,"event":"btn:size","arg":"M"}
+{"user":"L0043","update_id":1276,"event":"btn:size","arg":"M"}
+{"user":"L0042","update_id":1277,"event":"btn:order"}
+{"user":"L0077","update_id":1278,"event":"btn:add"}
+{"user":"L0043","update_id":1279,"event":"btn:add"}
+{"user":"L0067","update_id":1280,"event":"btn:pizza"}
+{"user":"L0060","update_id":1281,"event":"btn:order"}
+{"user":"L0007","update_id":1282,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0026","update_id":1283,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0024","update_id":1284,"event":"btn:size","arg":"M"}
+{"user":"L0094","update_id":1285,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0067","update_id":1286,"event":"btn:size","arg":"L"}
+{"user":"L0040","update_id":1287,"event":"btn:add"}
+{"user":"L0002","update_id":1288,"event":"btn:pizza"}
+{"user":"L0041","update_id":1289,"event":"btn:pizza"}
+{"user":"L0025","update_id":1290,"event":"btn:size","arg":"S"}
+{"user":"L0018","update_id":1291,"event":"btn:pizza"}
+{"user":"L0064","update_id":1292,"event":"btn:size","arg":"M"}
+{"user":"L0043","update_id":1293,"event":"btn:checkout"}
+{"user":"L0047","update_id":1294,"event":"btn:size","arg":"S"}
+{"user":"L0029","update_id":1295,"event":"btn:pizza"}
+{"user":"L0048","update_id":1296,"event":"btn:size","arg":"L"}
+{"user":"L0026","update_id":1297,"event":"payment:success"}
+{"user":"L0095","update_id":1298,"event":"btn:add"}
+{"user":"L0071","update_id":1299,"event":"btn:pizza"}
+{"user":"L0016","update_id":1300,"event":"btn:pizza"}
+{"user":"L0074","update_id":1301,"event":"btn:order"}
+{"user":"L0035","update_id":1302,"event":"btn:checkout"}
+{"user":"L0060","update_id":1303,"event":"btn:pizza"}
+{"user":"L0086","update_id":1304,"event":"btn:add"}
+{"user":"L0044","update_id":1305,"event":"btn:size","arg":"S"}
+{"user":"L0047","update_id":1306,"event":"btn:add"}
+{"user":"L0085","update_id":1307,"event":"btn:add"}
+{"user":"L0087","update_id":1308,"event":"btn:order"}
+{"user":"L0071","update_id":1309,"event":"btn:size","arg":"M"}
+{"user":"L0037","update_id":1310,"event":"btn:pizza"}
+{"user":"L0037","update_id":1311,"event":"btn:size","arg":"M"}
+{"user":"L0046","update_id":1312,"event":"btn:add"}
+{"user":"L0017","update_id":1313,"event":"cmd:start"}
+{"user":"L0021","update_id":1314,"event":"btn:size","arg":"M"}
+{"user":"L0099","update_id":1315,"event":"btn:order"}
+{"user":"L0084","update_id":1316,"event":"btn:add"}
+{"user":"L0024","update_id":1317,"event":"btn:add"}
+{"user":"L0069","update_id":1318,"event":"btn:size","arg":"L"}
+{"user":"L0046","update_id":1319,"event":"btn:checkout"}
+{"user":"L0027","update_id":1320,"event":"btn:pizza"}
+{"user":"L0094","update_id":1321,"event":"payment:success"}
+{"user":"L0053","update_id":1322,"event":"btn:size","arg":"S"}
+{"user":"L0062","update_id":1323,"event":"cmd:start"}
+{"user":"L0083","update_id":1324,"event":"btn:size","arg":"L"}
+{"user":"L0032","update_id":1325,"event":"cmd:start"}
+{"user":"L0036","update_id":1326,"event":"btn:order"}
+{"user":"L0086","update_id":1327,"event":"btn:checkout"}
+{"user":"L0058","update_id":1328,"event":"btn:size","arg":"M"}
+{"user":"L0036","update_id":1329,"event":"btn:pizza"}
+{"user":"L0015","update_id":1330,"event":"btn:order"}
+{"user":"L0069","update_id":1331,"event":"btn:add"}
+{"user":"L0046","update_id":1332,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0099","update_id":1333,"event":"btn:pizza"}
+{"user":"L0085","update_id":1334,"event":"btn:checkout"}
+{"user":"L0015","update_id":1335,"event":"btn:pizza"}
+{"user":"L0086","update_id":1336,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0055","update_id":1337,"event":"btn:order"}
+{"user":"L0018","update_id":1338,"event":"btn:size","arg":"L"}
+{"user":"L0016","update_id":1339,"event":"btn:size","arg":"S"}
+{"user":"L0058","update_id":1340,"event":"btn:add"}
+{"user":"L0064","update_id":1341,"event":"btn:add"}
+{"user":"L0088","update_id":1342,"event":"btn:size","arg":"M"}
+{"user":"L0022","update_id":1343,"event":"payment:success"}
+{"user":"L0018","update_id":1344,"event":"btn:add"}
+{"user":"L0032","update_id":1345,"event":"btn:order"}
+{"user":"L0070","update_id":1346,"event":"cmd:start"}
+{"user":"L0098","update_id":1347,"event":"btn:pizza"}
+{"user":"L0059","update_id":1348,"event":"btn:order"}
+{"user":"L0046","update_id":1349,"event":"payment:success"}
+{"user":"L0032","update_id":1350,"event":"btn:pizza"}
+{"user":"L0074","update_id":1351,"event":"btn:pizza"}
+{"user":"L0083","update_id":1352,"event":"btn:add"}
+{"user":"L0092","update_id":1353,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0032","update_id":1354,"event":"btn:size","arg":"S"}
+{"user":"L0085","update_id":1355,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0092","update_id":1356,"event":"payment:success"}
+{"user":"L0032","update_id":1357,"event":"btn:add"}
+{"user":"L0091","update_id":1358,"event":"cmd:start"}
+{"user":"L0008","update_id":1359,"event":"btn:pizza"}
+{"user":"L0005","update_id":1360,"event":"btn:pizza"}
+{"user":"L0028","update_id":1361,"event":"btn:size","arg":"M"}
+{"user":"L0002","update_id":1362,"event":"btn:size","arg":"S"}
+{"user":"L0087","update_id":1363,"event":"btn:pizza"}
+{"user":"L0011","update_id":1364,"event":"btn:pizza"}
+{"user":"L0047","update_id":1365,"event":"btn:checkout"}
+{"user":"L0027","update_id":1366,"event":"btn:size","arg":"S"}
+{"user":"L0010","update_id":1367,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0099","update_id":1368,"event":"btn:size","arg":"S"}
+{"user":"L0047","update_id":1369,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0064","update_id":1370,"event":"btn:checkout"}
+{"user":"L0054","update_id":1371,"event":"btn:pizza"}
+{"user":"L0047","update_id":1372,"event":"payment:success"}
+{"user":"L0031","update_id":1373,"event":"btn:pizza"}
+{"user":"L0037","update_id":1374,"event":"btn:add"}
+{"user":"L0076","update_id":1375,"event":"btn:size","arg":"M"}
+{"user":"L0003","update_id":1376,"event":"btn:add"}
+{"user":"L0015","update_id":1377,"event":"btn:size","arg":"S"}
+{"user":"L0095","update_id":1378,"event":"btn:checkout"}
+{"user":"L0053","update_id":1379,"event":"btn:add"}
+{"user":"L0012","update_id":1380,"event":"btn:add"}
+{"user":"L0013","update_id":1381,"event":"btn:pizza"}
+{"user":"L0044","update_id":1382,"event":"btn:add"}
+{"user":"L0000","update_id":1383,"event":"btn:pizza"}
+{"user":"L0002","update_id":1384,"event":"btn:add"}
+{"user":"L0011","update_id":1385,"event":"btn:size","arg":"L"}
+{"user":"L0042","update_id":1386,"event":"btn:pizza"}
+{"user":"L0073","update_id":1387,"event":"btn:size","arg":"M"}
+{"user":"L0036","update_id":1388,"event":"btn:size","arg":"M"}
+{"user":"L0002","update_id":1389,"event":"btn:checkout"}
+{"user":"L0013","update_id":1390,"event":"btn:size","arg":"L"}
+{"user":"L0043","update_id":1391,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0003","update_id":1392,"event":"btn:checkout"}
+{"user":"L0055","update_id":1393,"event":"btn:pizza"}
+{"user":"L0019","update_id":1394,"event":"btn:checkout"}
+{"user":"L0098","update_id":1395,"event":"btn:size","arg":"M"}
+{"user":"L0074","update_id":1396,"event":"btn:size","arg":"M"}
+{"user":"L0082","update_id":1397,"event":"btn:pizza"}
+{"user":"L0082","update_id":1398,"event":"btn:size","arg":"M"}
+{"user":"L0084","update_id":1399,"event":"btn:checkout"}
+{"user":"L0017","update_id":1400,"event":"btn:order"}
+{"user":"L0003","update_id":1401,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0081","update_id":1402,"event":"btn:size","arg":"S"}
+{"user":"L0061","update_id":1403,"event":"btn:order"}
+{"user":"L0082","update_id":1404,"event":"btn:add"}
+{"user":"L0067","update_id":1405,"event":"btn:add"}
+{"user":"L0031","update_id":1406,"event":"btn:size","arg":"S"}
+{"user":"L0010","update_id":1407,"event":"payment:success"}
+{"user":"L0099","update_id":1408,"event":"btn:add"}
+{"user":"L0050","update_id":1409,"event":"btn:add"}
+{"user":"L0078","update_id":1410,"event":"btn:add"}
+{"user":"L0071","update_id":1411,"event":"btn:add"}
+{"user":"L0072","update_id":1412,"event":"btn:order"}
+{"user":"L0012","update_id":1413,"event":"btn:checkout"}
+{"user":"L0006","update_id":1414,"event":"btn:pizza"}
+{"user":"L0031","update_id":1415,"event":"btn:add"}
+{"user":"L0033","update_id":1416,"event":"btn:order"}
+{"user":"L0082","update_id":1417,"event":"btn:checkout"}
+{"user":"L0096","update_id":1418,"event":"btn:size","arg":"S"}
+{"user":"L0064","update_id":1419,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0007","update_id":1420,"event":"payment:success"}
+{"user":"L0031","update_id":1421,"event":"btn:checkout"}
+{"user":"L0086","update_id":1422,"event":"payment:success"}
+{"user":"L0097","update_id":1423,"event":"btn:checkout"}
+{"user":"L0069","update_id":1424,"event":"btn:checkout"}
+{"user":"L0072","update_id":1425,"event":"btn:pizza"}
+{"user":"L0077","update_id":1426,"event":"btn:checkout"}
+{"user":"L0069","update_id":1427,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0072","update_id":1428,"event":"btn:size","arg":"S"}
+{"user":"L0090","update_id":1429,"event":"btn:pizza"}
+{"user":"L0048","update_id":1430,"event":"btn:add"}
+{"user":"L0081","update_id":1431,"event":"btn:add"}
+{"user":"L0060","update_id":1432,"event":"btn:size","arg":"L"}
+{"user":"L0016","update_id":1433,"event":"btn:add"}
+{"user":"L0056","update_id":1434,"event":"btn:pizza"}
+{"user":"L0075","update_id":1435,"event":"btn:add"}
+{"user":"L0024","update_id":1436,"event":"btn:checkout"}
+{"user":"L0055","update_id":1437,"event":"btn:size","arg":"S"}
+{"user":"L0056","update_id":1438,"event":"btn:size","arg":"S"}
+{"user":"L0054","update_id":1439,"event":"btn:size","arg":"L"}
+{"user":"L0049","update_id":1440,"event":"btn:pizza"}
+{"user":"L0070","update_id":1441,"event":"btn:order"}
+{"user":"L0077","update_id":1442,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0045","update_id":1443,"event":"btn:size","arg":"M"}
+{"user":"L0034","update_id":1444,"event":"btn:size","arg":"S"}
+{"user":"L0083","update_id":1445,"event":"btn:checkout"}
+{"user":"L0051","update_id":1446,"event":"btn:size","arg":"M"}
+{"user":"L0078","update_id":1447,"event":"btn:checkout"}
+{"user":"L0074","update_id":1448,"event":"btn:add"}
+{"user":"L0024","update_id":1449,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0021","update_id":1450,"event":"btn:add"}
+{"user":"L0034","update_id":1451,"event":"btn:add"}
+{"user":"L0023","update_id":1452,"event":"btn:pizza"}
+{"user":"L0081","update_id":1453,"event":"btn:checkout"}
+{"user":"L0025","update_id":1454,"event":"btn:add"}
+{"user":"L0033","update_id":1455,"event":"btn:pizza"}
+{"user":"L0067","update_id":1456,"event":"btn:checkout"}
+{"user":"L0018","update_id":1457,"event":"btn:checkout"}
+{"user":"L0004","update_id":1458,"event":"btn:pizza"}
+{"user":"L0045","update_id":1459,"event":"btn:add"}
+{"user":"L0019","update_id":1460,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0032","update_id":1461,"event":"btn:checkout"}
+{"user":"L0009","update_id":1462,"event":"btn:pizza"}
+{"user":"L0069","update_id":1463,"event":"payment:success"}
+{"user":"L0066","update_id":1464,"event":"btn:pizza"}
+{"user":"L0018","update_id":1465,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0085","update_id":1466,"event":"payment:success"}
+{"user":"L0005","update_id":1467,"event":"btn:size","arg":"S"}
+{"user":"L0059","update_id":1468,"event":"btn:pizza"}
+{"user":"L0000","update_id":1469,"event":"btn:size","arg":"M"}
+{"user":"L0091","update_id":1470,"event":"btn:order"}
+{"user":"L0075","update_id":1471,"event":"btn:checkout"}
+{"user":"L0034","update_id":1472,"event":"btn:checkout"}
+{"user":"L0016","update_id":1473,"event":"btn:checkout"}
+{"user":"L0029","update_id":1474,"event":"btn:size","arg":"S"}
+{"user":"L0080","update_id":1475,"event":"btn:checkout"}
+{"user":"L0050","update_id":1476,"event":"btn:checkout"}
+{"user":"L0066","update_id":1477,"event":"btn:size","arg":"S"}
+{"user":"L0091","update_id":1478,"event":"btn:pizza"}
+{"user":"L0021","update_id":1479,"event":"btn:checkout"}
+{"user":"L0088","update_id":1480,"event":"btn:add"}
+{"user":"L0030","update_id":1481,"event":"cmd:start"}
+{"user":"L0054","update_id":1482,"event":"btn:add"}
+{"user":"L0011","update_id":1483,"event":"btn:add"}
+{"user":"L0035","update_id":1484,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0041","update_id":1485,"event":"btn:size","arg":"M"}
+{"user":"L0003","update_id":1486,"event":"payment:success"}
+{"user":"L0072","update_id":1487,"event":"btn:add"}
+{"user":"L0012","update_id":1488,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0087","update_id":1489,"event":"btn:size","arg":"M"}
+{"user":"L0014","update_id":1490,"event":"btn:pizza"}
+{"user":"L0093","update_id":1491,"event":"btn:checkout"}
+{"user":"L0057","update_id":1492,"event":"btn:add"}
+{"user":"L0038","update_id":1493,"event":"btn:add"}
+{"user":"L0054","update_id":1494,"event":"btn:checkout"}
+{"user":"L0048","update_id":1495,"event":"btn:checkout"}
+{"user":"L0031","update_id":1496,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0054","update_id":1497,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0023","update_id":1498,"event":"btn:size","arg":"S"}
+{"user":"L0065","update_id":1499,"event":"btn:add"}
+{"user":"L0083","update_id":1500,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0099","update_id":1501,"event":"btn:checkout"}
+{"user":"L0000","update_id":1502,"event":"btn:add"}
+{"user":"L0030","update_id":1503,"event":"btn:order"}
+{"user":"L0067","update_id":1504,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0017","update_id":1505,"event":"btn:pizza"}
+{"user":"L0006","update_id":1506,"event":"btn:size","arg":"M"}
+{"user":"L0081","update_id":1507,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0095","update_id":1508,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0071","update_id":1509,"event":"btn:checkout"}
+{"user":"L0028","update_id":1510,"event":"btn:add"}
+{"user":"L0073","update_id":1511,"event":"btn:add"}
+{"user":"L0039","update_id":1512,"event":"btn:size","arg":"M"}
+{"user":"L0005","update_id":1513,"event":"btn:add"}
+{"user":"L0035","update_id":1514,"event":"payment:success"}
+{"user":"L0095","update_id":1515,"event":"payment:success"}
+{"user":"L0025","update_id":1516,"event":"btn:checkout"}
+{"user":"L0043","update_id":1517,"event":"payment:success"}
+{"user":"L0096","update_id":1518,"event":"btn:add"}
+{"user":"L0074","update_id":1519,"event":"btn:checkout"}
+{"user":"L0075","update_id":1520,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0088","update_id":1521,"event":"btn:checkout"}
+{"user":"L0033","update_id":1522,"event":"btn:size","arg":"L"}
+{"user":"L0048","update_id":1523,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0038","update_id":1524,"event":"btn:checkout"}
+{"user":"L0051","update_id":1525,"event":"btn:add"}
+{"user":"L0059","update_id":1526,"event":"btn:size","arg":"L"}
+{"user":"L0028","update_id":1527,"event":"btn:checkout"}
+{"user":"L0077","update_id":1528,"event":"payment:success"}
+{"user":"L0089","update_id":1529,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0017","update_id":1530,"event":"btn:size","arg":"S"}
+{"user":"L0044","update_id":1531,"event":"btn:checkout"}
+{"user":"L0062","update_id":1532,"event":"btn:order"}
+{"user":"L0065","update_id":1533,"event":"btn:checkout"}
+{"user":"L0016","update_id":1534,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0091","update_id":1535,"event":"btn:size","arg":"S"}
+{"user":"L0054","update_id":1536,"event":"payment:success"}
+{"user":"L0036","update_id":1537,"event":"btn:add"}
+{"user":"L0083","update_id":1538,"event":"payment:success"}
+{"user":"L0080","update_id":1539,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0032","update_id":1540,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0078","update_id":1541,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0041","update_id":1542,"event":"btn:add"}
+{"user":"L0091","update_id":1543,"event":"btn:add"}
+{"user":"L0058","update_id":1544,"event":"btn:checkout"}
+{"user":"L0096","update_id":1545,"event":"btn:checkout"}
+{"user":"L0070","update_id":1546,"event":"btn:pizza"}
+{"user":"L0002","update_id":1547,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0000","update_id":1548,"event":"btn:checkout"}
+{"user":"L0020","update_id":1549,"event":"btn:pizza"}
+{"user":"L0009","update_id":1550,"event":"btn:size","arg":"L"}
+{"user":"L0008","update_id":1551,"event":"btn:size","arg":"S"}
+{"user":"L0020","update_id":1552,"event":"btn:size","arg":"L"}
+{"user":"L0014","update_id":1553,"event":"btn:size","arg":"S"}
+{"user":"L0093","update_id":1554,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0011","update_id":1555,"event":"btn:checkout"}
+{"user":"L0091","update_id":1556,"event":"btn:checkout"}
+{"user":"L0005","update_id":1557,"event":"btn:checkout"}
+{"user":"L0017","update_id":1558,"event":"btn:add"}
+{"user":"L0055","update_id":1559,"event":"btn:add"}
+{"user":"L0051","update_id":1560,"event":"btn:checkout"}
+{"user":"L0079","update_id":1561,"event":"btn:pizza"}
+{"user":"L0049","update_id":1562,"event":"btn:size","arg":"S"}
+{"user":"L0070","update_id":1563,"event":"btn:size","arg":"L"}
+{"user":"L0040","update_id":1564,"event":"btn:checkout"}
+{"user":"L0090","update_id":1565,"event":"btn:size","arg":"L"}
+{"user":"L0019","update_id":1566,"event":"payment:success"}
+{"user":"L0055","update_id":1567,"event":"btn:checkout"}
+{"user":"L0006","update_id":1568,"event":"btn:add"}
+{"user":"L0038","update_id":1569,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0062","update_id":1570,"event":"btn:pizza"}
+{"user":"L0055","update_id":1571,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0088","update_id":1572,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0049","update_id":1573,"event":"btn:add"}
+{"user":"L0040","update_id":1574,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0021","update_id":1575,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0052","update_id":1576,"event":"cmd:start"}
+{"user":"L0012","update_id":1577,"event":"payment:success"}
+{"user":"L0096","update_id":1578,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0071","update_id":1579,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0034","update_id":1580,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0070","update_id":1581,"event":"btn:add"}
+{"user":"L0031","update_id":1582,"event":"payment:success"}
+{"user":"L0038","update_id":1583,"event":"payment:success"}
+{"user":"L0017","update_id":1584,"event":"btn:checkout"}
+{"user":"L0034","update_id":1585,"event":"payment:success"}
+{"user":"L0068","update_id":1586,"event":"btn:pizza"}
+{"user":"L0088","update_id":1587,"event":"payment:success"}
+{"user":"L0002","update_id":1588,"event":"payment:success"}
+{"user":"L0030","update_id":1589,"event":"btn:pizza"}
+{"user":"L0071","update_id":1590,"event":"payment:success"}
+{"user":"L0017","update_id":1591,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0070","update_id":1592,"event":"btn:checkout"}
+{"user":"L0093","update_id":1593,"event":"payment:success"}
+{"user":"L0011","update_id":1594,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0078","update_id":1595,"event":"payment:success"}
+{"user":"L0006","update_id":1596,"event":"btn:checkout"}
+{"user":"L0084","update_id":1597,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0073","update_id":1598,"event":"btn:checkout"}
+{"user":"L0074","update_id":1599,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0009","update_id":1600,"event":"btn:add"}
+{"user":"L0025","update_id":1601,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0049","update_id":1602,"event":"btn:checkout"}
+{"user":"L0000","update_id":1603,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0044","update_id":1604,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0072","update_id":1605,"event":"btn:checkout"}
+{"user":"L0044","update_id":1606,"event":"payment:success"}
+{"user":"L0099","update_id":1607,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0037","update_id":1608,"event":"btn:checkout"}
+{"user":"L0097","update_id":1609,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0011","update_id":1610,"event":"payment:success"}
+{"user":"L0066","update_id":1611,"event":"btn:add"}
+{"user":"L0087","update_id":1612,"event":"btn:add"}
+{"user":"L0074","update_id":1613,"event":"payment:success"}
+{"user":"L0015","update_id":1614,"event":"btn:add"}
+{"user":"L0017","update_id":1615,"event":"payment:success"}
+{"user":"L0080","update_id":1616,"event":"payment:success"}
+{"user":"L0064","update_id":1617,"event":"payment:success"}
+{"user":"L0033","update_id":1618,"event":"btn:add"}
+{"user":"L0052","update_id":1619,"event":"btn:order"}
+{"user":"L0049","update_id":1620,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0040","update_id":1621,"event":"payment:success"}
+{"user":"L0073","update_id":1622,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0001","update_id":1623,"event":"btn:order"}
+{"user":"L0090","update_id":1624,"event":"btn:add"}
+{"user":"L0058","update_id":1625,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0030","update_id":1626,"event":"btn:size","arg":"L"}
+{"user":"L0027","update_id":1627,"event":"btn:add"}
+{"user":"L0073","update_id":1628,"event":"payment:success"}
+{"user":"L0084","update_id":1629,"event":"payment:success"}
+{"user":"L0066","update_id":1630,"event":"btn:checkout"}
+{"user":"L0090","update_id":1631,"event":"btn:checkout"}
+{"user":"L0039","update_id":1632,"event":"btn:add"}
+{"user":"L0014","update_id":1633,"event":"btn:add"}
+{"user":"L0048","update_id":1634,"event":"payment:success"}
+{"user":"L0090","update_id":1635,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0097","update_id":1636,"event":"payment:success"}
+{"user":"L0005","update_id":1637,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0006","update_id":1638,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0068","update_id":1639,"event":"btn:size","arg":"L"}
+{"user":"L0053","update_id":1640,"event":"btn:checkout"}
+{"user":"L0076","update_id":1641,"event":"btn:add"}
+{"user":"L0072","update_id":1642,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0042","update_id":1643,"event":"btn:size","arg":"L"}
+{"user":"L0062","update_id":1644,"event":"btn:size","arg":"L"}
+{"user":"L0089","update_id":1645,"event":"payment:success"}
+{"user":"L0050","update_id":1646,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0006","update_id":1647,"event":"payment:success"}
+{"user":"L0062","update_id":1648,"event":"btn:add"}
+{"user":"L0037","update_id":1649,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0081","update_id":1650,"event":"payment:success"}
+{"user":"L0001","update_id":1651,"event":"btn:pizza"}
+{"user":"L0024","update_id":1652,"event":"payment:success"}
+{"user":"L0051","update_id":1653,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0065","update_id":1654,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0030","update_id":1655,"event":"btn:add"}
+{"user":"L0099","update_id":1656,"event":"payment:success"}
+{"user":"L0055","update_id":1657,"event":"payment:success"}
+{"user":"L0068","update_id":1658,"event":"btn:add"}
+{"user":"L0050","update_id":1659,"event":"payment:success"}
+{"user":"L0005","update_id":1660,"event":"payment:success"}
+{"user":"L0001","update_id":1661,"event":"btn:size","arg":"L"}
+{"user":"L0009","update_id":1662,"event":"btn:checkout"}
+{"user":"L0018","update_id":1663,"event":"payment:success"}
+{"user":"L0028","update_id":1664,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0068","update_id":1665,"event":"btn:checkout"}
+{"user":"L0000","update_id":1666,"event":"payment:success"}
+{"user":"L0090","update_id":1667,"event":"payment:success"}
+{"user":"L0067","update_id":1668,"event":"payment:success"}
+{"user":"L0009","update_id":1669,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0014","update_id":1670,"event":"btn:checkout"}
+{"user":"L0051","update_id":1671,"event":"payment:success"}
+{"user":"L0015","update_id":1672,"event":"btn:checkout"}
+{"user":"L0057","update_id":1673,"event":"btn:checkout"}
+{"user":"L0049","update_id":1674,"event":"payment:success"}
+{"user":"L0020","update_id":1675,"event":"btn:add"}
+{"user":"L0025","update_id":1676,"event":"payment:success"}
+{"user":"L0079","update_id":1677,"event":"btn:size","arg":"L"}
+{"user":"L0059","update_id":1678,"event":"btn:add"}
+{"user":"L0087","update_id":1679,"event":"btn:checkout"}
+{"user":"L0091","update_id":1680,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0072","update_id":1681,"event":"payment:success"}
+{"user":"L0087","update_id":1682,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0068","update_id":1683,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0013","update_id":1684,"event":"btn:add"}
+{"user":"L0065","update_id":1685,"event":"payment:success"}
+{"user":"L0008","update_id":1686,"event":"btn:add"}
+{"user":"L0070","update_id":1687,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0041","update_id":1688,"event":"btn:checkout"}
+{"user":"L0033","update_id":1689,"event":"btn:checkout"}
+{"user":"L0032","update_id":1690,"event":"payment:success"}
+{"user":"L0030","update_id":1691,"event":"btn:checkout"}
+{"user":"L0020","update_id":1692,"event":"btn:checkout"}
+{"user":"L0009","update_id":1693,"event":"payment:success"}
+{"user":"L0070","update_id":1694,"event":"payment:success"}
+{"user":"L0056","update_id":1695,"event":"btn:add"}
+{"user":"L0096","update_id":1696,"event":"payment:success"}
+{"user":"L0023","update_id":1697,"event":"btn:add"}
+{"user":"L0015","update_id":1698,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0056","update_id":1699,"event":"btn:checkout"}
+{"user":"L0062","update_id":1700,"event":"btn:checkout"}
+{"user":"L0058","update_id":1701,"event":"payment:success"}
+{"user":"L0079","update_id":1702,"event":"btn:add"}
+{"user":"L0075","update_id":1703,"event":"payment:success"}
+{"user":"L0053","update_id":1704,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0023","update_id":1705,"event":"btn:checkout"}
+{"user":"L0008","update_id":1706,"event":"btn:checkout"}
+{"user":"L0052","update_id":1707,"event":"btn:pizza"}
+{"user":"L0029","update_id":1708,"event":"btn:add"}
+{"user":"L0016","update_id":1709,"event":"payment:success"}
+{"user":"L0068","update_id":1710,"event":"payment:success"}
+{"user":"L0014","update_id":1711,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0056","update_id":1712,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0028","update_id":1713,"event":"payment:success"}
+{"user":"L0004","update_id":1714,"event":"btn:size","arg":"S"}
+{"user":"L0039","update_id":1715,"event":"btn:checkout"}
+{"user":"L0060","update_id":1716,"event":"btn:add"}
+{"user":"L0056","update_id":1717,"event":"payment:success"}
+{"user":"L0039","update_id":1718,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0082","update_id":1719,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0020","update_id":1720,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0027","update_id":1721,"event":"btn:checkout"}
+{"user":"L0036","update_id":1722,"event":"btn:checkout"}
+{"user":"L0087","update_id":1723,"event":"payment:success"}
+{"user":"L0001","update_id":1724,"event":"btn:add"}
+{"user":"L0037","update_id":1725,"event":"payment:success"}
+{"user":"L0098","update_id":1726,"event":"btn:add"}
+{"user":"L0008","update_id":1727,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0008","update_id":1728,"event":"payment:success"}
+{"user":"L0039","update_id":1729,"event":"payment:success"}
+{"user":"L0062","update_id":1730,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0082","update_id":1731,"event":"payment:success"}
+{"user":"L0057","update_id":1732,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0059","update_id":1733,"event":"btn:checkout"}
+{"user":"L0004","update_id":1734,"event":"btn:add"}
+{"user":"L0036","update_id":1735,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0059","update_id":1736,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0061","update_id":1737,"event":"btn:pizza"}
+{"user":"L0052","update_id":1738,"event":"btn:size","arg":"S"}
+{"user":"L0004","update_id":1739,"event":"btn:checkout"}
+{"user":"L0004","update_id":1740,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0030","update_id":1741,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0014","update_id":1742,"event":"payment:success"}
+{"user":"L0066","update_id":1743,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0061","update_id":1744,"event":"btn:size","arg":"M"}
+{"user":"L0020","update_id":1745,"event":"payment:success"}
+{"user":"L0059","update_id":1746,"event":"payment:success"}
+{"user":"L0052","update_id":1747,"event":"btn:add"}
+{"user":"L0030","update_id":1748,"event":"payment:success"}
+{"user":"L0033","update_id":1749,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0091","update_id":1750,"event":"payment:success"}
+{"user":"L0027","update_id":1751,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0027","update_id":1752,"event":"payment:success"}
+{"user":"L0013","update_id":1753,"event":"btn:checkout"}
+{"user":"L0062","update_id":1754,"event":"payment:success"}
+{"user":"L0057","update_id":1755,"event":"payment:success"}
+{"user":"L0053","update_id":1756,"event":"payment:success"}
+{"user":"L0036","update_id":1757,"event":"payment:success"}
+{"user":"L0021","update_id":1758,"event":"payment:success"}
+{"user":"L0052","update_id":1759,"event":"btn:checkout"}
+{"user":"L0052","update_id":1760,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0079","update_id":1761,"event":"btn:checkout"}
+{"user":"L0004","update_id":1762,"event":"payment:success"}
+{"user":"L0066","update_id":1763,"event":"payment:success"}
+{"user":"L0076","update_id":1764,"event":"btn:checkout"}
+{"user":"L0041","update_id":1765,"event":"msg:text","arg":"Mira 15, kv 3"}
+{"user":"L0015","update_id":1766,"event":"payment:success"}
+{"user":"L0079","update_id":1767,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0061","update_id":1768,"event":"btn:add"}
+{"user":"L0029","update_id":1769,"event":"btn:checkout"}
+{"user":"L0001","update_id":1770,"event":"btn:checkout"}
+{"user":"L0045","update_id":1771,"event":"btn:checkout"}
+{"user":"L0076","update_id":1772,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0052","update_id":1773,"event":"payment:success"}
+{"user":"L0033","update_id":1774,"event":"payment:success"}
+{"user":"L0061","update_id":1775,"event":"btn:checkout"}
+{"user":"L0023","update_id":1776,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0041","update_id":1777,"event":"payment:success"}
+{"user":"L0076","update_id":1778,"event":"payment:success"}
+{"user":"L0045","update_id":1779,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0098","update_id":1780,"event":"btn:checkout"}
+{"user":"L0042","update_id":1781,"event":"btn:add"}
+{"user":"L0061","update_id":1782,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0060","update_id":1783,"event":"btn:checkout"}
+{"user":"L0061","update_id":1784,"event":"payment:success"}
+{"user":"L0001","update_id":1785,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0013","update_id":1786,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0029","update_id":1787,"event":"msg:text","arg":"Gagarina 7"}
+{"user":"L0013","update_id":1788,"event":"payment:success"}
+{"user":"L0023","update_id":1789,"event":"payment:success"}
+{"user":"L0079","update_id":1790,"event":"payment:success"}
+{"user":"L0060","update_id":1791,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0060","update_id":1792,"event":"payment:success"}
+{"user":"L0045","update_id":1793,"event":"payment:success"}
+{"user":"L0042","update_id":1794,"event":"btn:checkout"}
+{"user":"L0029","update_id":1795,"event":"payment:success"}
+{"user":"L0001","update_id":1796,"event":"payment:success"}
+{"user":"L0042","update_id":1797,"event":"msg:text","arg":"Pushkina 10"}
+{"user":"L0042","update_id":1798,"event":"payment:success"}
+{"user":"L0098","update_id":1799,"event":"msg:text","arg":"Lenina 1"}
+{"user":"L0098","update_id":1800,"event":"payment:success"}

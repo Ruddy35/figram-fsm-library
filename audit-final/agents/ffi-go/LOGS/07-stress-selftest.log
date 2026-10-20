@@ -1,0 +1,12 @@
+command: env FIGRAM_STRESS_SELFTEST=1 ffi/audit/out/stress examples/pizza.bot.json 4 1000 1 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:37:54.102Z
+end: 2026-10-19T23:37:54.139Z
+exit_code: 1
+--- stdout (137 bytes, last 200 lines)
+shared handle: 4 threads x 1000 = 4000 requests, mismatches 400; 1 loader threads: 26 load/10 req/unload/check/fmt cycles, mismatches 26
+--- stderr (484 bytes, last 100 lines)
+MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
+MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
+MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
+MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}

@@ -1,0 +1,10 @@
+>> {"id":1,"op":"start"}
+<< {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+>> {"id":2,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}
+<< {"id":2,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"event":"btn:cart"}
+<< {"id":3,"snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]}
+--- v1 user on 'cart' with cart_reminder scheduled; deploy v2 (timer moved to 'address', arrow lifted to section 'order'); the v1 event arrives
+>> {"id":1,"op":"step","snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"event":"timer:cart_reminder","token":3}
+<< {"id":1,"snapshot":{"at":"reminder","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":4},"actions":[{"send":"reminder"}]}
+VERDICT: BUG: stale v1 timer accepted, user moved to reminder

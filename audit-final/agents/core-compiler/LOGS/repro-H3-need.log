@@ -1,0 +1,10 @@
+command: sh /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/H3_need_superfluous/repro.sh 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T22:27:28.526Z
+end: 2026-10-19T22:27:28.575Z
+exit_code: 0
+--- stdout (151 bytes, last 200 lines)
+{"id":1,"need":["c1"]}
+{"id":2,"snapshot":{"at":"A","seq":2},"actions":[{"send":"A"}]}
+{"id":3,"snapshot":{"at":"A","seq":2},"actions":[{"send":"A"}]}
+--- stderr (0 bytes, last 100 lines)

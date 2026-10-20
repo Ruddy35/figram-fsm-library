@@ -1,0 +1,83 @@
+source: GitHub Actions, repo Ruddy35/figram-fsm-library, workflow .github/workflows/verify.yml
+run: https://github.com/Ruddy35/figram-fsm-library/actions/runs/39330382243  (job 118326767144)
+head_sha: d69bbaf7881a0ae1c11b75a35cf5193ad604b925 (audit baseline)
+runner: ubuntu-latest, nproc=4; toolchain: official leanprover/lean4:v4.35.0 via elan (lean-toolchain), Go 1.23.12
+conclusion: success (status completed, 21:48:41Z → 21:53:31Z)
+retrieved via GitHub MCP get_job_logs at ~22:04Z; verbatim excerpt of the verify.sh and long-Go steps:
+
+2026-10-19T21:48:57.2367757Z Defaulting to user installation because normal site-packages is not writeable
+2026-10-19T21:48:57.5645055Z Requirement already satisfied: jsonschema in /usr/lib/python3/dist-packages (4.10.3)
+2026-10-19T21:48:58.0236781Z == Сборка без предупреждений
+2026-10-19T21:49:21.4878315Z Build completed successfully (42 jobs).
+2026-10-19T21:49:21.4897367Z == Приложенные бинарники bin/ собраны ровно из этих исходников
+2026-10-19T21:49:21.6039736Z ok: хеши совпадают побайтно
+2026-10-19T21:49:21.6040301Z == Теоремы без sorry
+2026-10-19T21:49:21.8484438Z 'Figram.Chart.compile_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8485245Z 'Figram.Chart.session_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8485899Z 'Figram.Chart.chart_run_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8486561Z 'Figram.Machine.step_state_valid' depends on axioms: [propext, Quot.sound]
+2026-10-19T21:49:21.8487091Z 'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+2026-10-19T21:49:21.8487651Z 'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8488280Z 'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8488924Z 'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8489499Z 'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+2026-10-19T21:49:21.8490054Z 'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8490709Z 'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8491300Z 'Figram.Engine.step_snapOK' depends on axioms: [propext, Quot.sound]
+2026-10-19T21:49:21.8491853Z 'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8493448Z 'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+2026-10-19T21:49:21.8743221Z == Фиксированные сценарии совпадают с сохранёнными
+2026-10-19T21:49:21.8823865Z ok
+2026-10-19T21:49:21.8825383Z == Соответствие движка: фиксированные и случайные сценарии
+2026-10-19T21:49:22.0175448Z покрыто вариантов стрелок: 42 из 42
+2026-10-19T21:49:22.1459584Z покрыто вариантов стрелок: 36 из 36
+2026-10-19T21:49:22.9244485Z запросов 18103, расхождений 0
+2026-10-19T21:49:22.9363413Z == Соответствие на 100 случайных документах
+2026-10-19T21:49:30.9731530Z документов 100, запросов 97282, документов с расхождениями 0
+2026-10-19T21:49:30.9733267Z == Мутационное тестирование
+2026-10-19T21:50:05.6292036Z examples/pizza.bot.json: мутаций 56
+2026-10-19T21:50:05.6293319Z examples/features.bot.json: мутаций 51
+2026-10-19T21:50:05.6294307Z обнаружено 107 из 107 мутаций (100%)
+2026-10-19T21:50:05.6294906Z == Контракт хоста
+2026-10-19T21:50:06.2669046Z контракт выполнен
+2026-10-19T21:50:06.2677593Z == CLI: ошибки аргументов дают ненулевой код
+2026-10-19T21:50:06.2823728Z ok
+2026-10-19T21:50:06.2824321Z == Огромный показатель степени: быстрый контролируемый отказ
+2026-10-19T21:50:06.2933393Z ok (код 1, figram: не удалось прочитать документ: показатель степени по модулю больше 1000)
+2026-10-19T21:50:06.2934453Z == Снимок: схема и движок согласованы, граница seq
+2026-10-19T21:50:06.4182282Z снимков 24, ответов 24, расхождений схемы и движка 0
+2026-10-19T21:50:06.4182808Z граница seq: ok
+2026-10-19T21:50:06.4185305Z == Текстовый слой JSON: дифференциально против Python json
+2026-10-19T21:50:12.5901293Z случаев 30000: принято обоими 9786, отвергнуто обоими 20214, расхождений 0
+2026-10-19T21:50:13.3353793Z контроль: парсер без ограничений обнаружен
+2026-10-19T21:50:13.3355856Z == C-прослойка: невалидный UTF-8, огромные входы, 16 потоков, ASan и UBSan
+2026-10-19T21:50:19.5527978Z строка 5 МБ → {"id":null,"error":"запрос должен быть объектом"}
+2026-10-19T21:50:19.5528548Z 16 потоков × 20000 вызовов к одному автомату: расхождений 0
+2026-10-19T21:50:24.5361654Z 5000 загрузок и выгрузок: рост памяти -11520 КБ; без выгрузки (контроль): 49852 КБ
+2026-10-19T21:50:24.5363787Z == Клиент Python: сбои движка, контракт методов, чистый stderr
+2026-10-19T21:50:28.0134574Z клиент устойчив
+2026-10-19T21:50:30.0699107Z контракт клиента выполнен
+2026-10-19T21:50:30.0700514Z == Тестовая обвязка ловит испорченный, неполный, пустой и зависший движок
+2026-10-19T21:51:22.4876983Z обвязка ловит порчу
+2026-10-19T21:51:22.4878204Z == Нагрузочный тест: 64 потока, 2 процесса
+2026-10-19T21:51:23.3186944Z потоков  64, процессов 2: шагов 8000 (из них с запросом условий 464), расхождений 0, 10,552 шагов/с, задержка p50 4,971 мкс, p99 14,454 мкс
+2026-10-19T21:51:23.3189475Z == Go: встроенный движок, сценарии из многих горутин
+2026-10-19T21:51:30.2624875Z ботов 4, раундов 3, горутин 600, запросов 24600, расхождений 0, 56270 запросов/с (GOMAXPROCS=4, CPU=4)
+2026-10-19T21:51:38.5847034Z ботов 3, раундов 3, горутин 60, запросов 1860, расхождений 0, 13567 запросов/с (GOMAXPROCS=4, CPU=4)
+2026-10-19T21:51:39.5938504Z -rounds 0 и -bots 0: Go-проверка красная
+2026-10-19T21:51:39.7706828Z 7 видов порчи ответов: Go-проверка красная
+2026-10-19T21:51:44.1733633Z 5000 загрузок с Close (после прогрева): рост памяти -280 КБ; без Close (контроль): 50560 КБ
+2026-10-19T21:51:48.8586829Z общий словарь запроса из 8 горутин: гонок нет
+2026-10-19T21:51:48.8666387Z повреждённый сценарий: Go-проверка красная
+2026-10-19T21:51:48.8671172Z ВСЁ В ПОРЯДКЕ
+--- step "Go — длительный параллельный прогон на всех ядрах"
+2026-10-19T21:51:48.8987981Z 4
+2026-10-19T21:51:50.1050157Z покрыто вариантов стрелок: 42 из 42
+2026-10-19T21:52:16.7053850Z ботов 8, раундов 5, горутин 10000, запросов 410000, расхождений 0, 17718 запросов/с (GOMAXPROCS=4, CPU=4)   [gofig-race]
+2026-10-19T21:53:26.9510056Z ботов 8, раундов 50, горутин 100000, запросов 4100000, расхождений 0, 59677 запросов/с (GOMAXPROCS=4, CPU=4)   [gofig]
+2026-10-19T21:53:27.4011212Z ##[warning]Node.js 20 is deprecated ... actions/checkout@v4, actions/setup-go@v5
+Notes:
+* "ok: хеши совпадают побайтно" is the official-toolchain reproducibility check of bin/* — note the step itself is non-fatal in verify.sh
+  (`... | diff - bin/SHA256SUMS && echo ok`), so here the positive line is the evidence, not the exit code.
+* pip: jsonschema came from the runner's system dist-packages (4.10.3), not installed by the workflow.
+* Lean Action CI run 39330382251 (job 118326766617): success in 30 s (checkout@v7 resolved; lean-action@v1).

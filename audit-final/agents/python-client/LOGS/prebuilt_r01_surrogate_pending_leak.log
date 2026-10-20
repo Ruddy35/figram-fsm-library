@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 120 python3 r01_surrogate_pending_leak.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T21:57:09.869Z
+end: 2026-10-19T21:57:09.978Z
+exit_code: 1
+--- stdout (424 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
+исключения: {'UnicodeEncodeError': 1000}
+ожидающих в таблице после 1000 запросов: 1000 процесс жив: True
+процесс обслуживает обычные запросы: True
+ДЕФЕКТ ВОСПРОИЗВЕДЁН
+--- stderr (0 bytes, last 100 lines)

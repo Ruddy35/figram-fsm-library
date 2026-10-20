@@ -1,0 +1,15 @@
+command: /home/user/figram-audit/agents/host-python/REPRODUCTIONS/run_repro.sh forged_timer.jsonl no-validate 
+cwd: /home/user/figram-audit-worktrees/host-python/audit/host-python
+start: 2026-10-19T23:21:19.141Z
+end: 2026-10-19T23:21:19.914Z
+exit_code: 1
+--- stdout (1673 bytes, last 200 lines)
+{"scenario": "forged_timer", "broken": "no-validate", "elapsed_s": 0.32, "fails": ["timer_not_early", "malformed_updates_rejected"], "counts": {"users": 1, "transitions": 4, "steps_logged": 4, "updates_acked": 4, "updates_abandoned": 0, "acks_by_status": {"ok": 4, "ignored": 1}, "nacks": 0, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 0, "outbox_rows": 6, "outbox_retried": 0, "crm_effects": 0, "crm_requests_by_outcome": {}, "tg_deliveries": 4, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {}, "timers_by_state": {"canceled": 1}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 5, "p50": 2.296, "p95": 4.352, "p99": 4.352, "max": 20.114}, "host_step_ms": {"n": 5, "p50": 2.258, "p95": 4.233, "p99": 4.233, "max": 20.046}, "e2e_ms": {"n": 5, "p50": 2.75, "p95": 6.737, "p99": 6.737, "max": 24.178}, "elapsed_s": 0.32, "throughput_updates_per_s": 15.6}}
+v final: {'at': 'reminder', 'resume': {'order': 'cart'}, 'seq': 4}
+   tg:1 cmd:start  seq 1 -> menu t_ms 0 [{'send': 'menu'}]
+   tg:2 btn:order  seq 2 -> catalog t_ms 0 [{'send': 'catalog'}]
+   tg:3 btn:cart  seq 3 -> cart t_ms 0 [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 3}, {'send': 'cart'}]
+   tg:4 timer:cart_reminder tok=3 seq 4 -> reminder t_ms 0 [{'cancel_timer': 'cart_reminder'}, {'send': 'reminder'}]
+effects: []
+FAILED invariants: {"timer_not_early": [["v", "cart_reminder", 3, 0, 7200000]], "malformed_updates_rejected": {"accepted": [{"d": 5, "line": 5, "user": null, "uid": null, "status": "ok", "raw": true}], "raw_acks": 1}}
+--- stderr (0 bytes, last 100 lines)

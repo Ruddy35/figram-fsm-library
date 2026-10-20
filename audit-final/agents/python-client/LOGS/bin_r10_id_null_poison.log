@@ -1,0 +1,29 @@
+command: nice -n 10 timeout 200 python3 r10_id_null_poison.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:11:04.786Z
+end: 2026-10-19T22:11:11.795Z
+exit_code: 1
+--- stdout (2368 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit/agents/python-client/baseline-client
+[dup-int] на проводе: b'{"op":"step","snapshot":{"at":"menu","resume":{"1":"menu","1":"menu"}},"event":"btn:x"}'
+[dup-int] плохой запрос ×20: {'EngineError: процесс движка неисправен: ответ без целого id: b\'{"id":null': 20}
+[dup-int] обычные пользователи: успешно 10121, ошибок 88; процессов движка 20
+
+[dup-bool] на проводе: b'{"op":"step","snapshot":{"at":"menu","timers":{"true":1,"true":2}},"event":"btn:x"}'
+[dup-bool] плохой запрос ×20: {'EngineError: процесс движка неисправен: ответ без целого id: b\'{"id":null': 20}
+[dup-bool] обычные пользователи: успешно 12112, ошибок 99; процессов движка 20
+
+[deep] на проводе: b'{"op":"step","snapshot":{"at":"menu","x":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a"...'
+[deep] плохой запрос ×20: {'EngineError: процесс движка неисправен: ответ без целого id: b\'{"id":null': 20}
+[deep] обычные пользователи: успешно 10537, ошибок 89; процессов движка 20
+
+[surrogate] на проводе: не сериализуется: UnicodeEncodeError
+[surrogate] плохой запрос ×20: {"UnicodeEncodeError: 'utf-8' codec can't encode character '\\ud800' in position 45": 14, "UnicodeEncodeError: 'utf-8' codec can't encode character '\\ud800' in position 46": 6}
+[surrogate] обычные пользователи: успешно 13491, ошибок 0; процессов движка 1
+
+[control] на проводе: b'{"op":"step","snapshot":{"at":"menu","x":1},"event":"btn:x"}'
+[control] плохой запрос ×20: {'EngineError: снимок: неизвестное поле «x» (снимок более новой версии?)': 20}
+[control] обычные пользователи: успешно 13116, ошибок 0; процессов движка 1
+
+FS-4 ПОДТВЕРЖДЕНА: ответ id:null убивает процесс и соседей
+--- stderr (0 bytes, last 100 lines)

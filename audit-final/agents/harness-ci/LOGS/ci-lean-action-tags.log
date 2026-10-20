@@ -1,0 +1,25 @@
+command: git ls-remote --tags https://github.com/leanprover/lean-action 
+cwd: /home/user/figram-audit/agents/harness-ci
+start: 2026-10-19T21:56:19.198Z
+end: 2026-10-19T21:56:19.601Z
+exit_code: 0
+--- stdout (1049 bytes, last 200 lines)
+24581d74d674803a25a81b10b059c5c0cdd344c6	refs/tags/v1
+8b3eddb762cb86312cc8170dba2fcfcb04b38dda	refs/tags/v1-alpha
+50b53f3b4a3c0aa450e454ffa8c61f83a5ce3f0c	refs/tags/v1-beta
+36ca1520966f191ebd0988a0568288ff437b78ba	refs/tags/v1-beta.0
+50b53f3b4a3c0aa450e454ffa8c61f83a5ce3f0c	refs/tags/v1-beta.1
+b7cdeeb780d054cdb529ba0b8b0f0819013225a6	refs/tags/v1.0.0
+2a3681ce6cc4d8bcd407f0513f7f4b91253c8431	refs/tags/v1.0.1
+56b85b041a670db1a5a0865bbb79cb4e2203ce18	refs/tags/v1.0.2
+8fc2853fe07aa43fa70b509ee91926147759ba2b	refs/tags/v1.1.0
+465529c82e0772013f6e0924815e73004a1e8cf1	refs/tags/v1.1.1
+f3ad22e9ca29cb9475bc9bee9afd1f39bb52bf6d	refs/tags/v1.1.2
+f807b338d95de7813c5c50d018f1c23c9b93b4ec	refs/tags/v1.2.0
+434f25c2f80ded67bba02502ad3a86f25db50709	refs/tags/v1.3.0
+c544e89643240c6b398f14a431bcdc6309e36b3e	refs/tags/v1.4.0
+38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9	refs/tags/v1.5.0
+50fcf42d2e460296f1a34b402e990d1b24f8b596	refs/tags/v1.6.0
+f061402b660e0c34644504b324e830f2991d4865	refs/tags/v1.6.1
+24581d74d674803a25a81b10b059c5c0cdd344c6	refs/tags/v1.6.2
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,5 @@
+[h3a] ВОСПРОИЗВЕДЕНО: строка пользователя растёт линейно с числом событий, время обработки события растёт
+    ожидается: ограниченный размер (окно повторной доставки Telegram ≤ 24 ч)
+    буквальный хост: [{'events': 1000, 'row_seen_bytes': 4896, 'snapshot_bytes': 59, 'us_per_event': 437.1}, {'events': 5000, 'row_seen_bytes': 28896, 'snapshot_bytes': 59, 'us_per_event': 908.4}, {'events': 10000, 'row_seen_bytes': 58897, 'snapshot_bytes': 60, 'us_per_event': 1841.6}, {'events': 20000, 'row_seen_bytes': 128897, 'snapshot_bytes': 60, 'us_per_event': 3675.8}]
+    исправленный:   [{'events': 1000, 'row_seen_bytes': 2, 'snapshot_bytes': 59, 'us_per_event': 233.2}, {'events': 5000, 'row_seen_bytes': 2, 'snapshot_bytes': 59, 'us_per_event': 302.8}, {'events': 10000, 'row_seen_bytes': 2, 'snapshot_bytes': 60, 'us_per_event': 272.8}, {'events': 20000, 'row_seen_bytes': 2, 'snapshot_bytes': 60, 'us_per_event': 285.4}]
+сценариев 1, воспроизведено 1

@@ -1,0 +1,47 @@
+From 253df6b4f0b8c1f634e4d19f1058780f5c5c24ad Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 20 Oct 2026 00:43:31 +0000
+Subject: [PATCH 31/40] test(host_sim): retry the probabilistic negative
+ control up to 3 times
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The naive-host control (no dedup, no idempotency keys) is red only when an
+injected crash hits the window between executing create_order and marking
+it done; with the per-user outcomes of 1dfe574 only ~15 users order, and
+the control stayed green in 3 of 31 runs of the merged host_sim (1 of 31 on
+baseline), turning verify.sh "Контракт хоста" red although the main
+scenario passed. The control now gets up to three attempts (one red run
+proves the test can see the violation); the main scenario is unchanged and
+still runs once.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ ffi/python-example/host_sim.py | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/ffi/python-example/host_sim.py b/ffi/python-example/host_sim.py
+index 51f51c0..a8ef388 100644
+--- a/ffi/python-example/host_sim.py
++++ b/ffi/python-example/host_sim.py
+@@ -320,8 +320,13 @@ if __name__ == "__main__":
+     ok1 = scenario_orders(engine_path, doc, barrier=barrier)
+     ok2 = scenario_stale_timer(engine_path, doc)
+     print("--- контроль: хост без отсева дублей и без ключей идемпотентности")
+-    control = scenario_orders(engine_path, doc, naive=True)
+-    print("  тест ловит нарушение:", "да" if not control else "НЕТ")
++    # Контроль вероятностный (дубль заказа возникает только при сбое в нужном месте):
++    # до трёх попыток, достаточно одной красной. Основной сценарий не повторяется.
++    for attempt in range(3):
++        control = scenario_orders(engine_path, doc, naive=True)
++        if not control:
++            break
++    print("  тест ловит нарушение:", "да" if not control else "НЕТ", f"(попыток контроля: {attempt + 1})")
+     ok2 = ok2 and not control
+     print("контракт выполнен" if ok1 and ok2 else "НАРУШЕНИЕ КОНТРАКТА")
+     sys.exit(0 if ok1 and ok2 else 1)
+-- 
+2.43.0
+

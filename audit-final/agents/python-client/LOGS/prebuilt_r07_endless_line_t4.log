@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 120 prlimit --as=6000000000 -- python3 r07_endless_line.py 4 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:07:34.900Z
+end: 2026-10-19T22:07:39.389Z
+exit_code: 0
+--- stdout (335 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
+timeout=4.0: EngineError: процесс движка неисправен: нет ответа за 4.0 с; 4.1 с; пик RSS клиента 694 МБ (до вызова 13 МБ)
+--- stderr (0 bytes, last 100 lines)

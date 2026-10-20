@@ -1,0 +1,11 @@
+command: python3 repro.py f8-id-null 
+cwd: /home/user/figram-audit/agents/engine-timers/REPRODUCTIONS
+start: 2026-10-19T22:14:18.717Z
+end: 2026-10-19T22:14:18.878Z
+exit_code: 0
+--- stdout (184 bytes, last 200 lines)
+{"id":null,"error":"повторяющийся ключ «a»"}
+{"id":null,"error":"лишний текст после JSON"}
+
+VERDICT: requests with ids 5 and 6 answered with id null
+--- stderr (0 bytes, last 100 lines)

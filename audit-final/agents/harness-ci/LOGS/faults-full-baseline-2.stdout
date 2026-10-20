@@ -1,0 +1,4 @@
+неисправность код ожидание последняя строка
+native-decide        0      1        НЕТ ВСЁ В ПОРЯДКЕ
+go-missing           0      1        НЕТ ВСЁ В ПОРЯДКЕ
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-full-baseline-2/summary.txt)

@@ -1,0 +1,11 @@
+command: bash xverify/c4_resume_scaling.sh bin/figram bin/figram-engine /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c4s 5000 10000 20000 40000 
+cwd: /home/user/figram-audit-worktrees/cross-verify
+start: 2026-10-20T00:05:08.454Z
+end: 2026-10-20T00:05:25.722Z
+exit_code: 0
+--- stdout (541 bytes, last 200 lines)
+K=5000 bytes=99015 engine_step_ms=178 rc=0 parse_only_ms=89 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
+K=10000 bytes=199015 engine_step_ms=353 rc=0 parse_only_ms=389 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
+K=20000 bytes=409015 engine_step_ms=1493 rc=0 parse_only_ms=1456 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
+K=40000 bytes=829015 engine_step_ms=6548 rc=0 parse_only_ms=6528 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 120 python3 r03_missing_binary.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:48:45.273Z
+end: 2026-10-19T22:48:45.566Z
+exit_code: 0
+--- stdout (358 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit-worktrees/python-client/ffi/python-example
+исключения при замене процесса без бинарника: {'EngineError': 3}
+дефекта нет
+--- stderr (0 bytes, last 100 lines)

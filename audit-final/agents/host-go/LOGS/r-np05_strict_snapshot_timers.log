@@ -1,0 +1,9 @@
+command: bash REPRODUCTIONS/np05_strict_snapshot_timers.sh 
+cwd: /home/user/figram-audit/agents/host-go
+start: 2026-10-20T01:01:28.807Z
+end: 2026-10-20T01:01:35.615Z
+exit_code: 0
+--- stdout (977 bytes, last 200 lines)
+{"broken":"strict-snapshot-timers","counts":{"acks_by_status":{"dup":20,"ok":68,"recovered":1},"binding_final_process":{"c_nanos":117204411,"calls":2036,"in_bytes":286781,"live_machines":1,"loads":1,"out_bytes":216217,"unloads":0},"crashes":2,"engine_faults":{"engine_fault_detected":{},"engine_fault_injected":{}},"ext":{"by_outcome":{"crm:applied":7,"crm:dedup":1,"tg:delivered":72},"crm_effects":7,"fault_modes_seen":{},"key_conflicts":0,"reordered_batches":0,"requests":80,"tg_deliveries":72,"tg_duplicate_keys":0},"host_log":{"engine_retry":1512,"recovered":1,"upgrade":1},"host_restarts":2,"hos
+['abandoned line 77 m03 tg:1073: nack: retries exhausted: engine failure: bad reply: snapshot timer "cart_reminder" unknown', 'abandoned line 78 m03 tg:1074: nack: retries exhausted: engine failure: bad reply: snapshot timer "cart_reminder" unknown', 'abandoned line 79 m03 tg:1075: nack: retries exhausted: engine failure: bad reply: snapshot timer "cart_reminder" unknown']
+--- stderr (0 bytes, last 100 lines)

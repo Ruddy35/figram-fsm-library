@@ -1,0 +1,5 @@
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21375 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21381 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21387 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21401 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21423 Aborted                 timeout 60 "$@" > $S/o 2>&1

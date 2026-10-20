@@ -1,0 +1,87 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Thread 6 "init_race" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0x7ffff55bb6c0 (LWP 8674)]
+0x000055555568c3be in _init_l_Nat_reprFast___closed__0 ()
+#0  0x000055555568c3be in _init_l_Nat_reprFast___closed__0 ()
+#1  0x0000555555ba8448 in lean_obj_once_cold ()
+#2  0x000055555568f15a in l_Nat_reprFast ()
+#3  0x0000555555615027 in lp_figram_Figram_Format_render ()
+#4  0x00005555556169a1 in lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 ()
+#5  0x000055555561663b in lp_figram_Figram_Format_renderCompact ()
+#6  0x00005555555f3143 in figram_request_json ()
+#7  0x00005555555f277d in run ()
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 9 (Thread 0x7ffff3db86c0 (LWP 8677) "init_race"):
+#0  0x00007ffff790e90b in __GI_sched_yield () at ../sysdeps/unix/syscall-template.S:120
+#1  0x0000555555ba045b in void std::__atomic_wait_address_v<int, std::__atomic_base<int>::wait(int, std::memory_order) const::{lambda()#1}>(int const*, int, std::__atomic_base<int>::wait(int, std::memory_order) const::{lambda()#1}) [clone .constprop.0] [clone .isra.0] ()
+#2  0x0000555555ba8433 in lean_obj_once_cold ()
+#3  0x000055555568f15a in l_Nat_reprFast ()
+#4  0x0000555555ba8448 in lean_obj_once_cold ()
+#5  0x00005555556b08e2 in _init_l_Lean_versionStringCore___closed__7 ()
+
+Thread 8 (Thread 0x7ffff45b96c0 (LWP 8676) "init_race"):
+#0  futex_wait (private=0, expected=2, futex_word=0x555555e72ca8 <subproc_main+1320>) at ../sysdeps/nptl/futex-internal.h:146
+#1  __GI___lll_lock_wait (futex=futex@entry=0x555555e72ca8 <subproc_main+1320>, private=0) at ./nptl/lowlevellock.c:49
+#2  0x00007ffff78a01e1 in lll_mutex_lock_optimized (mutex=0x555555e72ca8 <subproc_main+1320>) at ./nptl/pthread_mutex_lock.c:48
+#3  ___pthread_mutex_lock (mutex=0x555555e72ca8 <subproc_main+1320>) at ./nptl/pthread_mutex_lock.c:93
+#4  0x0000555555be3d19 in mi_lock_acquire(mi_lock_s*) ()
+#5  0x0000555555be4d2b in mi_arenas_try_alloc(mi_heap_s*, unsigned long, unsigned long, bool, bool, mi_arena_s*, unsigned long, int, mi_memid_s*) ()
+
+Thread 7 (Thread 0x7ffff4dba6c0 (LWP 8675) "init_race"):
+#0  futex_wait (private=0, expected=2, futex_word=0x555555e72ca8 <subproc_main+1320>) at ../sysdeps/nptl/futex-internal.h:146
+#1  __GI___lll_lock_wait (futex=futex@entry=0x555555e72ca8 <subproc_main+1320>, private=0) at ./nptl/lowlevellock.c:49
+#2  0x00007ffff78a01e1 in lll_mutex_lock_optimized (mutex=0x555555e72ca8 <subproc_main+1320>) at ./nptl/pthread_mutex_lock.c:48
+#3  ___pthread_mutex_lock (mutex=0x555555e72ca8 <subproc_main+1320>) at ./nptl/pthread_mutex_lock.c:93
+#4  0x0000555555be3d19 in mi_lock_acquire(mi_lock_s*) ()
+#5  0x0000555555be4d2b in mi_arenas_try_alloc(mi_heap_s*, unsigned long, unsigned long, bool, bool, mi_arena_s*, unsigned long, int, mi_memid_s*) ()
+
+Thread 6 (Thread 0x7ffff55bb6c0 (LWP 8674) "init_race"):
+#0  0x000055555568c3be in _init_l_Nat_reprFast___closed__0 ()
+#1  0x0000555555ba8448 in lean_obj_once_cold ()
+#2  0x000055555568f15a in l_Nat_reprFast ()
+#3  0x0000555555615027 in lp_figram_Figram_Format_render ()
+#4  0x00005555556169a1 in lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 ()
+#5  0x000055555561663b in lp_figram_Figram_Format_renderCompact ()
+
+Thread 5 (Thread 0x7ffff5dbc6c0 (LWP 8673) "init_race"):
+#0  0x0000555555be587d in _mi_meta_zalloc(mi_subproc_s*, unsigned long, mi_memid_s*) ()
+#1  0x0000555555bef1d6 in mi_thread_init_ex(mi_heap_s*) ()
+#2  0x0000555555bee0e3 in _mi_malloc_generic(mi_theap_s*, unsigned long, unsigned long, mi_page_s**) ()
+#3  0x0000555555bf3ad9 in lean_alloc_small_object_core ()
+#4  0x00005555555f39b6 in initialize_figram_Figram_Api ()
+#5  0x00005555555f2fad in figram_init ()
+
+Thread 4 (Thread 0x7ffff65bd6c0 (LWP 8672) "init_race"):
+#0  0x0000555555bd3f36 in mi_page_free_list_extend(mi_page_s*, unsigned long, unsigned long) ()
+#1  0x0000555555bdfbe6 in mi_page_extend_free(mi_theap_s*, mi_page_s*) ()
+#2  0x0000555555bed479 in mi_arenas_page_regular_alloc(mi_theap_s*, unsigned long, unsigned long) ()
+#3  0x0000555555beda95 in mi_page_fresh_alloc(mi_theap_s*, mi_page_queue_s*, unsigned long, unsigned long) ()
+#4  0x0000555555bede99 in mi_page_queue_find_free_ex(mi_theap_s*, mi_page_queue_s*, bool) ()
+#5  0x0000555555bee157 in _mi_malloc_generic(mi_theap_s*, unsigned long, unsigned long, mi_page_s**) ()
+
+Thread 3 (Thread 0x7ffff6dbe6c0 (LWP 8671) "init_race"):
+#0  0x0000555555beebfc in _mi_theap_malloc_zero(mi_theap_s*, unsigned long, bool, mi_page_s**) [clone .constprop.0] ()
+#1  0x0000555555ba0c8d in lean_alloc_object ()
+#2  0x0000555555ba729a in lean_copy_expand_array ()
+#3  0x0000555555ba73f8 in lean_array_push ()
+#4  0x00005555556371ba in lp_figram_List_filterMapTR_go___at___00Figram_Chart_histSecs_spec__0 ()
+#5  0x000055555563745b in lp_figram___private_Init_Data_List_Impl_0__List_flatMapTR_go___at___00Figram_Chart_histSecs_spec__1 ()
+
+Thread 2 (Thread 0x7ffff75bf6c0 (LWP 8670) "init_race"):
+#0  0x00007ffff790e90b in __GI_sched_yield () at ../sysdeps/unix/syscall-template.S:120
+#1  0x0000555555ba045b in void std::__atomic_wait_address_v<int, std::__atomic_base<int>::wait(int, std::memory_order) const::{lambda()#1}>(int const*, int, std::__atomic_base<int>::wait(int, std::memory_order) const::{lambda()#1}) [clone .constprop.0] [clone .isra.0] ()
+#2  0x0000555555ba8433 in lean_obj_once_cold ()
+#3  0x000055555568f15a in l_Nat_reprFast ()
+#4  0x0000555555615027 in lp_figram_Figram_Format_render ()
+#5  0x00005555556169a1 in lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 ()
+
+Thread 1 (Thread 0x7ffff7e94800 (LWP 8663) "init_race"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=128, cancel=true, abstime=0x0, op=265, expected=8670, futex_word=0x7ffff75bf990) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=128, abstime=0x0, clockid=0, expected=8670, futex_word=0x7ffff75bf990) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x7ffff75bf990, expected=8670, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=128) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789e883 in __pthread_clockjoin_ex (threadid=140737343387328, thread_return=0x0, clockid=0, abstime=0x0, block=<optimized out>) at ./nptl/pthread_join_common.c:102
+#4  0x00005555555f28d4 in main ()

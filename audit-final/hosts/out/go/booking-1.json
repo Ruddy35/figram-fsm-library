@@ -1,0 +1,3318 @@
+{
+ "bot": "booking",
+ "broken": null,
+ "config": {
+  "bin": "/home/user/figram-audit-worktrees/host-go/audit/host-go/bin/fghost",
+  "busy_ms": 3000,
+  "cgo_slots": 4,
+  "engine": "libfigram.a (cgo, in-process)",
+  "executors": 4,
+  "sync": "FULL",
+  "window": 32
+ },
+ "counts": {
+  "acks_by_status": {
+   "dup": 21,
+   "ignored": 22,
+   "ok": 114
+  },
+  "binding_final_process": {
+   "c_nanos": 19291108,
+   "calls": 56,
+   "in_bytes": 5014,
+   "live_machines": 1,
+   "loads": 1,
+   "out_bytes": 4804,
+   "unloads": 0
+  },
+  "crashes": 4,
+  "engine_faults": {
+   "engine_fault_detected": {},
+   "engine_fault_injected": {}
+  },
+  "ext": {
+   "by_outcome": {
+    "crm:500": 2,
+    "crm:applied": 16,
+    "crm:dedup": 3,
+    "tg:delivered": 116
+   },
+   "crm_effects": 16,
+   "fault_modes_seen": {
+    "500": 2,
+    "timeout": 2
+   },
+   "key_conflicts": 0,
+   "reordered_batches": 0,
+   "requests": 137,
+   "tg_deliveries": 116,
+   "tg_duplicate_keys": 0
+  },
+  "host_log": {},
+  "host_restarts": 5,
+  "host_stats_final_process": {
+   "dup": 4,
+   "exec_external": 7,
+   "exec_local": 18,
+   "exec_send": 33,
+   "g1_drain": 4,
+   "timer_ok": 1
+  },
+  "nack_reasons": {},
+  "nacks": 0,
+  "outbox_rows": 227,
+  "recovered": 0,
+  "rejected": 0,
+  "repairs": 0,
+  "resets": 0,
+  "steps_logged": 116,
+  "timers_by_state": {
+   "canceled": 24,
+   "fired": 1
+  },
+  "transitions": 116,
+  "updates_abandoned": 0,
+  "updates_acked": 157,
+  "users": 18
+ },
+ "crash_log": [
+  {
+   "at": "before_commit",
+   "on": "btn:confirm",
+   "tag": "btn:confirm",
+   "pid": 10881
+  },
+  {
+   "at": "after_commit",
+   "on": "btn:confirm",
+   "tag": "btn:confirm",
+   "pid": 10905
+  },
+  {
+   "at": "after_effect_before_ack",
+   "on": "call:notify_calendar",
+   "tag": "call:notify_calendar",
+   "pid": 10919
+  },
+  {
+   "at": "before_effect",
+   "on": "call:reserve_slot",
+   "tag": "call:reserve_slot",
+   "pid": 10938
+  }
+ ],
+ "effects": [
+  {
+   "key": "b01:1:0",
+   "send": "home",
+   "user": "b01"
+  },
+  {
+   "key": "b01:2:0",
+   "send": "pick_slot",
+   "user": "b01"
+  },
+  {
+   "key": "b01:3:2",
+   "send": "confirm",
+   "user": "b01"
+  },
+  {
+   "key": "b01:4:1",
+   "send": "sold_out",
+   "user": "b01"
+  },
+  {
+   "key": "b01:5:0",
+   "send": "pick_slot",
+   "user": "b01"
+  },
+  {
+   "key": "b01:6:2",
+   "send": "confirm",
+   "user": "b01"
+  },
+  {
+   "call": "calendar",
+   "key": "b01:7:2",
+   "user": "b01"
+  },
+  {
+   "key": "b01:7:3",
+   "send": "booked",
+   "user": "b01"
+  },
+  {
+   "key": "b01:8:0",
+   "send": "my_booking",
+   "user": "b01"
+  },
+  {
+   "key": "b02:1:0",
+   "send": "home",
+   "user": "b02"
+  },
+  {
+   "key": "b02:2:0",
+   "send": "pick_slot",
+   "user": "b02"
+  },
+  {
+   "key": "b02:3:2",
+   "send": "confirm",
+   "user": "b02"
+  },
+  {
+   "key": "b02:4:1",
+   "send": "sold_out",
+   "user": "b02"
+  },
+  {
+   "key": "b02:5:0",
+   "send": "pick_slot",
+   "user": "b02"
+  },
+  {
+   "key": "b02:6:2",
+   "send": "confirm",
+   "user": "b02"
+  },
+  {
+   "call": "calendar",
+   "key": "b02:7:2",
+   "user": "b02"
+  },
+  {
+   "key": "b02:7:3",
+   "send": "booked",
+   "user": "b02"
+  },
+  {
+   "key": "b02:8:0",
+   "send": "my_booking",
+   "user": "b02"
+  },
+  {
+   "key": "b03:1:0",
+   "send": "home",
+   "user": "b03"
+  },
+  {
+   "key": "b03:2:0",
+   "send": "pick_slot",
+   "user": "b03"
+  },
+  {
+   "key": "b03:3:2",
+   "send": "confirm",
+   "user": "b03"
+  },
+  {
+   "call": "calendar",
+   "key": "b03:4:2",
+   "user": "b03"
+  },
+  {
+   "key": "b03:4:3",
+   "send": "booked",
+   "user": "b03"
+  },
+  {
+   "key": "b03:5:0",
+   "send": "my_booking",
+   "user": "b03"
+  },
+  {
+   "key": "b04:1:0",
+   "send": "home",
+   "user": "b04"
+  },
+  {
+   "key": "b04:2:0",
+   "send": "pick_slot",
+   "user": "b04"
+  },
+  {
+   "key": "b04:3:2",
+   "send": "confirm",
+   "user": "b04"
+  },
+  {
+   "key": "b04:4:1",
+   "send": "sold_out",
+   "user": "b04"
+  },
+  {
+   "key": "b04:5:0",
+   "send": "pick_slot",
+   "user": "b04"
+  },
+  {
+   "key": "b04:6:2",
+   "send": "confirm",
+   "user": "b04"
+  },
+  {
+   "call": "calendar",
+   "key": "b04:7:2",
+   "user": "b04"
+  },
+  {
+   "key": "b04:7:3",
+   "send": "booked",
+   "user": "b04"
+  },
+  {
+   "key": "b04:8:0",
+   "send": "my_booking",
+   "user": "b04"
+  },
+  {
+   "key": "b05:1:0",
+   "send": "home",
+   "user": "b05"
+  },
+  {
+   "key": "b05:2:0",
+   "send": "pick_slot",
+   "user": "b05"
+  },
+  {
+   "key": "b05:3:2",
+   "send": "confirm",
+   "user": "b05"
+  },
+  {
+   "key": "b05:4:1",
+   "send": "sold_out",
+   "user": "b05"
+  },
+  {
+   "key": "b05:5:0",
+   "send": "pick_slot",
+   "user": "b05"
+  },
+  {
+   "key": "b05:6:2",
+   "send": "confirm",
+   "user": "b05"
+  },
+  {
+   "call": "calendar",
+   "key": "b05:7:2",
+   "user": "b05"
+  },
+  {
+   "key": "b05:7:3",
+   "send": "booked",
+   "user": "b05"
+  },
+  {
+   "key": "b05:8:0",
+   "send": "my_booking",
+   "user": "b05"
+  },
+  {
+   "key": "b06:1:0",
+   "send": "home",
+   "user": "b06"
+  },
+  {
+   "key": "b06:2:0",
+   "send": "pick_slot",
+   "user": "b06"
+  },
+  {
+   "key": "b06:3:2",
+   "send": "confirm",
+   "user": "b06"
+  },
+  {
+   "call": "calendar",
+   "key": "b06:4:2",
+   "user": "b06"
+  },
+  {
+   "key": "b06:4:3",
+   "send": "booked",
+   "user": "b06"
+  },
+  {
+   "key": "b06:5:0",
+   "send": "my_booking",
+   "user": "b06"
+  },
+  {
+   "key": "b07:1:0",
+   "send": "home",
+   "user": "b07"
+  },
+  {
+   "key": "b07:2:0",
+   "send": "pick_slot",
+   "user": "b07"
+  },
+  {
+   "key": "b07:3:2",
+   "send": "confirm",
+   "user": "b07"
+  },
+  {
+   "key": "b07:4:1",
+   "send": "sold_out",
+   "user": "b07"
+  },
+  {
+   "key": "b07:5:0",
+   "send": "pick_slot",
+   "user": "b07"
+  },
+  {
+   "key": "b07:6:2",
+   "send": "confirm",
+   "user": "b07"
+  },
+  {
+   "call": "calendar",
+   "key": "b07:7:2",
+   "user": "b07"
+  },
+  {
+   "key": "b07:7:3",
+   "send": "booked",
+   "user": "b07"
+  },
+  {
+   "key": "b07:8:0",
+   "send": "my_booking",
+   "user": "b07"
+  },
+  {
+   "key": "b08:1:0",
+   "send": "home",
+   "user": "b08"
+  },
+  {
+   "key": "b08:2:0",
+   "send": "pick_slot",
+   "user": "b08"
+  },
+  {
+   "key": "b08:3:2",
+   "send": "confirm",
+   "user": "b08"
+  },
+  {
+   "call": "calendar",
+   "key": "b08:4:2",
+   "user": "b08"
+  },
+  {
+   "key": "b08:4:3",
+   "send": "booked",
+   "user": "b08"
+  },
+  {
+   "key": "b08:5:0",
+   "send": "my_booking",
+   "user": "b08"
+  },
+  {
+   "call": "calendar",
+   "key": "b09:10:2",
+   "user": "b09"
+  },
+  {
+   "key": "b09:10:3",
+   "send": "booked",
+   "user": "b09"
+  },
+  {
+   "key": "b09:1:0",
+   "send": "home",
+   "user": "b09"
+  },
+  {
+   "key": "b09:2:0",
+   "send": "pick_slot",
+   "user": "b09"
+  },
+  {
+   "key": "b09:3:2",
+   "send": "confirm",
+   "user": "b09"
+  },
+  {
+   "call": "calendar",
+   "key": "b09:4:2",
+   "user": "b09"
+  },
+  {
+   "key": "b09:4:3",
+   "send": "booked",
+   "user": "b09"
+  },
+  {
+   "key": "b09:5:0",
+   "send": "my_booking",
+   "user": "b09"
+  },
+  {
+   "key": "b09:6:1",
+   "send": "home",
+   "user": "b09"
+  },
+  {
+   "key": "b09:7:0",
+   "send": "no_booking",
+   "user": "b09"
+  },
+  {
+   "key": "b09:8:0",
+   "send": "pick_slot",
+   "user": "b09"
+  },
+  {
+   "key": "b09:9:2",
+   "send": "confirm",
+   "user": "b09"
+  },
+  {
+   "key": "b10:1:0",
+   "send": "home",
+   "user": "b10"
+  },
+  {
+   "key": "b10:2:0",
+   "send": "pick_slot",
+   "user": "b10"
+  },
+  {
+   "key": "b10:3:2",
+   "send": "confirm",
+   "user": "b10"
+  },
+  {
+   "call": "calendar",
+   "key": "b10:4:2",
+   "user": "b10"
+  },
+  {
+   "key": "b10:4:3",
+   "send": "booked",
+   "user": "b10"
+  },
+  {
+   "key": "b10:5:0",
+   "send": "my_booking",
+   "user": "b10"
+  },
+  {
+   "key": "b11:1:0",
+   "send": "home",
+   "user": "b11"
+  },
+  {
+   "key": "b11:2:0",
+   "send": "pick_slot",
+   "user": "b11"
+  },
+  {
+   "key": "b11:3:2",
+   "send": "confirm",
+   "user": "b11"
+  },
+  {
+   "call": "calendar",
+   "key": "b11:4:2",
+   "user": "b11"
+  },
+  {
+   "key": "b11:4:3",
+   "send": "booked",
+   "user": "b11"
+  },
+  {
+   "key": "b11:5:0",
+   "send": "my_booking",
+   "user": "b11"
+  },
+  {
+   "key": "b12:1:0",
+   "send": "home",
+   "user": "b12"
+  },
+  {
+   "key": "b12:2:0",
+   "send": "pick_slot",
+   "user": "b12"
+  },
+  {
+   "key": "b12:3:2",
+   "send": "confirm",
+   "user": "b12"
+  },
+  {
+   "call": "calendar",
+   "key": "b12:4:2",
+   "user": "b12"
+  },
+  {
+   "key": "b12:4:3",
+   "send": "booked",
+   "user": "b12"
+  },
+  {
+   "key": "b12:5:0",
+   "send": "my_booking",
+   "user": "b12"
+  },
+  {
+   "key": "b13:1:0",
+   "send": "home",
+   "user": "b13"
+  },
+  {
+   "key": "b13:2:0",
+   "send": "pick_slot",
+   "user": "b13"
+  },
+  {
+   "key": "b13:3:2",
+   "send": "confirm",
+   "user": "b13"
+  },
+  {
+   "key": "b13:4:1",
+   "send": "sold_out",
+   "user": "b13"
+  },
+  {
+   "key": "b13:5:0",
+   "send": "pick_slot",
+   "user": "b13"
+  },
+  {
+   "key": "b13:6:2",
+   "send": "confirm",
+   "user": "b13"
+  },
+  {
+   "call": "calendar",
+   "key": "b13:7:2",
+   "user": "b13"
+  },
+  {
+   "key": "b13:7:3",
+   "send": "booked",
+   "user": "b13"
+  },
+  {
+   "key": "b13:8:0",
+   "send": "my_booking",
+   "user": "b13"
+  },
+  {
+   "key": "b14:1:0",
+   "send": "home",
+   "user": "b14"
+  },
+  {
+   "key": "b14:2:0",
+   "send": "pick_slot",
+   "user": "b14"
+  },
+  {
+   "key": "b14:3:2",
+   "send": "confirm",
+   "user": "b14"
+  },
+  {
+   "key": "b14:4:1",
+   "send": "sold_out",
+   "user": "b14"
+  },
+  {
+   "key": "b14:5:0",
+   "send": "pick_slot",
+   "user": "b14"
+  },
+  {
+   "key": "b14:6:2",
+   "send": "confirm",
+   "user": "b14"
+  },
+  {
+   "call": "calendar",
+   "key": "b14:7:2",
+   "user": "b14"
+  },
+  {
+   "key": "b14:7:3",
+   "send": "booked",
+   "user": "b14"
+  },
+  {
+   "key": "b14:8:0",
+   "send": "my_booking",
+   "user": "b14"
+  },
+  {
+   "key": "b15:1:0",
+   "send": "home",
+   "user": "b15"
+  },
+  {
+   "key": "b15:2:0",
+   "send": "pick_slot",
+   "user": "b15"
+  },
+  {
+   "key": "b15:3:2",
+   "send": "confirm",
+   "user": "b15"
+  },
+  {
+   "key": "b15:4:2",
+   "send": "expired",
+   "user": "b15"
+  },
+  {
+   "key": "b15:5:0",
+   "send": "pick_slot",
+   "user": "b15"
+  },
+  {
+   "key": "b15:6:1",
+   "send": "home",
+   "user": "b15"
+  },
+  {
+   "key": "b15:7:0",
+   "send": "no_booking",
+   "user": "b15"
+  },
+  {
+   "key": "b16:1:0",
+   "send": "home",
+   "user": "b16"
+  },
+  {
+   "key": "b16:2:0",
+   "send": "pick_slot",
+   "user": "b16"
+  },
+  {
+   "key": "b16:3:2",
+   "send": "confirm",
+   "user": "b16"
+  },
+  {
+   "call": "calendar",
+   "key": "b16:4:2",
+   "user": "b16"
+  },
+  {
+   "key": "b16:4:3",
+   "send": "booked",
+   "user": "b16"
+  },
+  {
+   "key": "b16:5:0",
+   "send": "my_booking",
+   "user": "b16"
+  },
+  {
+   "key": "b17:1:0",
+   "send": "home",
+   "user": "b17"
+  },
+  {
+   "key": "b17:2:0",
+   "send": "pick_slot",
+   "user": "b17"
+  },
+  {
+   "key": "b17:3:1",
+   "send": "home",
+   "user": "b17"
+  },
+  {
+   "key": "b17:4:0",
+   "send": "no_booking",
+   "user": "b17"
+  },
+  {
+   "key": "b18:1:0",
+   "send": "home",
+   "user": "b18"
+  },
+  {
+   "key": "b18:2:0",
+   "send": "pick_slot",
+   "user": "b18"
+  },
+  {
+   "key": "b18:3:2",
+   "send": "confirm",
+   "user": "b18"
+  },
+  {
+   "key": "b18:4:1",
+   "send": "sold_out",
+   "user": "b18"
+  }
+ ],
+ "exits": [
+  {
+   "t_us": 166371,
+   "gen": 1,
+   "pid": 10881,
+   "signal": "killed",
+   "code": -1,
+   "expected": false
+  },
+  {
+   "t_us": 197460,
+   "gen": 2,
+   "pid": 10905,
+   "signal": "killed",
+   "code": -1,
+   "expected": false
+  },
+  {
+   "t_us": 324559,
+   "gen": 3,
+   "pid": 10919,
+   "signal": "killed",
+   "code": -1,
+   "expected": false
+  },
+  {
+   "t_us": 443067,
+   "gen": 4,
+   "pid": 10938,
+   "signal": "killed",
+   "code": -1,
+   "expected": false
+  },
+  {
+   "t_us": 718842,
+   "gen": 5,
+   "pid": 10961,
+   "code": 0,
+   "expected": true
+  },
+  {
+   "t_us": 815794,
+   "gen": 6,
+   "pid": 10994,
+   "code": 0,
+   "expected": true
+  },
+  {
+   "t_us": 895487,
+   "gen": 7,
+   "pid": 11007,
+   "code": 0,
+   "expected": true
+  }
+ ],
+ "faults_injected": [
+  {
+   "at": "before_commit",
+   "fault": "crash",
+   "line": 37,
+   "on": "btn:confirm"
+  },
+  {
+   "count": 2,
+   "fault": "external",
+   "line": 38,
+   "mode": "500",
+   "target": "crm"
+  },
+  {
+   "at": "after_commit",
+   "fault": "crash",
+   "line": 43,
+   "on": "btn:confirm"
+  },
+  {
+   "at": "after_effect_before_ack",
+   "fault": "crash",
+   "line": 71,
+   "on": "call:notify_calendar"
+  },
+  {
+   "at": "before_effect",
+   "fault": "crash",
+   "line": 99,
+   "on": "call:reserve_slot"
+  },
+  {
+   "count": 2,
+   "fault": "external",
+   "line": 123,
+   "mode": "timeout",
+   "target": "crm"
+  }
+ ],
+ "host": "go",
+ "invariant_failures": {},
+ "invariants": {
+  "actions_complete": "PASS",
+  "all_updates_acked": "PASS",
+  "crashes_effective": "PASS",
+  "db_lock_effective": "PASS",
+  "domain_model_consistent": "PASS",
+  "engine_faults_effective": "PASS",
+  "equals_clean_run": "PASS",
+  "external_effect_once_per_intent": "PASS",
+  "external_faults_effective": "PASS",
+  "guards_match_domain_model": "PASS",
+  "idempotency_keys_unique_lifetime": "PASS",
+  "no_lost_ack": "PASS",
+  "no_overbooking": "PASS",
+  "no_unexpected_host_death": "PASS",
+  "one_order_per_payment": "PASS",
+  "outbox_drained": "PASS",
+  "restart_reproduces_state": "PASS",
+  "send_at_least_once": "PASS",
+  "send_duplicates_explained": "PASS",
+  "seq_plus_one": "PASS",
+  "snapshots_valid_final": "PASS",
+  "stale_timer_no_effect": "PASS",
+  "timer_not_early": "PASS"
+ },
+ "latency": {
+  "e2e_ms": {
+   "max": 63.091,
+   "n": 157,
+   "p50": 5.892,
+   "p95": 45.011,
+   "p99": 62.951
+  },
+  "elapsed_s": 0.755,
+  "host_step_ms": {
+   "max": 25.672,
+   "n": 157,
+   "p50": 4.381,
+   "p95": 20.078,
+   "p99": 24.294
+  },
+  "host_update_ms": {
+   "max": 25.768,
+   "n": 157,
+   "p50": 4.45,
+   "p95": 20.095,
+   "p99": 24.318
+  },
+  "throughput_updates_per_s": 207.911
+ },
+ "scenario": "booking",
+ "seed": 1,
+ "users": {
+  "b01": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1001",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1004",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1040",
+     "event": "btn:slot",
+     "arg": "s1",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1042",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1045",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1049",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1051",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1052",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b02": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1020",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1033",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1039",
+     "event": "btn:slot",
+     "arg": "s1",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1044",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1046",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1057",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1058",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1060",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b03": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1011",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1031",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1037",
+     "event": "btn:slot",
+     "arg": "s1",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1041",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1059",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b04": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1005",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1022",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1038",
+     "event": "btn:slot",
+     "arg": "s1",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1043",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1047",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1048",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1050",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1053",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b05": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1006",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1021",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1064",
+     "event": "btn:slot",
+     "arg": "s2",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1066",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1077",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1078",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1081",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1082",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b06": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1003",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1017",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1063",
+     "event": "btn:slot",
+     "arg": "s2",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1067",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1084",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b07": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1009",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1015",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1062",
+     "event": "btn:slot",
+     "arg": "s2",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1065",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1071",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1073",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1079",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1080",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b08": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1014",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1034",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1061",
+     "event": "btn:slot",
+     "arg": "s2",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1068",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1076",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b09": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "booked",
+    "seq": 10
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1028",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1030",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1086",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1092",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1105",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1126",
+     "event": "btn:cancel_booking",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "home",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "call": "cancel_booking"
+      },
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1134",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "no_booking",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "send": "no_booking"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1135",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "pick_slot",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1136",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 9,
+     "at": "confirm",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 9
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1137",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 10,
+     "at": "booked",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b10": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1007",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1008",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1088",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1089",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1106",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b11": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1012",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1024",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1085",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1091",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1100",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b12": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1013",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1019",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1087",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1090",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1108",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b13": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1027",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1035",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1110",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1112",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1115",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1116",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1119",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1120",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b14": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 8
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1025",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1029",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1109",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1111",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1113",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1114",
+     "event": "btn:slot",
+     "arg": "s4",
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 6
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1117",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "booked",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1118",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "my_booking",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b15": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "no_booking",
+    "seq": 7
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1018",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1026",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1121",
+     "event": "btn:slot",
+     "arg": "s1",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:hold:3",
+     "event": "timer:hold",
+     "arg": null,
+     "token": 3,
+     "kind": "step",
+     "seq": 4,
+     "at": "expired",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "release_hold"
+      },
+      {
+       "send": "expired"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1122",
+     "event": "btn:retry",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "pick_slot",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1123",
+     "event": "btn:cancel",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "home",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "call": "release_hold"
+      },
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1124",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "no_booking",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "send": "no_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b16": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "my_booking",
+    "seq": 5
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1010",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1036",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1127",
+     "event": "btn:slot",
+     "arg": "s3",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1128",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "booked",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "call": "reserve_slot"
+      },
+      {
+       "call": "notify_calendar"
+      },
+      {
+       "send": "booked"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1130",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "my_booking",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "send": "my_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b17": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "no_booking",
+    "seq": 4
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1002",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1016",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1132",
+     "event": "btn:cancel",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "home",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "call": "release_hold"
+      },
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1133",
+     "event": "btn:my",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "no_booking",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "send": "no_booking"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "b18": {
+   "doc": "booking",
+   "snapshot": {
+    "at": "sold_out",
+    "seq": 4
+   },
+   "transitions": [
+    {
+     "update_id": "tg:1023",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "home",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "home"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1032",
+     "event": "btn:book",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "pick_slot",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_slot"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1129",
+     "event": "btn:slot",
+     "arg": "zz",
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "confirm",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "call": "choose_slot"
+      },
+      {
+       "ms": 600000,
+       "start_timer": "hold",
+       "token": 3
+      },
+      {
+       "send": "confirm"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1131",
+     "event": "btn:confirm",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "sold_out",
+     "t_ms": 600000,
+     "actions": [
+      {
+       "cancel_timer": "hold"
+      },
+      {
+       "send": "sold_out"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  }
+ }
+}

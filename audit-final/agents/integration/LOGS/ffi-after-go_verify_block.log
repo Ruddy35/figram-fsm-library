@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 900 bash ffi/audit/go_verify_block.sh /tmp/tmp.oCCZPgnbq3/big.jsonl /tmp/tmp.oCCZPgnbq3/small.jsonl 
+cwd: /home/user/figram-audit-worktrees/integration-ffi
+start: 2026-10-20T00:20:47.088Z
+end: 2026-10-20T00:21:05.024Z
+exit_code: 0
+--- stdout (522 bytes, last 200 lines)
+ботов 4, раундов 3, горутин 600, запросов 24600, расхождений 0, 27810 запросов/с (GOMAXPROCS=4, CPU=4)
+ботов 3, раундов 3, горутин 60, запросов 2460, расхождений 0, 6850 запросов/с (GOMAXPROCS=4, CPU=4)
+порча и неверные аргументы: красные
+5000 загрузок с Close (после прогрева): рост памяти 388 КБ; без Close (контроль): 50064 КБ
+go_verify_block rc=0
+--- stderr (0 bytes, last 100 lines)

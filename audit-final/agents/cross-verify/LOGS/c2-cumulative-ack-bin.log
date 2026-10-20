@@ -1,0 +1,11 @@
+command: python3 xverify/c2_cumulative_ack.py bin/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/cross-verify
+start: 2026-10-19T23:47:55.897Z
+end: 2026-10-19T23:47:55.981Z
+exit_code: 0
+--- stdout (380 bytes, last 200 lines)
+engine: bin/figram-engine
+[naive] after B's commit host offset=1003; after restart getUpdates returned []; A at='pay'; create_order in outbox: []
+[watermark] after B's commit host offset=1001; after restart getUpdates returned [1001, 1002]; A at='done'; create_order in outbox: ['A:8:0']
+C2 REPRODUCED IN MODEL: naive post-commit ack loses A's paid update; watermark ack keeps it
+--- stderr (0 bytes, last 100 lines)

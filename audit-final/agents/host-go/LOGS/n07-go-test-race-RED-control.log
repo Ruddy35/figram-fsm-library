@@ -1,0 +1,65 @@
+command: bash -c cd\ /home/user/figram-audit-worktrees/host-go/audit/host-go\ \&\&\ go\ test\ -race\ -count=1\ -run\ TestRaceDetectorControl\ -v\ ./figram\ 2\>\&1 
+cwd: /home/user/figram-audit/agents/host-go
+start: 2026-10-20T00:17:08.079Z
+end: 2026-10-20T00:17:11.502Z
+exit_code: 1
+--- stdout (2441 bytes, last 200 lines)
+=== RUN   TestRaceDetectorControl
+==================
+WARNING: DATA RACE
+Read at 0x00c000078998 by goroutine 9:
+  figramhost/figram.TestRaceDetectorControl.func1()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:469 +0xd4
+
+Previous write at 0x00c000078998 by goroutine 8:
+  figramhost/figram.TestRaceDetectorControl.func1()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:471 +0x190
+
+Goroutine 9 (running) created at:
+  figramhost/figram.TestRaceDetectorControl()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:466 +0x173
+  testing.tRunner()
+      /usr/local/go1.24.7/src/testing/testing.go:1792 +0x225
+  testing.(*T).Run.gowrap1()
+      /usr/local/go1.24.7/src/testing/testing.go:1851 +0x44
+
+Goroutine 8 (finished) created at:
+  figramhost/figram.TestRaceDetectorControl()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:466 +0x173
+  testing.tRunner()
+      /usr/local/go1.24.7/src/testing/testing.go:1792 +0x225
+  testing.(*T).Run.gowrap1()
+      /usr/local/go1.24.7/src/testing/testing.go:1851 +0x44
+==================
+==================
+WARNING: DATA RACE
+Write at 0x00c000078998 by goroutine 9:
+  figramhost/figram.TestRaceDetectorControl.func1()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:469 +0xef
+
+Previous write at 0x00c000078998 by goroutine 8:
+  figramhost/figram.TestRaceDetectorControl.func1()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:471 +0x190
+
+Goroutine 9 (running) created at:
+  figramhost/figram.TestRaceDetectorControl()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:466 +0x173
+  testing.tRunner()
+      /usr/local/go1.24.7/src/testing/testing.go:1792 +0x225
+  testing.(*T).Run.gowrap1()
+      /usr/local/go1.24.7/src/testing/testing.go:1851 +0x44
+
+Goroutine 8 (finished) created at:
+  figramhost/figram.TestRaceDetectorControl()
+      /home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram_test.go:466 +0x173
+  testing.tRunner()
+      /usr/local/go1.24.7/src/testing/testing.go:1792 +0x225
+  testing.(*T).Run.gowrap1()
+      /usr/local/go1.24.7/src/testing/testing.go:1851 +0x44
+==================
+    testing.go:1490: race detected during execution of test
+--- FAIL: TestRaceDetectorControl (0.01s)
+FAIL
+FAIL	figramhost/figram	0.026s
+FAIL
+--- stderr (0 bytes, last 100 lines)

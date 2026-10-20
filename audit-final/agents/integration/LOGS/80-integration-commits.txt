@@ -1,0 +1,33 @@
+5e32b98 897bfc8 audit(formats-correctness): text-layer, schema and request tables
+224229d 177355a audit(formats-correctness): regression tests for FC-01 and FC-06
+9d25198 e0091ba audit(proofs): strict axiom gate, pinned statements, counterexamples, glue lemmas
+d1defb4 44f8b39 audit(proofs): negative checks for glue lemma hypotheses (CE7, CE8)
+b733f4f b5bc7e9 audit(proofs): list theorem statements that depend on opaque partial defs
+71785b8 4a38b91 fix(format): readable number printing (FC-01), escaped CLI diagnostics (FC-06)
+0ce9a5f d116a64 test(proofs): Counterexamples.lean after the FC-01 fix (reduced d116a64; the fix itself is 4a38
+d381d6e 90201dd test(verify): replace 'Теоремы без sorry' grep with the strict proof gate
+793d688 d9934d5 docs: state the hypotheses and the model level of the proved guarantees
+4121041 1df3ef8 test(python-client): client_robustness.py — regression tests for client robustness (red on base
+fff6018 2550540 test(python-client): fix flaky V4-04 check in client_contract.py (ESRCH race)
+ae95128 bbf7ac7 test(python-client): client_robustness.py fails fast in long crash loops
+52d53af d8f658b test(python-client): deterministic close()/replacement race check in client_robustness.py
+31f9eab 51c31ce fix(python-client): no pending leak on surrogates, no shared-process kill on id:null, closed po
+815405d c9b7a1a audit(engine-timers): stateful protocol driver with reference model, invariants, coverage, muta
+afb380e c6eecd0 audit(engine-timers): per-invariant counts, corrupting proxy for negative checks of model-free 
+4323143 8edc9a4 audit(engine-timers): regression test for HOST.md reset/upgrade contract (fails on baseline doc
+7730517 998a539 docs(HOST, FORMAT): never restart an existing user via start; restart needs the latest committe
+8fdcb4b c8bb903 host_sim, HOST.md: guards from real data + per-user barrier before step; contract wording for d
+9f9ea35 1dfe574 host_sim: oracle also checks order contents (non-empty cart, address from the message)
+bc945f0 7918908 audit(core-compiler): independent oracle + differential/metamorphic/mutant test suite
+dd5d4e3 3d73782 audit(core-compiler): perf.py sends steps in small batches (harness pipe deadlock)
+22f0203 new     test(engine-timers): U4/U5 as hard checks for stale timers across document versions (CC-01/ET-0
+906d3d0 new     test(core-compiler): CC-01 fixed semantics as the default expectation of run_all.sh
+4547a2f 96ca9aa ffi-go audit: C/Go tests for the embedding ABI (fail on baseline)
+8134324 new     test(ffi-go): fix data race in TestAuditThreadCount (sampler vs reader of maxT)
+2385d49 4998244 ffi: thread-safe figram_init, NULL on malloc failure, figram_unload(NULL) no-op
+17b0609 a027905 go-example: Bot wrapper no longer panics on bad op, rejects NUL docs, accepts hello
+d3782f7 new     fix(core): cancel stale timers on exit and accept a timer only on its owner message (CC-01/ET-0
+7e41da3 new     audit(proofs): regenerate AllAxioms.lean / theorems.txt after the CC-01 proof repair
+253df6b new     test(host_sim): retry the probabilistic negative control up to 3 times
+0efd043 new     audit: TEST-ONLY adaptation of ffi/build.sh and verify.sh for a from-source Lean toolchain
+28a3439 new     audit: TEST-ONLY — ffi/audit/build_audit.sh uses the single from-source adaptation (ffi/build.s

@@ -1,0 +1,57 @@
+--- a/Figram/Core.lean	2026-10-19 22:41:46.906233156 +0000
++++ b/Figram/Core.lean	2026-10-19 22:41:46.985101314 +0000
+@@ -94,6 +94,16 @@
+   | .cancelTimer id => ({ acc.1 with timers := erase acc.1.timers id }, acc.2 ++ [.cancelTimer id])
+   | a => (acc.1, acc.2 ++ [a])
+ 
++/-- Отмена таймеров снимка, которых не отменяет `exit` (остались от прежней
++версии документа: HOST.md §6). В пределах одной версии список пуст. -/
++def staleCancels (exit : List Action) (s : Snapshot) : List Action :=
++  (s.timers.filter (fun p => !exit.contains (.cancelTimer p.1))).map (fun p => .cancelTimer p.1)
++
++/-- Срабатывание таймера `id` относится к сообщению, выход из которого его отменяет. -/
++def ownsTimer (exit : List Action) : Event → Bool
++  | .named _ => true
++  | .timer id _ => exit.contains (.cancelTimer id)
++
+ /-- Переход в `T` с действиями `acts`: новый снимок и действия для хоста. -/
+ def realize (s : Snapshot) (T : NodeId) (acts : List Action) : Snapshot × List Action :=
+   acts.foldl (realizeOne (s.seq + 1)) ({ s with state := T, seq := s.seq + 1 }, [])
+@@ -165,7 +175,7 @@
+ 
+ def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
+   let T := m.resolve s b.target
+-  realize s T (m.exitOf s.state ++ b.actions ++ m.entryOf T)
++  realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
+ 
+ /-- Снимок указывает на сообщение, которого больше нет: начать бота заново,
+ отменив таймеры старого места. Запомненные места сохраняются. -/
+@@ -175,7 +185,7 @@
+ /-- **Шаг автомата.** -/
+ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+   if s.state ∉ m.states then m.recover s
+-  else if !s.accepts ev then (s, [])
++  else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
+   else
+     match m.row s.state ev.key with
+     | none => (s, [])
+--- a/Figram/Chart.lean	2026-10-19 22:41:46.906290271 +0000
++++ b/Figram/Chart.lean	2026-10-19 22:41:46.985403374 +0000
+@@ -170,7 +170,7 @@
+ 
+ def fire (c : Chart) (s : Snapshot) (b : Branch) : Snapshot × List Action :=
+   let T := c.resolve s b.target
+-  realize s T (c.exitActs s.state ++ b.actions ++ c.entryActs T)
++  realize s T (c.exitActs s.state ++ staleCancels (c.exitActs s.state) s ++ b.actions ++ c.entryActs T)
+ 
+ def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
+ 
+@@ -180,7 +180,7 @@
+ /-- **Эталонная семантика схемы дизайнера.** -/
+ def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+   if s.state ∉ c.leafIds then c.recover s
+-  else if !s.accepts ev then (s, [])
++  else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
+   else
+     match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
+     | none => (s, [])

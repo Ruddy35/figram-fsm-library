@@ -1,0 +1,11 @@
+command: ./verify-faults.sh prebuilt mutants-shrunk bin-swapped 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-19T22:59:33.730Z
+end: 2026-10-19T23:00:53.950Z
+exit_code: 1
+--- stdout (516 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+mutants-shrunk       0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+bin-swapped          1      1        ok sha256sum: WARNING: 1 computed checksum did NOT match
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-prebuilt-baseline-3/summary.txt)
+--- stderr (0 bytes, last 100 lines)

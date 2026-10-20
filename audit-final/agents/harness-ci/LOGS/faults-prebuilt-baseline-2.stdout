@@ -1,0 +1,5 @@
+неисправность код ожидание последняя строка
+fixtures-shrunk      0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+random-docs-shrunk   0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+json-fuzz-shrunk     0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-prebuilt-baseline-2/summary.txt)

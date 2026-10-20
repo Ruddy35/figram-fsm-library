@@ -1,0 +1,9 @@
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
+старт: {'fd': 6, 'py_threads': 3, 'os_threads': 3, 'children': 1, 'zombies': 0, 'rss_mb': 13.2}
+цикл 100: {'fd': 6, 'py_threads': 1, 'os_threads': 1, 'children': 0, 'zombies': 0, 'rss_mb': 14.1}  ответов 0 ошибок 800  процессов запущено 99
+цикл 200: {'fd': 6, 'py_threads': 1, 'os_threads': 1, 'children': 0, 'zombies': 0, 'rss_mb': 14.1}  ответов 0 ошибок 1600  процессов запущено 199
+цикл 300: {'fd': 6, 'py_threads': 1, 'os_threads': 1, 'children': 0, 'zombies': 0, 'rss_mb': 14.1}  ответов 0 ошибок 2400  процессов запущено 299
+цикл 400: {'fd': 6, 'py_threads': 1, 'os_threads': 1, 'children': 0, 'zombies': 0, 'rss_mb': 14.2}  ответов 0 ошибок 3200  процессов запущено 399
+цикл 500: {'fd': 6, 'py_threads': 1, 'os_threads': 1, 'children': 0, 'zombies': 0, 'rss_mb': 14.2}  ответов 0 ошибок 4000  процессов запущено 499
+после close: {'fd': 6, 'py_threads': 1, 'os_threads': 1, 'children': 0, 'zombies': 0, 'rss_mb': 14.2}  (34.4 с на 500 циклов, 15 запусков процесса/с)
+роста ресурсов нет 

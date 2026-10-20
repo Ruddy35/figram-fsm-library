@@ -1,0 +1,8 @@
+command: ffi/audit/out/oom 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:40:45.976Z
+end: 2026-10-19T23:40:45.996Z
+exit_code: 139
+--- stdout (75 bytes, last 200 lines)
+baseline: check({}) → 40 bytes: error: нужно поле «figram»: 1
+--- stderr (0 bytes, last 100 lines)

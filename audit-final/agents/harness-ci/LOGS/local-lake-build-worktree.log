@@ -1,0 +1,8 @@
+command: lake build 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-19T23:35:41.243Z
+end: 2026-10-19T23:35:41.466Z
+exit_code: 0
+--- stdout (40 bytes, last 200 lines)
+Build completed successfully (42 jobs).
+--- stderr (0 bytes, last 100 lines)

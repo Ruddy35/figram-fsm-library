@@ -1,0 +1,8 @@
+command: sh /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/H2_min_shrunk/repro.sh 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T22:27:28.437Z
+end: 2026-10-19T22:27:28.477Z
+exit_code: 0
+--- stdout (85 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"m2","timers":{"t2":32},"seq":2},"actions":[{"send":"m2"}]}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,3 @@
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit-worktrees/python-client/ffi/python-example
+исключения при замене процесса без бинарника: {'EngineError': 3}
+дефекта нет

@@ -1,0 +1,60 @@
+✔ [2/42] Built Figram.Core (1.8s)
+✔ [3/42] Built Figram.Mutate (1.5s)
+✔ [5/42] Built Figram.Chart (1.8s)
+✔ [7/42] Built Figram.CoreProofs (813ms)
+✔ [9/42] Built Figram.Compile (683ms)
+✖ [11/42] Building Figram.Correct (955ms)
+trace: .> LEAN_PATH=/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/Figram/Correct.lean -o /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean/Figram/Correct.olean -i /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean/Figram/Correct.ilean -c /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/ir/Figram/Correct.c --setup /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:126:2: Tactic `rfl` failed: The left-hand side
+  realize s (c.resolve s b.target) (c.entryActs (c.resolve s b.target) ++ (c.toF b).actions ++ c.exitActs s.state)
+is not definitionally equal to the right-hand side
+  realize s (c.resolve s b.target) (c.exitActs s.state ++ b.actions ++ c.entryActs (c.resolve s b.target))
+
+c : Chart
+hwf : c.compile.wf = true
+s : Snapshot
+e : EventId
+b : Branch
+hs : s.state ∈ c.leafIds
+hb : b ∈ c.cands s.state e
+hT : c.compile.resolve s (c.toF b).target = c.resolve s b.target
+hrow : c.compileRow s.state e ∈ c.compile.rows
+hok : c.compile.targetOK (c.toF b).target = true
+hTmem : c.resolve s b.target ∈ c.leafIds
+hex : c.compile.exitOf s.state = c.exitActs s.state
+hen : c.compile.entryOf (c.resolve s b.target) = c.entryActs (c.resolve s b.target)
+⊢ realize s (c.resolve s b.target) (c.entryActs (c.resolve s b.target) ++ (c.toF b).actions ++ c.exitActs s.state) =
+    realize s (c.resolve s b.target) (c.exitActs s.state ++ b.actions ++ c.entryActs (c.resolve s b.target))
+✔ [13/42] Built Figram.Lint (941ms)
+✔ [17/42] Built Figram.Core:c.o (3.6s)
+✔ [18/42] Built Figram.Format (2.4s)
+✔ [20/42] Built Figram.RandomDoc (2.3s)
+✔ [22/42] Built Figram.FormatIO (2.7s)
+✔ [24/42] Built Figram.Engine (919ms)
+✔ [25/42] Built EngineMain (1.2s)
+✔ [27/42] Built Figram.FormatProofs (4.0s)
+✔ [29/42] Built Figram.Trace (1.6s)
+✔ [33/42] Built Figram.Engine:c.o (1.9s)
+✔ [34/42] Built «figram-engine»:exe (555ms)
+✖ [35/42] Building Figram.EngineProofs (1.3s)
+trace: .> LEAN_PATH=/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/Figram/EngineProofs.lean -o /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean/Figram/EngineProofs.olean -i /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/ir/Figram/EngineProofs.c --setup /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:213:53: Application type mismatch: The argument
+  ha
+has type
+  a ∈ m.entryOf (m.resolve s b.target)
+but is expected to have type
+  a ∈ (lookup m.exit ?m.307).getD []
+in the application
+  table_ok (List.all_eq_true.mpr fun e he => List.all_eq_true.mpr (hexit e he)) ?m.307 a ha
+error: Figram/EngineProofs.lean:216:54: Application type mismatch: The argument
+  ha
+has type
+  a ∈ m.exitOf s.state
+but is expected to have type
+  a ∈ (lookup m.entry ?m.329).getD []
+in the application
+  table_ok (List.all_eq_true.mpr fun e he => List.all_eq_true.mpr (hentry e he)) ?m.329 a ha
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs
+error: build failed

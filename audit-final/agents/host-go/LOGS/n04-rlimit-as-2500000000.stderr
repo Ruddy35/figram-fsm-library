@@ -1,0 +1,101 @@
+terminate called after throwing an instance of 'lean::exception'
+  what():  failed to create thread: Resource temporarily unavailable
+SIGABRT: abort
+PC=0x7f41a969ec0c m=0 sigcode=18446744073709551610
+signal arrived during cgo execution
+
+goroutine 1 gp=0xc000002380 m=0 mp=0xe478c0 [syscall, locked to thread]:
+runtime.cgocall(0x4d76e0, 0xc000031c70)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000031c48 sp=0xc000031c10 pc=0x4743ab
+figramhost/figram._Cfunc_fg_init(0x1, 0xc000012468, 0xc0000124a0)
+	_cgo_gotypes.go:87 +0x46 fp=0xc000031c70 sp=0xc000031c48 pc=0x4d4da6
+figramhost/figram.Init.func1()
+	/home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram.go:152 +0xd8 fp=0xc000031d30 sp=0xc000031c70 pc=0x4d66b8
+sync.(*Once).doSlow(0x0?, 0x2800?)
+	/usr/local/go1.24.7/src/sync/once.go:78 +0xab fp=0xc000031d88 sp=0xc000031d30 pc=0x48186b
+sync.(*Once).Do(...)
+	/usr/local/go1.24.7/src/sync/once.go:69
+figramhost/figram.Init()
+	/home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram.go:140 +0x2c fp=0xc000031da8 sp=0xc000031d88 pc=0x4d538c
+figramhost/figram.Load({0xb58dcc, 0x5}, {0xc000096000, 0xe5d, 0xe5e})
+	/home/user/figram-audit-worktrees/host-go/audit/host-go/figram/figram.go:221 +0x65 fp=0xc000031e88 sp=0xc000031da8 pc=0x4d5a05
+main.main()
+	/home/user/figram-audit-worktrees/host-go/audit/host-go/cmd/fgmem/main.go:58 +0x2a6 fp=0xc000031f50 sp=0xc000031e88 pc=0x4d6e86
+runtime.main()
+	/usr/local/go1.24.7/src/runtime/proc.go:283 +0x28b fp=0xc000031fe0 sp=0xc000031f50 pc=0x4471ab
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000031fe8 sp=0xc000031fe0 pc=0x47d1a1
+
+goroutine 2 gp=0xc000002e00 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004cfa8 sp=0xc00004cf88 pc=0x4763ee
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.forcegchelper()
+	/usr/local/go1.24.7/src/runtime/proc.go:348 +0xb3 fp=0xc00004cfe0 sp=0xc00004cfa8 pc=0x4474f3
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004cfe8 sp=0xc00004cfe0 pc=0x47d1a1
+created by runtime.init.7 in goroutine 1
+	/usr/local/go1.24.7/src/runtime/proc.go:336 +0x1a
+
+goroutine 3 gp=0xc000003340 m=nil [GC sweep wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004d780 sp=0xc00004d760 pc=0x4763ee
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.bgsweep(0xc000076000)
+	/usr/local/go1.24.7/src/runtime/mgcsweep.go:276 +0x94 fp=0xc00004d7c8 sp=0xc00004d780 pc=0x432334
+runtime.gcenable.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:204 +0x25 fp=0xc00004d7e0 sp=0xc00004d7c8 pc=0x426865
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004d7e8 sp=0xc00004d7e0 pc=0x47d1a1
+created by runtime.gcenable in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:204 +0x66
+
+goroutine 4 gp=0xc000003500 m=nil [GC scavenge wait]:
+runtime.gopark(0xc000076000?, 0xb85948?, 0x1?, 0x0?, 0xc000003500?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004df78 sp=0xc00004df58 pc=0x4763ee
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.(*scavengerState).park(0xe46ae0)
+	/usr/local/go1.24.7/src/runtime/mgcscavenge.go:425 +0x49 fp=0xc00004dfa8 sp=0xc00004df78 pc=0x42fde9
+runtime.bgscavenge(0xc000076000)
+	/usr/local/go1.24.7/src/runtime/mgcscavenge.go:653 +0x3c fp=0xc00004dfc8 sp=0xc00004dfa8 pc=0x43035c
+runtime.gcenable.gowrap2()
+	/usr/local/go1.24.7/src/runtime/mgc.go:205 +0x25 fp=0xc00004dfe0 sp=0xc00004dfc8 pc=0x426805
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004dfe8 sp=0xc00004dfe0 pc=0x47d1a1
+created by runtime.gcenable in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:205 +0xa5
+
+goroutine 5 gp=0xc000003dc0 m=nil [finalizer wait]:
+runtime.gopark(0x1b8?, 0xc000002380?, 0x1?, 0x23?, 0xc00004c688?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004c630 sp=0xc00004c610 pc=0x4763ee
+runtime.runfinq()
+	/usr/local/go1.24.7/src/runtime/mfinal.go:196 +0x107 fp=0xc00004c7e0 sp=0xc00004c630 pc=0x425827
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004c7e8 sp=0xc00004c7e0 pc=0x47d1a1
+created by runtime.createfing in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mfinal.go:166 +0x3d
+
+rax    0x0
+rbx    0x2ea2
+rcx    0x7f41a969ec0c
+rdx    0x6
+rdi    0x2ea2
+rsi    0x2ea2
+rbp    0x7ffec8ea0a40
+rsp    0x7ffec8ea0a00
+r8     0x0
+r9     0x7ffec8ea0590
+r10    0x8
+r11    0x246
+r12    0x6
+r13    0x27afa220
+r14    0x16
+r15    0xc0000124a0
+rip    0x7f41a969ec0c
+rflags 0x246
+cs     0x33
+fs     0x0
+gs     0x0

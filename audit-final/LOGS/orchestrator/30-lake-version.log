@@ -1,0 +1,8 @@
+command: lake --version 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T23:33:25.859Z
+end: 2026-10-19T23:33:25.926Z
+exit_code: 0
+--- stdout (53 bytes, last 200 lines)
+Lake version 5.0.0-src+eb6cafb (Lean version 4.35.0)
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,18 @@
+
+== Происхождение прогона
+дата: 2026-10-19T23:54:38Z; ядер: 4
+коммит: нет git-репозитория
+verify.sh sha256: fc23d8e8e848dc3976174f8854c9ae3e0b408c121db81d2a2f3dd205a7ce96a0
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (42 jobs).
+
+== Приложенные бинарники bin/ собраны ровно из этих исходников
+1c1
+< cd083ddacc8337b278f77a02d7dd30910c90e36e1b2fbac34273d12d5bd85b5b  figram
+---
+> b825dac910587305fbb9554066b67d12fd137a6c6dc007ce76be4c740c973ac7  figram
+НЕТ: пересобранные бинарники не совпадают с /home/user/figram-audit/agents/harness-ci/LOGS/local-SHA256SUMS

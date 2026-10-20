@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 tests/formats/a_roundtrip.py --seeds 250 --tmp /tmp/tmp.jPjsF9imBo 
+cwd: /home/user/figram-audit-worktrees/integration-fc
+start: 2026-10-19T23:48:52.012Z
+end: 2026-10-19T23:50:41.508Z
+exit_code: 0
+--- stdout (364 bytes, last 200 lines)
+EDGE FC-01 annotation 1.0e-1000: fmt rc=0 oracle-match=True refmt rc=0 idempotent=True
+EDGE FC-01 annotation -2.50e-999: fmt rc=0 oracle-match=True refmt rc=0 idempotent=True
+EDGE FC-01 annotation 1001 fraction digits: fmt rc=0 oracle-match=True refmt rc=0 idempotent=True
+docs=253 variants=1265 P1=1265 P2=1265 P3=1265 P4=1265 failures=0 edge_fail=0/3 break=None
+--- stderr (0 bytes, last 100 lines)

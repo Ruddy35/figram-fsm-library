@@ -1,0 +1,73 @@
+From 7e41da303714a4defb5c5898305b03b0241bbb51 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 20 Oct 2026 00:28:35 +0000
+Subject: [PATCH 30/40] audit(proofs): regenerate AllAxioms.lean / theorems.txt
+ after the CC-01 proof repair
+
+strict_gate.sh regenerates both files from the sources on every run; the
+CC-01 proof repair moved theorem lines in Correct.lean and
+EngineProofs.lean (same 79 theorems, only line numbers change), so the
+committed copies are refreshed to keep the tree clean after verify.sh.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/proofs/AllAxioms.lean | 8 ++++----
+ audit/proofs/theorems.txt   | 8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/audit/proofs/AllAxioms.lean b/audit/proofs/AllAxioms.lean
+index 3a11c0c..df7710c 100644
+--- a/audit/proofs/AllAxioms.lean
++++ b/audit/proofs/AllAxioms.lean
+@@ -20,7 +20,7 @@ import Figram
+ #print axioms Figram.Chart.resolve_eq  -- Correct.lean:95
+ #print axioms Figram.Chart.fire_eq  -- Correct.lean:111
+ #print axioms Figram.Chart.compile_correct  -- Correct.lean:129
+-#print axioms Figram.Chart.start_correct  -- Correct.lean:155
++#print axioms Figram.Chart.start_correct  -- Correct.lean:159
+ #print axioms Figram.Engine.isEmpty_false  -- EngineProofs.lean:28
+ #print axioms Figram.Engine.nonEmpty_str  -- EngineProofs.lean:31
+ #print axioms Figram.Engine.boundedNat_num  -- EngineProofs.lean:34
+@@ -39,9 +39,9 @@ import Figram
+ #print axioms Figram.Engine.lookup_mem  -- EngineProofs.lean:155
+ #print axioms Figram.Engine.table_ok  -- EngineProofs.lean:164
+ #print axioms Figram.Engine.step_snapOK  -- EngineProofs.lean:175
+-#print axioms Figram.Engine.handle_step  -- EngineProofs.lean:223
+-#print axioms Figram.Engine.guards_irrelevant  -- EngineProofs.lean:239
+-#print axioms Figram.Engine.reply_readable  -- EngineProofs.lean:247
++#print axioms Figram.Engine.handle_step  -- EngineProofs.lean:227
++#print axioms Figram.Engine.guards_irrelevant  -- EngineProofs.lean:243
++#print axioms Figram.Engine.reply_readable  -- EngineProofs.lean:251
+ #print axioms Figram.Format.find?_ext_none  -- FormatProofs.lean:45
+ #print axioms Figram.Format.get_append_ext  -- FormatProofs.lean:53
+ #print axioms Figram.Format.unknown_append_ext  -- FormatProofs.lean:57
+diff --git a/audit/proofs/theorems.txt b/audit/proofs/theorems.txt
+index 2d32e3c..cf16fa7 100644
+--- a/audit/proofs/theorems.txt
++++ b/audit/proofs/theorems.txt
+@@ -18,7 +18,7 @@ Figram.Chart.row_none	Correct.lean:88
+ Figram.Chart.resolve_eq	Correct.lean:95
+ Figram.Chart.fire_eq	Correct.lean:111
+ Figram.Chart.compile_correct	Correct.lean:129
+-Figram.Chart.start_correct	Correct.lean:155
++Figram.Chart.start_correct	Correct.lean:159
+ Figram.Engine.isEmpty_false	EngineProofs.lean:28
+ Figram.Engine.nonEmpty_str	EngineProofs.lean:31
+ Figram.Engine.boundedNat_num	EngineProofs.lean:34
+@@ -37,9 +37,9 @@ Figram.Engine.realize_snapOK	EngineProofs.lean:148
+ Figram.Engine.lookup_mem	EngineProofs.lean:155
+ Figram.Engine.table_ok	EngineProofs.lean:164
+ Figram.Engine.step_snapOK	EngineProofs.lean:175
+-Figram.Engine.handle_step	EngineProofs.lean:223
+-Figram.Engine.guards_irrelevant	EngineProofs.lean:239
+-Figram.Engine.reply_readable	EngineProofs.lean:247
++Figram.Engine.handle_step	EngineProofs.lean:227
++Figram.Engine.guards_irrelevant	EngineProofs.lean:243
++Figram.Engine.reply_readable	EngineProofs.lean:251
+ Figram.Format.find?_ext_none	FormatProofs.lean:45
+ Figram.Format.get_append_ext	FormatProofs.lean:53
+ Figram.Format.unknown_append_ext	FormatProofs.lean:57
+-- 
+2.43.0
+

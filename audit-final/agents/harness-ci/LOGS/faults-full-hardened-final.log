@@ -1,0 +1,10 @@
+command: ./verify-faults.sh full none 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-20T01:01:52.650Z
+end: 2026-10-20T01:05:26.962Z
+exit_code: 0
+--- stdout (354 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+none                 3      3        ok   - хеши сверены с /home/user/figram-audit/agents/harness-ci/LOGS/local-SHA256SUMS, а не с bin/SHA256SUMS: соо
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

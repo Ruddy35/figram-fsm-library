@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/host-python/audit/host-python/runner.py", line 507, in <module>
+    main()
+    ~~~~^^
+  File "/home/user/figram-audit-worktrees/host-python/audit/host-python/runner.py", line 481, in main
+    main_res = run_one(items, os.path.join(work, "run"), o, "run")
+  File "/home/user/figram-audit-worktrees/host-python/audit/host-python/runner.py", line 451, in run_one
+    res = r.run()
+  File "/home/user/figram-audit-worktrees/host-python/audit/host-python/runner.py", line 354, in run
+    self.wait(lambda: self.user_busy[user] == 0 and len(self.pending) < window, what=f"user {user}")
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/figram-audit-worktrees/host-python/audit/host-python/runner.py", line 249, in wait
+    raise RuntimeError(f"[{self.label}] timeout waiting for {what}; pending={len(self.pending)}")
+RuntimeError: [run] timeout waiting for user s09; pending=2

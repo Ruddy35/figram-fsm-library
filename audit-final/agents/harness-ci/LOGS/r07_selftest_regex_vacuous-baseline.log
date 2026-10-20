@@ -1,0 +1,11 @@
+command: python3 -I REPRODUCTIONS/r07_selftest_regex_vacuous.py /home/user/figram-audit-worktrees/harness-ci 
+cwd: /home/user/figram-audit/agents/harness-ci
+start: 2026-10-19T22:13:19.249Z
+end: 2026-10-19T22:13:19.842Z
+exit_code: 1
+--- stdout (618 bytes, last 200 lines)
+conformance: rc=0 (real engine, success) ; DETECTED matches=True on 'расхожд' in 'запросов 659, расхождений 0'
+loadtest: rc=0 (real engine, success) ; DETECTED matches=True on 'расхожд' in 'потоков   8, процессов 1: шагов 600 (из них с запросом условий 39), расхождений 0, 10,396 '
+snapshot_fixtures: rc=0 (real engine, success) ; DETECTED matches=True on 'ответ' in 'снимков 24, ответов 24, расхождений схемы и движка 0'
+tools whose clean success output already satisfies caught(): 3 of 3
+--- stderr (0 bytes, last 100 lines)

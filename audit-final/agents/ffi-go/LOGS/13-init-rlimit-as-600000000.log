@@ -1,0 +1,9 @@
+command: prlimit --as=600000000 -- ffi/audit/out/contract init_twice 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:41:48.973Z
+end: 2026-10-19T23:41:48.980Z
+exit_code: 134
+--- stdout (0 bytes, last 200 lines)
+--- stderr (134 bytes, last 100 lines)
+terminate called after throwing an instance of 'lean::exception'
+  what():  failed to create thread: Resource temporarily unavailable

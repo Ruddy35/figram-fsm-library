@@ -1,0 +1,8 @@
+command: ./gofig-mut -rounds 1 -bots 2 /home/user/figram-audit-worktrees/ffi-go/examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/traces/small.jsonl 
+cwd: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gomut/go-example
+start: 2026-10-19T23:42:56.120Z
+end: 2026-10-19T23:42:56.159Z
+exit_code: 0
+--- stdout (147 bytes, last 200 lines)
+ботов 2, раундов 1, горутин 20, запросов 620, расхождений 0, 35302 запросов/с (GOMAXPROCS=4, CPU=4)
+--- stderr (0 bytes, last 100 lines)

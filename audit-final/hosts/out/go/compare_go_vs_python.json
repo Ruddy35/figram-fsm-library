@@ -1,0 +1,809 @@
+{
+ "adversarial-1": {
+  "scenario": "adversarial",
+  "users_equal": 16,
+  "users_total": 16,
+  "effects_go": 194,
+  "effects_py": 194,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 1,
+    "host_restarts": 1,
+    "repairs": 9,
+    "recovered": 1,
+    "rejected": 29
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 9,
+    "recovered": 1,
+    "rejected": 28
+   }
+  }
+ },
+ "booking-1": {
+  "scenario": "booking",
+  "users_equal": 16,
+  "users_total": 18,
+  "effects_go": 132,
+  "effects_py": 132,
+  "differences": [],
+  "notes": [
+   "N5 booking: 2 contended users differ (race winners), aggregates equal: {'final_at': {'booked': 1, 'my_booking': 13}, 'active_per_slot': {'s1': 1, 's2': 2, 's3': 3, 's4': 8}, 'transitions': 96, 'effects': {'calendar': 15, 'send:booked': 15, 'send:confirm': 22, 'send:home': 15, 'send:my_booking': 14, 'send:no_booking': 1, 'send:pick_slot': 22, 'send:sold_out': 7}}",
+   {
+    "effects_differ_due_to_race": {
+     "only_go": [
+      [
+       "b03:4:2",
+       "b03",
+       "call",
+       "calendar"
+      ],
+      [
+       "b03:4:3",
+       "b03",
+       "send",
+       "booked"
+      ],
+      [
+       "b03:5:0",
+       "b03",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b04:4:1",
+       "b04",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b04:5:0",
+       "b04",
+       "send",
+       "pick_slot"
+      ],
+      [
+       "b04:6:2",
+       "b04",
+       "send",
+       "confirm"
+      ],
+      [
+       "b04:7:2",
+       "b04",
+       "call",
+       "calendar"
+      ],
+      [
+       "b04:7:3",
+       "b04",
+       "send",
+       "booked"
+      ],
+      [
+       "b04:8:0",
+       "b04",
+       "send",
+       "my_booking"
+      ]
+     ],
+     "only_py": [
+      [
+       "b03:4:1",
+       "b03",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b03:5:0",
+       "b03",
+       "send",
+       "pick_slot"
+      ],
+      [
+       "b03:6:2",
+       "b03",
+       "send",
+       "confirm"
+      ],
+      [
+       "b03:7:2",
+       "b03",
+       "call",
+       "calendar"
+      ],
+      [
+       "b03:7:3",
+       "b03",
+       "send",
+       "booked"
+      ],
+      [
+       "b03:8:0",
+       "b03",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b04:4:2",
+       "b04",
+       "call",
+       "calendar"
+      ],
+      [
+       "b04:4:3",
+       "b04",
+       "send",
+       "booked"
+      ],
+      [
+       "b04:5:0",
+       "b04",
+       "send",
+       "my_booking"
+      ]
+     ],
+     "n_only_go": 9,
+     "n_only_py": 9
+    }
+   }
+  ],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 4,
+    "host_restarts": 5,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 4,
+    "host_restarts": 5,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "booking-2": {
+  "scenario": "booking",
+  "users_equal": 12,
+  "users_total": 18,
+  "effects_go": 132,
+  "effects_py": 132,
+  "differences": [],
+  "notes": [
+   "N5 booking: 6 contended users differ (race winners), aggregates equal: {'final_at': {'booked': 1, 'my_booking': 13}, 'active_per_slot': {'s1': 1, 's2': 2, 's3': 3, 's4': 8}, 'transitions': 96, 'effects': {'calendar': 15, 'send:booked': 15, 'send:confirm': 22, 'send:home': 15, 'send:my_booking': 14, 'send:no_booking': 1, 'send:pick_slot': 22, 'send:sold_out': 7}}",
+   {
+    "effects_differ_due_to_race": {
+     "only_go": [
+      [
+       "b02:4:2",
+       "b02",
+       "call",
+       "calendar"
+      ],
+      [
+       "b02:4:3",
+       "b02",
+       "send",
+       "booked"
+      ],
+      [
+       "b02:5:0",
+       "b02",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b04:4:1",
+       "b04",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b04:5:0",
+       "b04",
+       "send",
+       "pick_slot"
+      ],
+      [
+       "b04:6:2",
+       "b04",
+       "send",
+       "confirm"
+      ],
+      [
+       "b04:7:2",
+       "b04",
+       "call",
+       "calendar"
+      ],
+      [
+       "b04:7:3",
+       "b04",
+       "send",
+       "booked"
+      ],
+      [
+       "b04:8:0",
+       "b04",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b05:4:1",
+       "b05",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b05:5:0",
+       "b05",
+       "send",
+       "pick_slot"
+      ],
+      [
+       "b05:6:2",
+       "b05",
+       "send",
+       "confirm"
+      ],
+      [
+       "b05:7:2",
+       "b05",
+       "call",
+       "calendar"
+      ],
+      [
+       "b05:7:3",
+       "b05",
+       "send",
+       "booked"
+      ],
+      [
+       "b05:8:0",
+       "b05",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b06:4:2",
+       "b06",
+       "call",
+       "calendar"
+      ],
+      [
+       "b06:4:3",
+       "b06",
+       "send",
+       "booked"
+      ],
+      [
+       "b06:5:0",
+       "b06",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b07:4:1",
+       "b07",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b07:5:0",
+       "b07",
+       "send",
+       "pick_slot"
+      ]
+     ],
+     "only_py": [
+      [
+       "b02:4:1",
+       "b02",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b02:5:0",
+       "b02",
+       "send",
+       "pick_slot"
+      ],
+      [
+       "b02:6:2",
+       "b02",
+       "send",
+       "confirm"
+      ],
+      [
+       "b02:7:2",
+       "b02",
+       "call",
+       "calendar"
+      ],
+      [
+       "b02:7:3",
+       "b02",
+       "send",
+       "booked"
+      ],
+      [
+       "b02:8:0",
+       "b02",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b04:4:2",
+       "b04",
+       "call",
+       "calendar"
+      ],
+      [
+       "b04:4:3",
+       "b04",
+       "send",
+       "booked"
+      ],
+      [
+       "b04:5:0",
+       "b04",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b05:4:2",
+       "b05",
+       "call",
+       "calendar"
+      ],
+      [
+       "b05:4:3",
+       "b05",
+       "send",
+       "booked"
+      ],
+      [
+       "b05:5:0",
+       "b05",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b06:4:1",
+       "b06",
+       "send",
+       "sold_out"
+      ],
+      [
+       "b06:5:0",
+       "b06",
+       "send",
+       "pick_slot"
+      ],
+      [
+       "b06:6:2",
+       "b06",
+       "send",
+       "confirm"
+      ],
+      [
+       "b06:7:2",
+       "b06",
+       "call",
+       "calendar"
+      ],
+      [
+       "b06:7:3",
+       "b06",
+       "send",
+       "booked"
+      ],
+      [
+       "b06:8:0",
+       "b06",
+       "send",
+       "my_booking"
+      ],
+      [
+       "b07:4:2",
+       "b07",
+       "call",
+       "calendar"
+      ],
+      [
+       "b07:4:3",
+       "b07",
+       "send",
+       "booked"
+      ]
+     ],
+     "n_only_go": 27,
+     "n_only_py": 27
+    }
+   }
+  ],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 4,
+    "host_restarts": 5,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 4,
+    "host_restarts": 5,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "failures-1": {
+  "scenario": "failures",
+  "users_equal": 14,
+  "users_total": 14,
+  "effects_go": 157,
+  "effects_py": 157,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 2,
+    "crashes": 12,
+    "host_restarts": 13,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 6,
+    "crashes": 10,
+    "host_restarts": 11,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "failures-2": {
+  "scenario": "failures",
+  "users_equal": 14,
+  "users_total": 14,
+  "effects_go": 157,
+  "effects_py": 157,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 2,
+    "crashes": 12,
+    "host_restarts": 13,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 3,
+    "crashes": 10,
+    "host_restarts": 11,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "load_u1-7": {
+  "scenario": "load_u1",
+  "users_equal": 1,
+  "users_total": 1,
+  "effects_go": 9,
+  "effects_py": 9,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "load_u10-7": {
+  "scenario": "load_u10",
+  "users_equal": 10,
+  "users_total": 10,
+  "effects_go": 90,
+  "effects_py": 90,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "load_u100-7": {
+  "scenario": "load_u100",
+  "users_equal": 100,
+  "users_total": 100,
+  "effects_go": 900,
+  "effects_py": 900,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "load_u1000-7": {
+  "scenario": "load_u1000",
+  "users_equal": 1000,
+  "users_total": 1000,
+  "effects_go": 9000,
+  "effects_py": 9000,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 0,
+    "host_restarts": 0,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "migration-1": {
+  "scenario": "migration",
+  "users_equal": 8,
+  "users_total": 8,
+  "effects_go": 90,
+  "effects_py": 90,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 2,
+    "host_restarts": 2,
+    "repairs": 0,
+    "recovered": 1,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 2,
+    "host_restarts": 2,
+    "repairs": 0,
+    "recovered": 1,
+    "rejected": 0
+   }
+  }
+ },
+ "order-1": {
+  "scenario": "order",
+  "users_equal": 18,
+  "users_total": 18,
+  "effects_go": 198,
+  "effects_py": 198,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 7,
+    "host_restarts": 8,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 7,
+    "host_restarts": 8,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "order-2": {
+  "scenario": "order",
+  "users_equal": 18,
+  "users_total": 18,
+  "effects_go": 198,
+  "effects_py": 198,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 7,
+    "host_restarts": 8,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 7,
+    "host_restarts": 8,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "reminders-1": {
+  "scenario": "reminders",
+  "users_equal": 10,
+  "users_total": 10,
+  "effects_go": 66,
+  "effects_py": 66,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 1,
+    "host_restarts": 2,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 1,
+    "host_restarts": 2,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "reminders-2": {
+  "scenario": "reminders",
+  "users_equal": 10,
+  "users_total": 10,
+  "effects_go": 66,
+  "effects_py": 66,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 1,
+    "host_restarts": 2,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 1,
+    "host_restarts": 2,
+    "repairs": 0,
+    "recovered": 0,
+    "rejected": 0
+   }
+  }
+ },
+ "support-1": {
+  "scenario": "support",
+  "users_equal": 9,
+  "users_total": 9,
+  "effects_go": 100,
+  "effects_py": 100,
+  "differences": [],
+  "notes": [],
+  "invariants_go": {},
+  "invariants_py": {},
+  "timing_counts": {
+   "go": {
+    "nacks": 0,
+    "crashes": 4,
+    "host_restarts": 5,
+    "repairs": 0,
+    "recovered": 1,
+    "rejected": 0
+   },
+   "py": {
+    "nacks": 0,
+    "crashes": 4,
+    "host_restarts": 5,
+    "repairs": 0,
+    "recovered": 1,
+    "rejected": 0
+   }
+  }
+ }
+}

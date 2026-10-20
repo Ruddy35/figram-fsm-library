@@ -1,0 +1,5 @@
+engine=bin/figram-engine mode=control client timeout=10.0s (default is 10.0)
+warm-up: 9957 normal requests ok, 0 failed
+bad request attempts: []
+normal users: ok=46524 FAILED=0; engine pid 26642 -> 26642
+CONTROL GREEN

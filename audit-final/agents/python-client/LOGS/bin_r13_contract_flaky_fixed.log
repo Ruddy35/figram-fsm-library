@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 sh /home/user/figram-audit/agents/python-client/REPRODUCTIONS/r13_contract_flaky.sh /home/user/figram-audit-worktrees/python-client/ffi/python-example /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/features.bot.json 30 
+cwd: /home/user/figram-audit-worktrees/python-client/ffi/python-example
+start: 2026-10-19T22:40:56.978Z
+end: 2026-10-19T22:42:06.338Z
+exit_code: 0
+--- stdout (72 bytes, last 200 lines)
+прогонов 30: отказов 0, из них ProcessLookupError 0
+--- stderr (0 bytes, last 100 lines)

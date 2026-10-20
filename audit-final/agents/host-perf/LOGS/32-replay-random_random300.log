@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 audit/host-perf/replay.sh bin/figram-engine /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series/random_random300.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series/random_random300.reqs.jsonl /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series/random_random300.out.jsonl 
+cwd: /home/user/figram-audit-worktrees/host-perf
+start: 2026-10-19T22:17:20.936Z
+end: 2026-10-19T22:17:26.318Z
+exit_code: 0
+--- stdout (389 bytes, last 200 lines)
+{"requests": 5000, "replies": 5000, "error_replies": 0, "hello_only": {"label": "hello-only", "rc": 0, "wall_s": 2.2855, "user_s": 2.1347, "sys_s": 0.008, "maxrss_kb": 15184}, "replay": {"label": "replay", "rc": 0, "wall_s": 2.8668, "user_s": 2.5692, "sys_s": 0.0904, "maxrss_kb": 15056}, "wall_per_req_us": 116.26, "cpu_per_req_us": 103.38, "req_per_s_wall": 8601, "req_per_s_cpu": 9673}
+--- stderr (0 bytes, last 100 lines)

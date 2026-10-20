@@ -1,0 +1,18 @@
+command: bash REPRODUCTIONS/fc03_invalid_utf8_stream.sh 
+cwd: /home/user/figram-audit/agents/formats-correctness
+start: 2026-10-19T22:44:37.525Z
+end: 2026-10-19T22:44:37.825Z
+exit_code: 0
+--- stdout (343 bytes, last 200 lines)
+== stream: figram json
+OK "�"
+OK "�"
+ERR "повторяющийся ключ «�»"
+== file: figram check
+rc=1
+== engine: event "\xff" fires the handler of event "\ufffd"
+{"id":1,"snapshot":{"at":"b","seq":1},"actions":[{"send":"b"}]}
+{"id":2,"snapshot":{"at":"b","seq":1},"actions":[{"send":"b"}]}
+python: rejected: UnicodeDecodeError
+--- stderr (85 bytes, last 100 lines)
+figram: Tried to read file '/tmp/tmp.hmSMJY2cQS/bad.json' containing non UTF-8 data.

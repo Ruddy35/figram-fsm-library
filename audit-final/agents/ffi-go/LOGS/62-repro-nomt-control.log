@@ -1,0 +1,15 @@
+command: /home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_nomt_control.sh 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-20T00:02:06.412Z
+end: 2026-10-20T00:02:14.450Z
+exit_code: 0
+--- stdout (497 bytes, last 200 lines)
+1
+== plain, без lean_mark_mt (ожидается: расхождения, код 1)
+shared handle: 16 threads x 20000 = 320000 requests, mismatches 170922; 0 loader threads: 0 load/10 req/unload/check/fmt cycles, mismatches 0
+  -> exit 1
+== TSan, без lean_mark_mt: число предупреждений TSan
+shared handle: 16 threads x 3000 = 48000 requests, mismatches 19112; 0 loader threads: 0 load/10 req/unload/check/fmt cycles, mismatches 0
+  -> exit 1
+  ThreadSanitizer warnings: 0
+--- stderr (0 bytes, last 100 lines)

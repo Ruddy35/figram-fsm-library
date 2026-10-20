@@ -1,0 +1,29 @@
+command: env FIGRAM_SOAK=180 ./gofig.test -test.run TestAuditSoak\$ -test.v -test.timeout 20m 
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:45:48.121Z
+end: 2026-10-19T23:48:49.030Z
+exit_code: 0
+--- stdout (1623 bytes, last 200 lines)
+=== RUN   TestAuditSoak
+    audit_test.go:345: t= 10s RSS=38236 KB requests=415741 cycles=6250 bad=0
+    audit_test.go:345: t= 20s RSS=40036 KB requests=812776 cycles=12377 bad=0
+    audit_test.go:345: t= 30s RSS=37232 KB requests=1100251 cycles=16481 bad=0
+    audit_test.go:345: t= 40s RSS=37652 KB requests=1378812 cycles=20920 bad=0
+    audit_test.go:345: t= 50s RSS=38312 KB requests=1701438 cycles=26327 bad=0
+    audit_test.go:345: t= 60s RSS=37392 KB requests=2037748 cycles=31023 bad=0
+    audit_test.go:345: t= 70s RSS=37916 KB requests=2628408 cycles=40930 bad=0
+    audit_test.go:345: t= 80s RSS=38104 KB requests=3176131 cycles=50841 bad=0
+    audit_test.go:345: t= 90s RSS=38192 KB requests=3675918 cycles=59975 bad=0
+    audit_test.go:345: t=100s RSS=37760 KB requests=4070399 cycles=66927 bad=0
+    audit_test.go:345: t=111s RSS=37644 KB requests=4544224 cycles=74704 bad=0
+    audit_test.go:345: t=121s RSS=37700 KB requests=5023676 cycles=82867 bad=0
+    audit_test.go:345: t=131s RSS=38556 KB requests=5449348 cycles=90841 bad=0
+    audit_test.go:345: t=141s RSS=37292 KB requests=5825173 cycles=97353 bad=0
+    audit_test.go:345: t=151s RSS=38160 KB requests=6400934 cycles=106241 bad=0
+    audit_test.go:345: t=161s RSS=36792 KB requests=6916562 cycles=114368 bad=0
+    audit_test.go:345: t=171s RSS=39580 KB requests=7650168 cycles=123935 bad=0
+    audit_test.go:345: t=181s RSS=39800 KB requests=8181788 cycles=133380 bad=0
+    audit_test.go:360: soak 180s: load/close cycles=133382 bad=0 RSS after warm-up 40036 KB, last 39800 KB, max 40036 KB, growth -236 KB
+--- PASS: TestAuditSoak (180.90s)
+PASS
+--- stderr (0 bytes, last 100 lines)

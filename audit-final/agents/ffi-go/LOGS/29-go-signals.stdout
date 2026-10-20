@@ -1,0 +1,4 @@
+=== RUN   TestAuditSignals
+    audit_test.go:408: signals: 1093872 requests under SIGPROF at 1 kHz, bad=0
+--- PASS: TestAuditSignals (30.23s)
+PASS

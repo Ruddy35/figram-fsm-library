@@ -1,0 +1,19 @@
+command: python3 ptdriver.py ../../bin/figram-engine walk ../../examples/pizza.bot.json --mutate resume-default --users 10 --steps 30 
+cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
+start: 2026-10-19T22:10:35.038Z
+end: 2026-10-19T22:10:35.245Z
+exit_code: 1
+--- stdout (1652 bytes, last 200 lines)
+{"doc": "../../examples/pizza.bot.json", "mutate": "resume-default", "seed": 1, "replies": 697, "coverage_targets": 42, "checks": 6005, "violations": 12}
+  I9: cover target=reminder/btn:back/0 i=3: ev=btn:back tok=None guards={}
+   got {'id': 198, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 5}, 'actions': [{'send': 'catalog'}]}
+   exp {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 5}, 'seq': 5} [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 5}, {'send': 'cart'}] rec=False
+  I9: cover target=reminder/btn:back/0 i=3: key order differs {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 5} vs {'at': 'cart', 'resume': [('order', 'cart')], 'timers': [('cart_reminder', 5)], 'seq': 5}
+  I9: walk seed=1 user=u44 step=11 at=help: ev=btn:back tok=None guards={}
+   got {'id': 287, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 5}, 'actions': [{'send': 'catalog'}]}
+   exp {'at': 'pick_size', 'resume': {'order': 'pick_size'}, 'seq': 5} [{'send': 'pick_size'}] rec=False
+  I9: walk seed=1 user=u44 step=11 at=help: key order differs {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 5} vs {'at': 'pick_size', 'resume': [('order', 'pick_size')], 'timers': [], 'seq': 5}
+  I9: walk seed=1 user=u45 step=13 at=help: ev=btn:back tok=None guards={}
+   got {'id': 321, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 10}, 'actions': [{'send': 'catalog'}]}
+   exp {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 10}, 'seq': 10} [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 10}, {'send': 'cart'}] rec=False
+--- stderr (0 bytes, last 100 lines)

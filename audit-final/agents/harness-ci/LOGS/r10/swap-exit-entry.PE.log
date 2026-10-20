@@ -1,0 +1,3 @@
+НЕТ лишнее условие не мешает: {'snapshot': {'at': 'vip', 'seq': 1}, 'actions': [{'send': 'vip'}, {'cancel_timer': 'idle'}]} ≠ ожидалось {'snapshot': {'at': 'vip', 'seq': 1}, 'actions': [{'cancel_timer': 'idle'}, {'send': 'vip'}]}
+НЕТ текущий жетон срабатывает: {'snapshot': {'at': 'reminder', 'resume': {'shop': 'reminder'}, 'seq': 6}, 'actions': [{'send': 'reminder'}, {'cancel_timer': 'remind'}]} ≠ ожидалось {'snapshot': {'at': 'reminder', 'resume': {'shop': 'reminder'}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'send': 'reminder'}]}
+граничных случаев протокола 11, ответов 11, расхождений 2

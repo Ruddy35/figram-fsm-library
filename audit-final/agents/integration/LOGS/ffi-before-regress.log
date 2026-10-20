@@ -1,0 +1,19 @@
+command: nice -n 10 timeout 900 bash ffi/audit/regress.sh 
+cwd: /home/user/figram-audit-worktrees/integration-ffi
+start: 2026-10-20T00:17:29.210Z
+end: 2026-10-20T00:17:42.436Z
+exit_code: 1
+--- stdout (737 bytes, last 200 lines)
+FAIL FFI-01 concurrent figram_init: rc=1, want 0
+    ffi/audit/init_race.sh: line 7: 27526 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+    ffi/audit/init_race.sh: line 7: 28426 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+    init_race: 300 runs, failed 6; exit codes: 139×6 0×294
+FAIL FFI-05 malloc failure in dup: rc=139, want 0
+    baseline: check({}) → 40 bytes: error: нужно поле «figram»: 1
+FAIL FFI-06 figram_unload(NULL): rc=139, want 0
+    NULL case unload
+FAIL FFI-06 unload(failed load): rc=139, want 0
+    NULL case unload_failed_load
+PASS harness 16x20000 + reload (rc=0)
+PASS stress 16x20000 + 4 loaders (rc=0)
+--- stderr (0 bytes, last 100 lines)

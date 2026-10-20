@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 sh /home/user/figram-audit/agents/python-client/REPRODUCTIONS/r13_contract_flaky.sh /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mixed /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/features.bot.json 30 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T22:42:17.965Z
+end: 2026-10-19T22:43:26.497Z
+exit_code: 0
+--- stdout (72 bytes, last 200 lines)
+прогонов 30: отказов 0, из них ProcessLookupError 0
+--- stderr (0 bytes, last 100 lines)

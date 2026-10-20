@@ -1,0 +1,3160 @@
+From bc945f0991683cd76443841f25bf03f67b3beee6 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 22:53:18 +0000
+Subject: [PATCH 21/40] audit(core-compiler): independent oracle +
+ differential/metamorphic/mutant test suite
+
+Independent Python reference interpreter of the designer semantics written
+from README decisions 1-8, FORMAT.md and HOST.md (not from Chart.lean), with
+explicit switches for the ambiguities of the prose. Tests against the real
+figram-engine: directed table-driven cases with hand-written expectations,
+random documents with branch-exhaustive cases, random event sequences with
+stale/forged tokens, stale snapshots and document upgrades, metamorphic
+checks, acceptance differential of check, lint-gap and scale probes, a
+shrinker and red-proofs (broken oracle variants, engine mutants).
+
+(cherry picked from commit 79189086ca30bfb92ecb588a4554cb5c188b7cb6)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/core-compiler/.gitignore      |   3 +
+ audit/core-compiler/check_diff.py   | 180 ++++++++++
+ audit/core-compiler/diff_random.py  | 181 ++++++++++
+ audit/core-compiler/difflib_core.py | 142 ++++++++
+ audit/core-compiler/directed.py     | 434 ++++++++++++++++++++++++
+ audit/core-compiler/engine.py       |  76 +++++
+ audit/core-compiler/exhaustive.py   |  94 ++++++
+ audit/core-compiler/gen.py          | 300 +++++++++++++++++
+ audit/core-compiler/lint_gaps.py    | 132 ++++++++
+ audit/core-compiler/metamorphic.py  | 312 +++++++++++++++++
+ audit/core-compiler/mutants_red.py  | 159 +++++++++
+ audit/core-compiler/oracle.py       | 499 ++++++++++++++++++++++++++++
+ audit/core-compiler/perf.py         | 142 ++++++++
+ audit/core-compiler/run_all.sh      |  46 +++
+ audit/core-compiler/run_log.sh      |   6 +
+ audit/core-compiler/shrink.py       | 228 +++++++++++++
+ audit/core-compiler/wide.py         |  65 ++++
+ 17 files changed, 2999 insertions(+)
+ create mode 100644 audit/core-compiler/.gitignore
+ create mode 100755 audit/core-compiler/check_diff.py
+ create mode 100755 audit/core-compiler/diff_random.py
+ create mode 100755 audit/core-compiler/difflib_core.py
+ create mode 100755 audit/core-compiler/directed.py
+ create mode 100755 audit/core-compiler/engine.py
+ create mode 100755 audit/core-compiler/exhaustive.py
+ create mode 100755 audit/core-compiler/gen.py
+ create mode 100755 audit/core-compiler/lint_gaps.py
+ create mode 100755 audit/core-compiler/metamorphic.py
+ create mode 100755 audit/core-compiler/mutants_red.py
+ create mode 100755 audit/core-compiler/oracle.py
+ create mode 100755 audit/core-compiler/perf.py
+ create mode 100755 audit/core-compiler/run_all.sh
+ create mode 100755 audit/core-compiler/run_log.sh
+ create mode 100755 audit/core-compiler/shrink.py
+ create mode 100755 audit/core-compiler/wide.py
+
+diff --git a/audit/core-compiler/.gitignore b/audit/core-compiler/.gitignore
+new file mode 100644
+index 0000000..47fde91
+--- /dev/null
++++ b/audit/core-compiler/.gitignore
+@@ -0,0 +1,3 @@
++__pycache__/
++logs/
++mutant_survivors.json
+diff --git a/audit/core-compiler/check_diff.py b/audit/core-compiler/check_diff.py
+new file mode 100755
+index 0000000..4157357
+--- /dev/null
++++ b/audit/core-compiler/check_diff.py
+@@ -0,0 +1,180 @@
++#!/usr/bin/env python3
++"""Acceptance differential: the oracle's own reading of FORMAT.md V1-V5 and
++the grammar vs `figram-engine` load (decode + Doc.check + wf/namesOK).
++
++  python3 check_diff.py --engine BIN [--docs N] [--seed S] [--expect-red] [--oracle-skip V]
++
++For each random valid document one defect is injected (or none); the oracle
++and the engine must agree on accept/reject."""
++
++import argparse
++import json
++import random
++import sys
++
++from engine import engine_loads
++from gen import dumps, gen_model, to_json
++from oracle import Bot, DocError
++
++
++def nodes_of(d):
++    out = []
++
++    def w(name, o, parent):
++        out.append((name, o, parent))
++        for k, v in o.get("children", {}).items():
++            w(k, v, o)
++    w("", d["bot"], None)
++    return out
++
++
++def inject(rng, d, kind):
++    ns = nodes_of(d)
++    msgs = [(n, o, p) for n, o, p in ns if "children" not in o]
++    secs = [(n, o, p) for n, o, p in ns if "children" in o]
++    arrows = [(n, o, e, v) for n, o, _ in ns for e, vs in o.get("on", {}).items() for v in vs]
++    if kind == "none":
++        return True
++    if kind == "dup_node" and len(secs) >= 2:
++        a, b = rng.sample(secs, 2)
++        name = rng.choice([n for n, _, _ in msgs])
++        b[1]["children"][name] = {}
++        if name in a[1]["children"] and a is b:
++            return False
++        return True
++    if kind == "initial_grandchild":
++        for n, o, _ in secs:
++            for k, v in o["children"].items():
++                if "children" in v:
++                    o["initial"] = v["initial"]
++                    return True
++        return False
++    if kind == "initial_missing":
++        rng.choice(secs)[1]["initial"] = "no_such"
++        return True
++    if kind == "to_missing" and arrows:
++        rng.choice(arrows)[3]["to"] = "no_such"
++        return True
++    if kind == "resume_to_message" and arrows:
++        v = rng.choice(arrows)[3]
++        v["to"] = rng.choice(msgs)[0]
++        v["resume"] = True
++        return True
++    if kind == "undeclared_if" and arrows:
++        rng.choice(arrows)[3]["if"] = "undeclared"
++        return True
++    if kind == "undeclared_do" and arrows:
++        rng.choice(arrows)[3]["do"] = ["undeclared"]
++        return True
++    if kind == "timer_event_no_timer":
++        o = rng.choice(ns)[1]
++        o.setdefault("on", {})["timer:nosuch"] = [{"to": msgs[0][0]}]
++        return True
++    if kind == "empty_event":
++        o = rng.choice(ns)[1]
++        o.setdefault("on", {})[""] = [{"to": msgs[0][0]}]
++        return True
++    if kind == "empty_timer":
++        rng.choice(msgs)[1].setdefault("timers", {})[""] = 5
++        return True
++    if kind == "empty_if" and arrows:
++        rng.choice(arrows)[3]["if"] = ""
++        return True
++    if kind == "empty_cond_key":
++        d.setdefault("conditions", {})[""] = "x"
++        return True
++    if kind == "section_timers":
++        rng.choice(secs)[1]["timers"] = {"t": 1}
++        return True
++    if kind == "message_initial":
++        rng.choice(msgs)[1]["initial"] = "x"
++        return True
++    if kind == "requires":
++        d["requires"] = ["section-timers"]
++        return True
++    if kind == "requires_empty":
++        d["requires"] = []
++        return True
++    if kind == "big_delay":
++        rng.choice(msgs)[1].setdefault("timers", {})["tb"] = 2 ** 53
++        return True
++    if kind == "max_delay":
++        rng.choice(msgs)[1].setdefault("timers", {})["tm"] = 2 ** 53 - 1
++        return True
++    if kind == "frac_delay":
++        rng.choice(msgs)[1].setdefault("timers", {})["tf"] = 1.5
++        return True
++    if kind == "resume_false_explicit" and arrows:
++        rng.choice(arrows)[3]["resume"] = False
++        return True
++    if kind == "resume_not_bool" and arrows:
++        rng.choice(arrows)[3]["resume"] = "yes"
++        return True
++    if kind == "unknown_key":
++        rng.choice(ns)[1]["foo"] = {"bar": 1}
++        return True
++    if kind == "timer_named_like_event":
++        m = rng.choice(msgs)
++        m[1].setdefault("timers", {})["a:b"] = 3
++        m[1].setdefault("on", {})["timer:a:b"] = [{"to": m[0]}]
++        return True
++    if kind == "node_named_bot":
++        rng.choice(secs)[1]["children"]["bot"] = {}
++        return True
++    return False
++
++
++KINDS = ["none", "dup_node", "initial_grandchild", "initial_missing", "to_missing",
++         "resume_to_message", "undeclared_if", "undeclared_do", "timer_event_no_timer",
++         "empty_event", "empty_timer", "empty_if", "empty_cond_key", "section_timers",
++         "message_initial", "requires", "requires_empty", "big_delay", "max_delay", "frac_delay",
++         "resume_false_explicit", "resume_not_bool", "unknown_key", "timer_named_like_event",
++         "node_named_bot"]
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--docs", type=int, default=10)
++    ap.add_argument("--seed", type=int, default=3)
++    ap.add_argument("--expect-red", action="store_true")
++    ap.add_argument("--oracle-accept-all", action="store_true", help="broken oracle (red-proof)")
++    args = ap.parse_args()
++    counts, bad = {}, []
++    for k in range(args.docs):
++        for kind in KINDS:
++            rng = random.Random(args.seed * 7919 + k * 101 + KINDS.index(kind))
++            d = to_json(gen_model(rng, n_msgs=rng.choice([4, 8]), n_secs=rng.choice([2, 3]),
++                                  max_depth=3, p_hist=0.3, p_timer=0.4))
++            if not inject(rng, d, kind):
++                continue
++            text = dumps(d)
++            try:
++                Bot(text)
++                o = True
++            except DocError:
++                o = False
++            if args.oracle_accept_all:
++                o = True
++            e = engine_loads(args.engine, text)
++            c = counts.setdefault(kind, [0, 0, 0])
++            c[0] += 1
++            c[1] += int(e)
++            if o != e:
++                c[2] += 1
++                bad.append({"kind": kind, "oracle": o, "engine": e, "doc": text})
++    total = sum(c[0] for c in counts.values())
++    for kind, (n, acc, dis) in counts.items():
++        print(f"{kind:24s} cases={n:3d} engine_accepts={acc:3d} disagreements={dis}")
++    print(f"total cases {total}, disagreements {len(bad)}")
++    for b in bad[:3]:
++        print("DISAGREE", json.dumps(b, ensure_ascii=False)[:600])
++    red = bool(bad)
++    if args.expect_red:
++        print("EXPECT-RED:", "RED (good)" if red else "STILL GREEN")
++        sys.exit(0 if red else 1)
++    sys.exit(1 if red or total == 0 else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/diff_random.py b/audit/core-compiler/diff_random.py
+new file mode 100755
+index 0000000..9884a67
+--- /dev/null
++++ b/audit/core-compiler/diff_random.py
+@@ -0,0 +1,181 @@
++#!/usr/bin/env python3
++"""Differential test: independent oracle vs figram-engine on random documents,
++random event sequences (stale/forged timer tokens), stale snapshots and
++document upgrades v1 -> v2 (HOST.md §6).
++
++  python3 diff_random.py --engine BIN [--docs N] [--steps N] [--seed S]
++                         [--mutate M] [--oracle-bug B] [--expect-red]
++                         [--out DIR]   (writes divergences as JSON)
++
++Exit 0: no divergence and the case counts are non-zero.  Exit 1: divergence
++(or zero cases).  With --expect-red the meaning is inverted: exit 0 only if a
++divergence WAS found (used to prove the test can go red).
++"""
++
++import argparse
++import json
++import os
++import random
++import sys
++import time
++
++import exhaustive
++from difflib_core import Divergence, do_restart, do_start, do_step
++from engine import Engine, EngineLoadError
++from gen import dumps, gen_model, perturb_snapshot, pick_event, to_json, upgrade
++from oracle import Bot, DocError, Options, snap_from_json
++
++
++def make_model(seed):
++    rng = random.Random(seed)
++    size = rng.choice([(4, 1, 2), (8, 3, 3), (12, 4, 4), (20, 8, 6), (6, 5, 5)])
++    model = gen_model(rng, n_msgs=size[0], n_secs=size[1], max_depth=size[2],
++                      p_hist=rng.choice([0.0, 0.2, 0.4]), p_timer=rng.choice([0.2, 0.5]))
++    return rng, model
++
++
++def one_doc(args, seed, stats, hits, divs):
++    rng, model = make_model(seed)
++    text = dumps(to_json(model))
++    kw = dict(kv.split("=", 1) for kv in (getattr(args, "oracle_opt", None) or []))
++    opts = Options(bug=args.oracle_bug, **kw)
++    try:
++        bot = Bot(text, opts)
++    except DocError as e:
++        stats["gen_invalid"] = stats.get("gen_invalid", 0) + 1
++        return
++    try:
++        eng = Engine(args.engine, text, mutate=args.mutate)
++    except EngineLoadError as e:
++        divs.append({"seed": seed, "what": "engine rejected a doc the oracle accepts",
++                     "doc": text, "err": str(e)})
++        return
++    stats["docs"] = stats.get("docs", 0) + 1
++    if eng.states != bot.message_count():
++        divs.append({"seed": seed, "what": "hello.states differs", "doc": text,
++                     "engine": eng.states, "oracle": bot.message_count()})
++    cur_text = text
++    try:
++        if not getattr(args, "no_exhaustive", False):
++            for snap_j, ev, tok, g, tag in exhaustive.cases(bot, rng):
++                stats.setdefault("exhaustive", {})
++                stats["exhaustive"][tag[0]] = stats["exhaustive"].get(tag[0], 0) + 1
++                if snap_j is None:
++                    continue
++                h = set()
++                do_step(bot, eng, snap_j, ev, tok, rng, h, stats, fixed_guards=g)
++                for x in h:
++                    stats.setdefault("hits_steps", {})
++                    stats["hits_steps"][x + "@exhaustive"] = stats["hits_steps"].get(x + "@exhaustive", 0) + 1
++                hits |= h
++        snap = do_start(bot, eng, stats)
++        older = [snap_from_json(snap)]
++        tokens = {}
++        upgraded = False
++        perturbed = False
++        for i in range(args.steps):
++            if not getattr(args, "no_upgrade", False) and not upgraded and i == args.steps // 2 and rng.random() < 0.6:
++                s = snap_from_json(snap)
++                focus = [s["at"]] + list(s["resume"].values()) + list(s["resume"].keys())
++                for _ in range(6):
++                    m2, desc = upgrade(rng, model, focus=focus)
++                    if m2:
++                        break
++                if m2:
++                    eng.close()
++                    model = m2
++                    cur_text = dumps(to_json(model))
++                    bot = Bot(cur_text, opts)
++                    eng = Engine(args.engine, cur_text, mutate=args.mutate)
++                    upgraded = True
++                    stats["upgrades"] = stats.get("upgrades", 0) + 1
++                    stats.setdefault("upgrade_ops", {})
++                    k = desc.split()[0]
++                    stats["upgrade_ops"][k] = stats["upgrade_ops"].get(k, 0) + 1
++            r = rng.random()
++            if r < 0.06 and not getattr(args, "no_perturb", False):
++                s2, kind = perturb_snapshot(rng, bot, snap_from_json(snap), older, None)
++                from oracle import snap_to_json
++                snap = snap_to_json(s2)
++                perturbed = True
++                stats.setdefault("perturb", {})
++                stats["perturb"][kind] = stats["perturb"].get(kind, 0) + 1
++            if r > 0.985:
++                snap = do_restart(bot, eng, snap, stats)
++                continue
++            ev, token, kind = pick_event(rng, bot, snap_from_json(snap), tokens)
++            stats.setdefault("events", {})
++            stats["events"][kind] = stats["events"].get(kind, 0) + 1
++            h = set()
++            snap, rec = do_step(bot, eng, snap, ev, token, rng, h, stats)
++            for x in h:
++                key = x + ("@upgraded" if upgraded else "") + ("@perturbed" if perturbed else "")
++                stats.setdefault("hits_steps", {})
++                stats["hits_steps"][key] = stats["hits_steps"].get(key, 0) + 1
++            hits |= h
++            if "error" in rec.get("reply", {}):
++                snap = do_start(bot, eng, stats)
++                perturbed = False
++            s = snap_from_json(snap)
++            for t, tok in s["timers"].items():
++                tokens.setdefault(t, [])
++                if tok not in tokens[t]:
++                    tokens[t].append(tok)
++            older.append(s)
++            if len(older) > 20:
++                older.pop(0)
++            stats["steps"] = stats.get("steps", 0) + 1
++    except Divergence as d:
++        divs.append({"seed": seed, "what": d.what, "doc": cur_text,
++                     "ctx": json.loads(json.dumps(d.ctx, default=str))})
++    finally:
++        eng.close()
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--docs", type=int, default=100)
++    ap.add_argument("--steps", type=int, default=60)
++    ap.add_argument("--seed", type=int, default=1)
++    ap.add_argument("--mutate")
++    ap.add_argument("--oracle-bug")
++    ap.add_argument("--expect-red", action="store_true")
++    ap.add_argument("--out")
++    ap.add_argument("--stop-at-first", action="store_true")
++    ap.add_argument("--no-upgrade", action="store_true")
++    ap.add_argument("--no-exhaustive", action="store_true")
++    ap.add_argument("--no-perturb", action="store_true")
++    ap.add_argument("--oracle-opt", action="append", default=[],
++                    help="k=v ambiguity switch of oracle.Options (e.g. timer_accept=owned)")
++    args = ap.parse_args()
++    stats, hits, divs = {}, set(), []
++    hit_counts = {}
++    t0 = time.time()
++    for k in range(args.docs):
++        h = set()
++        one_doc(args, args.seed * 100003 + k, stats, h, divs)
++        for x in h:
++            hit_counts[x] = hit_counts.get(x, 0) + 1
++        if divs and (args.stop_at_first or args.expect_red):
++            break
++    dt = time.time() - t0
++    print(json.dumps({"stats": stats, "ambiguity_hits_docs": hit_counts,
++                      "divergences": len(divs), "seconds": round(dt, 1)}, ensure_ascii=False))
++    for d in divs[:5]:
++        print("DIVERGENCE", json.dumps(d, ensure_ascii=False)[:2000])
++    if args.out:
++        os.makedirs(args.out, exist_ok=True)
++        with open(os.path.join(args.out, "divergences.json"), "w") as f:
++            json.dump(divs, f, ensure_ascii=False, indent=1)
++    if args.expect_red:
++        ok = bool(divs)
++        print("EXPECT-RED:", "RED (good)" if ok else "STILL GREEN (test too weak)")
++        sys.exit(0 if ok else 1)
++    if divs or stats.get("steps", 0) == 0 or stats.get("docs", 0) == 0:
++        sys.exit(1)
++    sys.exit(0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/difflib_core.py b/audit/core-compiler/difflib_core.py
+new file mode 100755
+index 0000000..7c6c8eb
+--- /dev/null
++++ b/audit/core-compiler/difflib_core.py
+@@ -0,0 +1,142 @@
++"""Lock-step comparison of one step: oracle (oracle.py) vs real engine."""
++
++import random
++
++from oracle import Bot, RequestError, copy_snap, snap_from_json, snap_to_json
++
++
++class Divergence(Exception):
++    def __init__(self, what, **ctx):
++        super().__init__(what)
++        self.what = what
++        self.ctx = ctx
++
++
++def norm_snap(j):
++    s = snap_from_json(j)
++    return {"at": s["at"], "resume": dict(s["resume"]), "timers": dict(s["timers"]), "seq": s["seq"]}
++
++
++def compare_result(bot, snap_in, rep, ev, token, guards, hits, stats):
++    """Compare an engine result/error reply with the oracle evaluated with the
++    guards the engine actually received."""
++    try:
++        o = bot.step(snap_in, ev, token, guards, hits=hits, check_need=False)
++    except RequestError as e:
++        if rep.get("error") != str(e):
++            raise Divergence("oracle error, engine did not", oracle=str(e), engine=rep)
++        stats["errors"] = stats.get("errors", 0) + 1
++        return None
++    if "error" in rep:
++        raise Divergence("engine error, oracle did not", engine=rep, oracle=o)
++    _, s2, acts, rec = o
++    es = norm_snap(rep["snapshot"])
++    if es != s2:
++        raise Divergence("snapshot differs", engine=es, oracle=s2)
++    if rep["actions"] != acts:
++        raise Divergence("actions differ", engine=rep["actions"], oracle=acts)
++    if bool(rep.get("recovered", False)) != rec:
++        raise Divergence("recovered flag differs", engine=rep.get("recovered"), oracle=rec)
++    if "recovered" in rep and rep["recovered"] is not True:
++        raise Divergence("recovered must be literally true", engine=rep)
++    if rec:
++        stats["recovered"] = stats.get("recovered", 0) + 1
++    if acts:
++        stats["transitions"] = stats.get("transitions", 0) + 1
++    else:
++        stats["ignored"] = stats.get("ignored", 0) + 1
++    return rep["snapshot"]
++
++
++def do_step(bot, eng, snap_json, ev, token, rng, hits, stats, guard_mode=None, fixed_guards=None):
++    try:
++        return _do_step(bot, eng, snap_json, ev, token, rng, hits, stats, guard_mode, fixed_guards)
++    except Divergence as d:
++        d.ctx.setdefault("input", {"snapshot": snap_json, "event": ev, "token": token,
++                                   "guards": d.ctx.get("given", fixed_guards)})
++        raise
++
++
++def _do_step(bot, eng, snap_json, ev, token, rng, hits, stats, guard_mode=None, fixed_guards=None):
++    """Run one protocol step on the engine (answering `need` like a host) and
++    compare everything with the oracle.  Returns the engine's new snapshot JSON
++    (or the old one if the step errored) and the trace record."""
++    snap = snap_from_json(snap_json)
++    guard_mode = guard_mode or rng.choice(["lazy", "lazy", "full", "partial"])
++    mn_all, al_all = bot.need_sets(snap, ev, token, {})
++    given = {}
++    if fixed_guards is not None:
++        given = dict(fixed_guards)
++    elif guard_mode == "full":
++        given = {g: rng.random() < 0.5 for g in sorted(al_all)}
++    elif guard_mode == "partial":
++        given = {g: rng.random() < 0.5 for g in sorted(al_all) if rng.random() < 0.5}
++    if fixed_guards is None and rng.random() < 0.1:
++        given["irrelevant_guard"] = True
++    req = {"op": "step", "snapshot": snap_json, "event": ev}
++    if token is not None:
++        req["token"] = token
++    rounds = 0
++    record = {"snapshot": snap_json, "event": ev, "token": token}
++    while True:
++        rounds += 1
++        if given:
++            req["guards"] = dict(given)
++        rep = eng.req(req)
++        stats["requests"] = stats.get("requests", 0) + 1
++        if rep is None:
++            raise Divergence("engine died", request=req)
++        mn, al = bot.need_sets(snap, ev, token, given)
++        if "need" in rep:
++            stats["need_replies"] = stats.get("need_replies", 0) + 1
++            n = rep["need"]
++            ns = set(n)
++            if len(ns) != len(n):
++                raise Divergence("need has duplicates", engine=n)
++            if not ns:
++                raise Divergence("empty need", engine=n)
++            if not (mn <= ns <= al):
++                raise Divergence("need outside [minimal, all]", engine=sorted(ns),
++                                 minimal=sorted(mn), all=sorted(al), given=given)
++            if ns != mn:
++                stats["need_superfluous"] = stats.get("need_superfluous", 0) + 1
++                hits.add("A3-need-superset")
++            if rounds > 1:
++                raise Divergence("second need after all requested guards were sent", engine=n)
++            for g in sorted(ns):
++                given[g] = rng.random() < 0.5
++            continue
++        if mn:
++            raise Divergence("engine stepped without a needed guard", minimal=sorted(mn), engine=rep)
++        record["guards"] = dict(given)
++        try:
++            new = compare_result(bot, snap, rep, ev, token, given, hits, stats)
++        except Divergence as d:
++            d.ctx["input"] = {"snapshot": snap_json, "event": ev, "token": token, "guards": dict(given)}
++            raise
++        record["reply"] = rep
++        return (new if new is not None else snap_json), record
++
++
++def do_start(bot, eng, stats):
++    rep = eng.req({"op": "start"})
++    stats["requests"] = stats.get("requests", 0) + 1
++    s, acts = bot.start()
++    if norm_snap(rep["snapshot"]) != s or rep["actions"] != acts or "recovered" in rep:
++        raise Divergence("start differs", engine=rep, oracle=(s, acts))
++    return rep["snapshot"]
++
++
++def do_restart(bot, eng, snap_json, stats):
++    rep = eng.req({"op": "restart", "snapshot": snap_json})
++    stats["requests"] = stats.get("requests", 0) + 1
++    try:
++        s, acts = bot.restart(snap_from_json(snap_json))
++    except RequestError as e:
++        if rep.get("error") != str(e):
++            raise Divergence("restart: oracle error only", engine=rep, oracle=str(e))
++        return snap_json
++    if "error" in rep or norm_snap(rep["snapshot"]) != s or rep["actions"] != acts or "recovered" in rep:
++        raise Divergence("restart differs", engine=rep, oracle=(s, acts))
++    stats["restarts"] = stats.get("restarts", 0) + 1
++    return rep["snapshot"]
+diff --git a/audit/core-compiler/directed.py b/audit/core-compiler/directed.py
+new file mode 100755
+index 0000000..8a6f668
+--- /dev/null
++++ b/audit/core-compiler/directed.py
+@@ -0,0 +1,434 @@
++#!/usr/bin/env python3
++"""Directed, table-driven edge cases for README decisions 1-8 and FORMAT §7.
++
++Every expectation below is written BY HAND from the prose spec, and is
++checked against BOTH the real engine and the independent oracle (so the
++oracle itself is validated against the prose, too).
++
++  python3 directed.py --engine BIN [--group conformance|findings|all] [--mutate M]
++                      [--oracle-only] [--expect-red]
++
++group conformance: behaviour the spec states explicitly (must pass).
++group findings:    designer-level expectations that the baseline VIOLATES
++                   (regression tests for the findings in REPORT.md; they are
++                   expected to FAIL on baseline).
++"""
++
++import argparse
++import json
++import sys
++
++from engine import Engine
++from oracle import MAX_INT, Bot, Options, snap_from_json, snap_to_json
++
++C = {"conditions": {"c1": "c1", "c2": "c2", "c3": "c3"}, "calls": {"k1": "k1", "k2": "k2"}}
++
++
++def doc(bot, **extra):
++    d = {"figram": 1}
++    d.update(C)
++    d["bot"] = bot
++    d.update(extra)
++    return d
++
++
++def sec(initial, children, on=None, **ann):
++    o = {"initial": initial}
++    if on:
++        o["on"] = on
++    o["children"] = children
++    o.update(ann)
++    return o
++
++
++def msg(on=None, timers=None, **ann):
++    o = {}
++    if on:
++        o["on"] = on
++    if timers:
++        o["timers"] = timers
++    o.update(ann)
++    return o
++
++
++def go(to, cond=None, resume=False, do=None):
++    v = {}
++    if cond:
++        v["if"] = cond
++    v["to"] = to
++    if resume:
++        v["resume"] = True
++    if do:
++        v["do"] = do
++    return v
++
++
++S = lambda n: {"send": n}
++CALL = lambda n: {"call": n}
++START = lambda t, ms, tok: {"start_timer": t, "ms": ms, "token": tok}
++CANCEL = lambda t: {"cancel_timer": t}
++
++# ---------------------------------------------------------------- documents
++D_NEST_INIT = doc(sec("S1", {"S1": sec("S2", {"S2": sec("m", {"m": msg(timers={"a": 10, "b": 20})})})}))
++
++D_BUBBLE = doc(sec("S", {
++    "S": sec("m", {
++        "m": msg(on={"btn:x": [go("A", "c1")], "btn:y": [go("A")]}),
++        "A": msg(), "B": msg()},
++        on={"btn:x": [go("B", "c2")], "btn:y": [go("B", "c1")], "btn:z": [go("B")]}),
++    "C": msg()},
++    on={"btn:x": [go("C")], "btn:w": [go("C", "c3")]}))
++
++D_ORDER = doc(sec("m", {
++    "m": msg(on={"btn:go": [go("n", do=["k1", "k2", "k1"])], "btn:self": [go("m")],
++                 "timer:t1": [go("q")]},
++             timers={"t1": 5, "t2": 6}),
++    "S": sec("n", {"n": msg(timers={"u": 7}), "n2": msg()}),
++    "q": msg(on={"btn:back": [go("S", resume=True)]})}))
++
++D_HIST = doc(sec("S", {
++    "S": sec("T", {
++        "T": sec("x", {"x": msg(on={"btn:n": [go("y")]}), "y": msg(on={"btn:z": [go("z")]})}),
++        "z": msg(on={"btn:r": [go("S", resume=True)]}, timers={"tz": 3})},
++        on={"cmd:help": [go("h")], "btn:rs": [go("S", resume=True)], "btn:home": [go("S")]}),
++    "h": msg(on={"btn:S": [go("S", resume=True)], "btn:T": [go("T", resume=True)],
++                 "btn:P": [go("P", resume=True)]}),
++    "P": sec("Q", {"Q": sec("q1", {"q1": msg(), "q2": msg()}), "p": msg()}),
++    "plain": sec("pl", {"pl": msg()})}))
++
++D_TIMERS = doc(sec("S", {
++    "S": sec("a", {
++        "a": msg(on={"btn:b": [go("b")]}, timers={"t": 100}),
++        "b": msg(on={"timer:t": [go("own")], "btn:a": [go("a")]}, timers={"t": 200}),
++        "c": msg(on={"btn:a": [go("a")]}, timers={"v": 1}),
++        "own": msg()},
++        on={"timer:v": [go("secv")]}),
++    "secv": msg(), "rootv": msg(),
++    "d": msg(timers={"w": 9})},
++    on={"timer:w": [go("rootv")], "btn:d": [go("d")], "btn:c": [go("c")]}))
++
++D_RECOVER = doc(sec("H", {
++    "H": sec("i", {"i": msg(timers={"it": 4}), "j": msg()}),
++    "o": msg(on={"btn:back": [go("H", resume=True)]})}))
++
++# HOST.md §6 upgrade: v1 -- reminder "remind" on A; v2 -- the designer moved
++# that reminder to B.  Section S handles timer:remind for any message inside.
++D_UP_V1 = doc(sec("S", {
++    "S": sec("A", {
++        "A": msg(on={"btn:next": [go("C")]}, timers={"remind": 60000}),
++        "B": msg(),
++        "C": msg(on={"btn:x": [go("D")]}),
++        "D": msg()},
++        on={"timer:remind": [go("R", do=["k1"])]}),
++    "R": msg()}))
++D_UP_V2 = doc(sec("S", {
++    "S": sec("A", {
++        "A": msg(on={"btn:next": [go("C")]}),
++        "B": msg(timers={"remind": 60000}),
++        "C": msg(on={"btn:x": [go("D")]}),
++        "D": msg()},
++        on={"timer:remind": [go("R", do=["k1"])]}),
++    "R": msg()}))
++# Same but the designer only RENAMED the reminder on A (remind -> nudge);
++# the old name stays handled on the message that owns it elsewhere (E).
++D_UP_V2_RENAME = doc(sec("S", {
++    "S": sec("A", {
++        "A": msg(on={"btn:next": [go("C")], "timer:nudge": [go("R")]}, timers={"nudge": 60000}),
++        "C": msg(on={"btn:x": [go("D")], "timer:remind": [go("R")]}),
++        "D": msg(), "E": msg(timers={"remind": 1})}),
++    "R": msg()}))
++
++# ---------------------------------------------------------------- cases
++# step = (event, token, guards, expect)  expect keys: at, actions, timers,
++# resume (exact dict), resume_has (subset), seq, recovered, need (set),
++# need_superset_of, error, unchanged (bool)
++CASES = []
++
++
++def case(name, group, d, steps, start=True, snapshot=None, spec=""):
++    CASES.append({"name": name, "group": group, "doc": d, "steps": steps,
++                  "start": start, "snapshot": snapshot, "spec": spec})
++
++
++case("start_nested_initials", "conformance", D_NEST_INIT, [], spec="section whose initial is a section; entry order")
++CASES[-1]["start_expect"] = {"at": "m", "seq": 1, "timers": {"a": 1, "b": 1},
++                             "actions": [START("a", 10, 1), START("b", 20, 1), S("m")]}
++
++case("bubble_all_false_to_root", "conformance", D_BUBBLE,
++     [("btn:x", None, {"c1": False, "c2": False}, {"at": "C", "actions": [S("C")], "seq": 2})], spec="decision 1")
++case("bubble_false_then_section_true", "conformance", D_BUBBLE,
++     [("btn:x", None, {"c1": False, "c2": True}, {"at": "B", "actions": [S("B")]})], spec="decision 1")
++case("message_true_wins", "conformance", D_BUBBLE,
++     [("btn:x", None, {"c1": True, "c2": False}, {"at": "A"})], spec="decision 1")
++case("need_lists_chain_guards", "conformance", D_BUBBLE,
++     [("btn:x", None, None, {"need_superset_of": {"c1", "c2"}})], spec="FORMAT §7.3")
++case("section_arrow_message_lacks", "conformance", D_BUBBLE,
++     [("btn:z", None, {}, {"at": "B", "actions": [S("B")]})], spec="section arrow works on any message inside")
++case("root_guarded_false_ignored", "conformance", D_BUBBLE,
++     [("btn:w", None, {"c3": False}, {"unchanged": True})], spec="decision 6")
++case("unknown_event_ignored", "conformance", D_BUBBLE,
++     [("btn:nothing", None, {}, {"unchanged": True})], spec="decision 6, seq not bumped")
++case("unconditional_message_shadows_section", "conformance", D_BUBBLE,
++     [("btn:y", None, {"c1": True}, {"at": "A"})], spec="decision 1")
++case("irrelevant_guard_ignored", "conformance", D_BUBBLE,
++     [("btn:z", None, {"zzz": True, "c1": True}, {"at": "B"})], spec="guards outside the chain")
++case("partial_guards_need_rest", "conformance", D_BUBBLE,
++     [("btn:x", None, {"c1": False}, {"need_superset_of": {"c2"}, "need_excludes": {"c1"}})], spec="FORMAT §7.3")
++
++case("action_order_exit_arrow_entry", "conformance", D_ORDER,
++     [("btn:go", None, {}, {"at": "n", "seq": 2, "timers": {"u": 2},
++                            "actions": [CANCEL("t1"), CANCEL("t2"), CALL("k1"), CALL("k2"), CALL("k1"),
++                                        START("u", 7, 2), S("n")]})], spec="decision 2")
++case("self_loop_restarts_timers", "conformance", D_ORDER,
++     [("btn:self", None, {}, {"at": "m", "seq": 2, "timers": {"t1": 2, "t2": 2},
++                              "actions": [CANCEL("t1"), CANCEL("t2"), START("t1", 5, 2), START("t2", 6, 2), S("m")]}),
++      ("timer:t1", 1, {}, {"unchanged": True}),
++      ("timer:t1", 2, {}, {"at": "q", "timers": {}, "actions": [CANCEL("t1"), CANCEL("t2"), S("q")]})],
++     spec="decisions 3, 7")
++case("resume_no_memory_goes_initial", "conformance", D_ORDER,
++     [("timer:t1", 1, {}, {"at": "q"}), ("btn:back", None, {}, {"at": "n", "resume": {"S": "n"}})],
++     spec="decision 5 / resume without memory")
++
++case("remember_on_entry_nested", "conformance", D_HIST,
++     [("btn:n", None, {}, {"at": "y", "resume": {"S": "y", "T": "y"}}),
++      ("cmd:help", None, {}, {"at": "h", "resume": {"S": "y", "T": "y"}}),
++      ("btn:S", None, {}, {"at": "y", "actions": [S("y")]})],
++     spec="decision 4, deep history")
++case("nested_outer_and_inner_memory", "conformance", D_HIST,
++     [("btn:n", None, {}, {"at": "y"}), ("btn:z", None, {}, {"at": "z", "resume": {"S": "z", "T": "y"}}),
++      ("cmd:help", None, {}, {"at": "h"}), ("btn:T", None, {}, {"at": "y"}),
++      ("cmd:help", None, {}, {"at": "h"}), ("btn:S", None, {}, {"at": "y"})],
++     spec="decision 4: entering y re-remembers S")
++case("resume_from_inside_is_current", "conformance", D_HIST,
++     [("btn:n", None, {}, {"at": "y"}), ("btn:z", None, {}, {"at": "z", "seq": 3, "timers": {"tz": 3}}),
++      ("btn:r", None, {}, {"at": "z", "seq": 4, "timers": {"tz": 4},
++                           "actions": [CANCEL("tz"), START("tz", 3, 4), S("z")]}),
++      ("btn:rs", None, {}, {"at": "z"})],
++     spec="Chart doc: from inside the section resume = current message")
++case("resume_section_initial_is_section", "conformance", D_HIST,
++     [("cmd:help", None, {}, {"at": "h"}), ("btn:P", None, {}, {"at": "q1", "resume_has": {"P": "q1"}})],
++     spec="resume, no memory, initial chain P->Q->q1")
++case("arrow_to_section_enters_initial", "conformance", D_HIST,
++     [("btn:n", None, {}, {"at": "y"}), ("btn:home", None, {}, {"at": "x"})],
++     spec="arrow into section leads to its initial message (not history)")
++case("resume_memory_deleted", "conformance", D_HIST,
++     [("btn:S", None, {}, {"at": "x"})], start=False,
++     snapshot={"at": "h", "resume": {"S": "gone"}, "seq": 5}, spec="decision 5")
++case("resume_memory_is_section_now", "conformance", D_HIST,
++     [("btn:S", None, {}, {"at": "x"})], start=False,
++     snapshot={"at": "h", "resume": {"S": "T"}, "seq": 5}, spec="decision 5 (message became section)")
++case("resume_memory_moved_outside", "conformance", D_HIST,
++     [("btn:S", None, {}, {"at": "x"})], start=False,
++     snapshot={"at": "h", "resume": {"S": "pl"}, "seq": 5},
++     spec="AMBIGUITY A1: remembered message exists but outside S -> Lean: initial")
++case("resume_memory_inner_valid", "conformance", D_HIST,
++     [("btn:S", None, {}, {"at": "z"})], start=False,
++     snapshot={"at": "h", "resume": {"S": "z", "T": "x"}, "seq": 5}, spec="decision 4/5")
++
++case("recover_deleted_current", "conformance", D_RECOVER,
++     [("btn:anything", None, {}, {"recovered": True, "at": "i", "seq": 10,
++                                  "actions": [CANCEL("old"), CANCEL("it"), START("it", 4, 10), S("i")],
++                                  "timers": {"it": 10}, "resume": {"H": "i", "X": "y"}})],
++     start=False, snapshot={"at": "gone", "resume": {"H": "j", "X": "y"}, "timers": {"old": 3, "it": 2}, "seq": 9},
++     spec="decision 8; AMBIGUITY A4: entry of initial re-remembers H (overwrites 'kept' place)")
++case("recover_at_is_section", "conformance", D_RECOVER,
++     [("timer:it", 2, {}, {"recovered": True, "at": "i"})], start=False,
++     snapshot={"at": "H", "timers": {"it": 2}, "seq": 2}, spec="snapshot points at a section, not a message")
++case("recover_ignores_token", "conformance", D_RECOVER,
++     [("timer:zz", 77, {}, {"recovered": True, "at": "i"})], start=False,
++     snapshot={"at": "gone", "seq": 2}, spec="recovery happens before token check")
++
++case("stale_forged_tokens", "conformance", D_TIMERS,
++     [("btn:b", None, {}, {"at": "b", "timers": {"t": 2}, "actions": [CANCEL("t"), START("t", 200, 2), S("b")]}),
++      ("timer:t", 1, {}, {"unchanged": True}),
++      ("timer:t", MAX_INT, {}, {"unchanged": True}),
++      ("timer:nope", 2, {}, {"unchanged": True}),
++      ("timer:t", 2, {}, {"at": "own", "actions": [CANCEL("t"), S("own")]})],
++     spec="decision 7, shared timer id on two messages")
++case("valid_timer_no_handler_ignored", "conformance", D_TIMERS,
++     [("timer:t", 1, {}, {"unchanged": True})], spec="decision 6 for timers")
++case("section_level_timer_handler", "conformance", D_TIMERS,
++     [("btn:c", None, {}, {"at": "c", "timers": {"v": 2}}),
++      ("timer:v", 2, {}, {"at": "secv", "actions": [CANCEL("v"), S("secv")], "timers": {}})],
++     spec="section arrow on timer:<id>")
++case("root_level_timer_handler", "conformance", D_TIMERS,
++     [("btn:d", None, {}, {"at": "d"}), ("timer:w", 2, {}, {"at": "rootv", "timers": {}})],
++     spec="root arrow on timer:<id>")
++
++case("seq_overflow_transition", "conformance", D_BUBBLE,
++     [("btn:z", None, {}, {"error": "seq_overflow"})], start=False,
++     snapshot={"at": "m", "seq": MAX_INT}, spec="FORMAT §7.5")
++case("seq_max_ignored_ok", "conformance", D_BUBBLE,
++     [("btn:none", None, {}, {"unchanged": True})], start=False,
++     snapshot={"at": "m", "seq": MAX_INT}, spec="ignored event does not bump seq")
++case("restart_clears_places", "conformance", D_RECOVER,
++     [("@restart", None, None, {"at": "i", "seq": 8, "resume": {"H": "i"},
++                                "actions": [CANCEL("x"), START("it", 4, 8), S("i")]})], start=False,
++     snapshot={"at": "o", "resume": {"H": "j"}, "timers": {"x": 1}, "seq": 7}, spec="FORMAT §7 restart")
++
++# ------------- findings: designer-level expectations the baseline violates
++case("H2_upgrade_moved_timer_fires_on_other_message", "findings", D_UP_V2,
++     [("btn:next", None, {}, {"at": "C", "timers_excludes": {"remind"}}),
++      ("btn:x", None, {}, {"at": "D"}),
++      ("timer:remind", 1, {}, {"unchanged": True})],
++     start=False, snapshot={"at": "A", "timers": {"remind": 1}, "seq": 1},
++     spec="HOST §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. "
++          "Leaving A must cancel it (or its fire must be ignored); baseline keeps it forever and the "
++          "section handler fires on D, calling k1")
++case("H2_upgrade_renamed_timer_unreachable_arrow_fires", "findings", D_UP_V2_RENAME,
++     [("btn:next", None, {}, {"at": "C", "timers_excludes": {"remind"}}),
++      ("timer:remind", 1, {}, {"unchanged": True})],
++     start=False, snapshot={"at": "A", "timers": {"remind": 1}, "seq": 1},
++     spec="v2 renamed A's reminder remind->nudge; arrow timer:remind on C (C owns no timer) is "
++          "unreachable by design, yet fires on the stale v1 token")
++case("H3_need_after_unconditional", "findings", D_BUBBLE,
++     [("btn:y", None, None, {"at": "A", "no_need": True})],
++     spec="message has an unconditional variant; the section's guarded variant can never win, yet "
++          "engine asks the host to evaluate c1")
++
++
++def check(exp, before, rep, oracle_res, where):
++    errs = []
++    if "need_superset_of" in exp or "need_excludes" in exp:
++        if "need" not in rep:
++            return [f"{where}: expected need, got {rep}"]
++        ns = set(rep["need"])
++        if not exp.get("need_superset_of", set()) <= ns:
++            errs.append(f"{where}: need {ns} lacks {exp['need_superset_of']}")
++        if ns & exp.get("need_excludes", set()):
++            errs.append(f"{where}: need {ns} contains provided {exp['need_excludes']}")
++        return errs
++    if "error" in exp:
++        if rep.get("error") != exp["error"]:
++            errs.append(f"{where}: expected error {exp['error']}, got {rep}")
++        return errs
++    if "need" in rep:
++        return [f"{where}: unexpected need {rep['need']}"]
++    if "error" in rep:
++        return [f"{where}: unexpected error {rep}"]
++    s = snap_from_json(rep["snapshot"])
++    if exp.get("unchanged"):
++        if s != snap_from_json(before) or rep["actions"] != []:
++            errs.append(f"{where}: expected unchanged, got {rep}")
++    for k in ("at", "seq"):
++        if k in exp and s[k] != exp[k]:
++            errs.append(f"{where}: {k}={s[k]!r}, expected {exp[k]!r}")
++    if "timers" in exp and s["timers"] != exp["timers"]:
++        errs.append(f"{where}: timers={s['timers']}, expected {exp['timers']}")
++    if "timers_excludes" in exp and set(s["timers"]) & exp["timers_excludes"]:
++        errs.append(f"{where}: timers={s['timers']} still contain {exp['timers_excludes']}")
++    if "resume" in exp and s["resume"] != exp["resume"]:
++        errs.append(f"{where}: resume={s['resume']}, expected {exp['resume']}")
++    for k, v in exp.get("resume_has", {}).items():
++        if s["resume"].get(k) != v:
++            errs.append(f"{where}: resume[{k}]={s['resume'].get(k)!r}, expected {v!r}")
++    if "actions" in exp and rep["actions"] != exp["actions"]:
++        errs.append(f"{where}: actions={rep['actions']}, expected {exp['actions']}")
++    if "recovered" in exp and rep.get("recovered", False) != exp["recovered"]:
++        errs.append(f"{where}: recovered={rep.get('recovered')}, expected {exp['recovered']}")
++    return errs
++
++
++class OracleAsEngine:
++    """Answers protocol requests with the oracle (to validate the oracle
++    against the hand-written expectations)."""
++
++    def __init__(self, text, opts):
++        self.bot = Bot(text, opts)
++
++    def req(self, r):
++        from oracle import RequestError
++        try:
++            if r["op"] == "start":
++                s, a = self.bot.start()
++                return {"snapshot": snap_to_json(s), "actions": a}
++            if r["op"] == "restart":
++                s, a = self.bot.restart(snap_from_json(r["snapshot"]))
++                return {"snapshot": snap_to_json(s), "actions": a}
++            res = self.bot.step(snap_from_json(r["snapshot"]), r["event"], r.get("token"), r.get("guards", {}))
++        except RequestError as e:
++            return {"error": str(e)}
++        if res[0] == "need":
++            return {"need": sorted(res[1])}
++        _, s, a, rec = res
++        out = {"snapshot": snap_to_json(s), "actions": a}
++        if rec:
++            out["recovered"] = True
++        return out
++
++    def close(self):
++        pass
++
++
++def run_case(c, mk):
++    text = json.dumps(c["doc"], ensure_ascii=False)
++    e = mk(text)
++    errs = []
++    try:
++        if c["start"]:
++            rep = e.req({"op": "start"})
++            snap = rep["snapshot"]
++            if "start_expect" in c:
++                errs += check(c["start_expect"], None, rep, None, "start")
++        else:
++            snap = c["snapshot"]
++        for i, (ev, tok, guards, exp) in enumerate(c["steps"]):
++            if ev == "@restart":
++                rep = e.req({"op": "restart", "snapshot": snap})
++            else:
++                req = {"op": "step", "snapshot": snap, "event": ev}
++                if tok is not None:
++                    req["token"] = tok
++                if guards is not None:
++                    req["guards"] = guards
++                rep = e.req(req)
++                if exp.get("no_need") and "need" in rep:
++                    errs.append(f"step {i} {ev}: engine asked need {rep['need']} although the "
++                                f"winning variant is unconditional")
++                    req["guards"] = {g: False for g in rep["need"]}
++                    rep = e.req(req)
++            errs += check(exp, snap, rep, None, f"step {i} {ev}")
++            if "snapshot" in rep:
++                snap = rep["snapshot"]
++    finally:
++        e.close()
++    return errs
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine")
++    ap.add_argument("--group", default="conformance")
++    ap.add_argument("--mutate")
++    ap.add_argument("--oracle-only", action="store_true")
++    ap.add_argument("--oracle-opt", action="append", default=[], help="k=v Options for oracle run")
++    ap.add_argument("--expect-red", action="store_true")
++    args = ap.parse_args()
++    opts = Options(**dict(kv.split("=", 1) for kv in args.oracle_opt))
++    cases = [c for c in CASES if args.group == "all" or c["group"] == args.group]
++    targets = []
++    if not args.oracle_only:
++        targets.append(("engine", lambda t: Engine(args.engine, t, mutate=args.mutate)))
++    if not args.mutate:
++        targets.append(("oracle", lambda t: OracleAsEngine(t, opts)))
++    total = fails = steps = 0
++    for name, mk in targets:
++        for c in cases:
++            errs = run_case(c, mk)
++            total += 1
++            steps += len(c["steps"]) + (1 if c["start"] else 0)
++            status = "PASS" if not errs else "FAIL"
++            if errs:
++                fails += 1
++            print(f"{status} [{name}] {c['group']}/{c['name']} -- {c['spec']}")
++            for x in errs:
++                print("    ", x)
++    print(f"cases run: {total} (targets: {[t[0] for t in targets]}), requests: {steps}, failed: {fails}")
++    if args.expect_red:
++        print("EXPECT-RED:", "RED (good)" if fails else "STILL GREEN")
++        sys.exit(0 if fails else 1)
++    sys.exit(1 if fails or total == 0 else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/engine.py b/audit/core-compiler/engine.py
+new file mode 100755
+index 0000000..0e31fe1
+--- /dev/null
++++ b/audit/core-compiler/engine.py
+@@ -0,0 +1,76 @@
++"""Minimal driver for `figram-engine` (FORMAT.md §7): one JSON line per request."""
++
++import json
++import os
++import select
++import subprocess
++import tempfile
++
++
++class EngineLoadError(Exception):
++    pass
++
++
++class Engine:
++    def __init__(self, binary, doc_text, mutate=None, timeout=60.0):
++        self.tmp = tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False)
++        self.tmp.write(doc_text)
++        self.tmp.close()
++        args = [binary]
++        if mutate:
++            args += ["--mutate", mutate]
++        args.append(self.tmp.name)
++        self.timeout = timeout
++        self.p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
++                                  stderr=subprocess.PIPE, text=True, bufsize=1)
++        self.n = 0
++        hello = self.req({"op": "hello"})
++        if hello is None:
++            err = self.p.stderr.read()
++            self.close()
++            raise EngineLoadError(err.strip())
++        self.states = hello.get("states")
++
++    def req(self, obj):
++        self.n += 1
++        obj = dict(obj)
++        obj["id"] = self.n
++        try:
++            self.p.stdin.write(json.dumps(obj, ensure_ascii=False) + "\n")
++            self.p.stdin.flush()
++        except BrokenPipeError:
++            return None
++        r, _, _ = select.select([self.p.stdout], [], [], self.timeout)
++        if not r:
++            raise TimeoutError("engine did not answer")
++        line = self.p.stdout.readline()
++        if not line:
++            return None
++        rep = json.loads(line)
++        if rep.get("id") != self.n:
++            raise AssertionError(f"id mismatch {rep.get('id')} != {self.n}")
++        return rep
++
++    def close(self):
++        try:
++            self.p.stdin.close()
++        except Exception:
++            pass
++        try:
++            self.p.wait(timeout=10)
++        except Exception:
++            self.p.kill()
++        try:
++            os.unlink(self.tmp.name)
++        except OSError:
++            pass
++
++
++def engine_loads(binary, doc_text):
++    """True if the engine accepts the document (load + check + wf)."""
++    try:
++        e = Engine(binary, doc_text)
++    except EngineLoadError:
++        return False
++    e.close()
++    return True
+diff --git a/audit/core-compiler/exhaustive.py b/audit/core-compiler/exhaustive.py
+new file mode 100755
+index 0000000..9e2019a
+--- /dev/null
++++ b/audit/core-compiler/exhaustive.py
+@@ -0,0 +1,94 @@
++"""Branch-exhaustive cases: for EVERY message L, every event that has
++candidates at L (bubbling chain), and every candidate index i, build a
++snapshot at L and guard values that make variant i the winner (plus the
++"all false" case).  Variants that cannot be selected by any guard values
++(after an unconditional variant, or repeating a guard that had to be false)
++are counted as dead."""
++
++import random
++
++from oracle import snap_to_json
++
++
++def select_guards(cands, i):
++    """Guard values making cands[i] the first true variant, or None if dead."""
++    g = {}
++    for v in cands[:i]:
++        if v.cond is None:
++            return None
++        g[v.cond] = False
++    vi = cands[i]
++    if vi.cond is not None:
++        if g.get(vi.cond) is False:
++            return None
++        g[vi.cond] = True
++    return g
++
++
++def all_false(cands):
++    g = {}
++    for v in cands:
++        if v.cond is None:
++            return None
++        g[v.cond] = False
++    return g
++
++
++def snapshot_at(bot, L, rng, seq, memory="random"):
++    resume = {}
++    for s in sorted(bot.history):
++        inside = [m for m in bot.nodes if bot.is_message(m) and s in bot.enclosing(m)]
++        if memory == "absent":
++            continue
++        if memory == "member":
++            other = [m for m in inside if m != bot.landing(s)]
++            resume[s] = rng.choice(other or inside)
++            continue
++        if memory == "distinct":
++            used = set(resume.values())
++            other = [m for m in inside if m not in used and m != bot.landing(s)]
++            resume[s] = rng.choice(other or inside)
++            continue
++        r = rng.random()
++        if r < 0.5:
++            resume[s] = rng.choice(inside)
++        elif r < 0.6:
++            resume[s] = "gone_msg"
++    # as if just entered L: its timers carry the current token
++    timers = {t: seq for t, _ in bot.nodes[L].timers}
++    return {"at": L, "resume": resume, "timers": timers, "seq": seq}
++
++
++def cases(bot, rng):
++    """Yields (snapshot_json, event, token, guards_or_None, tag)."""
++    msgs = [m for m in bot.nodes if bot.is_message(m)]
++    for L in msgs:
++        evs = []
++        for owner in [L] + bot.enclosing(L):
++            for e, _ in bot.nodes[owner].on:
++                if e not in evs:
++                    evs.append(e)
++        for e in evs:
++            cands = bot.candidates(L, e)
++            seq = rng.randint(1, 50)
++            for i, tail, memory in [(i, t, m) for i in range(len(cands) + 1)
++                                    for t, m in ((False, "absent"), (True, "member"), (None, "random"),
++                                                 (False, "distinct"), (True, "absent"))]:
++                g = select_guards(cands, i) if i < len(cands) else all_false(cands)
++                if g is None:
++                    if i < len(cands) and tail is False:
++                        yield None, e, None, None, ("dead", L, e, i)
++                    continue
++                for v in cands[i + 1:]:
++                    if v.cond is not None and v.cond not in g:
++                        g[v.cond] = tail if tail is not None else rng.random() < 0.5
++                s = snapshot_at(bot, L, rng, seq, memory)
++                tok = None
++                tag = "branch" if i < len(cands) else "all-false"
++                if e.startswith("timer:"):
++                    t = e[6:]
++                    if t not in s["timers"]:
++                        s["timers"][t] = seq      # stale/forged entry (not owned by L)
++                        tag += "-unowned-timer"
++                    tok = s["timers"][t]
++                yield snap_to_json(s), e, tok, g, (tag, L, e, i)
+diff --git a/audit/core-compiler/gen.py b/audit/core-compiler/gen.py
+new file mode 100755
+index 0000000..500dbab
+--- /dev/null
++++ b/audit/core-compiler/gen.py
+@@ -0,0 +1,300 @@
++"""Own random generators (independent of Figram/RandomDoc.lean and Trace.lean):
++documents, document upgrades (v1 -> v2), event sequences, stale snapshots."""
++
++import copy
++import json
++import random
++
++from oracle import MAX_INT, Bot, DocError
++
++EVENTS = ["btn:a", "btn:b", "btn:c", "btn:d", "msg:text", "cmd:start"]
++CONDS = ["c1", "c2", "c3", "c4"]
++CALLS = ["k1", "k2", "k3"]
++TIMER_POOL = ["t0", "t1", "t2", "t3", "t4", "t5"]
++
++
++# ---------------------------------------------------------------- model
++# model = {"nodes": {name: {"parent": p, "sec": bool, "initial": str|None,
++#                           "on": {ev: [variant]}, "timers": {t: ms}, "ann": {}}},
++#          "ann": {...}}   root name is ""
++
++def children(model, p):
++    return [n for n, x in model["nodes"].items() if x["parent"] == p and n != ""]
++
++
++def to_json(model, rng=None, shuffle=False):
++    nodes = model["nodes"]
++
++    def node(n):
++        x = nodes[n]
++        o = {}
++        if x["sec"]:
++            o["initial"] = x["initial"]
++        if x["on"]:
++            o["on"] = {ev: [dict(v) for v in vs] for ev, vs in x["on"].items()}
++        if x["sec"]:
++            ks = children(model, n)
++            if shuffle and rng:
++                rng.shuffle(ks)
++            o["children"] = {k: node(k) for k in ks}
++        elif x["timers"]:
++            o["timers"] = dict(x["timers"])
++        for k, v in x.get("ann", {}).items():
++            o[k] = v
++        return o
++
++    doc = {"figram": 1}
++    if model.get("conditions"):
++        doc["conditions"] = dict(model["conditions"])
++    if model.get("calls"):
++        doc["calls"] = dict(model["calls"])
++    doc["bot"] = node("")
++    for k, v in model.get("ann", {}).items():
++        doc[k] = v
++    return doc
++
++
++def dumps(doc):
++    return json.dumps(doc, ensure_ascii=False)
++
++
++def gen_model(rng, n_msgs=8, n_secs=3, max_depth=4, p_hist=0.3, p_timer=0.35,
++              p_ann=0.2, n_events=None, shared_timers=True):
++    nodes = {"": {"parent": None, "sec": True, "initial": None, "on": {}, "timers": {}, "ann": {}}}
++    depth = {"": 0}
++    secs = [""]
++    for i in range(n_secs):
++        cand = [s for s in secs if depth[s] < max_depth]
++        p = rng.choice(cand)
++        name = f"s{i}"
++        nodes[name] = {"parent": p, "sec": True, "initial": None, "on": {}, "timers": {}, "ann": {}}
++        depth[name] = depth[p] + 1
++        secs.append(name)
++    msgs = []
++    for i in range(n_msgs):
++        # first make sure every section gets at least one message (eventually)
++        empty = [s for s in secs if not children({"nodes": nodes}, s)]
++        p = empty[-1] if empty else rng.choice(secs)
++        name = f"m{i}"
++        nodes[name] = {"parent": p, "sec": False, "initial": None, "on": {}, "timers": {}, "ann": {}}
++        msgs.append(name)
++    model = {"nodes": nodes, "conditions": {c: f"cond {c}" for c in CONDS},
++             "calls": {c: f"call {c}" for c in CALLS}, "ann": {}}
++    # sections with no children at all (all messages used) get one now
++    k = n_msgs
++    for s in secs:
++        if not children(model, s):
++            name = f"m{k}"
++            k += 1
++            nodes[name] = {"parent": s, "sec": False, "initial": None, "on": {}, "timers": {}, "ann": {}}
++            msgs.append(name)
++    for s in secs:
++        nodes[s]["initial"] = rng.choice(children(model, s))
++    # timers
++    for m in msgs:
++        if rng.random() < p_timer:
++            pool = TIMER_POOL if shared_timers else [f"t_{m}_{j}" for j in range(2)]
++            for t in rng.sample(pool, rng.choice([1, 1, 2])):
++                nodes[m]["timers"][t] = rng.choice([0, 1, 1000, 60000, 7200000])
++    all_timers = sorted({t for m in msgs for t in nodes[m]["timers"]})
++    hist_secs = [s for s in secs if s != "" and rng.random() < p_hist * 2]
++    allnodes = [n for n in nodes if n != ""]
++    evpool = EVENTS[: n_events] if n_events else EVENTS
++
++    def variants(owner):
++        cnt = rng.choice([1, 1, 2, 2, 3])
++        vs = []
++        for j in range(cnt):
++            v = {}
++            last = j == cnt - 1
++            if not last or rng.random() < 0.4:
++                v["if"] = rng.choice(CONDS)
++            r = rng.random()
++            if hist_secs and r < p_hist:
++                v["to"] = rng.choice(hist_secs)
++                v["resume"] = True
++            elif r < p_hist + 0.15 and not nodes[owner]["sec"]:
++                v["to"] = owner  # self loop
++            else:
++                v["to"] = rng.choice(allnodes)
++            if rng.random() < 0.4:
++                v["do"] = [rng.choice(CALLS) for _ in range(rng.choice([1, 2, 3]))]
++            if rng.random() < p_ann:
++                v["x-ui"] = {"label": f"v{j}"}
++            vs.append(v)
++        return vs
++
++    for n in [""] + allnodes:
++        p_arrow = 0.35 if not nodes[n]["sec"] else 0.25
++        for ev in evpool:
++            if rng.random() < p_arrow:
++                nodes[n]["on"][ev] = variants(n)
++        # timer handlers: on owner, on sections (section-level), on non-owners
++        for t in all_timers:
++            owner = t in nodes[n]["timers"]
++            p = 0.7 if owner else (0.25 if nodes[n]["sec"] else 0.08)
++            if rng.random() < p:
++                nodes[n]["on"]["timer:" + t] = variants(n)
++        if rng.random() < p_ann:
++            nodes[n]["ann"]["x-ui"] = {"x": rng.randint(0, 999), "y": rng.randint(0, 999)}
++    if rng.random() < p_ann:
++        model["ann"]["x-author"] = "audit"
++    return model
++
++
++def model_ok(model):
++    try:
++        Bot(dumps(to_json(model)))
++        return True
++    except DocError:
++        return False
++
++
++# ---------------------------------------------------------------- upgrades
++def upgrade(rng, model, focus=None):
++    """Return (v2 model, description). `focus` = names worth touching
++    (current message, remembered places, ...)."""
++    m = copy.deepcopy(model)
++    nodes = m["nodes"]
++    msgs = [n for n, x in nodes.items() if not x["sec"]]
++    secs = [n for n, x in nodes.items() if x["sec"]]
++    ops = ["delete_msg", "move_msg", "rename_timer", "move_timer", "add_hist", "drop_hist",
++           "msg_to_sec", "drop_timer"]
++    op = rng.choice(ops)
++    pick = lambda pool: rng.choice([x for x in (focus or []) if x in pool] or pool)
++    desc = op
++    if op == "delete_msg":
++        victim = pick(msgs)
++        par = nodes[victim]["parent"]
++        if len(children(m, par)) < 2:
++            return None, None
++        del nodes[victim]
++        for x in nodes.values():
++            if x["sec"] and x["initial"] == victim:
++                x["initial"] = rng.choice(children(m, par))
++            for ev in list(x["on"]):
++                x["on"][ev] = [v for v in x["on"][ev] if v["to"] != victim]
++                if not x["on"][ev]:
++                    del x["on"][ev]
++        desc = f"delete {victim}"
++    elif op == "move_msg":
++        victim = pick(msgs)
++        par = nodes[victim]["parent"]
++        if len(children(m, par)) < 2:
++            return None, None
++        new = rng.choice([s for s in secs if s != par])
++        nodes[victim]["parent"] = new
++        if nodes[par]["initial"] == victim:
++            nodes[par]["initial"] = rng.choice(children(m, par))
++        desc = f"move {victim} {par!r}->{new!r}"
++    elif op in ("rename_timer", "move_timer", "drop_timer"):
++        owners = [n for n in msgs if nodes[n]["timers"]]
++        if not owners:
++            return None, None
++        o = pick(owners)
++        t = rng.choice(list(nodes[o]["timers"]))
++        ms = nodes[o]["timers"].pop(t)
++        if op == "rename_timer":
++            nt = t + "x"
++            nodes[o]["timers"][nt] = ms
++            if "timer:" + t in nodes[o]["on"]:
++                nodes[o]["on"]["timer:" + nt] = nodes[o]["on"].pop("timer:" + t)
++            desc = f"rename timer {t}->{nt} on {o}"
++        elif op == "move_timer":
++            dst = rng.choice([x for x in msgs if x != o])
++            nodes[dst]["timers"][t] = ms
++            desc = f"move timer {t} {o}->{dst}"
++        else:
++            desc = f"drop timer {t} from {o}"
++        # keep V5: drop timer:<t> arrows if no timer t remains
++        left = {tt for x in nodes.values() for tt in x["timers"]}
++        for x in nodes.values():
++            for ev in list(x["on"]):
++                if ev.startswith("timer:") and ev[6:] not in left:
++                    del x["on"][ev]
++    elif op == "add_hist":
++        s = rng.choice([x for x in secs if x != ""] or [None])
++        if s is None:
++            return None, None
++        src = rng.choice([n for n in nodes if n != ""])
++        nodes[src]["on"]["btn:hist"] = [{"to": s, "resume": True}]
++        desc = f"add resume arrow {src}->{s}"
++    elif op == "drop_hist":
++        for x in nodes.values():
++            for ev in list(x["on"]):
++                x["on"][ev] = [v for v in x["on"][ev] if not v.get("resume")]
++                if not x["on"][ev]:
++                    del x["on"][ev]
++        desc = "drop all resume arrows"
++    elif op == "msg_to_sec":
++        victim = pick(msgs)
++        child = victim + "_in"
++        nodes[child] = {"parent": victim, "sec": False, "initial": None, "on": {},
++                        "timers": nodes[victim]["timers"], "ann": {}}
++        nodes[victim]["sec"] = True
++        nodes[victim]["timers"] = {}
++        nodes[victim]["initial"] = child
++        desc = f"message {victim} becomes a section"
++    if not model_ok(m):
++        return None, None
++    return m, desc
++
++
++# ---------------------------------------------------------------- events
++def pick_event(rng, bot, snap, history_tokens):
++    """Returns (event, token|None, kind)."""
++    r = rng.random()
++    timers = snap["timers"]
++    doc_timers = sorted({t for n in bot.nodes.values() for t, _ in n.timers})
++    if r < 0.15 and timers:
++        t = rng.choice(list(timers))
++        return "timer:" + t, timers[t], "timer-valid"
++    if r < 0.20 and timers:
++        t = rng.choice(list(timers))
++        old = [x for x in history_tokens.get(t, []) if x != timers[t]]
++        tok = rng.choice(old) if old else max(0, timers[t] - 1)
++        return "timer:" + t, tok, "timer-stale"
++    if r < 0.23:
++        t = rng.choice(doc_timers + ["nope"]) if doc_timers else "nope"
++        tok = rng.choice([0, 1, snap["seq"], snap["seq"] + 1, MAX_INT, 10 ** 18, rng.randint(0, 50)])
++        return "timer:" + t, tok, "timer-forged"
++    if r < 0.26:
++        return rng.choice(["unknown:event", "btn:zzz"]), None, "unknown"
++    at = snap["at"]
++    if bot.is_message(at):
++        evs = sorted({e for n in [at] + bot.enclosing(at) for e, _ in bot.nodes[n].on
++                      if not e.startswith("timer:")})
++        if evs:
++            return rng.choice(evs), None, "live"
++    return rng.choice(EVENTS), None, "named"
++
++
++def guard_plan(rng, need):
++    return {g: rng.random() < 0.5 for g in sorted(need)}
++
++
++def perturb_snapshot(rng, bot, snap, older, doc_names):
++    """Stale / forged snapshots the host might hand us."""
++    s = {"at": snap["at"], "resume": dict(snap["resume"]), "timers": dict(snap["timers"]),
++         "seq": snap["seq"]}
++    secs = [n for n, x in bot.nodes.items() if x.is_section and n != ""]
++    msgs = [n for n, x in bot.nodes.items() if not x.is_section]
++    k = rng.choice(["older", "deleted_at", "section_at", "bad_resume", "foreign_resume",
++                    "extra_timer", "seq_edge"])
++    if k == "older" and older:
++        o = rng.choice(older)
++        s = {"at": o["at"], "resume": dict(o["resume"]), "timers": dict(o["timers"]), "seq": o["seq"]}
++    elif k == "deleted_at":
++        s["at"] = "gone_" + str(rng.randint(0, 9))
++    elif k == "section_at" and secs:
++        s["at"] = rng.choice(secs)
++    elif k == "bad_resume" and secs:
++        s["resume"][rng.choice(secs)] = rng.choice(["gone_msg"] + secs + msgs)
++    elif k == "foreign_resume":
++        s["resume"]["no_such_section"] = rng.choice(msgs)
++    elif k == "extra_timer":
++        t = rng.choice(TIMER_POOL + ["zz"])
++        s["timers"][t] = rng.randint(0, s["seq"] + 2)
++    elif k == "seq_edge":
++        s["seq"] = MAX_INT - rng.choice([0, 1, 2])
++    return s, k
+diff --git a/audit/core-compiler/lint_gaps.py b/audit/core-compiler/lint_gaps.py
+new file mode 100755
+index 0000000..cba2469
+--- /dev/null
++++ b/audit/core-compiler/lint_gaps.py
+@@ -0,0 +1,132 @@
++#!/usr/bin/env python3
++"""Hypothesis 3: documents with designer mistakes that `figram check` accepts
++silently.  For every case the script (1) runs `figram check`, (2) proves the
++defect is real with the engine (the arrow/variant is unreachable, or a guard
++is requested although it cannot matter).
++
++  python3 lint_gaps.py --figram BIN --engine BIN
++
++Prints one line per case: check verdict + engine evidence.  Exit 0 when every
++case behaves as documented in REPORT.md (accepted by check, defect observable)."""
++
++import argparse
++import json
++import subprocess
++import tempfile
++
++from engine import Engine
++
++C = {"conditions": {"c1": "c1", "c2": "c2"}}
++
++
++def d(bot):
++    x = {"figram": 1}
++    x.update(C)
++    x["bot"] = bot
++    return x
++
++
++CASES = {
++    # timer:X arrow on a message that does not own X (X exists on another message)
++    "timer_arrow_on_non_owner": d({"initial": "a", "children": {
++        "a": {"on": {"btn:b": [{"to": "b"}], "timer:t": [{"to": "z"}]}},
++        "b": {"timers": {"t": 1000}}, "z": {}}}),
++    # the same timer id on two messages (allowed; behaviour verified in directed.py)
++    "same_timer_two_messages": d({"initial": "a", "children": {
++        "a": {"timers": {"t": 1}, "on": {"btn:b": [{"to": "b"}]}},
++        "b": {"timers": {"t": 2}, "on": {"timer:t": [{"to": "a"}]}}}}),
++    # resume arrow into the section it is drawn on / from inside: always "stay here"
++    "resume_only_from_inside": d({"initial": "S", "children": {
++        "S": {"initial": "x", "on": {"btn:back": [{"to": "S", "resume": True}]},
++              "children": {"x": {"on": {"btn:y": [{"to": "y"}]}}, "y": {}}}}}),
++    # variant after an unconditional variant in the same arrow (dead)
++    "variant_after_unconditional": d({"initial": "a", "children": {
++        "a": {"on": {"btn:x": [{"to": "b"}, {"if": "c1", "to": "c"}]}}, "b": {}, "c": {}}}),
++    # the same condition twice in one arrow: the second can never win
++    "duplicate_guard_in_arrow": d({"initial": "a", "children": {
++        "a": {"on": {"btn:x": [{"if": "c1", "to": "b"}, {"if": "c1", "to": "c"}]}}, "b": {}, "c": {}}}),
++    # guarded section variant shadowed by an unconditional message variant: engine still needs c2
++    "need_for_shadowed_section_guard": d({"initial": "S", "children": {
++        "S": {"initial": "a", "on": {"btn:x": [{"if": "c2", "to": "c"}]},
++              "children": {"a": {"on": {"btn:x": [{"to": "b"}]}}, "b": {}, "c": {}}}}}),
++    # message nobody can reach (not initial, no arrow into it)
++    "unreachable_message": d({"initial": "a", "children": {"a": {}, "lost": {"on": {"btn:x": [{"to": "a"}]}}}}),
++}
++
++
++def check(figram, doc):
++    with tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False) as f:
++        json.dump(doc, f)
++    p = subprocess.run([figram, "check", f.name], capture_output=True, text=True, timeout=60)
++    return p.returncode, p.stdout.strip()
++
++
++def evidence(engine, name, doc):
++    e = Engine(engine, json.dumps(doc))
++    try:
++        if name == "timer_arrow_on_non_owner":
++            # the only way timer:t is accepted on a is a snapshot entry a never creates
++            s = e.req({"op": "start"})["snapshot"]
++            r = e.req({"op": "step", "snapshot": s, "event": "timer:t", "token": s.get("seq", 0)})
++            forged = dict(s, timers={"t": 5})
++            r2 = e.req({"op": "step", "snapshot": forged, "event": "timer:t", "token": 5})
++            return {"start_timers": s.get("timers", {}), "fire_on_a": r["actions"],
++                    "fire_with_foreign_entry": r2["snapshot"]["at"]}
++        if name == "same_timer_two_messages":
++            s = e.req({"op": "start"})["snapshot"]
++            r = e.req({"op": "step", "snapshot": s, "event": "btn:b"})
++            old = e.req({"op": "step", "snapshot": r["snapshot"], "event": "timer:t", "token": 1})
++            new = e.req({"op": "step", "snapshot": r["snapshot"], "event": "timer:t", "token": 2})
++            return {"a->b": r["actions"], "old_token": old["actions"], "new_token_at": new["snapshot"]["at"]}
++        if name == "resume_only_from_inside":
++            s = e.req({"op": "start"})["snapshot"]
++            r = e.req({"op": "step", "snapshot": s, "event": "btn:y"})
++            b = e.req({"op": "step", "snapshot": r["snapshot"], "event": "btn:back"})
++            return {"at_before": r["snapshot"]["at"], "back_goes_to": b["snapshot"]["at"], "actions": b["actions"]}
++        if name in ("variant_after_unconditional", "duplicate_guard_in_arrow"):
++            s = e.req({"op": "start"})["snapshot"]
++            outs = set()
++            for v in (True, False):
++                r = e.req({"op": "step", "snapshot": s, "event": "btn:x", "guards": {"c1": v}})
++                outs.add(r["snapshot"]["at"])
++            return {"targets_reached_for_all_c1": sorted(outs)}
++        if name == "need_for_shadowed_section_guard":
++            s = e.req({"op": "start"})["snapshot"]
++            r = e.req({"op": "step", "snapshot": s, "event": "btn:x"})
++            return {"engine_reply": r}
++        if name == "unreachable_message":
++            return {"states": e.states}
++    finally:
++        e.close()
++
++
++EXPECT = {
++    "timer_arrow_on_non_owner": lambda ev: ev["fire_on_a"] == [] and ev["fire_with_foreign_entry"] == "z",
++    "same_timer_two_messages": lambda ev: ev["old_token"] == [] and ev["new_token_at"] == "a",
++    "resume_only_from_inside": lambda ev: ev["back_goes_to"] == ev["at_before"],
++    "variant_after_unconditional": lambda ev: ev["targets_reached_for_all_c1"] == ["b"],
++    "duplicate_guard_in_arrow": lambda ev: "c" not in ev["targets_reached_for_all_c1"],
++    "need_for_shadowed_section_guard": lambda ev: ev["engine_reply"].get("need") == ["c2"],
++    "unreachable_message": lambda ev: ev["states"] == 2,
++}
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--figram", required=True)
++    ap.add_argument("--engine", required=True)
++    args = ap.parse_args()
++    ok_all = True
++    for name, doc in CASES.items():
++        rc, out = check(args.figram, doc)
++        ev = evidence(args.engine, name, doc)
++        good = rc == 0 and out == "ok" and EXPECT[name](ev)
++        ok_all &= good
++        print(json.dumps({"case": name, "figram_check": [rc, out], "engine_evidence": ev,
++                          "as_documented": good}, ensure_ascii=False))
++    print("cases:", len(CASES), "as documented:", ok_all)
++    raise SystemExit(0 if ok_all else 1)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/metamorphic.py b/audit/core-compiler/metamorphic.py
+new file mode 100755
+index 0000000..3bc95ed
+--- /dev/null
++++ b/audit/core-compiler/metamorphic.py
+@@ -0,0 +1,312 @@
++#!/usr/bin/env python3
++"""Metamorphic checks on the real engine: transformations of a document that
++must not change behaviour (modulo the obvious renaming of outputs).
++
++  python3 metamorphic.py --engine BIN [--docs N] [--steps N] [--seed S]
++                         [--only T] [--expect-red]
++
++Transformations (each applied to every random document):
++  rename_nodes   bijective renaming of every node id (incl. unicode)  -> outputs renamed
++  rename_names   events / conditions / calls / timer ids renamed       -> outputs renamed
++  shuffle_children  order of `children` of every section               -> identical
++  shuffle_on     order of `on`, `conditions`, `calls` dictionaries      -> identical
++  annotations    x-… and unknown keys on doc/section/message/variant   -> identical
++  unreachable    extra unreachable message+section with plain arrows   -> identical (hello.states +2)
++  unreachable_resume  extra unreachable message with a resume arrow into an existing section
++                 -> identical ACTIONS (snapshot `resume` may differ: decision 4 remembers more)
++  numbers        delays written as 6e4 / 60000.0                        -> identical
++  shuffle_timers order of a message's `timers` dictionary              -> FORMAT K3в claims identical
++                 behaviour; actions are compared exactly (expected to differ in order only)
++Exit 1 on any violation of an invariant marked must-hold.
++"""
++
++import argparse
++import json
++import random
++import sys
++
++from engine import Engine
++from gen import CALLS, CONDS, dumps, gen_model, to_json
++from oracle import Bot, snap_from_json
++
++MUST = ["rename_nodes", "rename_names", "shuffle_children", "shuffle_on", "annotations",
++        "unreachable", "unreachable_resume", "numbers"]
++CLAIMED = ["shuffle_timers"]
++
++
++def walk_nodes(doc_bot, fn, name=""):
++    fn(name, doc_bot)
++    for k, v in doc_bot.get("children", {}).items():
++        walk_nodes(v, fn, k)
++
++
++def rename_nodes(doc, f):
++    def rn(o):
++        out = {}
++        for k, v in o.items():
++            if k == "initial":
++                out[k] = f[v]
++            elif k == "children":
++                out[k] = {f[c]: rn(x) for c, x in v.items()}
++            elif k == "on":
++                out[k] = {e: [dict(vv, to=f[vv["to"]]) for vv in vs] for e, vs in v.items()}
++            else:
++                out[k] = v
++        return out
++    d = dict(doc)
++    d["bot"] = rn(doc["bot"])
++    return d
++
++
++def rename_names(doc, fe, fc, fk, ft):
++    def ev(e):
++        return "timer:" + ft[e[6:]] if e.startswith("timer:") else fe.get(e, e)
++
++    def var(v):
++        v = dict(v)
++        if "if" in v:
++            v["if"] = fc[v["if"]]
++        if "do" in v:
++            v["do"] = [fk[x] for x in v["do"]]
++        return v
++
++    def rn(o):
++        out = {}
++        for k, v in o.items():
++            if k == "children":
++                out[k] = {c: rn(x) for c, x in v.items()}
++            elif k == "on":
++                out[k] = {ev(e): [var(x) for x in vs] for e, vs in v.items()}
++            elif k == "timers":
++                out[k] = {ft[t]: ms for t, ms in v.items()}
++            else:
++                out[k] = v
++        return out
++    d = dict(doc)
++    d["conditions"] = {fc[k]: v for k, v in doc["conditions"].items()}
++    d["calls"] = {fk[k]: v for k, v in doc["calls"].items()}
++    d["bot"] = rn(doc["bot"])
++    return d
++
++
++def shuffled(rng, dct):
++    items = list(dct.items())
++    rng.shuffle(items)
++    return dict(items)
++
++
++def transform(rng, name, doc):
++    """Returns (doc', out_map) where out_map maps base outputs to expected ones."""
++    ident = {"node": {}, "event": {}, "cond": {}, "call": {}, "timer": {}}
++    if name == "rename_nodes":
++        names = []
++        walk_nodes(doc["bot"], lambda n, o: names.append(n) if n else None)
++        f = {n: f"узел-{i}·{n}" if i % 2 else f"N{i}" for i, n in enumerate(names)}
++        m = dict(ident)
++        m["node"] = f
++        return rename_nodes(doc, f), m
++    if name == "rename_names":
++        timers = set()
++        events = set()
++        walk_nodes(doc["bot"], lambda n, o: (timers.update(o.get("timers", {})),
++                                            events.update(o.get("on", {}))))
++        fe = {e: "ev:" + e.upper() for e in events if not e.startswith("timer:")}
++        fc = {c: "cond_" + c[::-1] for c in doc["conditions"]}
++        fk = {c: "act." + c for c in doc["calls"]}
++        ft = {t: "T" + t for t in timers}
++        return rename_names(doc, fe, fc, fk, ft), {"node": {}, "event": fe, "cond": fc, "call": fk, "timer": ft}
++    d = json.loads(json.dumps(doc))
++    if name == "shuffle_children":
++        def sh(o):
++            if "children" in o:
++                o["children"] = shuffled(rng, o["children"])
++                for v in o["children"].values():
++                    sh(v)
++        sh(d["bot"])
++    elif name == "shuffle_on":
++        d["conditions"] = shuffled(rng, d["conditions"])
++        d["calls"] = shuffled(rng, d["calls"])
++        walk_nodes(d["bot"], lambda n, o: o.__setitem__("on", shuffled(rng, o["on"])) if "on" in o else None)
++    elif name == "shuffle_timers":
++        walk_nodes(d["bot"], lambda n, o: o.__setitem__("timers", dict(reversed(list(o["timers"].items()))))
++                   if "timers" in o else None)
++    elif name == "annotations":
++        d["x-editor"] = {"v": 3, "nested": [1, {"a": None}]}
++        d["unknown_top"] = True
++
++        def ann(n, o):
++            o["x-ui"] = {"x": 1.5, "y": -2e3}
++            o["x-note"] = "заметка"
++            for vs in o.get("on", {}).values():
++                for v in vs:
++                    v["x-label"] = "кнопка"
++        walk_nodes(d["bot"], ann)
++    elif name == "unreachable":
++        tgt = d["bot"]["initial"]
++        d["bot"]["children"]["zz_orphan"] = {"on": {"btn:a": [{"to": tgt}], "btn:zz": [{"to": "zz_sec"}]}}
++        d["bot"]["children"]["zz_sec"] = {"initial": "zz_in", "children": {"zz_in": {}}}
++    elif name == "unreachable_resume":
++        secs = []
++        walk_nodes(d["bot"], lambda n, o: secs.append(n) if n and "children" in o else None)
++        if not secs:
++            return None, None
++        d["bot"]["children"]["zz_orphan"] = {"on": {"btn:zz": [{"to": rng.choice(secs), "resume": True}]}}
++    elif name == "numbers":
++        def num(n, o):
++            if "timers" in o:
++                o["timers"] = {t: (float(ms) if i % 2 else ms) for i, (t, ms) in enumerate(o["timers"].items())}
++        walk_nodes(d["bot"], num)
++    return d, ident
++
++
++def map_out(rep, m):
++    """Rename names in a base engine reply according to map m."""
++    fn = lambda n: m["node"].get(n, n)
++    ft = lambda t: m["timer"].get(t, t)
++    out = {}
++    if "snapshot" in rep:
++        s = rep["snapshot"]
++        s2 = {"at": fn(s["at"])}
++        if "resume" in s:
++            s2["resume"] = {fn(k): fn(v) for k, v in s["resume"].items()}
++        if "timers" in s:
++            s2["timers"] = {ft(k): v for k, v in s["timers"].items()}
++        if "seq" in s:
++            s2["seq"] = s["seq"]
++        out["snapshot"] = s2
++        acts = []
++        for a in rep["actions"]:
++            if "send" in a:
++                acts.append({"send": fn(a["send"])})
++            elif "call" in a:
++                acts.append({"call": m["call"].get(a["call"], a["call"])})
++            elif "start_timer" in a:
++                acts.append(dict(a, start_timer=ft(a["start_timer"])))
++            else:
++                acts.append({"cancel_timer": ft(a["cancel_timer"])})
++        out["actions"] = acts
++    for k in ("recovered", "need", "error"):
++        if k in rep:
++            out[k] = rep[k] if k != "need" else sorted(m["cond"].get(x, x) for x in rep[k])
++    return out
++
++
++def trace_inputs(rng, bot, steps):
++    """Event sequence decided up front from the oracle's view of the document."""
++    s, _ = bot.start()
++    ins = []
++    for _ in range(steps):
++        at = s["at"]
++        evs = sorted({e for n in [at] + bot.enclosing(at) for e, _ in bot.nodes[n].on})
++        r = rng.random()
++        if r < 0.1:
++            ins.append(("btn:unknown", None))
++        elif evs:
++            e = rng.choice(evs)
++            tok = None
++            if e.startswith("timer:"):
++                tok = s["timers"].get(e[6:], rng.randint(0, 5))
++            ins.append((e, tok))
++        else:
++            ins.append(("btn:unknown", None))
++        g = {c: rng.random() < 0.5 for c in CONDS}
++        ins[-1] = ins[-1] + (g,)
++        res = bot.step(s, ins[-1][0], ins[-1][1], g, check_need=False)
++        s = res[1]
++    return ins
++
++
++def run(engine_bin, text, ins, m):
++    e = Engine(engine_bin, text)
++    outs = [{"hello_states": e.states}]
++    rep = e.req({"op": "start"})
++    outs.append(rep)
++    snap = rep["snapshot"]
++    for ev, tok, g in ins:
++        if ev.startswith("timer:"):
++            ev2 = "timer:" + m["timer"].get(ev[6:], ev[6:])
++        else:
++            ev2 = m["event"].get(ev, ev)
++        req = {"op": "step", "snapshot": snap, "event": ev2,
++               "guards": {m["cond"].get(k, k): v for k, v in g.items()}}
++        if tok is not None:
++            req["token"] = tok
++        rep = e.req(req)
++        rep.pop("id", None)
++        outs.append(rep)
++        if "snapshot" in rep:
++            snap = rep["snapshot"]
++    e.close()
++    for o in outs:
++        o.pop("id", None)
++    return outs
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--docs", type=int, default=40)
++    ap.add_argument("--steps", type=int, default=60)
++    ap.add_argument("--seed", type=int, default=11)
++    ap.add_argument("--only")
++    ap.add_argument("--break-transform", help="deliberately break a transform's output mapping (red-proof)")
++    ap.add_argument("--expect-red", action="store_true")
++    args = ap.parse_args()
++    names = [args.only] if args.only else MUST + CLAIMED
++    res = {n: {"docs": 0, "steps": 0, "violations": 0, "example": None} for n in names}
++    for k in range(args.docs):
++        rng = random.Random(args.seed * 1000 + k)
++        model = gen_model(rng, n_msgs=rng.choice([5, 9, 14]), n_secs=rng.choice([1, 3, 5]),
++                          max_depth=rng.choice([2, 4]), p_hist=0.3, p_timer=0.5, p_ann=0.0)
++        base = to_json(model)
++        btext = dumps(base)
++        bot = Bot(btext)
++        ins = trace_inputs(rng, bot, args.steps)
++        ident = {"node": {}, "event": {}, "cond": {}, "call": {}, "timer": {}}
++        bout = run(args.engine, btext, ins, ident)
++        for n in names:
++            d2, m = transform(rng, n, base)
++            if d2 is None:
++                continue
++            if args.break_transform == n:
++                m = {"node": {}, "event": m["event"], "cond": m["cond"], "call": m["call"], "timer": m["timer"]} \
++                    if m["node"] else dict(m, node={"__never__": "x"})
++            t2 = dumps(d2)
++            out2 = run(args.engine, t2, [(ev, tok, g) for ev, tok, g in ins], m)
++            res[n]["docs"] += 1
++            for i, (a, b) in enumerate(zip(bout, out2)):
++                if i == 0:
++                    exp = a["hello_states"] + (2 if n == "unreachable" else 1 if n == "unreachable_resume" else 0)
++                    if b["hello_states"] != exp:
++                        res[n]["violations"] += 1
++                    continue
++                res[n]["steps"] += 1
++                ea = map_out(a, m)
++                if n == "unreachable_resume":
++                    ea.get("snapshot", {}).pop("resume", None)
++                    b = json.loads(json.dumps(b))
++                    b.get("snapshot", {}).pop("resume", None)
++                if args.break_transform == n and i == 3 and "actions" in ea:
++                    ea["actions"] = ea["actions"] + [{"send": "__broken__"}]
++                if ea != b:
++                    res[n]["violations"] += 1
++                    if res[n]["example"] is None:
++                        res[n]["example"] = {"doc_seed": k, "step": i, "expected": ea, "actual": b}
++            # a diverged step makes later snapshots incomparable -> fine, counted per step
++    bad = False
++    for n in names:
++        r = res[n]
++        tag = "MUST" if n in MUST else "CLAIMED(FORMAT K3в)"
++        print(f"{n:20s} {tag:20s} docs={r['docs']} steps={r['steps']} violations={r['violations']}")
++        if r["example"]:
++            print("   example:", json.dumps(r["example"], ensure_ascii=False)[:600])
++        if n in MUST and (r["violations"] or r["steps"] == 0):
++            bad = True
++    if args.expect_red:
++        print("EXPECT-RED:", "RED (good)" if bad else "STILL GREEN")
++        sys.exit(0 if bad else 1)
++    sys.exit(1 if bad else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/mutants_red.py b/audit/core-compiler/mutants_red.py
+new file mode 100755
+index 0000000..c6e59d2
+--- /dev/null
++++ b/audit/core-compiler/mutants_red.py
+@@ -0,0 +1,159 @@
++#!/usr/bin/env python3
++"""Red-proof of the differential driver: every engine mutant that
++`figram-engine --mutants` offers for a random document must be detected by
++the same random trace the real engine passes.
++
++  python3 mutants_red.py --engine BIN [--docs N] [--steps N] [--seed S]
++
++Prints kill statistics; exit 0 iff the real engine is green on every doc
++used AND every surviving mutant is classified as equivalent (a dead variant
++that no guard values can select, or a reversed row that behaves identically
++for all guard values)."""
++
++import argparse
++import json
++import subprocess
++import sys
++import tempfile
++
++import diff_random
++from gen import dumps, to_json
++
++
++def preorder(bot):
++    """Node names in document pre-order (section, then its children)."""
++    kids = {}
++    for n, x in bot.nodes.items():
++        if x.parent is not None:
++            kids.setdefault(x.parent, []).append(n)
++    out = []
++
++    def walk(n):
++        out.append(n)
++        for k in kids.get(n, []):
++            walk(k)
++    walk(bot.ROOT)
++    return out
++
++
++def compiled_rows(bot):
++    """Row order of the compiled automaton (for classifying survivors only):
++    messages in pre-order x events ordered by LAST occurrence, non-empty rows."""
++    order = preorder(bot)
++    evs = [e for n in order for e, _ in bot.nodes[n].on]
++    last = []
++    for i, e in enumerate(evs):
++        if e not in evs[i + 1:]:
++            last.append(e)
++    rows = []
++    for L in order:
++        if not bot.is_message(L):
++            continue
++        for e in last:
++            c = bot.candidates(L, e)
++            if c:
++                rows.append((L, e, c))
++    return rows
++
++
++BOT = None
++
++
++def outcome(cands, g):
++    """Observable result of the first true variant: landed target (an arrow
++    into a section lands on its initial message), resume flag, calls."""
++    for v in cands:
++        if v.cond is None or g.get(v.cond):
++            to = v.to if (v.resume or BOT is None) else BOT.landing(v.to)
++            return (to, v.resume, tuple(v.calls))
++    return None
++
++
++def classify(bot, mutant):
++    global BOT
++    BOT = bot
++    from exhaustive import select_guards
++    import itertools
++    rows = compiled_rows(bot)
++    flat = [(r, i) for r in rows for i in range(len(r[2]))]
++    kind, _, k = mutant.partition(":")
++    if kind in ("redirect", "drop-guard", "reverse-actions"):
++        (L, e, c), i = flat[int(k)]
++        if select_guards(c, i) is None:
++            return "equivalent: dead variant %d of %s/%s" % (i, L, e)
++        if kind == "drop-guard":
++            from oracle import Variant
++            mc = list(c)
++            mc[i] = Variant(None, c[i].to, c[i].resume, c[i].calls)
++            names = sorted({v.cond for v in c if v.cond})
++            for bits in itertools.product([False, True], repeat=len(names)):
++                g = dict(zip(names, bits))
++                if outcome(c, g) != outcome(mc, g):
++                    return "LIVE variant %d of %s/%s" % (i, L, e)
++            return "equivalent: dropping the guard selects an identical later variant"
++        return "LIVE variant %d of %s/%s" % (i, L, e)
++    if kind == "swap-branches":
++        L, e, c = rows[int(k)]
++        names = sorted({v.cond for v in c if v.cond})
++        rc = list(reversed(c))
++        for bits in itertools.product([False, True], repeat=len(names)):
++            g = dict(zip(names, bits))
++            if outcome(c, g) != outcome(rc, g):
++                return "LIVE row %s/%s" % (L, e)
++        return "equivalent: reversed row behaves identically for all guard values"
++    return "unclassified"
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--docs", type=int, default=10)
++    ap.add_argument("--steps", type=int, default=150)
++    ap.add_argument("--seed", type=int, default=7)
++    ap.add_argument("--max-mutants", type=int, default=100000)
++    ap.add_argument("--out")
++    args = ap.parse_args()
++    killed = total = 0
++    survivors = []
++    for k in range(args.docs):
++        seed = args.seed * 100003 + k
++        _, model = diff_random.make_model(seed)
++        text = dumps(to_json(model))
++        with tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False) as f:
++            f.write(text)
++        muts = subprocess.run([args.engine, "--mutants", f.name], capture_output=True, text=True,
++                              check=True, timeout=60).stdout.split()
++        base = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=None,
++                                  oracle_bug=None, no_upgrade=True)
++        st, divs = {}, []
++        diff_random.one_doc(base, seed, st, set(), divs)
++        if divs:
++            print("REAL ENGINE DIVERGES on seed", seed, divs[0]["what"])
++            sys.exit(1)
++        for m in muts[: args.max_mutants]:
++            a = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=m,
++                                   oracle_bug=None, no_upgrade=True)
++            st2, d2 = {}, []
++            diff_random.one_doc(a, seed, st2, set(), d2)
++            total += 1
++            if d2:
++                killed += 1
++            else:
++                from oracle import Bot
++                why = classify(Bot(text), m)
++                survivors.append({"seed": seed, "mutant": m, "why": why, "doc": text})
++    equiv = [s for s in survivors if s["why"].startswith("equivalent")]
++    live = [s for s in survivors if not s["why"].startswith("equivalent")]
++    print(json.dumps({"mutants": total, "killed": killed, "survivors": len(survivors),
++                      "equivalent_survivors": len(equiv), "non_equivalent_survivors": len(live),
++                      "kill_rate_non_equivalent": round(killed / max(1, total - len(equiv)), 4)}))
++    for s in live:
++        print("SURVIVOR", s["seed"], s["mutant"], s["why"])
++    if args.out:
++        with open(args.out, "w") as f:
++            json.dump(survivors, f, ensure_ascii=False, indent=1)
++    sys.exit(0 if total and not live else 1)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/oracle.py b/audit/core-compiler/oracle.py
+new file mode 100755
+index 0000000..3582cf7
+--- /dev/null
++++ b/audit/core-compiler/oracle.py
+@@ -0,0 +1,499 @@
++"""Independent reference interpreter of Figram designer semantics.
++
++Written from the PROSE of README.md ("Решения спецификации" 1-8), FORMAT.md
++(sections 3-4, 7) and HOST.md -- NOT from Figram/Chart.lean.  Wherever the
++prose is ambiguous the interpreter has an explicit switch (see `Options`);
++the defaults are the readings that the Lean implementation turned out to
++use, the alternatives are what a literal reading of the prose (or the
++designer-level model "a reminder lives on its message") would give.  The
++differential driver counts how often each ambiguity is *hit* (the two
++readings would give different observable results).
++
++Document model (FORMAT.md §4):
++  section  <=> object has "children"; "initial" is a direct child (V2)
++  message  has optional "timers": {name: ms}
++  "on": {event: [variant]}, variant = {"if"?, "to", "resume"?, "do"?}
++Semantics (README):
++  * entering a section = entering its initial node, recursively, until a
++    message is reached ("стрелка в раздел ведёт на его начальное сообщение");
++  * candidates for event e at message M: M's own variants, then those of the
++    section above, ... up to the bot root (decision 1); the first variant
++    whose condition holds wins;
++  * transition = exit(M) [cancel M's timers] -> arrow "do" calls ->
++    entry(T) [remember T in every enclosing section that is the target of
++    some resume arrow (decision 4); start T's timers; send T] (decision 2);
++  * self arrow re-sends and restarts timers (decision 3);
++  * resume arrow into S goes to the message remembered for S; if that
++    message is gone -> S's initial message (decision 5);
++  * no matching variant -> ignore (decision 6);
++  * timer event accepted only with the token of its current launch (7);
++  * snapshot pointing at a non-existent message -> start over: cancel all
++    snapshot timers, keep remembered places, "recovered": true (8, FORMAT §7.1).
++"""
++
++import json
++
++MAX_INT = 2 ** 53 - 1
++FORMAT_DOC_KEYS = ["figram", "requires", "conditions", "calls", "variables", "bot"]
++FORMAT_NODE_KEYS = ["initial", "children", "on", "timers"]
++FORMAT_VARIANT_KEYS = ["if", "to", "resume", "do"]
++KNOWN_FEATURES = []
++
++
++class DocError(Exception):
++    def __init__(self, errors):
++        super().__init__("; ".join(errors))
++        self.errors = errors
++
++
++class RequestError(Exception):
++    pass
++
++
++class Options:
++    """Ambiguity switches. Defaults = how Lean resolved them (verified by the
++    directed tests in directed.py)."""
++
++    def __init__(self, **kw):
++        # A1: remembered message still exists but is no longer inside the
++        #     section.  'initial' (Lean) | 'follow' (literal decision 5: only
++        #     "no longer in the document" falls back)
++        self.moved_memory = kw.pop("moved_memory", "initial")
++        # A3: which guards a step "needs": checked by bounds in the driver,
++        #     this flag only selects what `need()` returns as the oracle's own
++        #     answer: 'all' (every guard on the bubbling chain) | 'min'.
++        self.need = kw.pop("need", "all")
++        # A7: timer event acceptance. 'token' (Lean: snapshot token matches) |
++        #     'owned' (designer model: the CURRENT message must own the timer)
++        self.timer_accept = kw.pop("timer_accept", "token")
++        # A7b: what exit cancels. 'doc' (timers the current message owns in
++        #     the current document) | 'snapshot' (every timer active in the
++        #     snapshot, i.e. "the timers of the place being left")
++        self.exit_cancels = kw.pop("exit_cancels", "doc")
++        # Deliberate bugs for red-proofing the differential driver.
++        self.bug = kw.pop("bug", None)
++        if kw:
++            raise TypeError(f"unknown options {kw}")
++
++
++def _pairs(pairs):
++    keys = [k for k, _ in pairs]
++    if len(set(keys)) != len(keys):
++        raise DocError(["duplicate key in object"])
++    return pairs  # keep ordered list of pairs
++
++
++def parse_json(text):
++    return json.loads(text, object_pairs_hook=_pairs)
++
++
++def get(pairs, k, default=None):
++    for kk, v in pairs:
++        if kk == k:
++            return v
++    return default
++
++
++def has(pairs, k):
++    return any(kk == k for kk, _ in pairs)
++
++
++def is_obj(x):
++    return isinstance(x, list) and all(isinstance(p, tuple) and len(p) == 2 for p in x)
++
++
++def as_int(x):
++    """Format integer field: value-based (7200000, 7.2e6, 7200000.0 equal)."""
++    if isinstance(x, bool):
++        return None
++    if isinstance(x, int):
++        return x if 0 <= x <= MAX_INT else None
++    if isinstance(x, float):
++        if x.is_integer() and 0 <= x <= MAX_INT:
++            return int(x)
++    return None
++
++
++class Node:
++    __slots__ = ("name", "parent", "is_section", "initial", "on", "timers")
++
++    def __init__(self, name, parent, is_section, initial, on, timers):
++        self.name, self.parent, self.is_section = name, parent, is_section
++        self.initial, self.on, self.timers = initial, on, timers
++
++
++class Variant:
++    __slots__ = ("cond", "to", "resume", "calls")
++
++    def __init__(self, cond, to, resume, calls):
++        self.cond, self.to, self.resume, self.calls = cond, to, resume, calls
++
++
++class Bot:
++    """A checked document plus the step semantics."""
++
++    ROOT = ""  # the bot root section has no name of its own
++
++    def __init__(self, doc, opts=None):
++        self.opts = opts or Options()
++        if isinstance(doc, (str, bytes)):
++            doc = parse_json(doc)
++        self.nodes = {}
++        self.conditions, self.calls = [], []
++        errs = []
++        self._load(doc, errs)
++        if errs:
++            raise DocError(errs)
++        self.history = {v.to for n in self.nodes.values() for _, vs in n.on for v in vs if v.resume}
++
++    # ------------------------------------------------------------ checking
++    def _strmap(self, doc, key, errs):
++        m = get(doc, key, [])
++        if not is_obj(m):
++            errs.append(f"{key}: not an object")
++            return []
++        out = []
++        for k, v in m:
++            if not isinstance(v, str):
++                errs.append(f"{key}.{k}: not a string")
++            if k == "":
++                errs.append(f"{key}: empty name")
++            out.append(k)
++        return out
++
++    def _load(self, doc, errs):
++        if not is_obj(doc):
++            raise DocError(["document must be an object"])
++        fig = get(doc, "figram")
++        if as_int(fig) != 1:
++            raise DocError(["figram must be 1"])
++        req = get(doc, "requires", [])
++        if not isinstance(req, list) or not all(isinstance(r, str) for r in req):
++            raise DocError(["requires must be a list of strings"])
++        if any(r not in KNOWN_FEATURES for r in req):
++            raise DocError(["unknown required feature"])
++        self.conditions = self._strmap(doc, "conditions", errs)
++        self.calls = self._strmap(doc, "calls", errs)
++        self._strmap(doc, "variables", errs)
++        bot = get(doc, "bot")
++        if bot is None:
++            raise DocError(["no bot"])
++        if not is_obj(bot) or not has(bot, "children"):
++            raise DocError(["bot must be a section"])
++        self._node(self.ROOT, None, bot, errs, top=True)
++        # V2: initial is a direct child; V3/V4/V5 references
++        timer_names = {t for n in self.nodes.values() for t, _ in n.timers}
++        for n in self.nodes.values():
++            if n.is_section:
++                ini = self.nodes.get(n.initial)
++                if ini is None or ini.parent != n.name:
++                    errs.append(f"initial {n.initial!r} of {n.name!r} is not its child")
++            for ev, vs in n.on:
++                if ev == "":
++                    errs.append("empty event name")
++                if ev.startswith("timer:") and ev[6:] not in timer_names:
++                    errs.append(f"event {ev!r}: no such timer")
++                for v in vs:
++                    tgt = self.nodes.get(v.to)
++                    if v.to == "" or tgt is None:
++                        errs.append(f"target {v.to!r} does not exist")
++                    elif v.resume and not tgt.is_section:
++                        errs.append(f"resume target {v.to!r} is not a section")
++                    if v.cond is not None and (v.cond == "" or v.cond not in self.conditions):
++                        errs.append(f"condition {v.cond!r} undeclared")
++                    for c in v.calls:
++                        if c == "" or c not in self.calls:
++                            errs.append(f"call {c!r} undeclared")
++
++    def _node(self, name, parent, obj, errs, top=False):
++        if not is_obj(obj):
++            raise DocError([f"node {name!r} must be an object"])
++        if not top:
++            if name == "":
++                errs.append("empty node name")
++            if name in self.nodes:
++                errs.append(f"node {name!r} declared twice")  # V1
++        on = []
++        onj = get(obj, "on", [])
++        if not is_obj(onj):
++            raise DocError([f"{name}: on must be an object"])
++        for ev, arr in onj:
++            if not isinstance(arr, list):
++                raise DocError([f"{name}.{ev}: variants must be a list"])
++            vs = []
++            for vj in arr:
++                if not is_obj(vj):
++                    raise DocError(["variant must be an object"])
++                cond = get(vj, "if")
++                if cond is not None and not isinstance(cond, str):
++                    raise DocError(["if: string expected"])
++                if has(vj, "if") and cond is None:
++                    raise DocError(["if: null"])
++                to = get(vj, "to")
++                if not isinstance(to, str):
++                    raise DocError(["variant needs to"])
++                res = get(vj, "resume", False)
++                if not isinstance(res, bool):
++                    raise DocError(["resume: bool expected"])
++                do = get(vj, "do", [])
++                if not isinstance(do, list) or not all(isinstance(c, str) for c in do):
++                    raise DocError(["do: list of strings expected"])
++                vs.append(Variant(cond, to, res, list(do)))
++            on.append((ev, vs))
++        if has(obj, "children"):
++            if has(obj, "timers"):
++                raise DocError(["section cannot have timers"])
++            ini = get(obj, "initial")
++            if not isinstance(ini, str):
++                raise DocError(["section needs initial"])
++            ch = get(obj, "children")
++            if not is_obj(ch):
++                raise DocError(["children must be an object"])
++            node = Node(name, parent, True, ini, on, [])
++            if name not in self.nodes:
++                self.nodes[name] = node
++            for k, v in ch:
++                self._node(k, name, v, errs)
++        else:
++            if has(obj, "initial"):
++                raise DocError(["initial without children"])
++            tj = get(obj, "timers", [])
++            if not is_obj(tj):
++                raise DocError(["timers must be an object"])
++            timers = []
++            for k, v in tj:
++                ms = as_int(v)
++                if ms is None:
++                    raise DocError([f"timer {k}: bad delay"])
++                if k == "":
++                    errs.append("empty timer name")
++                timers.append((k, ms))
++            node = Node(name, parent, False, None, on, timers)
++            if name not in self.nodes:
++                self.nodes[name] = node
++
++    # ------------------------------------------------------------ structure
++    def is_message(self, n):
++        x = self.nodes.get(n)
++        return x is not None and not x.is_section
++
++    def message_count(self):
++        return sum(1 for n in self.nodes.values() if not n.is_section)
++
++    def landing(self, n):
++        """Entering node n: a section leads to its initial node, recursively."""
++        seen = set()
++        while self.nodes[n].is_section:
++            if n in seen:
++                raise RuntimeError("cycle of initials")
++            seen.add(n)
++            n = self.nodes[n].initial
++        return n
++
++    def enclosing(self, m):
++        """Sections that contain message m, innermost first (root last)."""
++        out = []
++        p = self.nodes[m].parent
++        while p is not None:
++            out.append(p)
++            p = self.nodes[p].parent
++        return out
++
++    def candidates(self, m, ev):
++        """Decision 1: the message's own variants, then each section above."""
++        out = []
++        for owner in [m] + self.enclosing(m):
++            for e, vs in self.nodes[owner].on:
++                if e == ev:
++                    out.extend(vs)
++        return out
++
++    # ------------------------------------------------------------ semantics
++    def _enter(self, snap, acts, m, tok):
++        for s in self.enclosing(m):          # decision 4
++            if s in self.history:
++                snap["resume"][s] = m
++        for t, ms in self.nodes[m].timers:   # decision 2: timers after remember
++            snap["timers"][t] = tok
++            acts.append({"start_timer": t, "ms": ms, "token": tok})
++        acts.append({"send": m})             # ... then send
++
++    def _exit(self, snap, acts, m):
++        names = [t for t, _ in self.nodes[m].timers]
++        if self.opts.exit_cancels == "snapshot":
++            # designer reading: also cancel every other timer still active in
++            # the snapshot (left over from an older document version)
++            names += [t for t in snap["timers"] if t not in names]
++        if self.opts.bug == "no-exit":
++            names = []
++        for t in names:
++            snap["timers"].pop(t, None)
++            acts.append({"cancel_timer": t})
++
++    def _resume_target(self, snap, sec, hits):
++        r = snap["resume"].get(sec)
++        fallback = self.landing(sec)
++        if r is None or not self.is_message(r):
++            return fallback                  # decision 5
++        inside = sec in self.enclosing(r)
++        if not inside:
++            hits.add("A1-moved-memory")
++            if self.opts.moved_memory == "follow":
++                return r
++            return fallback
++        if self.opts.bug == "resume-initial":
++            return fallback
++        return r
++
++    def _bump(self, snap):
++        if snap["seq"] + 1 > MAX_INT:
++            raise RequestError("seq_overflow")
++        snap["seq"] += 1
++        return snap["seq"]
++
++    def start(self):
++        snap = {"at": "", "resume": {}, "timers": {}, "seq": 0}
++        acts = []
++        tok = self._bump(snap)
++        m = self.landing(self.ROOT)
++        snap["at"] = m
++        self._enter(snap, acts, m, tok)
++        return snap, acts
++
++    def _over(self, snap, keep_resume):
++        snap = copy_snap(snap)
++        acts = []
++        tok = self._bump(snap)
++        for t in list(snap["timers"].keys()):
++            acts.append({"cancel_timer": t})
++        snap["timers"] = {}
++        if not keep_resume:
++            snap["resume"] = {}
++        m = self.landing(self.ROOT)
++        snap["at"] = m
++        self._enter(snap, acts, m, tok)
++        return snap, acts
++
++    def restart(self, snap):
++        """FORMAT §7: cancel snapshot timers, clear places, first-entry actions,
++        keep counting seq."""
++        return self._over(snap, keep_resume=False)
++
++    def accepts(self, snap, ev, token, hits):
++        if token is None:
++            return True
++        t = ev[len("timer:"):]
++        ok = snap["timers"].get(t) == token
++        if self.opts.bug == "accept-any-token":
++            ok = t in snap["timers"]
++        owned = any(n == t for n, _ in self.nodes[snap["at"]].timers)
++        if ok and not owned:
++            hits.add("A7-unowned-timer-accepted")
++            if self.opts.timer_accept == "owned":
++                return False
++        return ok
++
++    def need_sets(self, snap, ev, token, given):
++        """(minimal, all) sets of guard names the step needs and that are not
++        in `given`.  Empty if the step is a recovery or an ignored timer."""
++        if not self.is_message(snap["at"]):
++            return set(), set()
++        if not self.accepts(snap, ev, token, set()):
++            return set(), set()
++        cands = self.candidates(snap["at"], ev)
++        if self.opts.bug == "need-own-only":
++            cands = [v for e, vs in self.nodes[snap["at"]].on if e == ev for v in vs]
++        allg = {v.cond for v in cands if v.cond is not None} - set(given)
++        minimal = set()
++        for v in cands:
++            if v.cond is None:
++                break
++            if v.cond in given:
++                if given[v.cond]:
++                    break
++                continue
++            minimal.add(v.cond)
++        return minimal, allg
++
++    def step(self, snap, ev, token=None, guards=None, hits=None, check_need=True):
++        """Returns ('ok', snap', actions, recovered) or ('need', set).
++        With check_need=False the step is evaluated with absent guards = false
++        (the driver only does this after checking the engine's `need`)."""
++        hits = set() if hits is None else hits
++        guards = guards or {}
++        if not self.is_message(snap["at"]):          # decision 8
++            s2, acts = self._over(snap, keep_resume=True)
++            return ("ok", s2, acts, True)
++        if not self.accepts(snap, ev, token, hits):  # decision 7
++            return ("ok", copy_snap(snap), [], False)
++        mn, al = self.need_sets(snap, ev, token, guards)
++        want = al if self.opts.need == "all" else mn
++        if self.opts.bug == "need-min":
++            want = mn
++        if mn != al:
++            hits.add("A3-need-superset")
++        if want and check_need:
++            return ("need", want)
++        chosen = None
++        for v in self.candidates(snap["at"], ev):
++            if v.cond is None or guards.get(v.cond, False):
++                chosen = v
++                break
++            if self.opts.bug == "first-variant-only":
++                break
++        if chosen is None:                           # decision 6
++            return ("ok", copy_snap(snap), [], False)
++        if token is not None and not any(n == ev[6:] for n, _ in self.nodes[snap["at"]].timers):
++            hits.add("A7-unowned-timer-transition")
++        s2 = copy_snap(snap)
++        acts = []
++        tok = self._bump(s2)
++        if chosen.resume:
++            tgt = self._resume_target(snap, chosen.to, hits)
++        else:
++            tgt = self.landing(chosen.to)
++        cur = snap["at"]
++        self._exit(s2, acts, cur)                    # decision 2: exit ...
++        calls = [{"call": c} for c in chosen.calls]
++        if self.opts.bug == "calls-after-entry":
++            pass
++        else:
++            acts.extend(calls)                       # ... arrow actions ...
++        s2["at"] = tgt
++        if self.opts.bug == "no-restart-self" and tgt == cur:
++            acts.append({"send": tgt})
++        else:
++            self._enter(s2, acts, tgt, tok)          # ... entry
++        if self.opts.bug == "calls-after-entry":
++            acts.extend(calls)
++        return ("ok", s2, acts, False)
++
++
++def copy_snap(s):
++    return {"at": s["at"], "resume": dict(s["resume"]), "timers": dict(s["timers"]), "seq": s["seq"]}
++
++
++def snap_from_json(j):
++    """Engine JSON snapshot -> oracle snapshot (dicts keep JSON order)."""
++    if isinstance(j, list):  # pairs form
++        d = dict(j)
++    else:
++        d = j
++    res = d.get("resume", {})
++    tim = d.get("timers", {})
++    if isinstance(res, list):
++        res = dict(res)
++    if isinstance(tim, list):
++        tim = dict(tim)
++    return {"at": d["at"], "resume": dict(res), "timers": dict(tim), "seq": d.get("seq", 0)}
++
++
++def snap_to_json(s):
++    out = {"at": s["at"]}
++    if s["resume"]:
++        out["resume"] = dict(s["resume"])
++    if s["timers"]:
++        out["timers"] = dict(s["timers"])
++    if s["seq"]:
++        out["seq"] = s["seq"]
++    return out
+diff --git a/audit/core-compiler/perf.py b/audit/core-compiler/perf.py
+new file mode 100755
+index 0000000..350cd26
+--- /dev/null
++++ b/audit/core-compiler/perf.py
+@@ -0,0 +1,142 @@
++#!/usr/bin/env python3
++"""Scale / performance cliffs of compile (engine load), check and step.
++
++  python3 perf.py --engine BIN --figram BIN [--only NAME] [--timeout S]
++
++Each scenario writes a document, then measures
++  * load:  time until the engine answers `hello` (decode + check + compile + wf)
++  * step:  mean latency of 200 `step` requests on a pipelined connection
++and checks the answers against the oracle for a few steps.  Prints one JSON
++line per scenario.  A load that exceeds --timeout is reported as TIMEOUT."""
++
++import argparse
++import json
++import os
++import resource
++import subprocess
++import sys
++import tempfile
++import time
++
++from oracle import Bot
++
++
++def flat(n, events=3, root_events=1):
++    ch = {}
++    for i in range(n):
++        on = {f"btn:{j}": [{"to": f"m{(i + j + 1) % n}"}] for j in range(events)}
++        ch[f"m{i}"] = {"on": on}
++    on = {f"cmd:{j}": [{"to": "m0"}] for j in range(root_events)}
++    return {"figram": 1, "bot": {"initial": "m0", "on": on, "children": ch}}
++
++
++def deep(depth, leaves=1, hist=False, events=1):
++    """Chain of nested sections s0 ⊃ s1 ⊃ ... with `leaves` messages at the bottom,
++    every section with a section-level arrow, optionally a resume arrow into it."""
++    inner = {f"leaf{i}": {"on": {"btn:n": [{"to": f"leaf{(i + 1) % leaves}"}]}} for i in range(leaves)}
++    cur = {"initial": "leaf0", "on": {f"btn:s{depth - 1}_{j}": [{"to": "out"}] for j in range(events)},
++           "children": inner}
++    for d in range(depth - 2, -1, -1):
++        cur = {"initial": f"s{d + 1}", "on": {f"btn:s{d}_{j}": [{"to": "out"}] for j in range(events)},
++               "children": {f"s{d + 1}": cur}}
++    out_on = {}
++    if hist:
++        out_on = {f"btn:back{d}": [{"to": f"s{d}", "resume": True}] for d in range(depth)}
++    bot = {"initial": "s0", "children": {"s0": cur, "out": {"on": out_on}}}
++    return {"figram": 1, "bot": bot}
++
++
++def many_hist(n_secs, per_sec):
++    ch = {}
++    back = {}
++    for s in range(n_secs):
++        kids = {f"m{s}_{i}": {"on": {"btn:n": [{"to": f"m{s}_{(i + 1) % per_sec}"}]}} for i in range(per_sec)}
++        ch[f"s{s}"] = {"initial": f"m{s}_0", "on": {"btn:out": [{"to": "hub"}]}, "children": kids}
++        back[f"btn:go{s}"] = [{"to": f"s{s}", "resume": True}]
++    ch["hub"] = {"on": back}
++    return {"figram": 1, "bot": {"initial": "hub", "children": ch}}
++
++
++SCEN = {
++    "flat_500": lambda: flat(500),
++    "flat_1000": lambda: flat(1000),
++    "flat_2000": lambda: flat(2000),
++    "flat_2000_50rootev": lambda: flat(2000, events=3, root_events=50),
++    "flat_4000": lambda: flat(4000),
++    "deep_60": lambda: deep(60),
++    "deep_120": lambda: deep(120),
++    "deep_127_hist": lambda: deep(127, hist=True),
++    "deep_128": lambda: deep(128),
++    "deep_200": lambda: deep(200),
++    "deep_100_x_500leaves_hist": lambda: deep(100, leaves=500, hist=True),
++    "hist_100x20": lambda: many_hist(100, 20),
++    "hist_200x20": lambda: many_hist(200, 20),
++}
++
++
++def measure(engine, text, timeout, steps=200):
++    with tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False) as f:
++        f.write(text)
++    t0 = time.time()
++    p = subprocess.Popen(["prlimit", "--as=4000000000", "--", engine, f.name], stdin=subprocess.PIPE,
++                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
++    p.stdin.write('{"id":0,"op":"hello"}\n')
++    p.stdin.flush()
++    import select
++    r, _, _ = select.select([p.stdout], [], [], timeout)
++    if not r:
++        p.kill()
++        p.wait()
++        os.unlink(f.name)
++        return {"load_s": None, "status": "TIMEOUT"}
++    line = p.stdout.readline()
++    load = time.time() - t0
++    if not line:
++        err = p.stderr.read()
++        p.wait()
++        os.unlink(f.name)
++        return {"load_s": round(load, 3), "status": "REJECTED", "rc": p.returncode, "stderr": err.strip()[:300]}
++    hello = json.loads(line)
++    # pipelined steps: start, then `steps` steps on the start snapshot
++    p.stdin.write('{"id":1,"op":"start"}\n')
++    p.stdin.flush()
++    st = json.loads(p.stdout.readline())
++    snap = st["snapshot"]
++    t1 = time.time()
++    reqs = "".join(json.dumps({"id": 2 + i, "op": "step", "snapshot": snap, "event": "btn:none"}) + "\n"
++                   for i in range(steps))
++    p.stdin.write(reqs)
++    p.stdin.flush()
++    for i in range(steps):
++        p.stdout.readline()
++    step_us = (time.time() - t1) / steps * 1e6
++    p.stdin.close()
++    p.wait()
++    ru = resource.getrusage(resource.RUSAGE_CHILDREN)
++    os.unlink(f.name)
++    return {"load_s": round(load, 3), "status": "OK", "states": hello.get("states"),
++            "step_us_unmatched_event": round(step_us, 1), "maxrss_children_mb": round(ru.ru_maxrss / 1024)}
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--only", action="append")
++    ap.add_argument("--timeout", type=float, default=120)
++    args = ap.parse_args()
++    names = args.only or list(SCEN)
++    for n in names:
++        doc = SCEN[n]()
++        text = json.dumps(doc)
++        try:
++            Bot(text)
++            ok = True
++        except Exception as e:
++            ok = f"oracle: {e}"[:100]
++        res = measure(args.engine, text, args.timeout)
++        res.update({"scenario": n, "doc_bytes": len(text), "oracle_valid": ok})
++        print(json.dumps(res, ensure_ascii=False), flush=True)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/run_all.sh b/audit/core-compiler/run_all.sh
+new file mode 100755
+index 0000000..4be8e93
+--- /dev/null
++++ b/audit/core-compiler/run_all.sh
+@@ -0,0 +1,46 @@
++#!/bin/sh
++# Audit agent core-compiler: full oracle/differential suite.
++#   ./run_all.sh [ENGINE] [FIGRAM] [LOGDIR]
++# Every step is recorded with run.sh (command, exit code, stdout/stderr).
++# Green steps must exit 0; "red" steps are red-proofs (a broken oracle or a
++# mutated engine) and must ALSO exit 0 (they run with --expect-red);
++# "findings" steps are regression tests of the reported findings and are
++# expected to exit 1 on the baseline.
++set -u
++HERE=$(cd "$(dirname "$0")" && pwd)
++ENGINE=${1:-$HERE/../../bin/figram-engine}
++FIGRAM=${2:-$HERE/../../bin/figram}
++LOG=${3:-$HERE/logs}
++RUN=/home/user/figram-audit/run.sh
++[ -x "$RUN" ] || RUN="$HERE/run_log.sh"
++cd "$HERE"
++fail=0
++step() { want=$1; name=$2; shift 2
++  nice -n 10 "$RUN" "$LOG/$name" "$@" >/dev/null; rc=$?
++  if [ "$rc" = "$want" ]; then echo "ok    $name (exit $rc)"; else echo "WRONG $name (exit $rc, want $want)"; fail=1; fi; }
++
++step 0 directed-conformance python3 directed.py --engine "$ENGINE" --group conformance
++step 1 directed-findings    python3 directed.py --engine "$ENGINE" --group findings
++step 0 directed-designer-oracle python3 directed.py --oracle-only --group all \
++     --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --oracle-opt need=min
++for m in drop-exit drop-remember resume-default drop-timer-start; do
++  step 0 red-directed-$m python3 directed.py --engine "$ENGINE" --mutate $m --expect-red; done
++step 0 diff-random timeout 840 python3 diff_random.py --engine "$ENGINE" --docs 600 --steps 120 --seed 1
++for b in no-exit resume-initial accept-any-token need-own-only first-variant-only calls-after-entry no-restart-self; do
++  step 0 red-oracle-$b timeout 300 python3 diff_random.py --engine "$ENGINE" --docs 40 --steps 60 --seed 5 \
++       --oracle-bug $b --expect-red; done
++# proposed CC-01 semantics (oracle designer reading) == baseline within ONE document version ...
++step 0 designer-same-version timeout 600 python3 diff_random.py --engine "$ENGINE" --docs 300 --steps 120 --seed 9 \
++     --no-upgrade --no-perturb --no-exhaustive --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot
++# ... and differs from it after document upgrades (CC-01 found by random search; expected exit 1)
++step 1 designer-upgrades timeout 600 python3 diff_random.py --engine "$ENGINE" --docs 400 --steps 80 --seed 21 \
++     --no-exhaustive --no-perturb --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --out "$LOG/designer-upgrades"
++step 0 mutants timeout 840 python3 mutants_red.py --engine "$ENGINE" --docs 8 --steps 100 --out "$LOG/mutant_survivors.json"
++step 0 metamorphic timeout 840 python3 metamorphic.py --engine "$ENGINE" --docs 40 --steps 60
++for t in rename_nodes annotations unreachable_resume shuffle_children; do
++  step 0 red-metamorphic-$t timeout 300 python3 metamorphic.py --engine "$ENGINE" --docs 3 --steps 20 \
++       --only $t --break-transform $t --expect-red; done
++step 0 check-diff timeout 840 python3 check_diff.py --engine "$ENGINE" --docs 20
++step 0 red-check-diff timeout 300 python3 check_diff.py --engine "$ENGINE" --docs 1 --oracle-accept-all --expect-red
++step 0 lint-gaps python3 lint_gaps.py --figram "$FIGRAM" --engine "$ENGINE"
++exit $fail
+diff --git a/audit/core-compiler/run_log.sh b/audit/core-compiler/run_log.sh
+new file mode 100755
+index 0000000..df2ca35
+--- /dev/null
++++ b/audit/core-compiler/run_log.sh
+@@ -0,0 +1,6 @@
++#!/bin/sh
++# fallback for run.sh outside the audit machine: run.sh LOGPATH CMD...
++log=$1; shift; mkdir -p "$(dirname "$log")"
++"$@" > "$log.stdout" 2> "$log.stderr"; rc=$?
++{ echo "command: $*"; echo "exit_code: $rc"; tail -200 "$log.stdout"; tail -50 "$log.stderr"; } > "$log.log"
++echo "exit_code=$rc log=$log.log"; exit $rc
+diff --git a/audit/core-compiler/shrink.py b/audit/core-compiler/shrink.py
+new file mode 100755
+index 0000000..be70b87
+--- /dev/null
++++ b/audit/core-compiler/shrink.py
+@@ -0,0 +1,228 @@
++#!/usr/bin/env python3
++"""Greedy shrinker for a divergence (document + one step from a snapshot).
++
++  python3 shrink.py --engine BIN --div divergences.json [--index 0]
++                    [--oracle-opt k=v ...] [--out repro.json]
++
++A divergence is re-checked by running ONE step (snapshot, event, token,
++guards) on the engine and on the oracle.  The shrinker deletes nodes, arrows,
++variants, conditions on variants, calls, timers, annotations, snapshot
++entries and guards while the divergence (same category) persists and the
++document stays valid for both checkers."""
++
++import argparse
++import copy
++import json
++import random
++import sys
++
++from difflib_core import Divergence, do_step
++from engine import Engine, EngineLoadError
++from oracle import Bot, DocError, Options
++
++
++def repair(d):
++    """Remove arrows to missing nodes, fix initials, drop unused declarations."""
++    names = set()
++
++    def collect(o):
++        for k, v in o.get("children", {}).items():
++            names.add(k)
++            collect(v)
++    collect(d["bot"])
++    timers = set()
++
++    def tcol(o):
++        timers.update(o.get("timers", {}))
++        for v in o.get("children", {}).values():
++            tcol(v)
++    tcol(d["bot"])
++
++    def fix(o):
++        if "children" in o:
++            if not o["children"]:
++                return False
++            if o["initial"] not in o["children"]:
++                o["initial"] = next(iter(o["children"]))
++            for k in list(o["children"]):
++                if not fix(o["children"][k]):
++                    del o["children"][k]
++            if not o["children"]:
++                return False
++            if o["initial"] not in o["children"]:
++                o["initial"] = next(iter(o["children"]))
++        if "on" in o:
++            for e in list(o["on"]):
++                if e.startswith("timer:") and e[6:] not in timers:
++                    del o["on"][e]
++                    continue
++                o["on"][e] = [v for v in o["on"][e] if v["to"] in names]
++                if not o["on"][e]:
++                    del o["on"][e]
++            if not o["on"]:
++                del o["on"]
++        if "timers" in o and not o["timers"]:
++            del o["timers"]
++        return True
++    for _ in range(3):
++        fix(d["bot"])
++        names.clear()
++        collect(d["bot"])
++    used_c, used_k = set(), set()
++
++    def uses(o):
++        for vs in o.get("on", {}).values():
++            for v in vs:
++                if "if" in v:
++                    used_c.add(v["if"])
++                used_k.update(v.get("do", []))
++        for v in o.get("children", {}).values():
++            uses(v)
++    uses(d["bot"])
++    if "conditions" in d:
++        d["conditions"] = {k: v for k, v in d["conditions"].items() if k in used_c}
++        if not d["conditions"]:
++            del d["conditions"]
++    if "calls" in d:
++        d["calls"] = {k: v for k, v in d["calls"].items() if k in used_k}
++        if not d["calls"]:
++            del d["calls"]
++    return d
++
++
++def candidates(d, inp):
++    """Yield (description, new_doc, new_input) one deletion at a time."""
++    def paths(o, pre):
++        for k in list(o.get("children", {})):
++            yield ("child", pre + [k])
++        for e in list(o.get("on", {})):
++            yield ("event", pre + [e])
++            for i, v in enumerate(o["on"][e]):
++                yield ("variant", pre + [e, i])
++                if "if" in v:
++                    yield ("if", pre + [e, i])
++                if "do" in v:
++                    yield ("do", pre + [e, i])
++                if "resume" in v:
++                    yield ("resume", pre + [e, i])
++                for k in [k for k in v if k not in ("if", "to", "resume", "do")]:
++                    yield ("vann", pre + [e, i, k])
++        for t in list(o.get("timers", {})):
++            yield ("timer", pre + [t])
++        for k in [k for k in o if k not in ("initial", "children", "on", "timers")]:
++            yield ("nann", pre + [k])
++        for k, v in o.get("children", {}).items():
++            yield from paths(v, pre + [k])
++
++    def node_at(dd, path):
++        o = dd["bot"]
++        for k in path:
++            o = o["children"][k]
++        return o
++
++    for kind, p in list(paths(d["bot"], [])):
++        dd = copy.deepcopy(d)
++        try:
++            if kind == "child":
++                del node_at(dd, p[:-1])["children"][p[-1]]
++            elif kind == "event":
++                del node_at(dd, p[:-1])["on"][p[-1]]
++            elif kind in ("variant", "if", "do", "resume", "vann"):
++                q = p[:-3] if kind == "vann" else p[:-2]
++                e, i = (p[-3], p[-2]) if kind == "vann" else (p[-2], p[-1])
++                o = node_at(dd, q)
++                if kind == "variant":
++                    del o["on"][e][i]
++                elif kind == "vann":
++                    del o["on"][e][i][p[-1]]
++                else:
++                    del o["on"][e][i][{"if": "if", "do": "do", "resume": "resume"}[kind]]
++            elif kind == "timer":
++                del node_at(dd, p[:-1])["timers"][p[-1]]
++            elif kind == "nann":
++                del node_at(dd, p[:-1])[p[-1]]
++        except (KeyError, IndexError):
++            continue
++        yield f"{kind} {p}", repair(dd), inp
++    for k in [k for k in d if k.startswith("x-") or k not in
++              ("figram", "requires", "conditions", "calls", "variables", "bot")]:
++        dd = copy.deepcopy(d)
++        del dd[k]
++        yield f"doc key {k}", dd, inp
++    s = inp["snapshot"]
++    for part in ("resume", "timers"):
++        for k in list(s.get(part, {})):
++            i2 = copy.deepcopy(inp)
++            del i2["snapshot"][part][k]
++            if not i2["snapshot"][part]:
++                del i2["snapshot"][part]
++            yield f"snapshot {part}.{k}", d, i2
++    if s.get("seq", 0) > 1 and inp.get("token") is None:
++        i2 = copy.deepcopy(inp)
++        i2["snapshot"]["seq"] = 1
++        yield "snapshot seq=1", d, i2
++    for g in list(inp.get("guards") or {}):
++        i2 = copy.deepcopy(inp)
++        del i2["guards"][g]
++        yield f"guard {g}", d, i2
++
++
++def diverges(engine, d, inp, opts, what):
++    text = json.dumps(d, ensure_ascii=False)
++    try:
++        bot = Bot(text, opts)
++    except DocError:
++        return False
++    try:
++        eng = Engine(engine, text)
++    except EngineLoadError:
++        return False
++    try:
++        do_step(bot, eng, inp["snapshot"], inp["event"], inp["token"], random.Random(0), set(), {},
++                fixed_guards=inp.get("guards") or {})
++        return False
++    except Divergence as dv:
++        return dv.what == what
++    finally:
++        eng.close()
++
++
++def shrink(engine, d, inp, opts, what):
++    assert diverges(engine, d, inp, opts, what), "divergence does not reproduce"
++    changed = True
++    log = []
++    while changed:
++        changed = False
++        for desc, d2, i2 in candidates(d, inp):
++            if diverges(engine, d2, i2, opts, what):
++                d, inp = d2, i2
++                log.append(desc)
++                changed = True
++                break
++    return d, inp, log
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--div", required=True)
++    ap.add_argument("--index", type=int, default=0)
++    ap.add_argument("--oracle-opt", action="append", default=[])
++    ap.add_argument("--out")
++    args = ap.parse_args()
++    opts = Options(**dict(kv.split("=", 1) for kv in args.oracle_opt))
++    divs = json.load(open(args.div))
++    dv = divs[args.index]
++    d = json.loads(dv["doc"])
++    inp = dv["ctx"]["input"]
++    d2, i2, log = shrink(args.engine, d, inp, opts, dv["what"])
++    res = {"what": dv["what"], "oracle_opts": args.oracle_opt, "doc": d2, "input": i2,
++           "deletions": len(log),
++           "doc_bytes_before": len(dv["doc"]), "doc_bytes_after": len(json.dumps(d2, ensure_ascii=False))}
++    print(json.dumps(res, ensure_ascii=False, indent=1))
++    if args.out:
++        json.dump(res, open(args.out, "w"), ensure_ascii=False, indent=1)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/audit/core-compiler/wide.py b/audit/core-compiler/wide.py
+new file mode 100755
+index 0000000..ed75755
+--- /dev/null
++++ b/audit/core-compiler/wide.py
+@@ -0,0 +1,65 @@
++#!/usr/bin/env python3
++"""Very wide documents: does load fail in a CONTROLLED way (error message,
++exit 1) or crash (signal / stack overflow) or hang?
++
++  python3 wide.py --engine BIN --figram BIN [--sizes 50000,100000,...] [--timeout S]
++
++shape `msgs`:   one section with N empty messages (no arrows)
++shape `arrows`: one message with N distinct events (one long `on` list)
++shape `variants`: one message, one event with N variants
++"""
++
++import argparse
++import json
++import os
++import subprocess
++import tempfile
++import time
++
++
++def doc(shape, n):
++    if shape == "msgs":
++        ch = ",".join(f'"m{i}":{{}}' for i in range(n))
++        return '{"figram":1,"bot":{"initial":"m0","children":{' + ch + '}}}'
++    if shape == "arrows":
++        on = ",".join(f'"btn:{i}":[{{"to":"a"}}]' for i in range(n))
++        return '{"figram":1,"bot":{"initial":"a","children":{"a":{"on":{' + on + '}}}}}'
++    if shape == "variants":
++        vs = ",".join('{"to":"a"}' for _ in range(n))
++        return '{"figram":1,"bot":{"initial":"a","children":{"a":{"on":{"btn:x":[' + vs + ']}}}}}'
++    raise ValueError(shape)
++
++
++def run(cmd, inp, timeout):
++    t0 = time.time()
++    try:
++        p = subprocess.run(["prlimit", "--as=4000000000", "--"] + cmd, input=inp, capture_output=True,
++                           text=True, timeout=timeout)
++        return {"rc": p.returncode, "s": round(time.time() - t0, 2),
++                "stdout": p.stdout[:200], "stderr": p.stderr[-300:]}
++    except subprocess.TimeoutExpired:
++        return {"rc": "TIMEOUT", "s": timeout}
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--engine", required=True)
++    ap.add_argument("--figram", required=True)
++    ap.add_argument("--shapes", default="msgs,arrows,variants")
++    ap.add_argument("--sizes", default="10000,50000,200000")
++    ap.add_argument("--timeout", type=float, default=120)
++    args = ap.parse_args()
++    for shape in args.shapes.split(","):
++        for n in map(int, args.sizes.split(",")):
++            text = doc(shape, n)
++            with tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False) as f:
++                f.write(text)
++            e = run([args.engine, f.name], '{"id":1,"op":"hello"}\n', args.timeout)
++            c = run([args.figram, "check", f.name], "", args.timeout)
++            os.unlink(f.name)
++            print(json.dumps({"shape": shape, "n": n, "bytes": len(text), "engine": e, "check": c},
++                             ensure_ascii=False), flush=True)
++
++
++if __name__ == "__main__":
++    main()
+-- 
+2.43.0
+

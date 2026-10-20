@@ -1,0 +1,4 @@
+запросов 18041, расхождений 3828
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'event': 'btn:cart'} → {'id': 2, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 2}, 'seq': 3}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 2}, {'send'
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 10}, 'event': 'btn:cart'} → {'id': 11, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 10}, 'seq': 11}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 10}, {'
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 13}, 'event': 'btn:cart'} → {'id': 15, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 13}, 'seq': 14}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 13}, {'

@@ -1,0 +1,20 @@
+command: python3 ptdriver.py ../../bin/figram-engine walk ../../examples/pizza.bot.json --mutate drop-call:create_order --users 10 --steps 30 
+cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
+start: 2026-10-19T22:10:34.190Z
+end: 2026-10-19T22:10:34.350Z
+exit_code: 1
+--- stdout (1407 bytes, last 200 lines)
+{"doc": "../../examples/pizza.bot.json", "mutate": "drop-call:create_order", "seed": 1, "replies": 702, "coverage_targets": 42, "checks": 6073, "violations": 4}
+  I9: cover target=done/cmd:help/0 i=4: ev=payment:success tok=None guards={}
+   got {'id': 81, 'snapshot': {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 6}, 'actions': [{'send': 'done'}]}
+   exp {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 6} [{'call': 'create_order'}, {'send': 'done'}] rec=False
+  I9: cover target=done/cmd:start/0 i=4: ev=payment:success tok=None guards={}
+   got {'id': 90, 'snapshot': {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 6}, 'actions': [{'send': 'done'}]}
+   exp {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 6} [{'call': 'create_order'}, {'send': 'done'}] rec=False
+  I9: cover target=pay/payment:success/0 i=4: ev=payment:success tok=None guards={}
+   got {'id': 136, 'snapshot': {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 6}, 'actions': [{'send': 'done'}]}
+   exp {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 6} [{'call': 'create_order'}, {'send': 'done'}] rec=False
+  I9: walk seed=1 user=u45 step=29 at=pay: ev=payment:success tok=None guards={}
+   got {'id': 340, 'snapshot': {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 19}, 'actions': [{'send': 'done'}]}
+   exp {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 19} [{'call': 'create_order'}, {'send': 'done'}] rec=False
+--- stderr (0 bytes, last 100 lines)

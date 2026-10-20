@@ -1,0 +1,4 @@
+{"id":1,"need":["is_vip"]}
+{"id":2,"need":["is_vip"]}
+{"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+{"id":4,"error":"условие «unused»: ожидалось true или false"}

@@ -1,0 +1,52 @@
+{"ctl":"init","bot":"reminders","scenario":"reminders","seed":1}
+{"ctl":"timer_mode","ignore_cancel":true}
+{"user":"r05","update_id":1001,"event":"cmd:start"}
+{"user":"r02","update_id":1002,"event":"cmd:start"}
+{"user":"r10","update_id":1003,"event":"cmd:start"}
+{"user":"r08","update_id":1004,"event":"cmd:start"}
+{"user":"r08","update_id":1005,"event":"btn:set","arg":"standup"}
+{"user":"r03","update_id":1006,"event":"cmd:start","dup":2}
+{"user":"r03","update_id":1007,"event":"btn:set","arg":"!pay rent"}
+{"user":"r06","update_id":1008,"event":"cmd:start"}
+{"user":"r07","update_id":1009,"event":"cmd:start"}
+{"user":"r07","update_id":1010,"event":"btn:set","arg":"meds"}
+{"user":"r10","update_id":1011,"event":"btn:set","arg":"lunch"}
+{"user":"r01","update_id":1012,"event":"cmd:start","dup":2}
+{"user":"r04","update_id":1013,"event":"cmd:start"}
+{"user":"r04","update_id":1014,"event":"btn:set","arg":"water plants"}
+{"user":"r09","update_id":1015,"event":"cmd:start"}
+{"user":"r02","update_id":1016,"event":"btn:set","arg":""}
+{"user":"r05","update_id":1017,"event":"btn:set","arg":"gym"}
+{"user":"r09","update_id":1018,"event":"btn:set","arg":"!deploy"}
+{"user":"r01","update_id":1019,"event":"btn:set","arg":"call mom"}
+{"user":"r06","update_id":1020,"event":"btn:set","arg":"stretch"}
+{"ctl":"advance_ms","ms":30000}
+{"user":"r05","update_id":1021,"event":"btn:cancel"}
+{"user":"r04","update_id":1022,"event":"btn:snooze"}
+{"ctl":"reset_user","user":"r09"}
+{"user":"r09","update_id":1023,"event":"btn:set","arg":"!deploy v2"}
+{"ctl":"crash","at":"before_commit","on":"timer:remind"}
+{"ctl":"advance_ms","ms":15000}
+{"ctl":"timer_mode","dup":2}
+{"ctl":"advance_ms","ms":15000}
+{"ctl":"timer_mode","dup":1}
+{"user":"r06","update_id":1024,"event":"btn:snooze"}
+{"user":"r01","update_id":1025,"event":"btn:ack"}
+{"ctl":"restart_host"}
+{"ctl":"advance_ms","ms":30000}
+{"ctl":"replay_stale","user":"r04"}
+{"ctl":"replay_stale","user":"r05"}
+{"ctl":"external","target":"crm","mode":"500","count":2}
+{"ctl":"advance_ms","ms":60000}
+{"ctl":"timer_mode","ignore_cancel":false}
+{"user":"r07","update_id":1026,"event":"cmd:start"}
+{"user":"r07","update_id":1027,"event":"btn:set","arg":"again r07"}
+{"user":"r02","update_id":1028,"event":"cmd:start"}
+{"user":"r07","update_id":1029,"event":"btn:snooze"}
+{"user":"r02","update_id":1030,"event":"btn:set","arg":"again r02"}
+{"user":"r02","update_id":1031,"event":"btn:snooze","dup":2}
+{"user":"r08","update_id":1032,"event":"cmd:start"}
+{"user":"r08","update_id":1033,"event":"btn:set","arg":"again r08"}
+{"user":"r08","update_id":1034,"event":"btn:snooze"}
+{"ctl":"advance_ms","ms":120000}
+{"ctl":"replay_stale","user":"r09"}

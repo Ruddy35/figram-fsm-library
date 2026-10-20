@@ -1,0 +1,7 @@
+§4 lost-snapshot procedure: start
+   life1 keys 10, life2 keys 10, colliding 10; irreversible calls deduplicated away: [('u:5:0', {'call': 'save_address'}), ('u:6:0', {'call': 'create_order'})]
+FAIL: §4 procedure 'start' reuses 10 idempotency keys (incl. ['u:5:0', 'u:6:0'])
+FAIL: §4 does not require the latest committed snapshot for restart (stale snapshot reuses seq)
+FAIL: FORMAT.md §7: `start` caveat mentions timers only, not idempotency keys
+FAIL: HOST.md §6 says nothing about timers of the old document version
+4 failure(s)

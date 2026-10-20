@@ -1,0 +1,4 @@
+{"id":1,"snapshot":{"at":"menu"},"actions":[]}
+{"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}],"recovered":true}
+{"id":null,"error":"лишний текст после JSON"}
+{"id":4,"error":"неизвестная операция «op»"}

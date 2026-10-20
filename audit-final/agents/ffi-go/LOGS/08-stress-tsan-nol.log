@@ -1,0 +1,8 @@
+command: env TSAN_OPTIONS=halt_on_error=0\ report_signal_unsafe=0 ffi/audit/out/stress_tsan examples/pizza.bot.json 16 3000 0 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:38:42.358Z
+end: 2026-10-19T23:38:51.338Z
+exit_code: 0
+--- stdout (135 bytes, last 200 lines)
+shared handle: 16 threads x 3000 = 48000 requests, mismatches 0; 0 loader threads: 0 load/10 req/unload/check/fmt cycles, mismatches 0
+--- stderr (0 bytes, last 100 lines)

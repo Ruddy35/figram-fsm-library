@@ -1,0 +1,4 @@
+{"id":null,"error":"повторяющийся ключ «a»"}
+{"id":null,"error":"лишний текст после JSON"}
+
+VERDICT: requests with ids 5 and 6 answered with id null

@@ -1,0 +1,19 @@
+command: python3 ptdriver.py ../../bin/figram-engine walk ../../examples/pizza.bot.json --mutate drop-exit --users 10 --steps 30 
+cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
+start: 2026-10-19T22:10:34.401Z
+end: 2026-10-19T22:10:34.665Z
+exit_code: 1
+--- stdout (1790 bytes, last 200 lines)
+{"doc": "../../examples/pizza.bot.json", "mutate": "drop-exit", "seed": 1, "replies": 696, "coverage_targets": 42, "checks": 5970, "violations": 94}
+  I9: cover target=address/btn:cancel/0 i=2: ev=btn:checkout tok=None guards={'cart_not_empty': True}
+   got {'id': 5, 'snapshot': {'at': 'address', 'resume': {'order': 'address'}, 'timers': {'cart_reminder': 3}, 'seq': 4}, 'actions': [{'send': 'address'}]}
+   exp {'at': 'address', 'resume': {'order': 'address'}, 'seq': 4} [{'cancel_timer': 'cart_reminder'}, {'send': 'address'}] rec=False
+  I9: cover target=address/btn:cancel/0 i=2: key order differs {'at': 'address', 'resume': {'order': 'address'}, 'timers': {'cart_reminder': 3}, 'seq': 4} vs {'at': 'address', 'resume': [('order', 'address')], 'timers': [], 'seq': 4}
+  I9: cover target=address/cmd:help/0 i=2: ev=btn:checkout tok=None guards={'cart_not_empty': True}
+   got {'id': 10, 'snapshot': {'at': 'address', 'resume': {'order': 'address'}, 'timers': {'cart_reminder': 3}, 'seq': 4}, 'actions': [{'send': 'address'}]}
+   exp {'at': 'address', 'resume': {'order': 'address'}, 'seq': 4} [{'cancel_timer': 'cart_reminder'}, {'send': 'address'}] rec=False
+  I9: cover target=address/cmd:help/0 i=2: key order differs {'at': 'address', 'resume': {'order': 'address'}, 'timers': {'cart_reminder': 3}, 'seq': 4} vs {'at': 'address', 'resume': [('order', 'address')], 'timers': [], 'seq': 4}
+  I9: cover target=address/cmd:start/0 i=2: ev=btn:checkout tok=None guards={'cart_not_empty': True}
+   got {'id': 16, 'snapshot': {'at': 'address', 'resume': {'order': 'address'}, 'timers': {'cart_reminder': 3}, 'seq': 4}, 'actions': [{'send': 'address'}]}
+   exp {'at': 'address', 'resume': {'order': 'address'}, 'seq': 4} [{'cancel_timer': 'cart_reminder'}, {'send': 'address'}] rec=False
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 200 python3 r08_ordering.py 40 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:08:17.957Z
+end: 2026-10-19T22:08:32.243Z
+exit_code: 1
+--- stdout (710 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
+(a) два события без блокировки: итоговый снимок {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2} — последовательно было бы {'at': 'help', 'resume': {'order': 'catalog'}, 'seq': 3}
+(b) e1 отправлен раньше e2, процесс упал с обоими в очереди: e2 зафиксирован раньше e1 в 12 из 40 прогонов
+утверждение о порядке НЕ выполняется без блокировки на пользователя
+--- stderr (0 bytes, last 100 lines)

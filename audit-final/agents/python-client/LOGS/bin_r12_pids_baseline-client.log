@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 300 python3 r12_killpg_after_reap.py 300 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T23:12:28.885Z
+end: 2026-10-19T23:12:36.243Z
+exit_code: 1
+--- stdout (369 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit/agents/python-client/baseline-client
+300 сбоев: вызовов killpg 838 по 594 разным pid, из них по уже собранному pid 57; kernel.pid_max=32768
+--- stderr (0 bytes, last 100 lines)

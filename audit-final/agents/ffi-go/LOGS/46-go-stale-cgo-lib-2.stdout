@@ -1,0 +1,4 @@
+1) built against baseline lib: gofig1= b ready  t1.test= b ready
+   lib now has:  b init_state
+2) rebuilt after lib change:   gofig2= b init_state  t2.test= b init_state
+3) go build -a:                gofig3= b init_state

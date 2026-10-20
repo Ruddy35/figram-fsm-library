@@ -1,0 +1,8 @@
+command: ffi/audit/out/stress examples/pizza.bot.json 16 20000 4 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:37:41.853Z
+end: 2026-10-19T23:37:42.819Z
+exit_code: 0
+--- stdout (139 bytes, last 200 lines)
+shared handle: 16 threads x 20000 = 320000 requests, mismatches 0; 4 loader threads: 846 load/10 req/unload/check/fmt cycles, mismatches 0
+--- stderr (0 bytes, last 100 lines)

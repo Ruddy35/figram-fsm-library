@@ -1,0 +1,10 @@
+command: ./bin/figram check /home/user/figram-audit/agents/host-python/REPRODUCTIONS/booking.broken.bot.json 
+cwd: /home/user/figram-audit-worktrees/host-python
+start: 2026-10-19T22:32:33.874Z
+end: 2026-10-19T22:32:33.881Z
+exit_code: 1
+--- stdout (204 bytes, last 200 lines)
+Событие «timer:nohold»: такого таймера нет (префикс «timer:» зарезервирован)
+Стрелка «confirm» → «nowhere»: цели не существует
+--- stderr (24 bytes, last 100 lines)
+figram: ошибок: 2

@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 900 python3 mutate_client.py /home/user/figram-audit-worktrees/python-client/ffi/python-example /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/pizza.bot.json /home/user/figram-audit-worktrees/python-client/examples/features.bot.json client_faults.py client_contract.py client_robustness.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T23:10:37.493Z
+end: 2026-10-19T23:11:40.299Z
+exit_code: 0
+--- stdout (842 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/python-client/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']
+исходный клиент: {'client_faults.py': 0, 'client_contract.py': 0, 'client_robustness.py': 0}
+M18 закрытый пул воскрешает процессы: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 4.1с []; client_contract.py=0 2.1с []; client_robustness.py=0 16.4с []
+M18b нет проверки _closed под замком замены: убит: client_robustness.py  client_faults.py=0 4.1с []; client_contract.py=0 2.2с []; client_robustness.py=1 12.5с ["НЕТ R6 вызов, ждавший замка во время close(): ['ответ'], живых процессов 1"]
+выживших мутантов: 1 из 21
+--- stderr (0 bytes, last 100 lines)

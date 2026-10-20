@@ -1,0 +1,15 @@
+command: python3 ptdriver.py ./evil_engine.py walk ../../examples/pizza.bot.json --users 10 --steps 30 
+cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
+start: 2026-10-19T22:15:28.117Z
+end: 2026-10-19T22:15:28.366Z
+exit_code: 1
+--- stdout (2344 bytes, last 200 lines)
+{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 702, "coverage_targets": 42, "checks": 6223, "per_invariant": {"I1": 1067, "I10": 70, "I11": 99, "I12": 5, "I2": 1031, "I3": 498, "I4": 795, "I5": 349, "I6": 404, "I7": 446, "I8": 29, "I9": 1423, "T1": 7}, "violations": 374}
+  I10: cover target=address/btn:cancel/0 i=3: nondeterministic b'{"id":6,"snapshot":{"at":"menu","resume":{"order":"address"},"seq":5},"actions":[{"call":"clear_cart"},{"send":"menu"}]}\n' vs b'{"id":6,"snapshot":{"at":"menu","resume":{"order":"address"},"seq":5},"actions":[{"call":"clear_cart"},{"send":"menu"},{"send":"menu"}]}\n'
+  I11: cover target=address/cmd:help/0 i=2: guards changed result b'{"id":10,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"}]}\n' vs b'{"id":10,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"},{"send":"address"}]}\n' ({'cart_not_empty': True, 'in_delivery_zone': True, 'undeclared_guard': True})
+  I11: cover target=address/cmd:help/0 i=3: guards changed result b'{"id":11,"snapshot":{"at":"help","resume":{"order":"address"},"seq":5},"actions":[{"send":"help"}]}\n' vs b'{"id":11,"snapshot":{"at":"help","resume":{"order":"address"},"seq":5},"actions":[{"send":"help"},{"send":"help"}]}\n' ({'cart_not_empty': True, 'in_delivery_zone': True, 'undeclared_guard': True})
+  I11: cover target=address/cmd:start/0 i=0: guards changed result b'{"id":13,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}\n' vs b'{"id":13,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"},{"send":"catalog"}]}\n' ({'cart_not_empty': False, 'in_delivery_zone': False, 'undeclared_guard': True})
+  I9: cover target=address/cmd:start/0 i=1: ev=btn:cart tok=None guards={}
+   got {'id': 14, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 3}, {'send': 'cart'}, {'send': 'cart'}]}
+   exp {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3} [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 3}, {'send': 'cart'}] rec=False
+--- stderr (0 bytes, last 100 lines)

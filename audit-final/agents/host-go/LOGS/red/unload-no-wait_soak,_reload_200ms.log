@@ -1,0 +1,16 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit-worktrees/host-go/audit/host-go/bin/fgrun soak -secs 30 -users 16 -reload-every 200ms -sample-every 5s -out /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/final2/red/unload-no-wait_soak\,_reload_200ms.json -work /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/final2/redwork/unload-no-wait_soak\,_reload_200ms -broken unload-no-wait 
+cwd: /home/user/figram-audit-worktrees/host-go/audit/host-go
+start: 2026-10-20T00:57:30.348Z
+end: 2026-10-20T00:58:01.519Z
+exit_code: 1
+--- stdout (441 bytes, last 200 lines)
+{"drift":{"Threads":{"early":21,"late":16,"ratio":0.762},"VmRSS":{"early":61682,"late":60758,"ratio":0.985},"VmSize":{"early":4758572,"late":4391892,"ratio":0.923},"fds":{"early":68,"late":72.5,"ratio":1.066},"goroutines":{"early":58.5,"late":53.5,"ratio":0.915}},"e2e_ms":{"max":498.715,"n":24408,"p50":7.591,"p95":43.635,"p99":67.78},"elapsed_s":30.107,"fails":["no_unexpected_host_death"],"reload_errors":2,"reloads":148,"updates":24408}
+--- stderr (2171 bytes, last 100 lines)
+{"acked":0,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":1,"out_bytes":0,"unloads":0},"go_heap_alloc":2528752,"goroutines":42,"pid":26991,"proc":{"Threads":8,"VmHWM":27260,"VmRSS":27260,"VmSize":3795332,"fds":27},"retired":0,"t_s":0.014}
+{"acked":3966,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":8,"out_bytes":0,"unloads":7},"go_heap_alloc":2793816,"goroutines":61,"pid":27040,"proc":{"Threads":21,"VmHWM":60184,"VmRSS":60184,"VmSize":4758572,"fds":66},"retired":7,"t_s":5.004}
+{"acked":7686,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":33,"out_bytes":0,"unloads":32},"go_heap_alloc":5136952,"goroutines":56,"pid":27040,"proc":{"Threads":21,"VmHWM":63180,"VmRSS":63180,"VmSize":4758572,"fds":70},"retired":33,"t_s":10.01}
+{"acked":11398,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":58,"out_bytes":0,"unloads":57},"go_heap_alloc":4098608,"goroutines":58,"pid":27040,"proc":{"Threads":21,"VmHWM":63212,"VmRSS":63212,"VmSize":4759536,"fds":77},"retired":57,"t_s":15.004}
+{"acked":15696,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":84,"out_bytes":0,"unloads":83},"go_heap_alloc":3495736,"goroutines":64,"pid":27040,"proc":{"Threads":21,"VmHWM":65020,"VmRSS":64200,"VmSize":4760556,"fds":77},"retired":83,"t_s":20.005}
+{"acked":20111,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":108,"out_bytes":0,"unloads":107},"go_heap_alloc":4533272,"goroutines":56,"pid":27040,"proc":{"Threads":21,"VmHWM":65376,"VmRSS":65376,"VmSize":4760648,"fds":77},"retired":107,"t_s":25.003}
+{"acked":24345,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":25,"out_bytes":0,"unloads":24},"go_heap_alloc":4287888,"goroutines":51,"pid":27286,"proc":{"Threads":11,"VmHWM":56296,"VmRSS":56140,"VmSize":4023136,"fds":68},"retired":25,"t_s":30.007}
+{"acked":24408,"binding":{"c_nanos":0,"calls":0,"in_bytes":0,"live_machines":1,"loads":26,"out_bytes":0,"unloads":25},"go_heap_alloc":4965688,"goroutines":45,"pid":27286,"proc":{"Threads":11,"VmHWM":56296,"VmRSS":56276,"VmSize":4023136,"fds":68},"retired":25,"t_s":30.107}

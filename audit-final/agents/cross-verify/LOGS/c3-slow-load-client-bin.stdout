@@ -1,0 +1,16 @@
+engine=bin/figram-engine
+doc=/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c6/unique-800.bot.json
+measured load+hello without client: 24.4s rc=0 b'{"id":1,"protocol":1,"states":800}\n'
+A: Engine(binary, doc) with default timeout=10.0; host retries start() 4 times
+  try 1: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 2689)
+  try 2: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 2979)
+  try 3: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 4196)
+  try 4: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 5318)
+B: CONTROL Engine(binary, doc, timeout=73)
+  try 1: OK at=m0  (22.7s, engine pid 5592)
+C: default timeout, host warms up 29s before the first call, then one process crash
+  first call after warm-up: OK at=m0  (0.0s, engine pid 7852)
+  after crash, try 1: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 9890)
+  after crash, try 2: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 10424)
+  after crash, try 3: EngineError: процесс движка неисправен: нет ответа за 10.0 с  (10.0s, engine pid 11017)
+C3 REPRODUCED (A: 4/4 failed with 4 fresh processes; B control OK; C: never recovers after one crash)

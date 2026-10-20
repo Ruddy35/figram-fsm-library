@@ -1,0 +1,11 @@
+command: ./verify-faults.sh full custom-axiom theorem-weakened 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-20T00:02:19.331Z
+end: 2026-10-20T00:09:19.034Z
+exit_code: 1
+--- stdout (376 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+custom-axiom         0      1        НЕТ ВСЁ В ПОРЯДКЕ
+theorem-weakened     0      1        НЕТ ВСЁ В ПОРЯДКЕ
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-full-baseline-1/summary.txt)
+--- stderr (0 bytes, last 100 lines)

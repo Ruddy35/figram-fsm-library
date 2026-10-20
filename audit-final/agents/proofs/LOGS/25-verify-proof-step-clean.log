@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 900 bash /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/vstep_clean.sh 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:52:53.982Z
+end: 2026-10-19T23:53:06.178Z
+exit_code: 0
+--- stdout (239 bytes, last 200 lines)
+== Теоремы: только propext, Quot.sound, Classical.choice; ядро перепроверено
+axiom set []: 301 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 52 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+--- stderr (0 bytes, last 100 lines)

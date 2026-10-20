@@ -1,0 +1,101 @@
+command: nice -n 10 timeout 900 lake build 
+cwd: /home/user/figram-audit-worktrees/integration-cc
+start: 2026-10-19T23:51:34.989Z
+end: 2026-10-19T23:51:51.328Z
+exit_code: 1
+--- stdout (4601 bytes, last 200 lines)
+✔ [2/42] Built Figram.Core (1.5s)
+✔ [3/42] Built Figram.CoreProofs (1.7s)
+✔ [5/42] Built Figram.Chart (2.1s)
+✔ [6/42] Built Figram.Mutate (2.1s)
+✔ [8/42] Built Figram.Compile (732ms)
+✔ [10/42] Built Figram.Lint (1.5s)
+✖ [12/42] Building Figram.Correct (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/integration-cc/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/integration-cc/Figram/Correct.lean -o /home/user/figram-audit-worktrees/integration-cc/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/integration-cc/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/integration-cc/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/integration-cc/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:136:6: Tactic `rfl` failed: The left-hand side
+  (s, [])
+is not definitionally equal to the right-hand side
+  if (!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true then (s, [])
+  else
+    match List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) with
+    | none => (s, [])
+    | some b => c.fire s b
+
+case pos.isTrue
+c : Chart
+hwf : c.compile.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compile.states
+h✝ : (!(s.accepts ev && ownsTimer (c.compile.exitOf s.state) ev)) = true
+⊢ (s, []) =
+    if (!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true then (s, [])
+    else
+      match List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) with
+      | none => (s, [])
+      | some b => c.fire s b
+error: Figram/Correct.lean:147:18: Tactic `rfl` failed: The left-hand side
+  match Option.map c.toF none with
+  | none => (s, [])
+  | some b => c.compile.fire s b
+is not definitionally equal to the right-hand side
+  if (!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true then (s, [])
+  else
+    match none with
+    | none => (s, [])
+    | some b => c.fire s b
+
+case pos.isFalse.some.none
+c : Chart
+hwf : c.compile.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compile.states
+h✝ : ¬(!(s.accepts ev && ownsTimer (c.compile.exitOf s.state) ev)) = true
+hr : c.compile.row s.state ev.key = some (c.compileRow s.state ev.key)
+hp : (fun b => guardOK env b.guard) ∘ c.toF = fun b => guardOK env b.guard
+hb : List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) = none
+⊢ (match Option.map c.toF none with
+    | none => (s, [])
+    | some b => c.compile.fire s b) =
+    if (!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true then (s, [])
+    else
+      match none with
+      | none => (s, [])
+      | some b => c.fire s b
+error: Figram/Correct.lean:150:10: Type mismatch
+  fire_eq c hwf s hs (List.mem_of_find?_eq_some hb)
+has type
+  c.compile.fire s (c.toF b) = c.fire s b
+but is expected to have type
+  c.compile.fire s (c.toF b) =
+    if (!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true then (s, []) else c.fire s b
+✔ [16/42] Built Figram.Core:c.o (4.9s)
+✔ [17/42] Built Figram.Chart:c.o (3.1s)
+✔ [18/42] Built Figram.Format (1.0s)
+✔ [20/42] Built Figram.FormatIO (2.7s)
+✔ [21/42] Built Figram.RandomDoc (2.8s)
+✔ [24/42] Built Figram.Engine (1.1s)
+✔ [26/42] Built EngineMain (836ms)
+✔ [28/42] Built Figram.Trace (1.5s)
+✔ [30/42] Built «figram-engine»:exe (722ms)
+✔ [31/42] Built Figram.FormatProofs (6.4s)
+✖ [35/42] Building Figram.EngineProofs (1.8s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/integration-cc/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/integration-cc/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/integration-cc/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/integration-cc/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/integration-cc/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/integration-cc/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:213:53: Application type mismatch: The argument
+  ha
+has type
+  a ∈ m.exitOf s.state ∨ a ∈ staleCancels (m.exitOf s.state) s
+but is expected to have type
+  a ∈ (lookup m.exit ?m.307).getD []
+in the application
+  table_ok (List.all_eq_true.mpr fun e he => List.all_eq_true.mpr (hexit e he)) ?m.307 a ha
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

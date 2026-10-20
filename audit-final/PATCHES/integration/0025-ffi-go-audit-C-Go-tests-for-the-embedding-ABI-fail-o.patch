@@ -1,0 +1,1222 @@
+From 4547a2f5e86b8a582435f8c14c80f86a90f5b33d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:52:33 +0000
+Subject: [PATCH 25/40] ffi-go audit: C/Go tests for the embedding ABI (fail on
+ baseline)
+
+C (ffi/audit): contract edge cases (init race, calls before init, NULL
+arguments, double unload, use after unload, embedded NUL, invalid UTF-8,
+1000/20000 short-lived threads, host side effects of figram_init), malloc
+failure injection in dup() (--wrap=malloc), concurrent stress on one handle
+with load/unload of other handles (plain/ASan+UBSan/TSan builds), adapted
+build for a gcc/libstdc++ Lean toolchain, regress.sh.
+
+Go (audit_test.go): Close vs Request storm, missing/non-string op, NUL in
+Load/Request, large requests, hello reply, scaling, soak, SIGPROF storm,
+concurrent init, SIGPIPE, OS thread count.
+
+(cherry picked from commit 96ca9aa08b21a534c701632401201a8c52e99ab7)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ ffi/audit/.gitignore         |   1 +
+ ffi/audit/build_audit.sh     |  51 ++++
+ ffi/audit/contract.c         | 275 +++++++++++++++++
+ ffi/audit/init_race.sh       |  14 +
+ ffi/audit/oom.c              |  34 +++
+ ffi/audit/regress.sh         |  22 ++
+ ffi/audit/run_contract.sh    |  24 ++
+ ffi/audit/stress.c           | 139 +++++++++
+ ffi/go-example/audit_test.go | 563 +++++++++++++++++++++++++++++++++++
+ 9 files changed, 1123 insertions(+)
+ create mode 100644 ffi/audit/.gitignore
+ create mode 100755 ffi/audit/build_audit.sh
+ create mode 100644 ffi/audit/contract.c
+ create mode 100755 ffi/audit/init_race.sh
+ create mode 100644 ffi/audit/oom.c
+ create mode 100755 ffi/audit/regress.sh
+ create mode 100755 ffi/audit/run_contract.sh
+ create mode 100644 ffi/audit/stress.c
+ create mode 100644 ffi/go-example/audit_test.go
+
+diff --git a/ffi/audit/.gitignore b/ffi/audit/.gitignore
+new file mode 100644
+index 0000000..89f9ac0
+--- /dev/null
++++ b/ffi/audit/.gitignore
+@@ -0,0 +1 @@
++out/
+diff --git a/ffi/audit/build_audit.sh b/ffi/audit/build_audit.sh
+new file mode 100755
+index 0000000..8e4e3ed
+--- /dev/null
++++ b/ffi/audit/build_audit.sh
+@@ -0,0 +1,51 @@
++#!/usr/bin/env bash
++# Адаптированная сборка libfigram.a для тулчейна Lean, собранного из исходников
++# gcc/libstdc++ (в префиксе нет libc++.a, libc++abi.a, libuv.a, libgmp.a):
++# рантайм C++ — системный libstdc++, libuv и gmp — системные статические .a.
++# Затем собирает аудит-тесты ffi/audit в вариантах plain, asan (ASan+UBSan), tsan.
++#   ffi/audit/build_audit.sh [OUT]   (по умолчанию ffi/audit/out)
++set -euo pipefail
++cd "$(dirname "$0")/../.."
++OUT=${1:-ffi/audit/out}
++lake build Figram FigramApi:static
++P=$(lean --print-prefix)
++O=.lake/build/ir/Figram
++MODS="Core Chart Compile Lint Format FormatIO Engine Api"
++OBJS=""; for m in $MODS; do OBJS="$OBJS $O/$m.c.o.export"; done
++mkdir -p "$OUT/lean"
++leanc -c -o "$OUT/figram_ffi.o" ffi/figram_ffi.c
++rm -f "$OUT/libfigram.a"
++ar rcs "$OUT/libfigram.a" "$OUT/figram_ffi.o" $OBJS
++cp "$P/lib/lean/libInit.a" "$P/lib/lean/libleanrt.a" "$OUT/lean/"
++SYS=/usr/lib/x86_64-linux-gnu
++cp "$SYS/libuv.a" "$SYS/libgmp.a" "$OUT/lean/"
++LIBS="-L$OUT -l:libfigram.a -L$OUT/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lstdc++ -luv -lgmp -Wl,-Bdynamic -lm -ldl -lpthread -lrt"
++echo "$LIBS" > "$OUT/LDFLAGS"
++# Для cgo: в ffi/go-example зашиты -lc++ -lc++abi из ../out/lean; при сборке Go
++# этим скриптом ffi/out — ссылка на OUT, а libc++.a/libc++abi.a — копии libstdc++.a/libsupc++.a.
++GCC_LIB=$(dirname "$(gcc -print-file-name=libstdc++.a)")
++cp "$GCC_LIB/libstdc++.a" "$OUT/lean/libc++.a"
++cp "$GCC_LIB/libsupc++.a" "$OUT/lean/libc++abi.a"
++
++A=ffi/audit
++CF="-g -O1 -I$P/include -pthread"
++gcc $CF -o "$OUT/contract" $A/contract.c $LIBS
++gcc $CF -Wl,--wrap=malloc -o "$OUT/oom" $A/oom.c $LIBS
++gcc $CF -o "$OUT/stress" $A/stress.c $LIBS
++gcc -O1 -o "$OUT/harness_plain" ffi/c_harness.c ffi/c_harness_io.c $LIBS
++# ASan+UBSan, как verify.sh: прослойка и тесты инструментированы, модули Lean — нет.
++SAN="-fsanitize=address,undefined -fno-omit-frame-pointer"
++gcc -c -g $SAN -I"$P/include" -o "$OUT/ffi_asan.o" ffi/figram_ffi.c
++LIBS_NOFFI="-L$OUT/lean $OBJS -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lstdc++ -luv -lgmp -Wl,-Bdynamic -lm -ldl -lpthread -lrt"
++for t in contract stress; do gcc $CF $SAN -o "$OUT/${t}_asan" $A/$t.c "$OUT/ffi_asan.o" $LIBS_NOFFI; done
++gcc -g $SAN -o "$OUT/harness_asan" ffi/c_harness.c ffi/c_harness_io.c "$OUT/ffi_asan.o" $LIBS_NOFFI
++# TSan: прослойка, тесты И сгенерированный C модулей Figram инструментированы
++# (подсчёт ссылок lean.h инлайнится в них); рантайм Lean и Init — нет.
++TS="-fsanitize=thread -g -O1"
++mkdir -p "$OUT/tsan"
++for m in $MODS; do gcc -c $TS -I"$P/include" -fwrapv -DNDEBUG -o "$OUT/tsan/$m.o" $O/$m.c; done
++gcc -c $TS -I"$P/include" -o "$OUT/tsan/ffi.o" ffi/figram_ffi.c
++TSOBJS=""; for m in $MODS; do TSOBJS="$TSOBJS $OUT/tsan/$m.o"; done
++TLIBS="$OUT/tsan/ffi.o $TSOBJS -L$OUT/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lstdc++ -luv -lgmp -Wl,-Bdynamic -lm -ldl -lpthread -lrt"
++for t in contract stress; do gcc $CF $TS -o "$OUT/${t}_tsan" $A/$t.c $TLIBS; done
++echo "готово: $OUT"
+diff --git a/ffi/audit/contract.c b/ffi/audit/contract.c
+new file mode 100644
+index 0000000..008b0a3
+--- /dev/null
++++ b/ffi/audit/contract.c
+@@ -0,0 +1,275 @@
++// Аудит C-ABI figram_ffi.c: граничные случаи контракта.
++// Каждый подтест — отдельный запуск процесса: ./contract <подтест> [аргументы].
++// Аварийные подтесты (NULL, вызов до init, двойная выгрузка) ожидаемо падают;
++// их результат (код выхода / сигнал) фиксирует вызывающий скрипт.
++#define _GNU_SOURCE
++#include <pthread.h>
++#include <signal.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <dirent.h>
++
++int figram_init(void);
++char* figram_check_json(const char*);
++char* figram_fmt_json(const char*);
++void* figram_load_doc(const char*);
++char* figram_request_json(void*, const char*);
++void figram_unload(void*);
++void figram_free(char*);
++
++static const char* REQ =
++    "{\"id\":7,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\"},\"event\":\"btn:order\"}";
++static const char* HELLO = "{\"id\":1,\"op\":\"hello\"}";
++
++static char* read_all(const char* path) {
++  FILE* f = fopen(path, "rb");
++  if (!f) { perror(path); exit(2); }
++  fseek(f, 0, SEEK_END); long n = ftell(f); fseek(f, 0, SEEK_SET);
++  char* b = malloc(n + 1);
++  if (fread(b, 1, n, f) != (size_t)n) exit(2);
++  b[n] = 0; fclose(f); return b;
++}
++
++static long status_kb(const char* key) {
++  FILE* f = fopen("/proc/self/status", "r");
++  char line[256]; long v = -1; size_t kl = strlen(key);
++  while (f && fgets(line, sizeof line, f))
++    if (!strncmp(line, key, kl) && line[kl] == ':') { v = atol(line + kl + 1); break; }
++  if (f) fclose(f);
++  return v;
++}
++
++static int n_threads(void) {
++  DIR* d = opendir("/proc/self/task"); int n = 0; struct dirent* e;
++  while (d && (e = readdir(d))) if (e->d_name[0] != '.') n++;
++  if (d) closedir(d);
++  return n;
++}
++
++/* ---------- init ---------- */
++
++static int t_init_twice(void) {
++  int a = figram_init(), b = figram_init();
++  char* r = figram_check_json("{}");
++  printf("init1=%d init2=%d check={}→%s\n", a, b, r);
++  figram_free(r);
++  return a || b;
++}
++
++static pthread_barrier_t bar;
++static const char* g_doc;
++static void* init_worker(void* arg) {
++  pthread_barrier_wait(&bar);
++  long rc = figram_init();
++  void* m = figram_load_doc(g_doc);
++  char* r = m ? figram_request_json(m, HELLO) : NULL;
++  long ok = rc == 0 && m && r && strstr(r, "\"protocol\":1");
++  if (r) figram_free(r);
++  if (m) figram_unload(m);
++  return (void*)ok;
++}
++/* Два потока одновременно вызывают figram_init и сразу работают с автоматом. */
++static int t_init_race(const char* path) {
++  g_doc = read_all(path);
++  pthread_t a, b;
++  pthread_barrier_init(&bar, NULL, 2);
++  pthread_create(&a, NULL, init_worker, NULL);
++  pthread_create(&b, NULL, init_worker, NULL);
++  void *ra, *rb;
++  pthread_join(a, &ra); pthread_join(b, &rb);
++  printf("init_race: thread A ok=%ld, thread B ok=%ld\n", (long)ra, (long)rb);
++  return !(ra && rb);
++}
++
++/* ---------- до init ---------- */
++
++static int t_before_init(const char* what, const char* path) {
++  fprintf(stderr, "calling %s before figram_init\n", what);
++  if (!strcmp(what, "check")) { char* r = figram_check_json("{}"); printf("check → %s\n", r); }
++  else if (!strcmp(what, "fmt")) { char* r = figram_fmt_json("{}"); printf("fmt → %s\n", r); }
++  else if (!strcmp(what, "load")) {
++    void* m = figram_load_doc(read_all(path));
++    printf("load → %p\n", m);
++    if (m) { char* r = figram_request_json(m, HELLO); printf("request → %s\n", r); }
++  }
++  return 0;
++}
++
++/* ---------- NULL ---------- */
++
++static int t_null(const char* what, const char* path) {
++  figram_init();
++  void* m = figram_load_doc(read_all(path));
++  fprintf(stderr, "NULL case %s\n", what);
++  if (!strcmp(what, "check")) figram_check_json(NULL);
++  else if (!strcmp(what, "fmt")) figram_fmt_json(NULL);
++  else if (!strcmp(what, "load")) figram_load_doc(NULL);
++  else if (!strcmp(what, "line")) figram_request_json(m, NULL);
++  else if (!strcmp(what, "handle")) figram_request_json(NULL, HELLO);
++  else if (!strcmp(what, "unload")) figram_unload(NULL);
++  else if (!strcmp(what, "free")) figram_free(NULL);
++  /* Типичный код C: загрузка не удалась, выгрузка без проверки. */
++  else if (!strcmp(what, "unload_failed_load")) figram_unload(figram_load_doc("{\"figram\":1}"));
++  printf("NULL case %s: returned normally\n", what);
++  return 0;
++}
++
++/* ---------- время жизни ---------- */
++
++/* Двойная выгрузка. Затем продолжаем работать, чтобы порча кучи проявилась. */
++static int t_unload_twice(const char* path) {
++  figram_init();
++  char* doc = read_all(path);
++  void* m = figram_load_doc(doc);
++  char* want = figram_request_json(m, REQ);
++  figram_unload(m);
++  figram_unload(m);
++  printf("double unload: returned normally\n");
++  long bad = 0;
++  for (int i = 0; i < 2000; i++) {
++    void* k = figram_load_doc(doc);
++    char* r = figram_request_json(k, REQ);
++    if (strcmp(r, want)) bad++;
++    figram_free(r); figram_unload(k);
++  }
++  printf("after double unload: 2000 load/request/unload, mismatches %ld\n", bad);
++  return 0;
++}
++
++/* Запрос к выгруженному автомату: память переиспользована другим документом. */
++static int t_use_after_unload(const char* path, const char* other) {
++  figram_init();
++  void* m = figram_load_doc(read_all(path));
++  char* before = figram_request_json(m, HELLO);
++  figram_unload(m);
++  void* k = other ? figram_load_doc(read_all(other)) : NULL;
++  char* after = figram_request_json(m, HELLO);  /* UAF */
++  printf("use after unload: before=%s\n                  after =%s\n", before, after);
++  printf("use after unload: %s\n", strcmp(before, after) ? "ANSWER CHANGED" : "same answer");
++  (void)k;
++  return 0;
++}
++
++/* ---------- потоки ---------- */
++
++static int leak_ctl = 0;  /* контроль чувствительности: каждый поток теряет 64 КБ */
++void* volatile leak_sink;
++static void* one_call(void* arg) {
++  void* m = arg;
++  if (leak_ctl) { char* p = malloc(64 << 10); memset(p, 1, 64 << 10); leak_sink = p; }
++  char* r = figram_request_json(m, REQ);
++  long ok = strstr(r, "\"snapshot\"") != NULL;
++  figram_free(r);
++  return (void*)ok;
++}
++/* N короткоживущих потоков, каждый делает один вызов: рост RSS/VmSize. */
++static int t_threads(const char* path, int n) {
++  figram_init();
++  leak_ctl = getenv("FIGRAM_THREADS_LEAK") != NULL;
++  void* m = figram_load_doc(read_all(path));
++  for (int i = 0; i < 50; i++) { pthread_t t; pthread_create(&t, NULL, one_call, m); pthread_join(t, NULL); }
++  long rss0 = status_kb("VmRSS"), vm0 = status_kb("VmSize");
++  long ok = 0;
++  for (int i = 0; i < n; i++) {
++    pthread_t t; void* r;
++    if (pthread_create(&t, NULL, one_call, m)) { printf("pthread_create failed at %d\n", i); return 1; }
++    pthread_join(t, &r); ok += (long)r;
++  }
++  long rss1 = status_kb("VmRSS"), vm1 = status_kb("VmSize");
++  printf("threads=%d ok=%ld RSS %ld→%ld KB (Δ%ld), VmSize %ld→%ld KB (Δ%ld), live threads %d\n",
++         n, ok, rss0, rss1, rss1 - rss0, vm0, vm1, vm1 - vm0, n_threads());
++  figram_unload(m);
++  return ok != n;
++}
++
++/* ---------- побочные эффекты figram_init для процесса-хоста ---------- */
++
++static void report_env(const char* when) {
++  struct sigaction sp; sigaction(SIGPIPE, NULL, &sp);
++  struct sigaction ss; sigaction(SIGSEGV, NULL, &ss);
++  stack_t st; sigaltstack(NULL, &st);
++  printf("%-11s threads=%d VmSize=%ld KB SIGPIPE=%s SIGSEGV=%s sigaltstack=%s size=%zu\n", when,
++         n_threads(), status_kb("VmSize"),
++         sp.sa_handler == SIG_IGN ? "SIG_IGN" : sp.sa_handler == SIG_DFL ? "SIG_DFL" : "handler",
++         ss.sa_handler == SIG_DFL ? "SIG_DFL" : "handler",
++         (st.ss_flags & SS_DISABLE) ? "disabled" : "enabled", (size_t)st.ss_size);
++}
++static int t_side_effects(void) {
++  report_env("before init");
++  if (figram_init()) return 1;
++  report_env("after init");
++  return 0;
++}
++
++/* ---------- входные строки ---------- */
++
++/* Встроенный NUL: lean_mk_string обрезает по strlen. */
++static int t_nul(const char* path) {
++  figram_init();
++  char* doc = read_all(path);
++  size_t n = strlen(doc);
++  char* glued = malloc(n + 32);
++  memcpy(glued, doc, n);
++  memcpy(glued + n, "\0garbage{{{", 12);
++  /* Для C это та же строка: обрезка неизбежна, но длина не передаётся вовсе. */
++  void* m = figram_load_doc(glued);
++  printf("load(doc + NUL + garbage) → %s\n", m ? "LOADED (garbage after NUL ignored)" : "rejected");
++  char* r = figram_check_json("{\"figram\":1}\0{\"bad\"");
++  printf("check(\"{\\\"figram\\\":1}\\0...\") → %s\n", r);
++  figram_free(r);
++  /* Ответ с NUL: экранированный \u0000 в ключе попадает в текст ошибки сырым байтом. */
++  const char* dup_key = "{\"figram\":1,\"a\\u0000b\":1,\"a\\u0000b\":2}";
++  r = figram_check_json(dup_key);
++  printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
++  size_t k = strlen(r);
++  printf("  bytes after first NUL: %s\n", r[k + 1] ? r + k + 1 : "(none)");
++  figram_free(r);
++  if (m) figram_unload(m);
++  return 0;
++}
++
++/* Невалидный UTF-8: lean_mk_string заменяет на U+FFFD; сравните с figram-engine. */
++static int t_utf8(const char* path) {
++  figram_init();
++  void* m = figram_load_doc(read_all(path));
++  const char* reqs[] = {
++    "{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\"},\"event\":\"btn:order\xff\"}",
++    "{\"id\":2,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\xc3\"},\"event\":\"btn:order\"}",
++    "{\"id\":3,\"op\":\"hello\"}\xff",
++    "{\"id\":4,\"op\":\"hel\xedlo\"}",
++  };
++  for (unsigned i = 0; i < sizeof reqs / sizeof *reqs; i++) {
++    char* r = figram_request_json(m, reqs[i]);
++    printf("utf8 req %u → %s\n", i + 1, r);
++    figram_free(r);
++  }
++  figram_unload(m);
++  return 0;
++}
++
++static int usage(void) {
++  fprintf(stderr, "usage: contract init_twice | init_race DOC | before_init check|fmt|load DOC |\n"
++                  "  null check|fmt|load|line|handle|unload|free|unload_failed_load DOC |\n"
++                  "  unload_twice DOC | use_after_unload DOC [OTHER] | threads DOC N |\n"
++                  "  side_effects | nul DOC | utf8 DOC\n");
++  return 2;
++}
++
++int main(int argc, char** argv) {
++  setvbuf(stdout, NULL, _IONBF, 0);
++  if (argc < 2) return usage();
++  const char* t = argv[1];
++  if (!strcmp(t, "init_twice")) return t_init_twice();
++  if (!strcmp(t, "init_race") && argc > 2) return t_init_race(argv[2]);
++  if (!strcmp(t, "before_init") && argc > 3) return t_before_init(argv[2], argv[3]);
++  if (!strcmp(t, "null") && argc > 3) return t_null(argv[2], argv[3]);
++  if (!strcmp(t, "unload_twice") && argc > 2) return t_unload_twice(argv[2]);
++  if (!strcmp(t, "use_after_unload") && argc > 2) return t_use_after_unload(argv[2], argc > 3 ? argv[3] : NULL);
++  if (!strcmp(t, "threads") && argc > 3) return t_threads(argv[2], atoi(argv[3]));
++  if (!strcmp(t, "side_effects")) return t_side_effects();
++  if (!strcmp(t, "nul") && argc > 2) return t_nul(argv[2]);
++  if (!strcmp(t, "utf8") && argc > 2) return t_utf8(argv[2]);
++  return usage();
++}
+diff --git a/ffi/audit/init_race.sh b/ffi/audit/init_race.sh
+new file mode 100755
+index 0000000..940228f
+--- /dev/null
++++ b/ffi/audit/init_race.sh
+@@ -0,0 +1,14 @@
++#!/usr/bin/env bash
++# Регрессионный тест: одновременный figram_init из двух потоков, N свежих процессов.
++#   ffi/audit/init_race.sh BIN N   — код 0, только если все N процессов успешны.
++cd "$(dirname "$0")/../.."
++BIN=${1:-ffi/audit/out/contract}; N=${2:-200}
++declare -A codes; fail=0
++for i in $(seq 1 "$N"); do
++  timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1; rc=$?
++  codes[$rc]=$(( ${codes[$rc]:-0} + 1 ))
++  [ $rc -ne 0 ] && fail=$((fail+1))
++done
++printf 'init_race: %d runs, failed %d; exit codes:' "$N" "$fail"
++for k in "${!codes[@]}"; do printf ' %s×%s' "$k" "${codes[$k]}"; done; echo
++[ "$fail" -eq 0 ]
+diff --git a/ffi/audit/oom.c b/ffi/audit/oom.c
+new file mode 100644
+index 0000000..706da48
+--- /dev/null
++++ b/ffi/audit/oom.c
+@@ -0,0 +1,34 @@
++// Аудит: отказ malloc в dup() (figram_ffi.c). Собирается с -Wl,--wrap=malloc:
++// вызовы malloc из всех объектов (и libfigram.a) идут через __wrap_malloc,
++// который один раз отказывает на запросе ровно заданного размера.
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++int figram_init(void);
++char* figram_check_json(const char*);
++void figram_free(char*);
++
++void* __real_malloc(size_t);
++static size_t fail_size = 0;
++static int failed = 0;
++void* __wrap_malloc(size_t n) {
++  if (fail_size && n == fail_size) { fail_size = 0; failed = 1; return NULL; }
++  return __real_malloc(n);
++}
++
++int main(void) {
++  setvbuf(stdout, NULL, _IONBF, 0);
++  if (figram_init()) return 1;
++  char* r = figram_check_json("{}");
++  size_t n = strlen(r);
++  printf("baseline: check({}) → %zu bytes: %s\n", n, r);
++  figram_free(r);
++  fail_size = n + 1;  /* ровно размер буфера dup() */
++  r = figram_check_json("{}");
++  printf("with malloc(%zu) failing (injected=%d): returned %p\n", n + 1, failed, (void*)r);
++  if (r == NULL) { printf("controlled: NULL returned\n"); return 0; }
++  printf("result: %s\n", r);
++  figram_free(r);
++  return failed ? 3 : 0;
++}
+diff --git a/ffi/audit/regress.sh b/ffi/audit/regress.sh
+new file mode 100755
+index 0000000..ecf6e73
+--- /dev/null
++++ b/ffi/audit/regress.sh
+@@ -0,0 +1,22 @@
++#!/usr/bin/env bash
++# Регрессионные тесты находок ffi-go (C-уровень). Код 0 — все исправлены.
++#   ffi/audit/regress.sh [BIN_DIR]   (сначала ffi/audit/build_audit.sh)
++set -u
++cd "$(dirname "$0")/../.."
++B=${1:-ffi/audit/out}; D=examples/pizza.bot.json; fail=0
++check() {  # имя ожидаемый_код команда…
++  local name=$1 want=$2; shift 2
++  out=$(timeout 60 "$@" 2>&1); rc=$?
++  if [ "$rc" -eq "$want" ]; then echo "PASS $name (rc=$rc)"; else echo "FAIL $name: rc=$rc, want $want"; printf '%s\n' "$out" | tail -3 | sed 's/^/    /'; fail=1; fi
++}
++# FFI-01: одновременный figram_init из двух потоков (300 свежих процессов).
++check "FFI-01 concurrent figram_init" 0 ffi/audit/init_race.sh "$B/contract" 300
++# FFI-05: отказ malloc в dup() — NULL вместо SIGSEGV.
++check "FFI-05 malloc failure in dup" 0 "$B/oom"
++# FFI-06: figram_unload(NULL) — как free(NULL); в т.ч. после неудачной загрузки.
++check "FFI-06 figram_unload(NULL)" 0 "$B/contract" null unload $D
++check "FFI-06 unload(failed load)" 0 "$B/contract" null unload_failed_load $D
++# Не регрессировало: основная обвязка и нагрузка с выгрузкой других автоматов.
++check "harness 16x20000 + reload" 0 "$B/harness_plain" $D memory
++check "stress 16x20000 + 4 loaders" 0 "$B/stress" $D 16 20000 4
++exit $fail
+diff --git a/ffi/audit/run_contract.sh b/ffi/audit/run_contract.sh
+new file mode 100755
+index 0000000..c09e993
+--- /dev/null
++++ b/ffi/audit/run_contract.sh
+@@ -0,0 +1,24 @@
++#!/usr/bin/env bash
++# Прогон подтестов contract (каждый в своём процессе) с фиксацией кода выхода/сигнала.
++#   ffi/audit/run_contract.sh BIN_DIR [suffix]   (suffix: "" | _asan | _tsan)
++set -u
++cd "$(dirname "$0")/../.."
++B=${1:-ffi/audit/out}; S=${2:-}
++D=examples/pizza.bot.json; D2=examples/features.bot.json
++C="$B/contract$S"
++run() {
++  local name=$1; shift
++  out=$(ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=print_stacktrace=1 timeout 60 "$@" 2>&1); rc=$?
++  sig=""; [ $rc -gt 128 ] && sig=" (signal $((rc-128)))"
++  printf '=== %-34s rc=%d%s\n' "$name" $rc "$sig"
++  printf '%s\n' "$out" | grep -v '^\s*$' | head -${LINES_SHOWN:-12} | sed 's/^/    /'
++}
++run init_twice            $C init_twice
++run side_effects          $C side_effects
++for w in check fmt load; do run "before_init $w" $C before_init $w $D; done
++for w in check fmt load line handle unload free unload_failed_load; do run "null $w" $C null $w $D; done
++run unload_twice          $C unload_twice $D
++run use_after_unload      $C use_after_unload $D $D2
++run nul                   $C nul $D
++run utf8                  $C utf8 $D
++run "threads 1000"        $C threads $D 1000
+diff --git a/ffi/audit/stress.c b/ffi/audit/stress.c
+new file mode 100644
+index 0000000..78368c8
+--- /dev/null
++++ b/ffi/audit/stress.c
+@@ -0,0 +1,139 @@
++// Аудит C-ABI: T потоков × N запросов к ОДНОМУ автомату одновременно с потоками,
++// которые загружают, опрашивают и выгружают ДРУГИЕ автоматы (и вызывают check/fmt).
++// Каждый ответ сверяется с эталоном, вычисленным заранее в одном потоке.
++//   ./stress DOC T N L        — проверка (для ASan/UBSan/TSan/valgrind)
++//   ./stress bench DOC T N shared|separate — пропускная способность
++#define _GNU_SOURCE
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++#include <stdatomic.h>
++
++int figram_init(void);
++char* figram_check_json(const char*);
++char* figram_fmt_json(const char*);
++void* figram_load_doc(const char*);
++char* figram_request_json(void*, const char*);
++void figram_unload(void*);
++void figram_free(char*);
++
++static const char* REQS[] = {
++  "{\"id\":1,\"op\":\"hello\"}",
++  "{\"id\":2,\"op\":\"start\"}",
++  "{\"id\":3,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\"},\"event\":\"btn:order\"}",
++  "{\"id\":4,\"op\":\"step\",\"snapshot\":{\"at\":\"cart\"},\"event\":\"btn:checkout\"}",
++  "{\"id\":5,\"op\":\"step\",\"snapshot\":{\"at\":\"cart\"},\"event\":\"btn:checkout\",\"guards\":{\"cart_not_empty\":true}}",
++  "{\"id\":6,\"op\":\"restart\",\"snapshot\":{\"at\":\"cart\",\"seq\":5}}",
++  "{\"id\":7,\"op\":\"step\",\"snapshot\":{\"at\":\"gone\"},\"event\":\"x\"}",
++  "{\"id\":8,\"op\":\"nope\"}",
++  "[1,2,3]",
++  "{\"id\":9",
++};
++#define NREQ (sizeof REQS / sizeof *REQS)
++static char* want[NREQ];
++static char* doc;
++static char* want_check;
++static char* want_fmt;
++static void* bot;
++static int N;
++static atomic_int stop;
++static atomic_long other_cycles;
++
++static char* read_all(const char* path) {
++  FILE* f = fopen(path, "rb");
++  if (!f) { perror(path); exit(2); }
++  fseek(f, 0, SEEK_END); long n = ftell(f); fseek(f, 0, SEEK_SET);
++  char* b = malloc(n + 1);
++  if (fread(b, 1, n, f) != (size_t)n) exit(2);
++  b[n] = 0; fclose(f); return b;
++}
++
++static void* user(void* arg) {
++  long bad = 0, seed = (long)arg;
++  for (int i = 0; i < N; i++) {
++    unsigned k = (unsigned)(seed * 7 + i) % NREQ;
++    char* r = figram_request_json(bot, REQS[k]);
++    if (strcmp(r, want[k])) { if (!bad) fprintf(stderr, "MISMATCH req %u: %s\n", k, r); bad++; }
++    figram_free(r);
++  }
++  return (void*)bad;
++}
++
++static void* other(void* arg) {
++  long bad = 0;
++  (void)arg;
++  while (!atomic_load(&stop)) {
++    void* m = figram_load_doc(doc);
++    if (!m) { bad++; continue; }
++    for (unsigned k = 0; k < NREQ; k++) {
++      char* r = figram_request_json(m, REQS[k]);
++      if (strcmp(r, want[k])) bad++;
++      figram_free(r);
++    }
++    figram_unload(m);
++    char* c = figram_check_json(doc); if (strcmp(c, want_check)) bad++; figram_free(c);
++    char* f = figram_fmt_json(doc); if (strcmp(f, want_fmt)) bad++; figram_free(f);
++    atomic_fetch_add(&other_cycles, 1);
++  }
++  return (void*)bad;
++}
++
++static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + t.tv_nsec / 1e9; }
++
++static void* bench_worker(void* arg) {
++  void* m = arg ? arg : bot;
++  for (int i = 0; i < N; i++) figram_free(figram_request_json(m, REQS[2]));
++  return NULL;
++}
++
++static int bench(const char* path, int T, int n, int separate) {
++  doc = read_all(path); N = n;
++  bot = figram_load_doc(doc);
++  void* own[256];
++  for (int i = 0; i < T; i++) own[i] = separate ? figram_load_doc(doc) : NULL;
++  pthread_t th[256];
++  double t0 = now();
++  for (int i = 0; i < T; i++) pthread_create(&th[i], NULL, bench_worker, own[i]);
++  for (int i = 0; i < T; i++) pthread_join(th[i], NULL);
++  double el = now() - t0;
++  printf("bench threads=%d mode=%s requests=%ld time=%.3fs rate=%.0f req/s\n", T,
++         separate ? "separate" : "shared", (long)T * n, el, T * (double)n / el);
++  return 0;
++}
++
++int main(int argc, char** argv) {
++  setvbuf(stdout, NULL, _IONBF, 0);
++  if (figram_init()) return 1;
++  if (argc == 6 && !strcmp(argv[1], "bench"))
++    return bench(argv[2], atoi(argv[3]), atoi(argv[4]), !strcmp(argv[5], "separate"));
++  if (argc != 5) { fprintf(stderr, "usage: stress DOC T N L | bench DOC T N shared|separate\n"); return 2; }
++  doc = read_all(argv[1]);
++  int T = atoi(argv[2]), L = atoi(argv[4]);
++  N = atoi(argv[3]);
++  if (T < 1 || T > 256 || N < 1 || L < 0 || L > 64) return 2;
++  bot = figram_load_doc(doc);
++  if (!bot) { printf("doc not loaded\n"); return 1; }
++  for (unsigned k = 0; k < NREQ; k++) want[k] = figram_request_json(bot, REQS[k]);
++  /* Самопроверка чувствительности: испорченный эталон обязан дать расхождения. */
++  if (getenv("FIGRAM_STRESS_SELFTEST")) want[2][2] = 'X';
++  want_check = figram_check_json(doc);
++  want_fmt = figram_fmt_json(doc);
++  pthread_t th[256], ot[64];
++  for (int i = 0; i < L; i++) pthread_create(&ot[i], NULL, other, NULL);
++  for (int i = 0; i < T; i++) pthread_create(&th[i], NULL, user, (void*)(long)i);
++  long bad = 0, obad = 0;
++  for (int i = 0; i < T; i++) { void* b; pthread_join(th[i], &b); bad += (long)b; }
++  atomic_store(&stop, 1);
++  for (int i = 0; i < L; i++) { void* b; pthread_join(ot[i], &b); obad += (long)b; }
++  long total = (long)T * N;
++  printf("shared handle: %d threads x %d = %ld requests, mismatches %ld; "
++         "%d loader threads: %ld load/10 req/unload/check/fmt cycles, mismatches %ld\n",
++         T, N, total, bad, L, atomic_load(&other_cycles), obad);
++  for (unsigned k = 0; k < NREQ; k++) figram_free(want[k]);
++  figram_free(want_check); figram_free(want_fmt);
++  figram_unload(bot);
++  if (total == 0 || (L > 0 && atomic_load(&other_cycles) == 0)) { printf("NOTHING CHECKED\n"); return 1; }
++  return bad || obad;
++}
+diff --git a/ffi/go-example/audit_test.go b/ffi/go-example/audit_test.go
+new file mode 100644
+index 0000000..8a5fa79
+--- /dev/null
++++ b/ffi/go-example/audit_test.go
+@@ -0,0 +1,563 @@
++package main
++
++// Аудит обёртки Bot (ffi-go): Close против потока Request, неверный op,
++// NUL в строках, большие запросы, масштабирование и длительная нагрузка.
++// Длительные тесты включаются переменными окружения:
++//   FIGRAM_SCALING=секунд_на_замер  FIGRAM_SOAK=секунд  FIGRAM_SIGNALS=секунд
++
++import (
++	"encoding/json"
++	"fmt"
++	"os"
++	"os/exec"
++	"runtime"
++	"runtime/pprof"
++	"strconv"
++	"strings"
++	"sync"
++	"sync/atomic"
++	"testing"
++	"time"
++)
++
++func auditDoc(t testing.TB) string {
++	doc, err := os.ReadFile("../../examples/pizza.bot.json")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if initFigram() != 0 {
++		t.Fatal("init")
++	}
++	return string(doc)
++}
++
++var stepReq = map[string]any{"op": "step", "snapshot": map[string]any{"at": "menu"}, "event": "btn:order"}
++
++// Close из нескольких горутин посреди потока Request: ни паники, ни гонки,
++// до Close — корректные ответы, после — только ошибка «автомат освобождён».
++func TestAuditCloseRequestStorm(t *testing.T) {
++	doc := auditDoc(t)
++	var ok, closed, other atomic.Int64
++	for round := 0; round < 100; round++ {
++		bot, err := Load(doc)
++		if err != nil {
++			t.Fatal(err)
++		}
++		var wg sync.WaitGroup
++		stop := make(chan struct{})
++		for g := 0; g < 16; g++ {
++			wg.Add(1)
++			go func() {
++				defer wg.Done()
++				for {
++					select {
++					case <-stop:
++						return
++					default:
++					}
++					_, v, err := bot.Request(stepReq)
++					switch {
++					case err == nil && v == "result":
++						ok.Add(1)
++					case err != nil && err.Error() == "автомат освобождён":
++						closed.Add(1)
++					default:
++						other.Add(1)
++						t.Errorf("unexpected: %v %v", v, err)
++					}
++				}
++			}()
++		}
++		time.Sleep(2 * time.Millisecond)
++		var cw sync.WaitGroup
++		for c := 0; c < 4; c++ {
++			cw.Add(1)
++			go func() { defer cw.Done(); bot.Close() }()
++		}
++		cw.Wait()
++		time.Sleep(time.Millisecond)
++		close(stop)
++		wg.Wait()
++		if _, _, err := bot.Request(stepReq); err == nil {
++			t.Fatal("request after Close accepted")
++		}
++	}
++	t.Logf("100 rounds × 16 goroutines: ok=%d after-close errors=%d other=%d", ok.Load(), closed.Load(), other.Load())
++	if ok.Load() == 0 || closed.Load() == 0 {
++		t.Fatalf("storm did not exercise both sides: ok=%d closed=%d", ok.Load(), closed.Load())
++	}
++}
++
++func requestNoPanic(b *Bot, req map[string]any) (resp map[string]any, v string, err error, p any) {
++	defer func() { p = recover() }()
++	resp, v, err = b.Request(req)
++	return
++}
++
++// Request({"op":"hello"}) на ОТКРЫТОМ автомате: проверка в main.go «запрос после
++// Close не отвергнут» использует именно hello и потому не может покраснеть.
++func TestAuditHelloAlwaysError(t *testing.T) {
++	bot, err := Load(auditDoc(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	resp, v, err := bot.Request(map[string]any{"op": "hello"})
++	t.Logf("open bot, hello → resp=%v variant=%q err=%v", resp, v, err)
++	if err != nil {
++		t.Errorf("hello on an open bot returns an error, so main.go's post-Close check is vacuous: %v", err)
++	}
++}
++
++// Request без op или с op не-строкой: движок отвечает error, обёртка не должна паниковать.
++func TestAuditRequestBadOp(t *testing.T) {
++	bot, err := Load(auditDoc(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	for _, req := range []map[string]any{{}, {"op": 1}, {"op": nil}, {"op": []any{"step"}}} {
++		resp, v, err, p := requestNoPanic(bot, req)
++		if p != nil {
++			t.Errorf("Request(%v) panicked: %v", req, p)
++			continue
++		}
++		if err != nil || v != "error" {
++			t.Errorf("Request(%v) = %v %q %v, want error variant", req, resp, v, err)
++		}
++	}
++	// После паники (если была) RWMutex не должен остаться захваченным.
++	done := make(chan struct{})
++	go func() { bot.Close(); close(done) }()
++	select {
++	case <-done:
++	case <-time.After(5 * time.Second):
++		t.Fatal("Close deadlocked after Request panic")
++	}
++}
++
++// Документ с NUL посередине: C.CString передаёт строку, а strlen в
++// lean_mk_string обрезает её — хвост молча игнорируется. CLI тот же текст отвергает.
++func TestAuditLoadNUL(t *testing.T) {
++	doc := auditDoc(t)
++	glued := doc + "\x00{\"this is\": garbage"
++	if b, err := Load(glued); err == nil {
++		b.Close()
++		t.Errorf("Load accepted a document with NUL and trailing garbage (%d bytes, %d after NUL)",
++			len(glued), len(glued)-len(doc)-1)
++	}
++	// Тот же текст через CLI (если собран) — для сравнения.
++	if cli := os.Getenv("FIGRAM_CLI"); cli != "" {
++		f := t.TempDir() + "/nul.json"
++		os.WriteFile(f, []byte(glued), 0o644)
++		out, err := exec.Command(cli, "check", f).CombinedOutput()
++		t.Logf("CLI %s check on the same bytes: err=%v out=%.120s", cli, err, out)
++	}
++}
++
++// NUL внутри значений запроса: json.Marshal экранирует его (\u0000), до C он не доходит.
++func TestAuditRequestNUL(t *testing.T) {
++	bot, err := Load(auditDoc(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	resp, v, err := bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": "menu\x00x"}, "event": "btn:order"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	t.Logf("NUL in snapshot.at → variant %s resp %v", v, resp)
++	resp, v, err = bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": "menu"}, "event": "btn:order\x00"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	t.Logf("NUL in event → variant %s resp %v", v, resp)
++}
++
++func rssNowKB() int64 {
++	b, _ := os.ReadFile("/proc/self/status")
++	for _, l := range strings.Split(string(b), "\n") {
++		if strings.HasPrefix(l, "VmRSS:") {
++			n, _ := strconv.ParseInt(strings.Fields(l)[1], 10, 64)
++			return n
++		}
++	}
++	return 0
++}
++
++func hwmKB() int64 {
++	b, _ := os.ReadFile("/proc/self/status")
++	for _, l := range strings.Split(string(b), "\n") {
++		if strings.HasPrefix(l, "VmHWM:") {
++			n, _ := strconv.ParseInt(strings.Fields(l)[1], 10, 64)
++			return n
++		}
++	}
++	return 0
++}
++
++// Большие запросы: длинное событие и объект guards из многих ключей.
++// Фиксируются время и пик памяти (VmHWM), ответ обязан быть корректным.
++func TestAuditLargeRequests(t *testing.T) {
++	bot, err := Load(auditDoc(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	for _, mb := range []int{1, 8, 32} {
++		ev := "btn:" + strings.Repeat("x", mb<<20)
++		h0 := hwmKB()
++		t0 := time.Now()
++		_, v, err := bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": "menu"}, "event": ev})
++		t.Logf("event %d MB: variant=%s err=%v time=%v VmHWM %d→%d MB", mb, v, err, time.Since(t0).Round(time.Millisecond), h0>>10, hwmKB()>>10)
++		if err != nil || v != "result" {
++			t.Errorf("event %d MB: %v %v", mb, v, err)
++		}
++	}
++	for _, n := range []int{1000, 4000, 16000} {
++		g := make(map[string]any, n)
++		for i := 0; i < n; i++ {
++			g[fmt.Sprintf("g%06d", i)] = true
++		}
++		t0 := time.Now()
++		_, v, err := bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": "cart"}, "event": "btn:checkout", "guards": g})
++		t.Logf("guards with %d keys: variant=%s err=%v time=%v", n, v, err, time.Since(t0).Round(time.Millisecond))
++	}
++}
++
++// Пропускная способность 1/2/4 горутин: один общий автомат против отдельного на горутину.
++func TestAuditScaling(t *testing.T) {
++	secs, _ := strconv.ParseFloat(os.Getenv("FIGRAM_SCALING"), 64)
++	if secs <= 0 {
++		t.Skip("FIGRAM_SCALING not set")
++	}
++	doc := auditDoc(t)
++	measure := func(k int, separate bool) float64 {
++		bots := make([]*Bot, k)
++		shared, _ := Load(doc)
++		for i := range bots {
++			if separate {
++				bots[i], _ = Load(doc)
++			} else {
++				bots[i] = shared
++			}
++		}
++		var n atomic.Int64
++		var wg sync.WaitGroup
++		deadline := time.Now().Add(time.Duration(secs * float64(time.Second)))
++		t0 := time.Now()
++		for i := 0; i < k; i++ {
++			wg.Add(1)
++			go func(b *Bot) {
++				defer wg.Done()
++				runtime.LockOSThread()
++				for time.Now().Before(deadline) {
++					if _, _, err := b.Request(stepReq); err != nil {
++						t.Error(err)
++						return
++					}
++					n.Add(1)
++				}
++			}(bots[i])
++		}
++		wg.Wait()
++		rate := float64(n.Load()) / time.Since(t0).Seconds()
++		shared.Close()
++		for _, b := range bots {
++			b.Close()
++		}
++		return rate
++	}
++	for rep := 0; rep < 3; rep++ {
++		for _, k := range []int{1, 2, 4} {
++			s := measure(k, false)
++			p := measure(k, true)
++			t.Logf("rep %d goroutines=%d GOMAXPROCS=%d shared=%.0f req/s separate=%.0f req/s ratio=%.2f",
++				rep, k, runtime.GOMAXPROCS(0), s, p, s/p)
++		}
++	}
++}
++
++// Длительная нагрузка: общий автомат + циклы Load/Close других; RSS каждые 10 с.
++func TestAuditSoak(t *testing.T) {
++	secs, _ := strconv.Atoi(os.Getenv("FIGRAM_SOAK"))
++	if secs <= 0 {
++		t.Skip("FIGRAM_SOAK not set")
++	}
++	doc := auditDoc(t)
++	bot, err := Load(doc)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	stop := make(chan struct{})
++	var reqs_total, cycles, bad atomic.Int64
++	noClose := os.Getenv("FIGRAM_SOAK_NOCLOSE")
++	var wg sync.WaitGroup
++	for g := 0; g < 16; g++ {
++		wg.Add(1)
++		go func(g int) {
++			defer wg.Done()
++			// «hello» не годится: checkReply считает его ответ нарушением протокола.
++			reqs := []map[string]any{stepReq, {"op": "start"},
++				{"op": "step", "snapshot": map[string]any{"at": "cart"}, "event": "btn:checkout", "guards": map[string]any{"cart_not_empty": true}}}
++			for i := 0; ; i++ {
++				select {
++				case <-stop:
++					return
++				default:
++				}
++				if _, v, err := bot.Request(reqs[(g+i)%len(reqs)]); err != nil || v != "result" {
++					bad.Add(1)
++				}
++				reqs_total.Add(1)
++			}
++		}(g)
++	}
++	for g := 0; g < 2; g++ {
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++			for {
++				select {
++				case <-stop:
++					return
++				default:
++				}
++				b, err := Load(doc)
++				if err != nil {
++					bad.Add(1)
++					continue
++				}
++				if _, v, err := b.Request(map[string]any{"op": "start"}); err != nil || v != "result" {
++					bad.Add(1)
++				}
++				if noClose == "" { // FIGRAM_SOAK_NOCLOSE=1 — контроль: утечка обязана быть замечена
++					b.Close()
++				}
++				cycles.Add(1)
++			}
++		}()
++	}
++	var samples []int64
++	start := time.Now()
++	for time.Since(start) < time.Duration(secs)*time.Second {
++		time.Sleep(10 * time.Second)
++		runtime.GC()
++		samples = append(samples, rssNowKB())
++		t.Logf("t=%3.0fs RSS=%d KB requests=%d cycles=%d bad=%d", time.Since(start).Seconds(), samples[len(samples)-1], reqs_total.Load(), cycles.Load(), bad.Load())
++	}
++	close(stop)
++	wg.Wait()
++	if len(samples) < 4 {
++		t.Fatal("too few samples")
++	}
++	warm := samples[1]
++	last := samples[len(samples)-1]
++	max := warm
++	for _, s := range samples[1:] {
++		if s > max {
++			max = s
++		}
++	}
++	t.Logf("soak %ds: load/close cycles=%d bad=%d RSS after warm-up %d KB, last %d KB, max %d KB, growth %d KB",
++		secs, cycles.Load(), bad.Load(), warm, last, max, last-warm)
++	if bad.Load() != 0 || cycles.Load() == 0 {
++		t.Fatalf("bad=%d cycles=%d", bad.Load(), cycles.Load())
++	}
++	if last-warm > 32<<10 {
++		t.Fatalf("RSS grew by %d KB after warm-up", last-warm)
++	}
++}
++
++// Сигналы: профилировщик шлёт SIGPROF всем потокам, пока горутины работают
++// внутри Lean (поток, вызвавший figram_init, получил sigaltstack от Lean).
++func TestAuditSignals(t *testing.T) {
++	secs, _ := strconv.Atoi(os.Getenv("FIGRAM_SIGNALS"))
++	if secs <= 0 {
++		t.Skip("FIGRAM_SIGNALS not set")
++	}
++	bot, err := Load(auditDoc(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	f, _ := os.Create(t.TempDir() + "/cpu.prof")
++	runtime.SetCPUProfileRate(1000)
++	if err := pprof.StartCPUProfile(f); err != nil {
++		t.Log("profile:", err)
++	}
++	var n, bad atomic.Int64
++	var wg sync.WaitGroup
++	deadline := time.Now().Add(time.Duration(secs) * time.Second)
++	for g := 0; g < 32; g++ {
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++			for time.Now().Before(deadline) {
++				if _, v, err := bot.Request(stepReq); err != nil || v != "result" {
++					bad.Add(1)
++				}
++				n.Add(1)
++				_ = make([]byte, 1024) // давление на GC
++			}
++		}()
++	}
++	wg.Wait()
++	pprof.StopCPUProfile()
++	t.Logf("signals: %d requests under SIGPROF at 1 kHz, bad=%d", n.Load(), bad.Load())
++	if bad.Load() != 0 || n.Load() == 0 {
++		t.Fatal("bad replies")
++	}
++}
++
++// Одновременный figram_init из многих потоков в свежем процессе.
++func TestAuditInitRace(t *testing.T) {
++	if os.Getenv("FIGRAM_INIT_RACE_CHILD") == "1" {
++		return
++	}
++	runs, _ := strconv.Atoi(os.Getenv("FIGRAM_INIT_RACE"))
++	if runs <= 0 {
++		t.Skip("FIGRAM_INIT_RACE not set")
++	}
++	fails := 0
++	for i := 0; i < runs; i++ {
++		cmd := exec.Command(os.Args[0], "-test.run=^$")
++		cmd.Env = append(os.Environ(), "FIGRAM_INIT_RACE_CHILD=1")
++		out, err := cmd.CombinedOutput()
++		if err != nil {
++			fails++
++			if fails <= 3 {
++				t.Logf("run %d: %v\n%.400s", i, err, out)
++			}
++		}
++	}
++	t.Logf("concurrent init: %d of %d processes failed", fails, runs)
++	if fails > 0 {
++		t.Fail()
++	}
++}
++
++// Сколько потоков ОС создаёт Go при 1000 горутинах, одновременно вызывающих C:
++// каждый поток один раз проходит lean_initialize_thread (enter_thread).
++func TestAuditThreadCount(t *testing.T) {
++	bot, err := Load(auditDoc(t))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer bot.Close()
++	tasks := func() int { e, _ := os.ReadDir("/proc/self/task"); return len(e) }
++	before := tasks()
++	var wg sync.WaitGroup
++	var bad atomic.Int64
++	maxT := 0
++	stop := make(chan struct{})
++	go func() {
++		for {
++			select {
++			case <-stop:
++				return
++			case <-time.After(5 * time.Millisecond):
++				if n := tasks(); n > maxT {
++					maxT = n
++				}
++			}
++		}
++	}()
++	for g := 0; g < 1000; g++ {
++		wg.Add(1)
++		go func() {
++			defer wg.Done()
++			for i := 0; i < 50; i++ {
++				if _, v, err := bot.Request(stepReq); err != nil || v != "result" {
++					bad.Add(1)
++				}
++			}
++		}()
++	}
++	wg.Wait()
++	close(stop)
++	t.Logf("1000 goroutines × 50 requests, GOMAXPROCS=%d: OS threads before %d, max during %d, after %d, bad %d",
++		runtime.GOMAXPROCS(0), before, maxT, tasks(), bad.Load())
++	if bad.Load() != 0 {
++		t.Fatal("bad replies")
++	}
++}
++
++// figram_init делает signal(SIGPIPE, SIG_IGN) для всего процесса-хоста. Сравниваем
++// поведение Go при записи в закрытый stdout с init и без.
++func TestAuditSIGPIPE(t *testing.T) {
++	if os.Getenv("FIGRAM_SIGPIPE_CHILD") != "" {
++		return
++	}
++	for _, mode := range []string{"noinit", "init"} {
++		cmd := exec.Command(os.Args[0], "-test.run=^$")
++		cmd.Env = append(os.Environ(), "FIGRAM_SIGPIPE_CHILD="+mode)
++		out, _ := cmd.StdoutPipe()
++		var stderr strings.Builder
++		cmd.Stderr = &stderr
++		if err := cmd.Start(); err != nil {
++			t.Fatal(err)
++		}
++		buf := make([]byte, 6)
++		out.Read(buf) // дождаться «ready\n»
++		out.Close()
++		err := cmd.Wait()
++		t.Logf("mode=%s: child exit: %v; stderr: %.200s", mode, err, stderr.String())
++	}
++}
++
++func TestMain(m *testing.M) {
++	if mode := os.Getenv("FIGRAM_SIGPIPE_CHILD"); mode != "" {
++		if mode == "init" && initFigram() != 0 {
++			os.Exit(3)
++		}
++		fmt.Println("ready")
++		time.Sleep(100 * time.Millisecond)
++		for i := 0; i < 1000; i++ {
++			if _, err := fmt.Println("line"); err != nil {
++				fmt.Fprintln(os.Stderr, "write error returned to Go:", err)
++				os.Exit(4)
++			}
++		}
++		os.Exit(0)
++	}
++	if os.Getenv("FIGRAM_INIT_RACE_CHILD") == "1" {
++		doc, _ := os.ReadFile("../../examples/pizza.bot.json")
++		var wg sync.WaitGroup
++		start := make(chan struct{})
++		var bad atomic.Int64
++		for i := 0; i < 8; i++ {
++			wg.Add(1)
++			go func() {
++				defer wg.Done()
++				runtime.LockOSThread()
++				<-start
++				if initFigram() != 0 {
++					bad.Add(1)
++					return
++				}
++				b, err := Load(string(doc))
++				if err != nil {
++					bad.Add(1)
++					return
++				}
++				if _, v, err := b.Request(map[string]any{"op": "start"}); err != nil || v != "result" {
++					bad.Add(1)
++				}
++				b.Close()
++			}()
++		}
++		time.Sleep(20 * time.Millisecond)
++		close(start)
++		wg.Wait()
++		if bad.Load() != 0 {
++			fmt.Println("init race: bad", bad.Load())
++			os.Exit(1)
++		}
++		os.Exit(0)
++	}
++	os.Exit(m.Run())
++}
++
++var _ = json.Number("")
+-- 
+2.43.0
+

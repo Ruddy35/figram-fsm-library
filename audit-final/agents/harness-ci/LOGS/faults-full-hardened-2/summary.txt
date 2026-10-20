@@ -1,0 +1,4 @@
+неисправность код ожидание последняя строка
+coverage-drop        1      1        ok НЕТ: пересобранные бинарники не совпадают с /home/user/figram-audit/agents/harness-ci/LOGS/local-SHA256SUMS
+go-missing           1      1        ok НЕТ: go не установлен: Go-часть проверки обязательна (явный пропуск — FIGRAM_WAIVE=go, код выхода 3)
+race-test-not-run    1      1        ok НЕТ: тест TestSharedRequestMap не выполнялся

@@ -1,0 +1,81 @@
+From afb380e35dd756d96ec782118d949683f732a37d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 22:15:38 +0000
+Subject: [PATCH 16/40] audit(engine-timers): per-invariant counts, corrupting
+ proxy for negative checks of model-free invariants
+
+(cherry picked from commit c6eecd068ca43937abc368f9f334246590481e14)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/engine_timers/evil_engine.py | 29 +++++++++++++++++++++++++++++
+ audit/engine_timers/ptdriver.py    |  5 ++++-
+ 2 files changed, 33 insertions(+), 1 deletion(-)
+ create mode 100755 audit/engine_timers/evil_engine.py
+
+diff --git a/audit/engine_timers/evil_engine.py b/audit/engine_timers/evil_engine.py
+new file mode 100755
+index 0000000..b4c6ae3
+--- /dev/null
++++ b/audit/engine_timers/evil_engine.py
+@@ -0,0 +1,29 @@
++#!/usr/bin/env python3
++"""Corrupting proxy around the real engine, for negative checks of the driver's
++model-free invariants. EVIL_ENGINE=<real engine>, EVIL=<mode>; argv as figram-engine."""
++import json, os, random, subprocess, sys
++real = os.environ["EVIL_ENGINE"]
++mode = os.environ.get("EVIL", "none")
++p = subprocess.Popen([real] + sys.argv[1:], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
++rnd = random.Random(5)
++n = 0
++for line in sys.stdin.buffer:
++    p.stdin.write(line); p.stdin.flush()
++    if not line.strip():
++        continue
++    out = p.stdout.readline()
++    r = json.loads(out)
++    n += 1
++    acts = r.get("actions") or []
++    if mode == "id" and n == 40: r["id"] = 10 ** 9
++    if mode == "kind" and "need" in r: r["error"] = "x"
++    if mode == "schema" and "snapshot" in r and n > 30: r["snapshot"]["seq"] = -1
++    if mode == "order" and len(acts) >= 2: r["actions"] = acts[::-1]
++    if mode == "timers" and "snapshot" in r and "timers" in r["snapshot"] and n > 30: del r["snapshot"]["timers"]
++    if mode == "need-dup" and "need" in r: r["need"] = r["need"] + r["need"][:1]
++    if mode == "nondet" and "snapshot" in r and rnd.random() < 0.3: r["actions"] = acts + [{"send": r["snapshot"]["at"]}]
++    if mode == "guards" and "snapshot" in r and line.count(b'"undeclared_guard"'): r["actions"] = []
++    if mode == "err-snap" and "error" in r: r["snapshot"] = {"at": "menu"}
++    if mode == "seq" and "snapshot" in r and acts and n > 30: r["snapshot"]["seq"] = r["snapshot"].get("seq", 0) + 2
++    sys.stdout.write(json.dumps(r, separators=(",", ":"), ensure_ascii=False) + "\n"); sys.stdout.flush()
++p.stdin.close(); sys.exit(p.wait())
+diff --git a/audit/engine_timers/ptdriver.py b/audit/engine_timers/ptdriver.py
+index 2aa362d..86e6fb2 100644
+--- a/audit/engine_timers/ptdriver.py
++++ b/audit/engine_timers/ptdriver.py
+@@ -307,10 +307,12 @@ class Checker:
+     def __init__(self, verbose=False):
+         self.violations = []
+         self.checks = 0
++        self.per = {}
+         self.verbose = verbose
+ 
+     def ok(self, cond, inv, detail):
+         self.checks += 1
++        self.per[inv] = self.per.get(inv, 0) + 1
+         if not cond:
+             self.violations.append((inv, detail))
+             if self.verbose:
+@@ -706,7 +708,8 @@ def main(argv):
+         ck, n = walk(a.engine, a.doc, a.mutate, a.seed, a.users, a.steps, a.v)
+         print(json.dumps({"doc": a.doc, "mutate": a.mutate, "seed": a.seed, "replies": n,
+                           "coverage_targets": ck.targets,
+-                          "checks": ck.checks, "violations": len(ck.violations)}))
++                          "checks": ck.checks, "per_invariant": dict(sorted(ck.per.items())),
++                          "violations": len(ck.violations)}))
+         for inv, d in ck.violations[:5]:
+             print(f"  {inv}: {d}")
+         return 1 if ck.violations or n == 0 or ck.checks == 0 else 0
+-- 
+2.43.0
+

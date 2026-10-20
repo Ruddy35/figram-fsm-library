@@ -1,0 +1,22 @@
+mutant	kind	BUILD	GC	CG	CT	RD	SF	HS	LT	CF	CC	PE	coverage	old_verify	new_verify
+none	base	0	0	0	0	0	0	0	0	0	0	0	42/42 36/36 	SURVIVES	SURVIVES
+accepts-any-token	shared	0	1	1	0	0	0	1	0	0	0	1	42/42 36/36 	killed	killed
+engine-token-from-snapshot	engine	0	0	1	1	1	0	1	1	0	0	1	42/42 36/36 	killed	killed
+seq-bump-on-ignored	core	1	0	0	1	1	1	0	1	0	0	0	42/42 36/36 	killed	killed
+seq-no-bump	shared	1	0	1	1	1	1	1	1	0	0	1	42/42 36/36 	killed	killed
+token-old-seq	shared	1	0	1	1	1	0	0	1	0	0	1	42/42 36/36 	killed	killed
+never-need	engine	0	0	1	1	1	0	1	1	0	1	1	42/42 36/36 	killed	killed
+need-only-if-no-guards	engine	0	0	0	0	0	0	0	0	0	0	1	42/42 36/36 	SURVIVES	killed
+drop-recovered-stepReply	engine	1	0	1	0	0	0	0	0	0	0	1	42/42 36/36 	killed	killed
+drop-recovered-result	engine	0	0	1	0	0	0	0	0	0	0	1	42/42 36/36 	killed	killed
+overflow-ge	engine	1	0	0	0	0	1	0	0	0	0	0	42/42 36/36 	killed	killed
+overflow-plus1	engine	1	0	0	0	0	1	0	0	0	0	0	42/42 36/36 	killed	killed
+restart-overflow-plus1	engine	0	0	0	0	0	0	0	0	0	0	1	42/42 36/36 	SURVIVES	killed
+restart-keeps-resume	engine	0	0	0	0	0	0	0	0	0	0	1	42/42 36/36 	SURVIVES	killed
+swap-exit-entry	core	1	0	1	1	1	0	0	1	0	0	1	42/42 36/36 	killed	killed
+recover-no-cancel	core	1	0	1	0	0	0	0	0	0	0	1	42/42 36/36 	killed	killed
+hello-version-2	engine	0	0	0	0	0	0	0	0	0	0	1	42/42 36/36 	SURVIVES	killed
+snapshot-unknown-keys	engine	0	0	0	0	0	1	0	0	0	0	0	42/42 36/36 	killed	killed
+snapshot-any-version	engine	0	0	0	0	0	1	0	0	0	0	0	42/42 36/36 	killed	killed
+guards-lenient	engine	0	0	0	0	0	0	0	0	0	0	1	42/42 36/36 	SURVIVES	killed
+timer-token-default-0	engine	0	0	0	0	0	0	0	0	0	0	1	42/42 36/36 	SURVIVES	killed

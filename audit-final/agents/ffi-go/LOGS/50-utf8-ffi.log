@@ -1,0 +1,11 @@
+command: ffi/audit/out/contract utf8 examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:59:49.331Z
+end: 2026-10-19T23:59:49.346Z
+exit_code: 0
+--- stdout (322 bytes, last 200 lines)
+utf8 req 1 → {"id":1,"snapshot":{"at":"menu"},"actions":[]}
+utf8 req 2 → {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}],"recovered":true}
+utf8 req 3 → {"id":null,"error":"лишний текст после JSON"}
+utf8 req 4 → {"id":4,"error":"неизвестная операция «op»"}
+--- stderr (0 bytes, last 100 lines)

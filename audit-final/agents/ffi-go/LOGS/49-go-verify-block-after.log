@@ -1,0 +1,12 @@
+command: ffi/audit/go_verify_block.sh /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/traces/pizza.jsonl /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/traces/small.jsonl 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:59:09.108Z
+end: 2026-10-19T23:59:26.172Z
+exit_code: 0
+--- stdout (522 bytes, last 200 lines)
+ботов 4, раундов 3, горутин 600, запросов 24600, расхождений 0, 14258 запросов/с (GOMAXPROCS=4, CPU=4)
+ботов 3, раундов 3, горутин 60, запросов 1860, расхождений 0, 2664 запросов/с (GOMAXPROCS=4, CPU=4)
+порча и неверные аргументы: красные
+5000 загрузок с Close (после прогрева): рост памяти 280 КБ; без Close (контроль): 49884 КБ
+go_verify_block rc=0
+--- stderr (0 bytes, last 100 lines)

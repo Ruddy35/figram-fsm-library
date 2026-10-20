@@ -1,0 +1,19 @@
+command: nice -n 10 timeout 900 lake build 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:49:09.356Z
+end: 2026-10-19T23:49:20.036Z
+exit_code: 0
+--- stdout (474 bytes, last 200 lines)
+✔ [24/42] Built Figram.FormatIO (1.6s)
+✔ [25/42] Built Figram.Engine (1.7s)
+✔ [27/42] Built Figram.Trace (1.7s)
+✔ [29/42] Built EngineMain (1.9s)
+✔ [31/42] Built Figram.EngineProofs (4.5s)
+✔ [33/42] Built Figram.FormatIO:c.o (6.6s)
+✔ [34/42] Built Figram.Examples (3.7s)
+✔ [36/42] Built «figram-engine»:exe (574ms)
+✔ [37/42] Built Figram (601ms)
+✔ [40/42] Built Main (948ms)
+✔ [42/42] Built figram:exe (358ms)
+Build completed successfully (42 jobs).
+--- stderr (0 bytes, last 100 lines)

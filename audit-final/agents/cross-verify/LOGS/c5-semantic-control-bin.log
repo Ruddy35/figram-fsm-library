@@ -1,0 +1,13 @@
+command: python3 xverify/c4_c5_shared_process.py bin/figram-engine examples/pizza.bot.json c5semantic 
+cwd: /home/user/figram-audit-worktrees/cross-verify
+start: 2026-10-20T00:04:43.700Z
+end: 2026-10-20T00:04:46.772Z
+exit_code: 0
+--- stdout (608 bytes, last 200 lines)
+engine=bin/figram-engine mode=c5semantic client timeout=10.0s (default is 10.0)
+normal users: 32, pause between their steps 0.0s
+warm-up: 10330 normal requests ok, 0 failed
+bad request attempts: [('снимок: неизвестное поле «x» (снимок более новой версии?)', 0.0), ('снимок: неизвестное поле «x» (снимок более новой версии?)', 0.0), ('снимок: неизвестное поле «x» (снимок более новой версии?)', 0.0)]
+normal users: ok=33993 FAILED=0; engine pid 11307 -> 11307
+CONTROL GREEN
+--- stderr (0 bytes, last 100 lines)

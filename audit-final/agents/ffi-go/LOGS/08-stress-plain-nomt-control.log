@@ -1,0 +1,24 @@
+command: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/nomt/stress_nomt examples/pizza.bot.json 16 20000 0 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:39:40.581Z
+end: 2026-10-19T23:39:41.624Z
+exit_code: 1
+--- stdout (142 bytes, last 200 lines)
+shared handle: 16 threads x 20000 = 320000 requests, mismatches 222775; 0 loader threads: 0 load/10 req/unload/check/fmt cycles, mismatches 0
+--- stderr (1155 bytes, last 100 lines)
+MISMATCH req 4: {"id":5,"snapshot":{"at":"cart"},"actions":[]}
+MISMATCH req 3: {"id":4,"snapshot":{"at":"cart"},"actions":[]}
+MISMATCH req 3: {"id":4,"snapshot":{"at":"cart"},"actions":[]}
+MISMATCH req 3: {"id":4,"snapshot":{"at":"cart"},"actions":[]}
+MISMATCH req 3: {"id":4,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}],"recovered":true}
+MISMATCH req 4: {"id":5,"snapshot":{"at":"menu","seq":1},"actions":[],"recovered":true}
+MISMATCH req 5: {"id":6,"snapshot":{"at":"menu","seq":6},"actions":[]}
+MISMATCH req 1: {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[]}
+MISMATCH req 2: {"id":3,"snapshot":{"at":"menu","seq":1},"actions":[],"recovered":true}
+MISMATCH req 0: {"id":1,"protocol":1,"states":0}
+MISMATCH req 4: {"id":5,"snapshot":{"at":"menu","seq":1},"actions":[],"recovered":true}
+MISMATCH req 1: {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[]}
+MISMATCH req 6: {"id":7,"snapshot":{"at":"menu","seq":1},"actions":[],"recovered":true}
+MISMATCH req 0: {"id":1,"protocol":1,"states":0}
+MISMATCH req 4: {"id":5,"snapshot":{"at":"menu","seq":1},"actions":[],"recovered":true}
+MISMATCH req 0: {"id":1,"protocol":1,"states":0}

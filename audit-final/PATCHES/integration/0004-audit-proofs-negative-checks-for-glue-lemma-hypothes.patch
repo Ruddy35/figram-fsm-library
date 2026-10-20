@@ -1,0 +1,41 @@
+From d1defb44df1d3bab1f08142174adc20e63395bd8 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:55:14 +0000
+Subject: [PATCH 04/40] audit(proofs): negative checks for glue lemma
+ hypotheses (CE7, CE8)
+
+(cherry picked from commit 44f8b39d51f3a9b77720293b30c757f40c0cc803)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/proofs/Counterexamples.lean | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/audit/proofs/Counterexamples.lean b/audit/proofs/Counterexamples.lean
+index c698dac..a93d708 100644
+--- a/audit/proofs/Counterexamples.lean
++++ b/audit/proofs/Counterexamples.lean
+@@ -130,4 +130,19 @@ example : True := by
+   fail_if_success (have : timerDoc.check = [] := by decide)
+   trivial
+ 
++/-! ## CE7: the hypothesis of the glue lemma `check_compile_wf` matters: a DOCUMENT
++(not only a hand-made Chart) with a dangling target compiles to a machine without `wf`;
++`check` rejects it (so `check = []` is what carries `wf`). -/
++
++def ghostDoc : Doc := ⟨[], [], [], [], .sec "a" [("a", .message [("go", [⟨none, "ghost", false, [], []⟩])] [] [])] [] [], []⟩
++example : ghostDoc.toChart.compile.wf = false := by decide
++#guard !ghostDoc.check.isEmpty
++#guard !ghostDoc.toChart.lint.isEmpty
++
++/-! ## CE8: `decSnapshot` really rejects what `SnapOK` forbids (sanity for `decSnapshot_sound`). -/
++#guard (decSnapshot (.obj [("at", .str "")])).toBool == false
++#guard (decSnapshot (.obj [("at", .str "a"), ("timers", .obj [("", .num 1 0)])])).toBool == false
++#guard (decSnapshot (.obj [("at", .str "a"), ("seq", .num 9007199254740992 0)])).toBool == false
++#guard (decSnapshot (.obj [("at", .str "a"), ("seq", .num 9007199254740991 0)])).toBool == true
++
+ end Figram.Audit.CE
+-- 
+2.43.0
+

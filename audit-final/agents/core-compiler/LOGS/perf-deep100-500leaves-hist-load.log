@@ -1,0 +1,9 @@
+command: sh /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/PERF_compile_cliff/time_load.sh /home/user/figram-audit-worktrees/core-compiler/bin/figram-engine /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/PERF_compile_cliff/deep100_500leaves_hist.bot.json 840 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T23:31:12.566Z
+end: 2026-10-19T23:32:46.383Z
+exit_code: 0
+--- stdout (61 bytes, last 200 lines)
+{"id":1,"protocol":1,"states":501}
+rc=0 seconds=93.800721753
+--- stderr (0 bytes, last 100 lines)

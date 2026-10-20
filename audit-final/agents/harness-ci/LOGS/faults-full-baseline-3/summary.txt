@@ -1,0 +1,3 @@
+неисправность код ожидание последняя строка
+race-test-not-run    0      1        НЕТ ВСЁ В ПОРЯДКЕ
+coverage-drop-regen  1      1        ok    выжила: examples/features.bot.json: redirect:34

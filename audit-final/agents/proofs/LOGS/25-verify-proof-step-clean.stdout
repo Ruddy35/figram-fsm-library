@@ -1,0 +1,5 @@
+== Теоремы: только propext, Quot.sound, Classical.choice; ядро перепроверено
+axiom set []: 301 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 52 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS

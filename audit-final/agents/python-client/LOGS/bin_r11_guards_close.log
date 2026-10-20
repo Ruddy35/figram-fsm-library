@@ -1,0 +1,13 @@
+command: nice -n 10 timeout 200 python3 r11_guards_close.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:11:36.642Z
+end: 2026-10-19T22:11:39.870Z
+exit_code: 0
+--- stdout (996 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit/agents/python-client/baseline-client
+a) исключение в guards → у вызывающего Boom; ожидающих 0; процессы живы [True, True]
+b) повторный вход в guards → vip за 0.00 с
+c) guards 1.5 с при timeout 1 с → vip, step занял 1.50 с (срок вызова не ограничивает step целиком)
+d) close() среди 8 активных потоков: close 0.01 с, зависло 0, исходы {'ok': 13385, 'err': 8, 'other': 0}; живых процессов движка после close и остановки потоков: 2
+e) close() внутри guards → EngineError: процесс движка неисправен: движок закрыл вывод; живых процессов движка после: 0
+--- stderr (0 bytes, last 100 lines)

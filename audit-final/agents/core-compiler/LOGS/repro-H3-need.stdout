@@ -1,0 +1,3 @@
+{"id":1,"need":["c1"]}
+{"id":2,"snapshot":{"at":"A","seq":2},"actions":[{"send":"A"}]}
+{"id":3,"snapshot":{"at":"A","seq":2},"actions":[{"send":"A"}]}

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 python3 loadtest.py ../../bin/figram-engine ../../examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza_traces.jsonl 64 2 
+cwd: /home/user/figram-audit-worktrees/host-perf/ffi/python-example
+start: 2026-10-19T22:46:16.414Z
+end: 2026-10-19T22:46:17.763Z
+exit_code: 0
+--- stdout (212 bytes, last 200 lines)
+потоков  64, процессов 2: шагов 8000 (из них с запросом условий 340), расхождений 0, 7,114 шагов/с, задержка p50 5,582 мкс, p99 36,731 мкс
+--- stderr (0 bytes, last 100 lines)

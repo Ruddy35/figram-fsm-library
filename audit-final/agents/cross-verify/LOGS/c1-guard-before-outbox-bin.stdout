@@ -1,0 +1,6 @@
+engine: bin/figram-engine
+[pizza] CONTROL: executor fast (0 ms per call) : after btn:add, btn:checkout -> at='address'; guards seen={'cart_not_empty': True} host data then={'cart': 1, 'balance': 0}; final cart=1
+[pizza] LITERAL: executor 300 ms per call, user gap 50 ms: after btn:add, btn:checkout -> at='catalog'; guards seen={'cart_not_empty': False} host data then={'cart': 0, 'balance': 0}; final cart=1
+[balance] CONTROL: executor fast (0 ms per call) : two btn:buy -> at='no_money'; guards per step=[{'has_balance': True}, {'has_balance': False}]; final balance=0; items granted=1
+[balance] LITERAL: executor 300 ms per call, user gap 50 ms: two btn:buy -> at='bought'; guards per step=[{'has_balance': True}, {'has_balance': True}]; final balance=-100; items granted=2
+C1 REPRODUCED (controls green, literal host takes the wrong branch)

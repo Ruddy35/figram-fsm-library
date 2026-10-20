@@ -1,0 +1,9 @@
+engine: bin/figram-engine
+[1a] engine reply for btn:self: [{'cancel_timer': 'idle'}, {'start_timer': 'idle', 'ms': 60000, 'token': 2}, {'send': 'home'}]; snapshot timers={'idle': 2}
+[1a] two executors, cancel slower than start: scheduler has idle? False (snapshot expects token 2) -> REMINDER LOST
+[1b] 4 executors, shared FIFO   : users whose reminder is missing/stale in the scheduler: 17 of 40
+[1b] CONTROL partitioned by user: users whose reminder is missing/stale in the scheduler: 0 of 40
+[2] outbox head: [('bad', {'call': 'create_order'}), ('bad', {'send': 'done'})] ... then 10 actions of 10 other users
+[2] strict global FIFO, 2 s: actions of OTHER users executed: 0 of 10
+[2] CONTROL per-user FIFO, 2 s: actions of OTHER users executed: 10 of 10
+C7 part1 (reorder loses reminders) REPRODUCED; part2 (HOL blocking) REPRODUCED

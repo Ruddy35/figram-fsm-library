@@ -1,0 +1,4 @@
+=== RUN   TestAuditInitRace
+    audit_test.go:435: concurrent init: 0 of 100 processes failed
+--- PASS: TestAuditInitRace (3.96s)
+PASS

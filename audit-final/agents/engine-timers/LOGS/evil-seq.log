@@ -1,0 +1,17 @@
+command: python3 ptdriver.py ./evil_engine.py walk ../../examples/pizza.bot.json --users 10 --steps 30 
+cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
+start: 2026-10-19T22:15:28.807Z
+end: 2026-10-19T22:15:29.057Z
+exit_code: 1
+--- stdout (1663 bytes, last 200 lines)
+{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 704, "coverage_targets": 42, "checks": 6058, "per_invariant": {"I1": 1069, "I10": 69, "I11": 101, "I12": 6, "I2": 1031, "I3": 497, "I4": 740, "I5": 295, "I6": 348, "I7": 445, "I8": 30, "I9": 1420, "T1": 7}, "violations": 676}
+  I11: cover target=address/msg:text/0 i=3: guards changed result b'{"id":24,"snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"actions":[{"call":"save_address"},{"send":"pay"}]}\n' vs b'{"id":24,"snapshot":{"at":"pay","resume":{"order":"pay"},"seq":7},"actions":[{"call":"save_address"},{"send":"pay"}]}\n' ({'in_delivery_zone': True, 'cart_not_empty': True, 'undeclared_guard': True})
+  I9: start {'id': 25, 'snapshot': {'at': 'menu', 'seq': 3}, 'actions': [{'send': 'menu'}]} expected {'at': 'menu', 'seq': 1} [{'send': 'menu'}]
+  I9: cover target=address/msg:text/1 i=0: ev=btn:order tok=None guards={}
+   got {'id': 26, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 6}, 'actions': [{'send': 'catalog'}]}
+   exp {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 4} [{'send': 'catalog'}] rec=False
+  I4: cover target=address/msg:text/1 i=0: seq 3 -> 6
+  I9: cover target=address/msg:text/1 i=1: ev=btn:cart tok=None guards={}
+   got {'id': 27, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 7}, 'seq': 9}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 7}, {'send': 'cart'}]}
+   exp {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 7}, 'seq': 7} [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 7}, {'send': 'cart'}] rec=False
+--- stderr (0 bytes, last 100 lines)

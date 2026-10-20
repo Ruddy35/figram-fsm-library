@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 120 python3 r03_missing_binary.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T21:57:10.963Z
+end: 2026-10-19T21:57:11.202Z
+exit_code: 1
+--- stdout (305 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
+исключения при замене процесса без бинарника: {'FileNotFoundError': 3}
+ДЕФЕКТ ВОСПРОИЗВЕДЁН
+--- stderr (0 bytes, last 100 lines)

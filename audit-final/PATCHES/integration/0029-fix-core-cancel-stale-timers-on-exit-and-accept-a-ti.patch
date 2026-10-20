@@ -1,0 +1,249 @@
+From d3782f7636e7b4e533bffd6e5c924dc993d8b84a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 20 Oct 2026 00:26:48 +0000
+Subject: [PATCH 29/40] fix(core): cancel stale timers on exit and accept a
+ timer only on its owner message (CC-01/ET-02)
+
+A timer started under an older document version stayed in the snapshot
+forever (exit cancelled only the timers of the current message as the NEW
+document declares them) and its fire, with a valid token, could trigger an
+arrow on a message that does not own the timer (section/root handler).
+
+* Core/Chart `fire`: after the exit actions, cancel every snapshot timer
+  that exit does not cancel (`staleCancels`; empty within one version).
+* Core/Chart `step`: a timer event is accepted only if the current
+  message owns the timer (`ownsTimer`, i.e. exit cancels it).
+* Engine.missing, Trace.guardNames/firedIndex: same acceptance rule, so
+  no `need` is asked for an event that will be ignored.
+* Proof repairs (statements unchanged): compile_correct rewrites
+  exitOf = exitActs before splitting on the acceptance test;
+  step_snapOK covers the extra cancel actions.
+
+Patch: agents/core-compiler/.../proposed_fix_UNVERIFIED.patch (core-compiler),
+Engine/Trace parts and proof repairs by the integration agent; verified
+on the from-source Lean 4.35.0 toolchain. bin/ not regenerated.
+
+Docs: README decisions 2 and 7, FORMAT.md section 7 rule 2 and the HOST.md section 6
+timers bullet (998a539 described the unfixed engine) now state the fixed behaviour.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ FORMAT.md                |  7 +++++--
+ Figram/Chart.lean        |  4 ++--
+ Figram/Core.lean         | 14 ++++++++++++--
+ Figram/Correct.lean      |  6 +++++-
+ Figram/Engine.lean       |  2 +-
+ Figram/EngineProofs.lean |  6 +++++-
+ Figram/Trace.lean        |  4 ++--
+ HOST.md                  | 21 +++++++++++----------
+ README.md                |  6 ++++--
+ 9 files changed, 47 insertions(+), 23 deletions(-)
+
+diff --git a/FORMAT.md b/FORMAT.md
+index 3ae3929..bb0c25d 100644
+--- a/FORMAT.md
++++ b/FORMAT.md
+@@ -247,8 +247,11 @@ V2 можно было бы устранить, сделав начальным
+ 1. Если сообщения из снимка нет в документе — пользователь начинает бота
+    заново: отмена всех его таймеров, затем действия первого входа;
+    в ответе `"recovered": true`. Запомненные места сохраняются.
+-2. Событие таймера с жетоном, отличным от текущего, игнорируется:
+-   снимок не меняется, действий нет.
++2. Событие таймера игнорируется (снимок не меняется, действий нет), если
++   жетон отличается от текущего или если таймер не принадлежит текущему
++   сообщению (так бывает только со снимком, записанным под прежней версией
++   документа). Переход с сообщения отменяет его таймеры и все остальные
++   таймеры снимка.
+ 3. Если варианту стрелки нужны условия, которых нет в `guards`, ответ —
+    `{"need": [...]}`; хост вычисляет их по той же версии снимка и повторяет.
+ 4. Событие без подходящей стрелки игнорируется.
+diff --git a/Figram/Chart.lean b/Figram/Chart.lean
+index 9407901..3c2a40a 100644
+--- a/Figram/Chart.lean
++++ b/Figram/Chart.lean
+@@ -170,7 +170,7 @@ def cands (c : Chart) (L : NodeId) (e : EventId) : List Branch :=
+ 
+ def fire (c : Chart) (s : Snapshot) (b : Branch) : Snapshot × List Action :=
+   let T := c.resolve s b.target
+-  realize s T (c.exitActs s.state ++ b.actions ++ c.entryActs T)
++  realize s T (c.exitActs s.state ++ staleCancels (c.exitActs s.state) s ++ b.actions ++ c.entryActs T)
+ 
+ def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
+ 
+@@ -180,7 +180,7 @@ def recover (c : Chart) (s : Snapshot) : Snapshot × List Action :=
+ /-- **Эталонная семантика схемы дизайнера.** -/
+ def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+   if s.state ∉ c.leafIds then c.recover s
+-  else if !s.accepts ev then (s, [])
++  else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
+   else
+     match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
+     | none => (s, [])
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index c1a9c36..32815a6 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -94,6 +94,16 @@ def realizeOne (tok : Nat) (acc : Snapshot × List Action) : Action → Snapshot
+   | .cancelTimer id => ({ acc.1 with timers := erase acc.1.timers id }, acc.2 ++ [.cancelTimer id])
+   | a => (acc.1, acc.2 ++ [a])
+ 
++/-- Отмена таймеров снимка, которых не отменяет `exit` (остались от прежней
++версии документа: HOST.md §6). В пределах одной версии список пуст. -/
++def staleCancels (exit : List Action) (s : Snapshot) : List Action :=
++  (s.timers.filter (fun p => !exit.contains (.cancelTimer p.1))).map (fun p => .cancelTimer p.1)
++
++/-- Срабатывание таймера `id` относится к сообщению, выход из которого его отменяет. -/
++def ownsTimer (exit : List Action) : Event → Bool
++  | .named _ => true
++  | .timer id _ => exit.contains (.cancelTimer id)
++
+ /-- Переход в `T` с действиями `acts`: новый снимок и действия для хоста. -/
+ def realize (s : Snapshot) (T : NodeId) (acts : List Action) : Snapshot × List Action :=
+   acts.foldl (realizeOne (s.seq + 1)) ({ s with state := T, seq := s.seq + 1 }, [])
+@@ -165,7 +175,7 @@ def exitOf (m : Machine) (n : NodeId) : List Action := (lookup m.exit n).getD []
+ 
+ def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
+   let T := m.resolve s b.target
+-  realize s T (m.exitOf s.state ++ b.actions ++ m.entryOf T)
++  realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
+ 
+ /-- Снимок указывает на сообщение, которого больше нет: начать бота заново,
+ отменив таймеры старого места. Запомненные места сохраняются. -/
+@@ -175,7 +185,7 @@ def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
+ /-- **Шаг автомата.** -/
+ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+   if s.state ∉ m.states then m.recover s
+-  else if !s.accepts ev then (s, [])
++  else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
+   else
+     match m.row s.state ev.key with
+     | none => (s, [])
+diff --git a/Figram/Correct.lean b/Figram/Correct.lean
+index 65d34ee..f716934 100644
+--- a/Figram/Correct.lean
++++ b/Figram/Correct.lean
+@@ -131,7 +131,11 @@ theorem compile_correct (hwf : c.compile.wf = true) (s : Snapshot) (ev : Event)
+   unfold Machine.step Chart.step
+   by_cases hs : s.state ∈ c.leafIds
+   · have hs' : s.state ∈ c.compile.states := hs
+-    simp only [hs, hs', not_true_eq_false, ite_false]
++    -- Условие приёма события читает действия выхода (`ownsTimer`): у
++    -- скомпилированного автомата и у схемы они совпадают.
++    have hex : c.compile.exitOf s.state = c.exitActs s.state := by
++      simp only [Machine.exitOf, compile, lookup_map _ _ _ hs, Option.getD_some]
++    simp only [hs, hs', not_true_eq_false, ite_false, hex]
+     split
+     · rfl
+     · cases hr : c.compile.row s.state ev.key with
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 2433cf9..c1c6359 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -134,7 +134,7 @@ def envOf (gs : List (String × Bool)) : HostEnv :=
+ 
+ /-- Условия, которые нужны шагу, но не переданы в запросе. -/
+ def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : List String :=
+-  if decide (s.state ∈ m.states) && s.accepts ev then
++  if decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev then
+     (dedup (m.requiredGuards s.state ev.key)).filter fun n => !(gs.any (·.1 == n))
+   else []
+ 
+diff --git a/Figram/EngineProofs.lean b/Figram/EngineProofs.lean
+index 3b3ea17..51fd895 100644
+--- a/Figram/EngineProofs.lean
++++ b/Figram/EngineProofs.lean
+@@ -208,9 +208,13 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
+           refine realize_snapOK _ _ _ hs h3 ?_ h1
+           intro a ha
+           simp only [List.mem_append] at ha
+-          rcases ha with (ha | ha) | ha
++          rcases ha with ((ha | ha) | ha) | ha
+           · exact table_ok (List.all_eq_true.mpr fun e he =>
+               List.all_eq_true.mpr (hexit e he)) _ a ha
++          · -- отмена таймеров, оставшихся от прежней версии документа
++            simp only [staleCancels, List.mem_map] at ha
++            obtain ⟨_, _, rfl⟩ := ha
++            rfl
+           · exact hrows r (List.mem_of_find?_eq_some hr) b (List.mem_of_find?_eq_some hb) a ha
+           · exact table_ok (List.all_eq_true.mpr fun e he =>
+               List.all_eq_true.mpr (hentry e he)) _ a ha
+diff --git a/Figram/Trace.lean b/Figram/Trace.lean
+index 316ce5d..923ab62 100644
+--- a/Figram/Trace.lean
++++ b/Figram/Trace.lean
+@@ -25,13 +25,13 @@ def lcg (s : Nat) : Nat := (s * 6364136223846793005 + 1442695040888963407) % 2 ^
+ 
+ /-- Имена условий, которые нужны для шага, по эталонной семантике. -/
+ def guardNames (c : Chart) (s : Snapshot) (ev : Event) : List String :=
+-  if s.state ∈ c.leafIds && s.accepts ev then
++  if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
+     dedup ((c.cands s.state ev.key).filterMap (·.guard))
+   else []
+ 
+ /-- Индекс сработавшего варианта среди кандидатов (для покрытия). -/
+ def firedIndex (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Option Nat :=
+-  if s.state ∈ c.leafIds && s.accepts ev then
++  if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
+     (c.cands s.state ev.key).findIdx? (fun b => guardOK env b.guard)
+   else none
+ 
+diff --git a/HOST.md b/HOST.md
+index 85b7f50..05c9c8f 100644
+--- a/HOST.md
++++ b/HOST.md
+@@ -160,16 +160,17 @@
+   начинает с начального сообщения бота (`"recovered": true`), а не раздела.
+   Запомненное место, перенесённое в другой раздел, считается исчезнувшим.
+ * Таймеры снимка не мигрируют. Если у текущего сообщения пользователя в новой
+-  версии таймер переименован, удалён или перенесён на другое сообщение, при
+-  уходе движок отменяет таймеры этого сообщения по **новой** версии: старый
+-  таймер не отменяется, его запись остаётся в `timers` снимка, а уже
+-  запланированное событие `timer:<старое имя>` будет принято (жетон
+-  совпадает). Если стрелка по этому событию есть у раздела выше, она
+-  сработает, хотя пользователь уже не на том месте, где таймер запускался.
+-  Таймер новой версии на текущем сообщении запустится только при следующем
+-  входе в него. Перед выкладкой такой версии снимите у планировщика события
+-  таймеров, которых в новой версии нет на текущих сообщениях пользователей,
+-  либо выполните для затронутых пользователей `restart` (раздел 4).
++  версии таймер переименован, удалён или перенесён на другое сообщение,
++  срабатывание `timer:<старое имя>` игнорируется: движок принимает таймер,
++  только если текущее сообщение владеет им в загруженной версии (и жетон
++  совпадает), даже если стрелка по этому событию есть у раздела выше. При
++  уходе с сообщения движок отменяет его таймеры по новой версии и все
++  остальные таймеры снимка (`cancel_timer` со старым именем), так что запись
++  старого таймера не переживает первого перехода. Таймер новой версии на
++  текущем сообщении запустится только при следующем входе в него; если
++  напоминание важно, выполните для затронутых пользователей `restart`
++  (раздел 4). Снимать у планировщика события старых таймеров заранее не
++  обязательно — как и любая отмена, это оптимизация (раздел 3).
+ * Переименованные условия и действия: хост, собранный под старую версию,
+   передаст условие под старым именем — движок проигнорирует его как лишнее и
+   снова ответит `need`. Хост и документ выкладываются вместе; `hello` версию
+diff --git a/README.md b/README.md
+index 274be83..5788d02 100644
+--- a/README.md
++++ b/README.md
+@@ -33,7 +33,8 @@ Snapshot × List Action`. «Вернуться туда, где был» — о
+ 
+ 1. Всплытие: варианты собираются от сообщения к разделам выше; если у
+    сообщения есть стрелка, но все её условия ложны, событие уходит выше.
+-2. Порядок действий: выход (отмена таймеров) → действия стрелки → вход
++2. Порядок действий: выход (отмена таймеров сообщения и всех остальных
++   таймеров снимка, оставшихся от прежней версии документа) → действия стрелки → вход
+    (запоминание места, запуск таймеров, отправка сообщения).
+ 3. Стрелка на то же сообщение отправляет его заново и перезапускает таймеры.
+ 4. Место запоминается при входе в сообщение — для разделов над ним, в которые
+@@ -41,7 +42,8 @@ Snapshot × List Action`. «Вернуться туда, где был» — о
+ 5. Если запомненного сообщения больше нет в документе, «вернуться» ведёт на
+    начальное сообщение раздела.
+ 6. Событие без подходящей стрелки игнорируется.
+-7. Срабатывание таймера принимается только с жетоном текущего запуска.
++7. Срабатывание таймера принимается только с жетоном текущего запуска и только
++   на сообщении, которому этот таймер принадлежит.
+ 8. Если сообщения из снимка больше нет в документе, пользователь начинает
+    бота заново: таймеры старого места отменяются, места сохраняются.
+ 
+-- 
+2.43.0
+

@@ -1,0 +1,37 @@
+From 4b7b3ee6e36b9ad71d04f5cc35e31757127a5e6e Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 20 Oct 2026 01:01:45 +0000
+Subject: [PATCH 38/40] go-example: reload memory check threshold 2048 -> 4096
+ KB (flaky)
+
+With Close the RSS growth is bimodal (~0 or ~2.0-2.5 MB, allocator step);
+the 2048 KB limit failed 5 of 12 runs under load and made verify.sh red on
+an unchanged tree. 4096 KB is still 12x below the no-Close control (~48 MB),
+which keeps the check sensitive to a missing Close. 0 of 20 failures after.
+
+(cherry picked from commit 1cd4a74e474456b3d13ff70bb476b41445276e93)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ ffi/go-example/main.go | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/ffi/go-example/main.go b/ffi/go-example/main.go
+index dad29d2..0d9d609 100644
+--- a/ffi/go-example/main.go
++++ b/ffi/go-example/main.go
+@@ -534,7 +534,9 @@ func reloadTest(doc string, n int) {
+ 	withoutClose := run(false)
+ 	fmt.Printf("%d загрузок с Close (после прогрева): рост памяти %d КБ; без Close (контроль): %d КБ\n",
+ 		n, withClose, withoutClose)
+-	if withClose >= 2048 || withoutClose <= 8192 {
++	// Рост с Close двухмодальный: ~0 или ~2–2.5 МБ (шаг аллокатора), порог 2048 КБ давал
++	// ложные отказы в 20–40 % прогонов под нагрузкой. 4096 КБ — всё ещё в 12 раз ниже контроля.
++	if withClose >= 4096 || withoutClose <= 8192 {
+ 		fail("Close не освобождает память или контроль нечувствителен")
+ 	}
+ }
+-- 
+2.43.0
+

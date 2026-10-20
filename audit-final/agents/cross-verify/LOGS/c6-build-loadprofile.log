@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 lake build xverify-loadprofile 
+cwd: /home/user/figram-audit-worktrees/cross-verify
+start: 2026-10-19T23:52:26.353Z
+end: 2026-10-19T23:52:27.849Z
+exit_code: 0
+--- stdout (190 bytes, last 200 lines)
+✔ [16/18] Built xverify.LoadProfile (548ms)
+✔ [17/18] Built xverify.LoadProfile:c.o (434ms)
+✔ [18/18] Built «xverify-loadprofile»:exe (418ms)
+Build completed successfully (18 jobs).
+--- stderr (0 bytes, last 100 lines)

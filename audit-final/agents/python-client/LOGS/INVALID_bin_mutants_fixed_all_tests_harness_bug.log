@@ -1,0 +1,31 @@
+command: nice -n 10 timeout 900 python3 mutate_client.py /home/user/figram-audit-worktrees/python-client/ffi/python-example /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/pizza.bot.json /home/user/figram-audit-worktrees/python-client/examples/features.bot.json client_faults.py client_contract.py client_robustness.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:27:36.011Z
+end: 2026-10-19T22:37:45.818Z
+exit_code: 0
+--- stdout (5590 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/python-client/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']
+исходный клиент: {'client_faults.py': 0, 'client_contract.py': 0, 'client_robustness.py': 1}
+M01 нет пробуждения ожидающих в _fail: убит: client_robustness.py  client_faults.py=0 16.3с []; client_contract.py=0 3.2с []; client_robustness.py=1 0.1с []
+M02 нет срока ожидания: убит: client_faults.py, client_robustness.py  client_faults.py=1 141.0с ['НЕТ нет ответа: ошибок 8 из 8, зависло 8, 80.0 с, close 0.0 с', 'НЕТ не читает вход: ошибок 8 из 8, зависло 0, 30.0 с, close 0.0 с']; client_contract.py=0 2.3с []; client_robustness.py=1 0.1с []
+M03 запись в вызывающем потоке (без писателя): убит: client_faults.py, client_robustness.py  client_faults.py=1 4.5с ['НЕТ невалидный JSON: ошибок 4 из 8, зависло 0, 0.0 с, close 0.0 с', 'НЕТ неизвестный id: ошибок 4 из 8, зависло 0, 0.1 с, close 0.0 с']; client_contract.py=0 2.2с []; client_robustness.py=1 0.2с []
+M04 _kill не убивает: убит: client_faults.py, client_contract.py, client_robustness.py  client_faults.py=timeout 240.1с []; client_contract.py=1 60.4с ['НЕТ аварийный процесс собран за 2.00 с без новых запросов', 'НЕТ close после аварии не зависает']; client_robustness.py=1 0.1с []
+M05 нет фонового wait (зомби): убит: client_contract.py, client_robustness.py  client_faults.py=0 5.5с []; client_contract.py=1 4.2с ['НЕТ аварийный процесс собран за 2.02 с без новых запросов']; client_robustness.py=1 0.1с []
+M06 нет check_reply: убит: client_faults.py, client_robustness.py  client_faults.py=1 7.9с ['НЕТ пустой результат: ошибок 7 из 8, зависло 0, 1.0 с, close 0.0 с', 'НЕТ seq = true: ошибок 7 из 8, зависло 0, 1.0 с, close 0.0 с']; client_contract.py=0 2.2с []; client_robustness.py=1 0.1с []
+M07 нет замены неисправного процесса: убит: client_faults.py, client_robustness.py  client_faults.py=1 3.9с ['НЕТ замена неисправного процесса: процесс движка неисправен: внедрённый сбой']; client_contract.py=0 2.2с []; client_robustness.py=1 0.1с []
+M08 EOF вывода не обнаруживается: убит: client_robustness.py  client_faults.py=0 4.2с []; client_contract.py=0 2.4с []; client_robustness.py=1 0.1с []
+M09 _fail не останавливает писателя (утечка потока): убит: client_robustness.py  client_faults.py=0 4.0с []; client_contract.py=0 2.4с []; client_robustness.py=1 0.2с []
+M10 писатель не закрывает stdin: убит: client_robustness.py  client_faults.py=0 6.6с []; client_contract.py=0 4.3с []; client_robustness.py=1 0.2с []
+M11 _fail не очищает таблицу ожидающих: убит: client_robustness.py  client_faults.py=0 4.3с []; client_contract.py=0 2.3с []; client_robustness.py=1 0.1с []
+M12 не проверяются значения guards: убит: client_contract.py, client_robustness.py  client_faults.py=0 4.2с []; client_contract.py=1 0.1с []; client_robustness.py=1 0.2с []
+M13 неизвестный id игнорируется: убит: client_robustness.py  client_faults.py=0 6.4с []; client_contract.py=0 2.2с []; client_robustness.py=1 0.1с []
+M14 нет проверки failure перед регистрацией: убит: client_robustness.py  client_faults.py=0 6.1с []; client_contract.py=0 2.2с []; client_robustness.py=1 0.2с []
+M15 срок от записи, а не от начала вызова (+timeout): убит: client_faults.py, client_robustness.py  client_faults.py=1 7.3с ['НЕТ 300 одновременных запросов (~300 КБ) при заблокированном входе: ошибок 300, зависло 0, самый долгий вызов 2.03 с, всего 2.0 с']; client_contract.py=0 2.2с []; client_robustness.py=1 0.2с []
+M16 нет _check_wire (id:null снова роняет процесс): убит: client_robustness.py  client_faults.py=0 5.0с []; client_contract.py=0 2.4с []; client_robustness.py=1 0.2с []
+M17 кодирование после регистрации (утечка _pending): убит: client_robustness.py  client_faults.py=0 5.4с []; client_contract.py=0 2.3с []; client_robustness.py=1 0.1с []
+M18 закрытый пул воскрешает процессы: убит: client_robustness.py  client_faults.py=0 4.4с []; client_contract.py=0 2.5с []; client_robustness.py=1 0.1с []
+M18b нет проверки _closed под замком замены: убит: client_robustness.py  client_faults.py=0 5.2с []; client_contract.py=0 2.2с []; client_robustness.py=1 0.1с []
+M19 OSError при запуске не оборачивается: убит: client_robustness.py  client_faults.py=0 4.1с []; client_contract.py=0 2.3с []; client_robustness.py=1 0.1с []
+M20 killpg при каждом _fail: убит: client_robustness.py  client_faults.py=0 5.4с []; client_contract.py=0 2.2с []; client_robustness.py=1 0.2с []
+выживших мутантов: 0 из 21
+--- stderr (0 bytes, last 100 lines)

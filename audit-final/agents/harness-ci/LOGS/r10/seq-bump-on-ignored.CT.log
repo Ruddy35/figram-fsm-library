@@ -1,0 +1,4 @@
+запросов 18041, расхождений 3213
+   {'op': 'step', 'snapshot': {'at': 'menu', 'resume': {'order': 'cart'}, 'seq': 9}, 'event': 'unknown:event'} → {'id': 9, 'snapshot': {'at': 'menu', 'resume': {'order': 'cart'}, 'seq': 10}, 'actions': []}, ожидалось {'result': {'snapshot': {'at': 'menu', 'resume': {'order': 'cart'}, 'seq': 9}, 'action
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 13}, 'event': 'unknown:event'} → {'id': 14, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 14}, 'actions': []}, ожидалось {'result': {'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}
+   {'op': 'step', 'snapshot': {'at': 'help', 'resume': {'order': 'cart'}, 'seq': 18}, 'event': 'unknown:event'} → {'id': 20, 'snapshot': {'at': 'help', 'resume': {'order': 'cart'}, 'seq': 19}, 'actions': []}, ожидалось {'result': {'snapshot': {'at': 'help', 'resume': {'order': 'cart'}, 'seq': 18}, 'act

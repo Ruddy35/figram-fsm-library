@@ -1,0 +1,86 @@
+command: git grep -nE \\bsorry\\b\|\\badmit\\b\|\\baxiom\\b\|\\bopaque\\b\|\\bunsafe\\b\|implemented_by\|@\\\[extern\|native_decide\|ofReduce\|\\bdecide\\b\|partial\ def\|csimp\|\^\\s\*\(macro\|elab\|syntax\|macro_rules\)\\b\|set_option\|run_elab\|run_cmd\|run_meta\|modifyEnv\|addDecl\|#guard\|#eval\|@\\\[export\|by\ decide d69bbaf -- Figram/\*.lean Figram.lean Main.lean EngineMain.lean 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:53:45.086Z
+end: 2026-10-19T23:53:45.100Z
+exit_code: 0
+--- stdout (7539 bytes, last 200 lines)
+d69bbaf:EngineMain.lean:15:partial def loop (m : Machine) (inp out : IO.FS.Stream) : IO Unit := do
+d69bbaf:Figram/Api.lean:9:@[export figram_check]
+d69bbaf:Figram/Api.lean:16:@[export figram_fmt]
+d69bbaf:Figram/Api.lean:25:@[export figram_load]
+d69bbaf:Figram/Api.lean:32:@[export figram_request]
+d69bbaf:Figram/Chart.lean:98:  c.nodes.find? (fun x => decide (x.id = n))
+d69bbaf:Figram/Chart.lean:124:  (c.nodes.filter (fun x => decide (x.kind = .message))).map (·.id)
+d69bbaf:Figram/Chart.lean:135:  c.leafIds.filter (fun l => decide (s ∈ c.anc l ∧ l ≠ s))
+d69bbaf:Figram/Chart.lean:138:  c.timers.filter (fun t => decide (t.node = n))
+d69bbaf:Figram/Chart.lean:164:  (c.transitions.filter (fun t => decide (t.src = a ∧ t.event = e))).flatMap (·.branches)
+d69bbaf:Figram/Core.lean:31:  (t.find? (fun p => decide (p.1 = k))).map (·.2)
+d69bbaf:Figram/Core.lean:35:  (k, v) :: t.filter (fun p => decide (p.1 ≠ k))
+d69bbaf:Figram/Core.lean:38:  t.filter (fun p => decide (p.1 ≠ k))
+d69bbaf:Figram/Core.lean:86:  | .timer id tok => decide (lookup s.timers id = some tok)
+d69bbaf:Figram/Core.lean:151:  m.rows.find? (fun r => decide (r.src = s ∧ r.event = e))
+d69bbaf:Figram/Core.lean:156:    match m.resumes.find? (fun r => decide (r.sec = sec)) with
+d69bbaf:Figram/Core.lean:197:  | .node n => decide (n ∈ m.states)
+d69bbaf:Figram/Core.lean:198:  | .resume sec => m.resumes.any (fun r => decide (r.sec = sec))
+d69bbaf:Figram/Core.lean:202:  decide (m.initial ∈ m.states) &&
+d69bbaf:Figram/Core.lean:204:  m.resumes.all (fun r => decide (r.default ∈ m.states) && r.members.all (fun v => decide (v ∈ m.states)))
+d69bbaf:Figram/CoreProofs.lean:45:    cases hf : m.resumes.find? (fun r => decide (r.sec = sec)) with
+d69bbaf:Figram/Correct.lean:34:    l.find? (fun x => decide (x = a)) = some a := by
+d69bbaf:Figram/Correct.lean:101:    have hf : c.compile.resumes.find? (fun r => decide (r.sec = s0)) = some (c.mkResume s0) := by
+d69bbaf:Figram/Correct.lean:103:      have : ((fun r : ResumeSpec => decide (r.sec = s0)) ∘ c.mkResume) =
+d69bbaf:Figram/Correct.lean:104:          fun x => decide (x = s0) := by funext x; rfl
+d69bbaf:Figram/Engine.lean:62:  match kvs.find? (fun p => decide (p.1 ∉ snapshotKeys)) with
+d69bbaf:Figram/Engine.lean:137:  if decide (s.state ∈ m.states) && s.accepts ev then
+d69bbaf:Figram/Engine.lean:149:    else pure (result id s' as (decide (s.state ∉ m.states)))
+d69bbaf:Figram/EngineProofs.lean:230:      (m.step s ev (envOf gs)).2 (decide (s.state ∉ m.states))) := by
+d69bbaf:Figram/Examples.lean:107:#guard featuresDoc.check.isEmpty
+d69bbaf:Figram/Examples.lean:156:#guard finalAt "pizza_order_success" == "done"
+d69bbaf:Figram/Examples.lean:157:#guard (allActs "pizza_order_success").contains (.call "create_order")
+d69bbaf:Figram/Examples.lean:159:#guard finalAt "guard_true" == "vip"
+d69bbaf:Figram/Examples.lean:160:#guard finalAt "guard_false" == "catalog"
+d69bbaf:Figram/Examples.lean:162:#guard finalAt "bubble_after_false_local" == "reminder"
+d69bbaf:Figram/Examples.lean:163:#guard finalAt "local_true_no_bubble" == "item2"
+d69bbaf:Figram/Examples.lean:165:#guard finalAt "nested_resume" == "item2"
+d69bbaf:Figram/Examples.lean:167:#guard finalAt "stale_resume_value" == "catalog"
+d69bbaf:Figram/Examples.lean:169:#guard finalAt "timer_tokens" == "reminder"
+d69bbaf:Figram/Examples.lean:171:#guard finalAt "recover_deleted_current" == "home"
+d69bbaf:Figram/Examples.lean:172:#guard (allActs "recover_deleted_current").take 1 == [.cancelTimer "old_timer"]
+d69bbaf:Figram/Examples.lean:174:#guard ((runGolden "buy_action_order").map (·.2.getLast!)) ==
+d69bbaf:Figram/Examples.lean:177:#guard ((runGolden "self_loop_restarts_timer").map (·.2.getLast!)) ==
+d69bbaf:Figram/Examples.lean:186:#guard textRoundTrip pizzaDoc && textRoundTrip featuresDoc
+d69bbaf:Figram/Examples.lean:187:#guard (List.range 40).all fun i => let d := RandomDoc.doc i 10; d.check.isEmpty && textRoundTrip d
+d69bbaf:Figram/Examples.lean:190:#guard !({ pizzaDoc with conditions := [("same", "one"), ("same", "two")] }).check.isEmpty
+d69bbaf:Figram/Examples.lean:193:#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"on\": {\"\": [{\"to\": \"\"}]}}}}}" >>= decode with
+d69bbaf:Figram/Examples.lean:198:#guard match parse "{\"x\": 1e1000000000}" with
+d69bbaf:Figram/Examples.lean:203:#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"x-ui\": {\"x\": 10}}}}, \"x-author\": \"Анна\"}" >>= decode with
+d69bbaf:Figram/Examples.lean:208:#guard match parse "{\"figram\": 1, \"requires\": [\"parallel\"], \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {}}}}" >>= decode with
+d69bbaf:Figram/Examples.lean:213:#guard match parse "{\"a\": 1, \"a\": 2}" with
+d69bbaf:Figram/Examples.lean:217:#guard pizza.compile.wf && features.compile.wf
+d69bbaf:Figram/Format.lean:32:  (kvs.find? (fun p => decide (p.1 = k))).map (·.2)
+d69bbaf:Figram/Format.lean:36:  kvs.filter (fun p => decide (p.1 ∉ known))
+d69bbaf:Figram/Format.lean:265:  if d.requires.all (fun f => decide (f ∈ knownFeatures)) then pure d
+d69bbaf:Figram/Format.lean:307:partial def J.keysUnique : J → Bool
+d69bbaf:Figram/Format.lean:334:partial def nodeErrors (id : NodeId) : NodeDoc → List String
+d69bbaf:Figram/Format.lean:347:partial def allTimers : NodeDoc → List String
+d69bbaf:Figram/Format.lean:351:partial def allEvents : NodeDoc → List String
+d69bbaf:Figram/Format.lean:357:def extOKb (known : List String) (ext : Obj) : Bool := ext.all (fun p => decide (p.1 ∉ known))
+d69bbaf:Figram/Format.lean:372:  d.requires.all (fun f => decide (f ∈ knownFeatures)) && nodeOKb d.bot
+d69bbaf:Figram/FormatIO.lean:33:partial def skipWs : List Char → List Char
+d69bbaf:Figram/FormatIO.lean:51:partial def parseStr (acc : List Char) : List Char → P (String × List Char)
+d69bbaf:Figram/FormatIO.lean:81:partial def parseDigits (acc : Nat) (cnt : Nat) : List Char → Nat × Nat × List Char
+d69bbaf:Figram/FormatIO.lean:115:partial def parseValue (depth : Nat) (cs : List Char) : P (J × List Char) := do
+d69bbaf:Figram/FormatIO.lean:140:partial def parseArr (depth : Nat) (acc : List J) (cs : List Char) (first : Bool) : P (J × List Char) := do
+d69bbaf:Figram/FormatIO.lean:150:partial def parseObj (depth : Nat) (acc : List (String × J)) (cs : List Char) (first : Bool) :
+d69bbaf:Figram/FormatIO.lean:190:partial def render (ind : String) : J → String
+d69bbaf:Figram/FormatIO.lean:221:partial def renderCompact : J → String
+d69bbaf:Figram/FormatProofs.lean:46:    {k : String} (hk : k ∈ known) : ext.find? (fun p => decide (p.1 = k)) = none := by
+d69bbaf:Figram/FormatProofs.lean:60:  have h1 : A.filter (fun p => decide (p.1 ∉ known)) = [] := by
+d69bbaf:Figram/FormatProofs.lean:64:  have h2 : ext.filter (fun p => decide (p.1 ∉ known)) = ext := by
+d69bbaf:Figram/FormatProofs.lean:94:    (field k' b j).find? (fun p => decide (p.1 = k)) =
+d69bbaf:Figram/FormatProofs.lean:248:  have ek : ∀ k ∈ docKeys, ext.find? (fun p => decide (p.1 = k)) = none :=
+d69bbaf:Figram/FormatProofs.lean:275:    have gA : A.find? (fun p => decide (p.1 = k)) = none :=
+d69bbaf:Figram/FormatProofs.lean:277:    have gB : B.find? (fun p => decide (p.1 = k)) = none :=
+d69bbaf:Figram/FormatProofs.lean:350:  have : (d.requires.all fun f => decide (f ∈ knownFeatures)) = true := by
+d69bbaf:Figram/RandomDoc.lean:57:partial def build (p : Plan) (id : String) : NodeDoc :=
+d69bbaf:Figram/Trace.lean:43:  let recovered := decide (s.state ∉ c.leafIds)
+--- stderr (0 bytes, last 100 lines)

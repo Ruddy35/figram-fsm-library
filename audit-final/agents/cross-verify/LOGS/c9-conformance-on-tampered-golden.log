@@ -1,0 +1,21 @@
+command: python3 ffi/python-example/conformance.py /home/user/figram-audit-worktrees/cross-verify/bin/figram-engine --golden examples/golden.jsonl 
+cwd: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c9/tampered
+start: 2026-10-19T23:46:09.313Z
+end: 2026-10-19T23:46:09.621Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (1071 bytes, last 100 lines)
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c9/tampered/ffi/python-example/conformance.py", line 147, in <module>
+    main()
+    ~~~~^^
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c9/tampered/ffi/python-example/conformance.py", line 137, in main
+    n, bad = run(engine, doc, traces, mutate)
+             ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c9/tampered/ffi/python-example/conformance.py", line 78, in run
+    expected_reply(exp, i, req["op"])
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/c9/tampered/ffi/python-example/conformance.py", line 48, in expected_reply
+    reply = {"id": rid, "snapshot": e["snapshot"], "actions": e["actions"]}
+                                                              ~^^^^^^^^^^^
+KeyError: 'actions'

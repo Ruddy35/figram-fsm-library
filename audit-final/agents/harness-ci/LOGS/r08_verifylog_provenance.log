@@ -1,0 +1,17 @@
+command: python3 -I REPRODUCTIONS/r08_verifylog_provenance.py /home/user/figram-audit-worktrees/harness-ci /root/.claude/uploads/57129652-0dc1-5f90-93b6-ee8cd24dbb93/3e779091-figram-lean_4.zip 
+cwd: /home/user/figram-audit/agents/harness-ci
+start: 2026-10-19T22:04:36.357Z
+end: 2026-10-19T22:04:36.457Z
+exit_code: 1
+--- stdout (673 bytes, last 200 lines)
+verify.sh steps: 17; VERIFY.log step headers: 17
+MISSING in VERIFY.log (echo): общий словарь запроса из 8 горутин: гонок нет
+VERIFY.log mtime in archive: 2026-10-19 16:33:34
+  changed AFTER VERIFY.log: 2026-10-19 16:46:52  README.md
+  changed AFTER VERIFY.log: 2026-10-19 16:46:52  AUDIT.md
+  changed AFTER VERIFY.log: 2026-10-19 17:31:14  ffi/go-example/init_helper.go
+  changed AFTER VERIFY.log: 2026-10-19 17:31:14  ffi/go-example/race_test.go
+  changed AFTER VERIFY.log: 2026-10-19 17:31:56  ffi/go-example/main.go
+  changed AFTER VERIFY.log: 2026-10-19 17:32:14  REVIEW.md
+  changed AFTER VERIFY.log: 2026-10-19 17:32:14  verify.sh
+--- stderr (0 bytes, last 100 lines)

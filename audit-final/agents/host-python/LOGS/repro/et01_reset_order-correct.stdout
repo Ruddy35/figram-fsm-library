@@ -1,0 +1,20 @@
+{"scenario": "et01_reset_order", "broken": null, "elapsed_s": 0.38, "fails": [], "counts": {"users": 1, "transitions": 16, "steps_logged": 16, "updates_acked": 15, "updates_abandoned": 0, "acks_by_status": {"ok": 15}, "nacks": 0, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 1, "rejected": 0, "outbox_rows": 28, "outbox_retried": 0, "crm_effects": 2, "crm_requests_by_outcome": {"applied": 2}, "tg_deliveries": 16, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {}, "timers_by_state": {"canceled": 2}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 15, "p50": 2.685, "p95": 13.938, "p99": 13.938, "max": 41.955}, "host_step_ms": {"n": 15, "p50": 2.662, "p95": 13.855, "p99": 13.855, "max": 41.937}, "e2e_ms": {"n": 15, "p50": 3.785, "p95": 19.228, "p99": 19.228, "max": 42.509}, "elapsed_s": 0.384, "throughput_updates_per_s": 39.1}}
+u final: {'at': 'done', 'resume': {'order': 'pay'}, 'seq': 16}
+   tg:1 cmd:start  seq 1 -> menu t_ms 0 [{'send': 'menu'}]
+   tg:2 btn:order  seq 2 -> catalog t_ms 0 [{'send': 'catalog'}]
+   tg:3 btn:pizza  seq 3 -> pick_size t_ms 0 [{'send': 'pick_size'}]
+   tg:4 btn:size  seq 4 -> pick_toppings t_ms 0 [{'call': 'save_size'}, {'send': 'pick_toppings'}]
+   tg:5 btn:add  seq 5 -> cart t_ms 0 [{'call': 'add_to_cart'}, {'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 5}, {'send': 'cart'}]
+   tg:6 btn:checkout  seq 6 -> address t_ms 0 [{'cancel_timer': 'cart_reminder'}, {'send': 'address'}]
+   tg:7 msg:text  seq 7 -> pay t_ms 0 [{'call': 'save_address'}, {'send': 'pay'}]
+   tg:8 payment:success  seq 8 -> done t_ms 0 [{'call': 'create_order'}, {'send': 'done'}]
+   reset:10 reset  seq 9 -> menu t_ms 0 [{'send': 'menu'}]
+   tg:9 btn:order  seq 10 -> catalog t_ms 0 [{'send': 'catalog'}]
+   tg:10 btn:pizza  seq 11 -> pick_size t_ms 0 [{'send': 'pick_size'}]
+   tg:11 btn:size  seq 12 -> pick_toppings t_ms 0 [{'call': 'save_size'}, {'send': 'pick_toppings'}]
+   tg:12 btn:add  seq 13 -> cart t_ms 0 [{'call': 'add_to_cart'}, {'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 13}, {'send': 'cart'}]
+   tg:13 btn:checkout  seq 14 -> address t_ms 0 [{'cancel_timer': 'cart_reminder'}, {'send': 'address'}]
+   tg:14 msg:text  seq 15 -> pay t_ms 0 [{'call': 'save_address'}, {'send': 'pay'}]
+   tg:15 payment:success  seq 16 -> done t_ms 0 [{'call': 'create_order'}, {'send': 'done'}]
+effects: [('u:16:0', 'create_order'), ('u:8:0', 'create_order')]
+FAILED invariants: {}

@@ -1,0 +1,13 @@
+command: bash REPRODUCTIONS/r05/run.sh /home/user/figram-audit-worktrees/harness-ci 30000 
+cwd: /home/user/figram-audit/agents/harness-ci
+start: 2026-10-19T22:02:40.647Z
+end: 2026-10-19T22:03:40.282Z
+exit_code: 0
+--- stdout (932 bytes, last 200 lines)
+relax=[none] json_fuzz rc=0 :: случаев 30000: принято обоими 9786, отвергнуто обоими 20214, расхождений 0
+relax=[dup] json_fuzz rc=1 :: случаев 30000: принято обоими 9786, отвергнуто обоими 19988, расхождений 226
+relax=[depth] json_fuzz rc=1 :: случаев 30000: принято обоими 9786, отвергнуто обоими 19910, расхождений 304
+relax=[exp] json_fuzz rc=1 :: случаев 30000: принято обоими 9786, отвергнуто обоими 19491, расхождений 723
+relax=[surrogate] json_fuzz rc=1 :: случаев 30000: принято обоими 9786, отвергнуто обоими 18684, расхождений 1530
+relax=[const] json_fuzz rc=0 :: случаев 30000: принято обоими 9786, отвергнуто обоими 20214, расхождений 0
+--- stderr (0 bytes, last 100 lines)

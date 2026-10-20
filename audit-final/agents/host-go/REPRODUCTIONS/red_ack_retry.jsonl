@@ -1,0 +1,11 @@
+{"ctl":"init","bot":"pizza","scenario":"red_ack_retry","seed":1}
+{"ctl":"executor","mode":"pause"}
+{"user":"r1","update_id":1,"event":"cmd:start"}
+{"user":"r2","update_id":2,"event":"cmd:start"}
+{"user":"r3","update_id":3,"event":"cmd:start"}
+{"user":"r4","update_id":4,"event":"cmd:start"}
+{"ctl":"db_lock","ms":7000}
+{"ctl":"executor","mode":"resume"}
+{"ctl":"barrier"}
+{"user":"r1","update_id":5,"event":"btn:order"}
+{"user":"r5","update_id":6,"event":"cmd:start"}

@@ -1,0 +1,37 @@
+
+== Происхождение прогона
+дата: 2026-10-19T23:54:15Z; ядер: 4
+коммит: нет git-репозитория
+verify.sh sha256: fc23d8e8e848dc3976174f8854c9ae3e0b408c121db81d2a2f3dd205a7ce96a0
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (42 jobs).
+
+== Приложенные бинарники bin/ собраны ровно из этих исходников
+ok: пересборка совпадает с /home/user/figram-audit/agents/harness-ci/LOGS/local-SHA256SUMS (bin/ с исходниками НЕ сверялись)
+
+== Теоремы: только стандартные аксиомы, формулировки закреплены
+'Figram.Chart.compile_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.run_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.session_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.chart_run_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_state_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+'Figram.Format.toChart_decls' does not depend on any axioms
+'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.step_snapOK' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.guards_irrelevant' depends on axioms: [propext, Quot.sound]
+теорем 17: аксиомы только из ['Classical.choice', 'Quot.sound', 'propext']
+формулировки 17 теорем совпадают с ci/THEOREMS.expected
+Figram/Examples.lean:221:example : (20 : Nat) + 22 = 42 := by native_decide
+НЕТ: в исходниках Lean запрещённые конструкции (axiom, native_decide, implemented_by, extern, sorry, admit, skipKernelTC)

@@ -1,0 +1,10 @@
+command: ./verify-faults.sh full none 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-20T00:54:53.298Z
+end: 2026-10-20T00:58:23.033Z
+exit_code: 1
+--- stdout (386 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+none                 1      3        НЕТ Close не освобождает память или контроль нечувствителен
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-full-hardened-final/summary.txt)
+--- stderr (0 bytes, last 100 lines)

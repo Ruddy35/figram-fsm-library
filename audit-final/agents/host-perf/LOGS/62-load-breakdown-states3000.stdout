@@ -1,0 +1,3 @@
+{"label": "fmt", "rc": 0, "wall_s": 0.1762, "user_s": 0.0709, "sys_s": 0.0039, "maxrss_kb": 37840}
+{"label": "check", "rc": 0, "wall_s": 12.8221, "user_s": 10.8639, "sys_s": 0.0733, "maxrss_kb": 27692}
+{"label": "engine-load", "rc": 0, "wall_s": 25.2745, "user_s": 21.2735, "sys_s": 0.0613, "maxrss_kb": 27776}

@@ -1,0 +1,19 @@
+command: sh /home/user/figram-audit/agents/python-client/REPRODUCTIONS/probe_engine_replies.sh /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/pizza.bot.json 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:49:15.069Z
+end: 2026-10-19T22:49:15.193Z
+exit_code: 0
+--- stdout (747 bytes, last 200 lines)
+{"id":null,"error":"повторяющийся ключ «at»"}
+{"id":null,"error":"повторяющийся ключ «1»"}
+{"id":null,"error":"непарный суррогат в \\u"}
+{"id":4,"snapshot":{"at":"menu"},"actions":[]}
+{"id":5,"error":"«token» должен быть неотрицательным целым"}
+{"id":null,"error":"повторяющийся ключ «a»"}
+{"id":7,"snapshot":{"at":"menu"},"actions":[]}
+{"id":8,"error":"«token» должен быть неотрицательным целым"}
+{"id":null,"error":"повторяющийся ключ «true»"}
+{"id":10,"snapshot":{"at":"menu"},"actions":[]}
+{"id":11,"snapshot":{"at":"menu"},"actions":[]}
+{"id":12,"snapshot":{"at":"menu"},"actions":[]}
+--- stderr (0 bytes, last 100 lines)

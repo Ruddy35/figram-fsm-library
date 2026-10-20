@@ -1,0 +1,2 @@
+НЕТ устаревший жетон игнорируется: {'snapshot': {'at': 'reminder', 'resume': {'shop': 'reminder'}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'send': 'reminder'}]} ≠ ожидалось {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'seq': 5}, 'actions': []}
+граничных случаев протокола 11, ответов 11, расхождений 1

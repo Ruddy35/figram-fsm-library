@@ -1,0 +1,34 @@
+command: nice -n 10 timeout 1500 /home/user/figram-audit/agents/proofs/REPRODUCTIONS/axiom_gate_canary.sh 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T23:53:49.975Z
+end: 2026-10-19T23:54:15.248Z
+exit_code: 0
+--- stdout (1365 bytes, last 200 lines)
+=== Canary A: custom axiom + native_decide
+verify.sh from tree
+ Figram/CoreProofs.lean | 25 +++++--------------------
+ 1 file changed, 5 insertions(+), 20 deletions(-)
+Build completed successfully (42 jobs).
+  EXPECTED: verify.sh build step passes (no warnings)
+ОТКАЗ шага «proofs» (код 1), журнал: verify-logs/proofs.log
+STRICT GATE: forbidden construct in sources (see lines above)
+  EXPECTED: verify.sh proof step (strict gate) is red (exit 1)
+STRICT GATE: forbidden construct in sources (see lines above)
+  EXPECTED: strict gate is red (exit 1)
+=== Canary B: unchecked declaration (environment hack)
+verify.sh from tree
+Build completed successfully (44 jobs).
+  EXPECTED: build passes (no warnings)
+'Figram.hacked' does not depend on any axioms
+  EXPECTED: #print axioms sees no axioms for a proof of 1 = 2
+STRICT AXIOM GATE: PASS
+  EXPECTED: axiom-only gate (AxiomGate.lean) does NOT catch it
+ОТКАЗ шага «proofs» (код 1), журнал: verify-logs/proofs.log
+STRICT GATE: forbidden construct in sources (see lines above)
+  EXPECTED: verify.sh proof step (strict gate) is red (exit 1)
+leanchecker found a problem in Figram.HackCanary
+uncaught exception: while replaying declaration 'Figram.hackFalse':
+(kernel) declaration type mismatch, 'Figram.hackFalse' has type
+  EXPECTED: leanchecker is red (exit 1)
+ALL EXPECTATIONS MET
+--- stderr (0 bytes, last 100 lines)

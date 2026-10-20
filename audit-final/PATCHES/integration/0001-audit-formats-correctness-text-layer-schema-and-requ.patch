@@ -1,0 +1,1858 @@
+From 5e32b98dd75c4b2fc0840fb42522e5df1e6ffe05 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 22:40:12 +0000
+Subject: [PATCH 01/40] audit(formats-correctness): text-layer, schema and
+ request tables
+
+Tests in tests/formats/: document round-trip on figram random + examples,
+RFC 8259 edge table + random values vs Python json, schema vs decoder/check
+table, engine request table, CLI diagnostics injection; each with a
+deliberately broken oracle (run_all.sh).
+
+(cherry picked from commit 897bfc89a3f29d689c980aa82e81d52f3cb86c2a)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ tests/formats/.gitignore           |   1 +
+ tests/formats/a_roundtrip.py       | 324 ++++++++++++++++++++
+ tests/formats/b_rfc_table.py       | 336 +++++++++++++++++++++
+ tests/formats/c_schema_table.py    | 261 ++++++++++++++++
+ tests/formats/common.py            | 460 +++++++++++++++++++++++++++++
+ tests/formats/d_engine_requests.py | 203 +++++++++++++
+ tests/formats/e_cli_names.py       | 132 +++++++++
+ tests/formats/mutant_figram.sh     |   5 +
+ tests/formats/run_all.sh           |  43 +++
+ 9 files changed, 1765 insertions(+)
+ create mode 100644 tests/formats/.gitignore
+ create mode 100644 tests/formats/a_roundtrip.py
+ create mode 100644 tests/formats/b_rfc_table.py
+ create mode 100644 tests/formats/c_schema_table.py
+ create mode 100644 tests/formats/common.py
+ create mode 100644 tests/formats/d_engine_requests.py
+ create mode 100644 tests/formats/e_cli_names.py
+ create mode 100755 tests/formats/mutant_figram.sh
+ create mode 100755 tests/formats/run_all.sh
+
+diff --git a/tests/formats/.gitignore b/tests/formats/.gitignore
+new file mode 100644
+index 0000000..c18dd8d
+--- /dev/null
++++ b/tests/formats/.gitignore
+@@ -0,0 +1 @@
++__pycache__/
+diff --git a/tests/formats/a_roundtrip.py b/tests/formats/a_roundtrip.py
+new file mode 100644
+index 0000000..5cef496
+--- /dev/null
++++ b/tests/formats/a_roundtrip.py
+@@ -0,0 +1,324 @@
++#!/usr/bin/env python3
++"""(a) Round-trip of documents through the text layer.
++
++For every base document (``figram random <seed> <n>`` for many seeds, plus all
++of examples/*.bot.json) we build non-canonical variants of the SAME document:
++
++  V0  the base text as is
++  V1  compact, ensure_ascii (every non-ASCII char as \\uXXXX, surrogate pairs)
++  V2  known keys shuffled inside fixed-key objects, explicit defaults
++      (resume:false, do:[], on:{}, timers:{}, requires:[], variables:{}),
++      timer delays rewritten as 7.2e3 / 7200.0 / 72e2 / 7200000e-3 / -0
++  V3  annotations: x-… and other unknown keys with small random JSON values
++      (unicode, escapes, control chars, numbers with fractions/exponents,
++      nested arrays/objects, empty containers) in doc/section/message/variant
++  V4  V2 + V3 + random whitespace (space, tab, CR, LF)
++
++and check, for every variant x:
++
++  P1  `figram fmt x`  ==  oracle(x)   (independent Python decode∘encode∘print,
++      tests/formats/common.py; numbers kept as exact m·10^e)
++  P2  `figram fmt (figram fmt x)` == `figram fmt x`   (idempotence, i.e. the
++      printed text is read back by Figram itself to the same document)
++  P3  python json.loads(fmt x, object_pairs_hook) == oracle model (structure)
++  P4  `figram check x` prints ok, `figram stats x` and
++      `figram trace x 3 8 <seed>` are byte-identical to the base document
++      (К5а: annotations / defaults / number spelling do not change behaviour)
++
++Known finding rows (FC-01) are run separately (see EDGE below) and are
++expected to FAIL on the baseline; use --strict to make them count.
++
++    python3 a_roundtrip.py [--seeds N] [--break ORACLE_BUG] [--strict]
++"""
++
++import argparse
++import glob
++import json
++import os
++import random
++import sys
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++from common import (FIGRAM, ROOT, Canon, Num, Obj, RawNum, load_j, oracle_fmt, render,  # noqa: E402
++                    run, write)
++
++DEFAULT_KEYS = {
++    "doc": [("requires", []), ("variables", Obj()), ("conditions", Obj()), ("calls", Obj())],
++    "msg": [("on", Obj()), ("timers", Obj())],
++    "sec": [("on", Obj())],
++    "var": [("resume", False), ("do", [])],
++}
++
++
++def rand_str(r):
++    alphabet = ["a", "Z", " ", "é", "Ж", "😀", " ", "\x00", "\x1b", "\n", "\t", '"', "\\", "/",
++                "\x7f", "﻿", "x-", " "]
++    return "".join(r.choice(alphabet) for _ in range(r.randint(0, 6)))
++
++
++def rand_num(r):
++    k = r.random()
++    if k < 0.3:
++        return RawNum(str(r.randint(-10 ** 6, 10 ** 6)))
++    if k < 0.5:
++        return RawNum(r.choice(["0", "-0", "0.0", "-0.0", "1.50", "100", "1E+2", "1e2", "15e2", "1.5e3",
++                                "0.001", "123.456e-2", "9007199254740993", "-1e-31", "2.5E-40"]))
++    sign = r.choice(["", "-"])
++    ip = r.choice(["0", str(r.randint(1, 999))])
++    fp = "." + "".join(r.choice("0123456789") for _ in range(r.randint(1, 8))) if r.random() < 0.6 else ""
++    ex = (r.choice("eE") + r.choice(["", "+", "-"]) + str(r.randint(0, 300))) if r.random() < 0.5 else ""
++    return RawNum(sign + ip + fp + ex)
++
++
++def rand_value(r, depth=0):
++    k = r.random()
++    if depth >= 3 or k < 0.5:
++        c = r.random()
++        if c < 0.3:
++            return rand_num(r)
++        if c < 0.7:
++            return rand_str(r)
++        return r.choice([None, True, False])
++    if k < 0.75:
++        return [rand_value(r, depth + 1) for _ in range(r.randint(0, 3))]
++    keys = []
++    for _ in range(r.randint(0, 3)):
++        kk = rand_str(r)
++        if kk not in keys:
++            keys.append(kk)
++    return Obj((kk, rand_value(r, depth + 1)) for kk in keys)
++
++
++def ann_key(r, known):
++    while True:
++        k = r.choice(["x-ui", "x-note", "x-content", "x-", "x-" + rand_str(r), "note", "Bot", "TO",
++                      "initial2", "x-ui2", "zz", "_id"])
++        if k not in known:
++            return k
++
++
++def insert_at(r, obj, pair):
++    obj.insert(r.randint(0, len(obj)), pair)
++
++
++def transform(j, r, shuffle, defaults, annotate, numbers):
++    """Walk the document J and produce a variant of the same document."""
++
++    def var(v):
++        v = Obj(v)
++        if defaults:
++            for k, d in DEFAULT_KEYS["var"]:
++                if not v.has(k) and r.random() < 0.5:
++                    insert_at(r, v, (k, d))
++        if annotate:
++            for _ in range(r.randint(0, 2)):
++                k = ann_key(r, [kk for kk, _ in v] + ["if", "to", "resume", "do"])
++                insert_at(r, v, (k, rand_value(r)))
++        if shuffle:
++            v = shuffle_known(v, ["if", "to", "resume", "do"])
++        return v
++
++    def on(o):
++        return Obj((ev, [var(x) for x in vs]) for ev, vs in o)
++
++    def node(n):
++        n = Obj(n)
++        is_sec = n.has("children")
++        out = Obj()
++        for k, v in n:
++            if k == "on":
++                out.append((k, on(v)))
++            elif k == "children":
++                out.append((k, Obj((kk, node(x)) for kk, x in v)))
++            elif k == "timers" and numbers:
++                out.append((k, Obj((kk, respell(x)) for kk, x in v)))
++            else:
++                out.append((k, v))
++        if defaults:
++            for k, d in DEFAULT_KEYS["sec" if is_sec else "msg"]:
++                if not out.has(k) and r.random() < 0.5:
++                    insert_at(r, out, (k, d))
++        if annotate:
++            for _ in range(r.randint(0, 2)):
++                k = ann_key(r, [kk for kk, _ in out] + ["initial", "children", "on", "timers"])
++                insert_at(r, out, (k, rand_value(r)))
++        if shuffle:
++            out = shuffle_known(out, ["initial", "children", "on", "timers"])
++        return out
++
++    def respell(x):
++        assert isinstance(x, Num) and x.e == 0 and x.m >= 0
++        n = x.m
++        forms = [str(n), f"{n}.0", f"{n}.000", f"{n}e0", f"{n}E+0", f"{n * 1000}e-3", f"{n}0e-1"]
++        if n == 0:
++            forms += ["-0", "-0.0", "0e5", "0.0e-0"]
++        else:
++            s = str(n)
++            forms.append(f"{s[0]}.{s[1:] or '0'}e{len(s) - 1}")
++        return RawNum(r.choice(forms))
++
++    def shuffle_known(o, known):
++        """Permute the positions of known keys only; unknown keys keep their
++        relative order (К1: unknown key order is part of the document)."""
++        idx = [i for i, (k, _) in enumerate(o) if k in known]
++        vals = [o[i] for i in idx]
++        r.shuffle(vals)
++        o = Obj(o)
++        for i, p in zip(idx, vals):
++            o[i] = p
++        return o
++
++    d = Obj(j)
++    out = Obj()
++    for k, v in d:
++        if k == "bot":
++            out.append((k, node(v)))
++        elif k == "figram" and numbers:
++            out.append((k, RawNum(r.choice(["1", "1.0", "1e0", "10e-1", "0.1e1", "1.000", "100E-2"]))))
++        else:
++            out.append((k, v))
++    if defaults:
++        for k, dflt in DEFAULT_KEYS["doc"]:
++            if not out.has(k) and r.random() < 0.5:
++                insert_at(r, out, (k, dflt))
++    if annotate:
++        for _ in range(r.randint(0, 3)):
++            k = ann_key(r, [kk for kk, _ in out] + ["figram", "requires", "conditions", "calls", "variables", "bot"])
++            insert_at(r, out, (k, rand_value(r)))
++    if shuffle:
++        out = shuffle_known(out, ["figram", "requires", "conditions", "calls", "variables", "bot"])
++    return out
++
++
++def variants(base_text, seed):
++    r = random.Random(seed)
++    j = load_j(base_text)
++    ws_pool = ["", " ", "\t", "\r\n", "\n", "  "]
++    out = [("V0", base_text)]
++    out.append(("V1", write(j, ascii_=True)))
++    out.append(("V2", write(transform(j, r, True, True, False, True))))
++    out.append(("V3", write(transform(j, r, False, False, True, False), ascii_=r.random() < 0.5)))
++    out.append(("V4", write(transform(j, r, True, True, True, True), ws=lambda: r.choice(ws_pool),
++                            ascii_=r.random() < 0.5)))
++    return out
++
++
++class Tmp:
++    def __init__(self, d):
++        self.d = d
++        self.n = 0
++
++    def file(self, text):
++        self.n += 1
++        p = os.path.join(self.d, f"doc{self.n % 64}.json")
++        with open(p, "w", encoding="utf-8", newline="") as f:
++            f.write(text)
++        return p
++
++
++def check_doc(name, base_text, seed, tmp, brk, stats, fails):
++    base_p = tmp.file(base_text)
++    rc, base_stats, _ = run([FIGRAM, "stats", base_p])
++    rc2, base_trace, _ = run([FIGRAM, "trace", base_p, "3", "8", str(seed)])
++    if rc or rc2:
++        fails.append((name, "base", "base document not usable", rc, rc2))
++        return
++    for vname, text in variants(base_text, seed):
++        stats["variants"] += 1
++        p = tmp.file(text)
++        rc, out, err = run([FIGRAM, "fmt", p])
++        exp = oracle_fmt(text, brk)
++        # P1
++        stats["P1"] += 1
++        if exp is None or rc != 0 or out != exp:
++            fails.append((name, vname, "P1 fmt != oracle", rc, err.decode()[:200],
++                          (out[:300], (exp or b"<reject>")[:300])))
++            continue
++        # P2
++        p2 = tmp.file(out.decode())
++        rc, out2, err2 = run([FIGRAM, "fmt", p2])
++        stats["P2"] += 1
++        if rc != 0 or out2 != out:
++            fails.append((name, vname, "P2 fmt not idempotent", rc, err2.decode()[:200]))
++            continue
++        # P3 structure via python json with object_pairs_hook
++        stats["P3"] += 1
++        model = Canon(brk).doc(load_j(text))
++        if load_j(out.decode()) != model:
++            fails.append((name, vname, "P3 python reload != oracle model"))
++            continue
++        # P4 behaviour unchanged
++        rc, ck, _ = run([FIGRAM, "check", p])
++        rc_s, st, _ = run([FIGRAM, "stats", p])
++        rc_t, tr, _ = run([FIGRAM, "trace", p, "3", "8", str(seed)])
++        stats["P4"] += 1
++        if rc or ck != b"ok\n" or rc_s or st != base_stats or rc_t or tr != base_trace:
++            fails.append((name, vname, "P4 behaviour changed", rc, ck[:200], st == base_stats, tr == base_trace))
++
++
++# Rows that exercise finding FC-01 (printer writes an exponent that the
++# parser rejects).  Expected to fail on the baseline.
++EDGE = [
++    ("FC-01 annotation 1.0e-1000",
++     '{"figram":1,"x-ui":{"zoom":1.0e-1000},"bot":{"initial":"a","children":{"a":{}}}}'),
++    ("FC-01 annotation -2.50e-999",
++     '{"figram":1,"bot":{"initial":"a","children":{"a":{"x-ui":[-2.50e-999]}}}}'),
++    ("FC-01 annotation 1001 fraction digits",
++     '{"figram":1,"bot":{"initial":"a","children":{"a":{"on":{"btn:x":[{"to":"a","x-p":0.'
++     + "0" * 1000 + '1}]}}}}}'),
++]
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--seeds", type=int, default=250)
++    ap.add_argument("--break", dest="brk", default=None,
++                    help="deliberate oracle bug: sort-unknown | keep-resume-false | keep-num-text | drop-unknown")
++    ap.add_argument("--strict", action="store_true", help="count known-finding rows as failures")
++    ap.add_argument("--tmp", default=os.environ.get("TMPDIR", "/tmp"))
++    a = ap.parse_args()
++    tmpdir = os.path.join(a.tmp, f"fc-a-{os.getpid()}")
++    os.makedirs(tmpdir, exist_ok=True)
++    tmp = Tmp(tmpdir)
++    stats = {"docs": 0, "variants": 0, "P1": 0, "P2": 0, "P3": 0, "P4": 0}
++    fails = []
++    docs = []
++    for seed in range(a.seeds):
++        n = 1 + seed % 15
++        rc, out, err = run([FIGRAM, "random", str(seed), str(n)])
++        if rc != 0:
++            fails.append((f"random {seed} {n}", "gen", rc, err.decode()[:200]))
++            continue
++        docs.append((f"random {seed} {n}", out.decode(), seed))
++    for p in sorted(glob.glob(os.path.join(ROOT, "examples", "*.bot.json"))):
++        with open(p, encoding="utf-8") as f:
++            docs.append((os.path.relpath(p, ROOT), f.read(), 7))
++    for name, text, seed in docs:
++        stats["docs"] += 1
++        check_doc(name, text, seed, tmp, a.brk, stats, fails)
++    # known-finding rows
++    edge_fail = 0
++    for name, text in EDGE:
++        p = tmp.file(text)
++        rc, out, err = run([FIGRAM, "fmt", p])
++        exp = oracle_fmt(text, a.brk)
++        ok1 = rc == 0 and out == exp
++        rc2, out2, err2 = run([FIGRAM, "fmt", tmp.file(out.decode())]) if rc == 0 else (None, b"", b"")
++        ok2 = rc2 == 0 and out2 == out
++        print(f"EDGE {name}: fmt rc={rc} oracle-match={ok1} refmt rc={rc2} idempotent={ok2}"
++              + ("" if ok2 else f"  refmt stderr: {err2.decode().strip()[:120]}"))
++        edge_fail += not (ok1 and ok2)
++    for f in fails[:15]:
++        print("FAIL", f)
++    print(f"docs={stats['docs']} variants={stats['variants']} P1={stats['P1']} P2={stats['P2']} "
++          f"P3={stats['P3']} P4={stats['P4']} failures={len(fails)} edge_fail={edge_fail}/{len(EDGE)}"
++          f" break={a.brk}")
++    if stats["P4"] == 0:
++        print("no comparisons made")
++        sys.exit(2)
++    bad = len(fails) + (edge_fail if a.strict else 0)
++    sys.exit(1 if bad else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/formats/b_rfc_table.py b/tests/formats/b_rfc_table.py
+new file mode 100644
+index 0000000..3dde13e
+--- /dev/null
++++ b/tests/formats/b_rfc_table.py
+@@ -0,0 +1,336 @@
++#!/usr/bin/env python3
++"""(b) RFC 8259 edge-case table for the text layer (`figram json`).
++
++Each row: (id, input bytes, expected `figram json` line, class).
++  expected  "OK <compact>"  — exact compact print expected from Figram;
++            "ERR"           — any rejection.
++  class     rfc   — plain RFC 8259 behaviour (Python json agrees);
++            dev   — documented Figram deviation (FormatIO.lean header,
++                    FORMAT.md §3 «Числа», AUDIT.md §4): Python json differs;
++            model — Figram's exact m·10^e model prints the value differently
++                    from Python's float (value-equal);
++            fc01 / fc02 / fc03 — rows of findings in REPORT.md.
++
++Checks, for every row:
++  T1  figram output == expected column (handwritten);
++  T2  the independent oracle (Python json + documented deviations +
++      re-implemented printer, common.py) produces the same line;
++  T3  idempotence: every OK output fed back into `figram json` gives the same
++      OK line (the printer only writes text the parser accepts).
++Then R random well-formed values (nesting ≤ 5, short strings, small numbers
++incl. exponents up to ±1000) are serialised with random spacing/escaping and
++checked with T2+T3.
++
++    python3 b_rfc_table.py [--random N] [--seed S] [--break dup-last-wins|no-surrogate|float]
++                           [--strict]
++"""
++
++import argparse
++import json
++import os
++import random
++import sys
++from decimal import Decimal
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++from common import FIGRAM, Num, Obj, Reject, compact, load_j, run  # noqa: E402
++
++D256A = "[" * 256 + "]" * 256
++D257A = "[" * 257 + "]" * 257
++D256O = '{"k":' * 255 + "{}" + "}" * 255
++D257O = '{"k":' * 256 + "{}" + "}" * 256
++
++T = [
++    # ---- numbers ----------------------------------------------------------
++    ("n-neg-zero", "-0", "OK 0", "rfc"),
++    ("n-neg-zero-frac", "-0.0", "OK 0.0", "fc02"),        # Python: -0.0
++    ("n-neg-zero-exp", "-0e0", "OK 0", "rfc"),
++    ("n-neg-zero-arr", "[-0.00]", "OK [0.00]", "fc02"),
++    ("n-1E+2", "1E+2", "OK 1e2", "model"),                # Python: 100.0
++    ("n-1e-2", "1e-2", "OK 0.01", "model"),
++    ("n-0.0e-0", "0.0e-0", "OK 0.0", "rfc"),
++    ("n-1.5e3", "1.5e3", "OK 15e2", "model"),             # Python: 1500.0
++    ("n-trailing-zeros", "1.50", "OK 1.50", "model"),     # Python: 1.5
++    ("n-int", "100", "OK 100", "rfc"),
++    ("n-bigint", "123456789012345678901234567890", "OK 123456789012345678901234567890", "rfc"),
++    ("n-0e5", "0e5", "OK 0e5", "model"),
++    ("n-1e-30", "1e-30", "OK 0.000000000000000000000000000001", "model"),
++    ("n-1e-31", "1e-31", "OK 1e-31", "model"),
++    ("n-neg-frac", "-1.5", "OK -1.5", "rfc"),
++    ("n-e1000", "1e1000", "OK 1e1000", "dev"),            # Python: inf
++    ("n-e-1000", "1E-1000", "OK 1e-1000", "dev"),         # Python: 0.0
++    ("n-e1001", "1e1001", "ERR", "dev"),                  # |exp| > 1000
++    ("n-e-1001", "1e-1001", "ERR", "dev"),
++    ("n-e+01000", "1e+01000", "OK 1e1000", "dev"),        # leading zeros in exponent are RFC-legal
++    ("n-fc01-a", "1.0e-1000", "OK 10e-1001", "fc01"),     # printed text is rejected by the parser
++    ("n-fc01-b", "-2.50e-999", "OK -250e-1001", "fc01"),
++    ("n-minus", "-", "ERR", "rfc"),
++    ("n-plus", "+1", "ERR", "rfc"),
++    ("n-dot-lead", ".5", "ERR", "rfc"),
++    ("n-dot-trail", "5.", "ERR", "rfc"),
++    ("n-lead-zero", "01", "ERR", "rfc"),
++    ("n-neg-lead-zero", "-01", "ERR", "rfc"),
++    ("n-00", "00", "ERR", "rfc"),
++    ("n-0.0-lead", "00.5", "ERR", "rfc"),
++    ("n-hex", "0x10", "ERR", "rfc"),
++    ("n-e-empty", "1e", "ERR", "rfc"),
++    ("n-e-plus-empty", "1e+", "ERR", "rfc"),
++    ("n-dot-e", "1.e5", "ERR", "rfc"),
++    ("n-e-signs", "1.5e+-3", "ERR", "rfc"),
++    ("n-inf", "Infinity", "ERR", "rfc"),                  # Python accepts by default
++    ("n-nan", "NaN", "ERR", "rfc"),
++    ("n-neg-inf", "-Infinity", "ERR", "rfc"),
++    ("n-two", "1 2", "ERR", "rfc"),
++    ("n-in-arr", "[1,-0,2.5E-3]", "OK [1,0,0.0025]", "model"),
++    # ---- strings ----------------------------------------------------------
++    ("s-escapes", r'"\b\f\n\r\t\/\"\\"', r'OK "\u0008\u000c\n\r\t/\"\\"', "rfc"),
++    ("s-e-acute-raw", '"é"', 'OK "é"', "rfc"),
++    ("s-e-acute-esc", r'"é"', 'OK "é"', "rfc"),
++    ("s-e-acute-esc-upper", r'"é"', 'OK "é"', "rfc"),
++    ("s-pair", r'"😀"', 'OK "😀"', "rfc"),
++    ("s-pair-upper", r'"😀"', 'OK "😀"', "rfc"),
++    ("s-pair-raw", '"😀"', 'OK "😀"', "rfc"),
++    ("s-lone-high", r'"\ud800"', "ERR", "dev"),            # Python accepts
++    ("s-lone-low", r'"\udc00"', "ERR", "dev"),
++    ("s-high-nonlow", r'"\ud800A"', "ERR", "dev"),
++    ("s-reversed-pair", r'"\ude00\ud83d"', "ERR", "dev"),
++    ("s-high-high", r'"\ud800\ud800"', "ERR", "dev"),
++    ("s-nul-esc", r'"\u0000"', r'OK "\u0000"', "rfc"),
++    ("s-us-esc", r'"\u001f"', r'OK "\u001f"', "rfc"),
++    ("s-esc-esc", r'"\u001b[31m"', r'OK "\u001b[31m"', "rfc"),
++    ("s-raw-tab", '"a\tb"', "ERR", "rfc"),
++    ("s-raw-cr", '"a\rb"', "ERR", "rfc"),
++    ("s-raw-us", '"a\x1fb"', "ERR", "rfc"),
++    ("s-raw-nul", '"a\x00b"', "ERR", "rfc"),
++    ("s-raw-del", '"a\x7fb"', 'OK "a\x7fb"', "rfc"),
++    ("s-raw-u2028", '" "', 'OK " "', "rfc"),
++    ("s-raw-bom-inside", '"﻿"', 'OK "﻿"', "rfc"),
++    ("s-bad-x", r'"\x41"', "ERR", "rfc"),
++    ("s-short-u", r'"\u12"', "ERR", "rfc"),
++    ("s-bad-hex", r'"\u12G4"', "ERR", "rfc"),
++    ("s-squote-esc", r'"\'"', "ERR", "rfc"),
++    ("s-bell", r'"\a"', "ERR", "rfc"),
++    ("s-unterminated", '"abc', "ERR", "rfc"),
++    ("s-unterminated-esc", '"\\"', "ERR", "rfc"),
++    ("s-single-quotes", "'a'", "ERR", "rfc"),
++    # ---- literals ---------------------------------------------------------
++    ("l-true", "true", "OK true", "rfc"),
++    ("l-false", "false", "OK false", "rfc"),
++    ("l-null", "null", "OK null", "rfc"),
++    ("l-truex", "truex", "ERR", "rfc"),
++    ("l-true1", "true1", "ERR", "rfc"),
++    ("l-arr-falsey", "[true,falsey]", "ERR", "rfc"),
++    ("l-obj-nullx", '{"a":nullx}', "ERR", "rfc"),
++    ("l-nul", "nul", "ERR", "rfc"),
++    ("l-tru", "tru", "ERR", "rfc"),
++    ("l-True", "True", "ERR", "rfc"),
++    ("l-NULL", "NULL", "ERR", "rfc"),
++    # ---- whitespace -------------------------------------------------------
++    ("w-ascii", " \t\r1 \t\r", "OK 1", "rfc"),
++    ("w-in-obj", '{ \t"a" \r: \t[ 1 ,\t2 ] }', 'OK {"a":[1,2]}', "rfc"),
++    ("w-nbsp-lead", " 1", "ERR", "rfc"),
++    ("w-nbsp-trail", "1 ", "ERR", "rfc"),
++    ("w-nbsp-inside", "[1, 2]", "ERR", "rfc"),
++    ("w-vt", "\x0b1", "ERR", "rfc"),
++    ("w-ff", "\x0c1", "ERR", "rfc"),
++    ("w-u2028", " 1", "ERR", "rfc"),
++    ("w-ideographic", "　1", "ERR", "rfc"),
++    ("w-bom", "﻿1", "ERR", "rfc"),                    # RFC: MAY ignore; Python rejects
++    ("w-bom-obj", '﻿{"figram":1}', "ERR", "rfc"),
++    ("w-nul-after", '{"a":1}\x00', "ERR", "rfc"),          # no C-string truncation at NUL
++    ("w-nul-before", '\x00{"a":1}', "ERR", "rfc"),
++    # ---- structure --------------------------------------------------------
++    ("x-arr-trailing", "[1,]", "ERR", "rfc"),
++    ("x-arr-lead", "[,1]", "ERR", "rfc"),
++    ("x-arr-double", "[1,,2]", "ERR", "rfc"),
++    ("x-obj-trailing", '{"a":1,}', "ERR", "rfc"),
++    ("x-obj-comma", "{,}", "ERR", "rfc"),
++    ("x-obj-nocolon", '{"a" 1}', "ERR", "rfc"),
++    ("x-obj-novalue", '{"a":}', "ERR", "rfc"),
++    ("x-obj-barekey", "{a:1}", "ERR", "rfc"),
++    ("x-obj-numkey", "{1:1}", "ERR", "rfc"),
++    ("x-open-arr", "[", "ERR", "rfc"),
++    ("x-close-arr", "]", "ERR", "rfc"),
++    ("x-open-obj", '{"a":1', "ERR", "rfc"),
++    ("x-empty-arr", "[]", "OK []", "rfc"),
++    ("x-empty-obj", "{}", "OK {}", "rfc"),
++    ("x-nested-empty", "[[],{}]", "OK [[],{}]", "rfc"),
++    ("x-empty-key", '{"":1}', 'OK {"":1}', "rfc"),
++    ("x-key-order", '{"b":1,"a":2}', 'OK {"b":1,"a":2}', "rfc"),
++    ("x-dup", '{"a":1,"a":1}', "ERR", "dev"),              # Python: last wins
++    ("x-dup-escaped", '{"a":1,"\\u0061":2}', "ERR", "dev"),
++    ("x-dup-nested", '[{"a":{"b":1,"b":2}}]', "ERR", "dev"),
++    ("x-case-keys", '{"a":1,"A":2}', 'OK {"a":1,"A":2}', "rfc"),
++    ("x-nfc-nfd-keys", '{"é":1,"e\\u0301":2}', 'OK {"é":1,"é":2}', "rfc"),
++    ("x-depth-256-arr", D256A, "OK " + D256A, "dev"),
++    ("x-depth-257-arr", D257A, "ERR", "dev"),
++    ("x-depth-256-obj", D256O, "OK " + D256O, "dev"),
++    ("x-depth-257-obj", D257O, "ERR", "dev"),
++    # ---- empty input / top-level scalars ---------------------------------
++    ("t-empty", "", "ERR", "rfc"),
++    ("t-space", " ", "ERR", "rfc"),
++    ("t-scalar-num", "1", "OK 1", "rfc"),
++    ("t-scalar-str", '"x"', 'OK "x"', "rfc"),
++    ("t-scalar-null", "null", "OK null", "rfc"),
++    ("t-two-values", "{}{}", "ERR", "rfc"),
++]
++
++# Byte-level rows: invalid UTF-8 on the stdin line.  RFC 8259 §8.1: text MUST be
++# UTF-8; Python json.loads(bytes) raises.  Figram's stream path replaces with
++# U+FFFD (AUDIT.md §4: "невалидный UTF-8 … рантайм Lean заменяет символом U+FFFD").
++TB = [
++    ("u-ff", b'"\xff"', 'OK "�"', "fc03"),
++    ("u-cesu-surrogate", b'"\xed\xa0\x80"', 'OK "�"', "fc03"),
++    ("u-overlong-slash", b'"\xc0\xaf"', None, "fc03"),
++    ("u-above-10ffff", b'"\xf4\x90\x80\x80"', None, "fc03"),
++    ("u-truncated", b'"\xe2\x82"', None, "fc03"),
++    ("u-ff-in-key", b'{"\xff":1,"\xfe":2}', None, "fc03"),
++]
++
++
++def oracle_line(text: str, brk=None) -> str:
++    try:
++        if brk == "dup-last-wins":
++            j = load_j(text, deviations=False)
++        elif brk == "no-surrogate":
++            j = json.loads(text, object_pairs_hook=lambda p: Obj(p),
++                           parse_int=lambda t: load_j(t), parse_float=lambda t: load_j(t),
++                           parse_constant=lambda c: (_ for _ in ()).throw(Reject(c)))
++        elif brk == "float":
++            j = json.loads(text, object_pairs_hook=lambda p: Obj(p))
++            return "OK " + json.dumps(j, separators=(",", ":"), ensure_ascii=False)
++        else:
++            j = load_j(text)
++        return "OK " + compact(j)
++    except TypeError:
++        return "OK <value the printer cannot represent>"
++    except (Reject, ValueError, RecursionError):
++        return "ERR"
++
++
++def norm(line: str) -> str:
++    return "ERR" if line.startswith("ERR ") else line
++
++
++def run_json(lines_bytes):
++    data = b"".join(b + b"\n" for b in lines_bytes)
++    rc, out, err = run([FIGRAM, "json"], data, timeout=120)
++    outs = out.decode("utf-8").split("\n")[:-1]
++    if rc != 0 or len(outs) != len(lines_bytes):
++        raise SystemExit(f"figram json: rc={rc}, {len(outs)} answers for {len(lines_bytes)} lines; {err[:200]!r}")
++    return outs
++
++
++# ---------------------------------------------------------------- random ---
++
++def r_str(r):
++    pool = ["a", "b", "Z", "0", " ", "é", "Ж", "😀", " ", "\x00", "\x01", "\x1f", "\x7f", "\n", "\t",
++            '"', "\\", "/", "﻿", "￿"]
++    return "".join(r.choice(pool) for _ in range(r.randint(0, 5)))
++
++
++def r_num_text(r):
++    s = r.choice(["", "-"]) + r.choice(["0", str(r.randint(1, 99999))])
++    if r.random() < 0.5:
++        s += "." + "".join(r.choice("0123456789") for _ in range(r.randint(1, 5)))
++    if r.random() < 0.5:
++        e = r.choice([r.randint(0, 40), r.randint(990, 1000), r.randint(0, 1000)])
++        s += r.choice("eE") + r.choice(["", "+", "-"]) + str(e)
++    return s
++
++
++def r_text(r, depth=0):
++    """Well-formed JSON text (by RFC and the documented restrictions)."""
++    ws = lambda: r.choice(["", "", " ", "\t", "\r", "  \t"])  # no LF: one case per line
++    k = r.random()
++    if depth >= 5 or k < 0.35:
++        c = r.random()
++        if c < 0.4:
++            return r_num_text(r)
++        if c < 0.8:
++            return json.dumps(r_str(r), ensure_ascii=r.random() < 0.5)
++        return r.choice(["true", "false", "null"])
++    if k < 0.65:
++        return "[" + ws() + ("," + ws()).join(r_text(r, depth + 1) + ws() for _ in range(r.randint(0, 4))) + "]"
++    keys = list(dict.fromkeys(r_str(r) for _ in range(r.randint(0, 4))))
++    return "{" + ws() + ",".join(ws() + json.dumps(kk, ensure_ascii=r.random() < 0.5) + ws() + ":" + ws()
++                                 + r_text(r, depth + 1) + ws() for kk in keys) + "}"
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--random", type=int, default=4000)
++    ap.add_argument("--seed", type=int, default=1)
++    ap.add_argument("--break", dest="brk", default=None)
++    ap.add_argument("--strict", action="store_true")
++    a = ap.parse_args()
++
++    rows = [(i, t.encode("utf-8"), exp, cls) for i, t, exp, cls in T] + list(TB)
++    outs = run_json([b for _, b, _, _ in rows])
++    t1 = t2 = 0
++    fails, known = [], []
++    reparse = []
++    for (rid, b, exp, cls), got in zip(rows, outs):
++        got_n = norm(got)
++        try:
++            text = b.decode("utf-8")
++            ora = oracle_line(text, a.brk)
++        except UnicodeDecodeError:
++            ora = "ERR"   # RFC / Python: not UTF-8 -> reject
++        ok1 = exp is None or got_n == exp
++        ok2 = got_n == ora
++        t1 += 1
++        t2 += 1
++        if got.startswith("OK "):
++            reparse.append((rid, cls, got))
++        row = f"{rid:22s} class={cls:5s} figram={got[:70]!r} expected={str(exp)[:50]!r} oracle={ora[:50]!r}"
++        print(("    " if ok1 and ok2 else "DIFF ") + row)
++        if not ok1:
++            fails.append(("T1", rid))
++        if not ok2:
++            (known if cls.startswith("fc") else fails).append(("T2", rid))
++    # T3 idempotence of OK outputs, by figram itself
++    outs2 = run_json([g[3:].encode("utf-8") for _, _, g in reparse])
++    t3 = 0
++    for (rid, cls, g), g2 in zip(reparse, outs2):
++        t3 += 1
++        if g2 != g:
++            print(f"DIFF T3 {rid}: {g[:60]!r} -> {g2[:80]!r}")
++            (known if cls.startswith("fc") else fails).append(("T3", rid))
++
++    # random well-formed values
++    r = random.Random(a.seed)
++    rnd = [r_text(r) for _ in range(a.random)]
++    routs = run_json([t.encode("utf-8") for t in rnd])
++    r_ok = r_fc01 = 0
++    re_in = []
++    for t, got in zip(rnd, routs):
++        ora = oracle_line(t, a.brk)
++        if norm(got) != ora:
++            fails.append(("R", t[:80], got[:80], ora[:80]))
++        else:
++            r_ok += 1
++        if got.startswith("OK "):
++            re_in.append(got)
++    re_out = run_json([g[3:].encode("utf-8") for g in re_in])
++    r_idem = 0
++    for g, g2 in zip(re_in, re_out):
++        if g2 == g:
++            r_idem += 1
++        elif "показатель" in g2:
++            r_fc01 += 1          # FC-01: printer wrote |exponent| > 1000
++            known.append(("R-T3", g[:60]))
++        else:
++            fails.append(("R-T3", g[:80], g2[:80]))
++    for f in fails[:12]:
++        print("FAIL", f)
++    print(f"table rows={len(rows)} T1={t1} T2={t2} T3={t3}; random={len(rnd)} oracle-equal={r_ok} "
++          f"reparsed={len(re_in)} idempotent={r_idem} fc01-hits={r_fc01}; failures={len(fails)} "
++          f"known-finding-diffs={len(known)} break={a.brk}")
++    if not rows or not rnd:
++        sys.exit(2)
++    sys.exit(1 if fails or (a.strict and known) else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/formats/c_schema_table.py b/tests/formats/c_schema_table.py
+new file mode 100644
+index 0000000..4cc1968
+--- /dev/null
++++ b/tests/formats/c_schema_table.py
+@@ -0,0 +1,261 @@
++#!/usr/bin/env python3
++"""(c) JSON Schema vs decoder/check, handwritten boundary table.
++
++Documents: figram.schema.json (jsonschema Draft 2020-12 on Python json.loads —
++what an editor/host typically does) vs `figram fmt` (= parse + decode) vs
++`figram check` (decode + V1–V5 + structural checks).
++Snapshots: snapshot.schema.json vs figram-engine `step` (decSnapshot).
++
++Every row carries the handwritten expected verdicts and a classification:
++  agree      schema, decoder and check give the same answer;
++  V          schema accepts, check rejects: semantic condition V1–V5 that the
++             schema cannot express (FORMAT.md §3 «Что остаётся в V», §6);
++  struct     schema rejects, decoder accepts, check rejects: the schema is
++             stricter than the decoder but check catches it (empty names,
++             empty children, 2^53 delays) — consistent at the check level;
++  dev        documented text-layer deviation (duplicate keys, lone
++             surrogates, |exponent| > 1000, depth > 256): Python accepts;
++  prec       schema validator works on binary floats (Python/ajv), decoder is
++             exact: schema accepts a non-integer / non-1 value  — tool artefact;
++  footgun    agreement, but the result is surprising (see note).
++
++    python3 c_schema_table.py [--break no-minlength|const2|no-integer]
++"""
++
++import argparse
++import copy
++import json
++import os
++import sys
++
++import jsonschema
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++from common import ENGINE, FIGRAM, ROOT, run  # noqa: E402
++
++
++def D(bot_children='{"a":{}}', top="", sec="", initial='"a"'):
++    return '{"figram":1' + top + ',"bot":{"initial":' + initial + sec + ',"children":' + bot_children + '}}'
++
++
++def M(msg):
++    """Document whose single message 'a' is `msg` (a JSON object text)."""
++    return D('{"a":' + msg + '}')
++
++
++V_A = '{"on":{"btn:x":[VAR]}}'
++
++
++def VAR(v):
++    return M(V_A.replace("VAR", v))
++
++
++DOCS = [
++    # id, text, schema, decode, check, class, note
++    ("base", D(), 1, 1, 1, "agree", ""),
++    ("figram-1.0", D().replace('"figram":1', '"figram":1.0'), 1, 1, 1, "agree", "decision 12: by value"),
++    ("figram-1e0", D().replace('"figram":1', '"figram":1e0'), 1, 1, 1, "agree", ""),
++    ("figram-10e-1", D().replace('"figram":1', '"figram":10e-1'), 1, 1, 1, "agree", ""),
++    ("figram-1+1e-16", D().replace('"figram":1', '"figram":1.0000000000000001'), 1, 0, 0, "prec",
++     "float(…)=1.0 == const 1"),
++    ("figram-true", D().replace('"figram":1', '"figram":true'), 0, 0, 0, "agree", ""),
++    ("figram-str", D().replace('"figram":1', '"figram":"1"'), 0, 0, 0, "agree", ""),
++    ("figram-2", D().replace('"figram":1', '"figram":2'), 0, 0, 0, "agree", ""),
++    ("children-empty", D('{}'), 0, 1, 0, "struct", "minProperties 1 vs V2 (initial not a child)"),
++    ("initial-not-child", D(initial='"b"'), 1, 1, 0, "V", "V2"),
++    ("initial-grandchild", D('{"s":{"initial":"a","children":{"a":{}}}}', initial='"a"'), 1, 1, 0, "V",
++     "V2: direct child only"),
++    ("initial-empty", D(initial='""'), 0, 1, 0, "struct", ""),
++    ("child-name-empty", D('{"a":{},"":{}}'), 0, 1, 0, "struct", ""),
++    ("event-name-empty", M('{"on":{"":[{"to":"a"}]}}'), 0, 1, 0, "struct", ""),
++    ("timer-name-empty", M('{"timers":{"":5}}'), 0, 1, 0, "struct", ""),
++    ("cond-name-empty", D(top=',"conditions":{"":"x"}'), 0, 1, 0, "struct", ""),
++    ("to-empty", VAR('{"to":""}'), 0, 1, 0, "struct", ""),
++    ("if-empty", VAR('{"if":"","to":"a"}'), 0, 1, 0, "struct", ""),
++    ("do-empty-name", VAR('{"to":"a","do":[""]}'), 0, 1, 0, "struct", ""),
++    ("x-keys-everywhere", '{"figram":1,"x-ui":{"z":1.5},"bot":{"initial":"a","x-ui":[],"children":'
++     '{"a":{"x-content":{"text":"hi"},"on":{"btn:x":[{"to":"a","x-note":"n"}]}}}}}', 1, 1, 1, "agree", ""),
++    ("non-x-unknown-keys", '{"figram":1,"foo":1,"bot":{"initial":"a","Bar":null,"children":'
++     '{"a":{"zz":[],"on":{"btn:x":[{"to":"a","note":"n"}]}}}}}', 1, 1, 1, "agree",
++     "К5а: any unknown key kept; x- is only a convention"),
++    ("future-key-unless", VAR('{"unless":"c","to":"a"}'), 1, 1, 1, "footgun",
++     "looks like a guard, silently ignored unless declared in requires (К5б)"),
++    ("x-ui-in-children", D('{"a":{},"x-ui":{"pos":[1,2]}}'), 1, 1, 1, "footgun",
++     "annotation key inside children = a new message node «x-ui» (FORMAT §5 says so)"),
++    ("timer-7.2e6", M('{"timers":{"t":7.2e6}}'), 1, 1, 1, "agree", "decision 12"),
++    ("timer-7200000.0", M('{"timers":{"t":7200000.0}}'), 1, 1, 1, "agree", ""),
++    ("timer-72e5", M('{"timers":{"t":72e5}}'), 1, 1, 1, "agree", ""),
++    ("timer-720000000e-2", M('{"timers":{"t":720000000e-2}}'), 1, 1, 1, "agree", ""),
++    ("timer-neg-zero", M('{"timers":{"t":-0}}'), 1, 1, 1, "agree", ""),
++    ("timer-neg-zero-frac", M('{"timers":{"t":-0.0}}'), 1, 1, 1, "agree", ""),
++    ("timer-0.5", M('{"timers":{"t":0.5}}'), 0, 0, 0, "agree", ""),
++    ("timer-neg", M('{"timers":{"t":-1}}'), 0, 0, 0, "agree", ""),
++    ("timer-max", M('{"timers":{"t":9007199254740991}}'), 1, 1, 1, "agree", ""),
++    ("timer-max.0", M('{"timers":{"t":9007199254740991.0}}'), 1, 1, 1, "agree", ""),
++    ("timer-max+1", M('{"timers":{"t":9007199254740992}}'), 0, 1, 0, "struct",
++     "fmt accepts/prints it, check rejects"),
++    ("timer-9e18", M('{"timers":{"t":9e18}}'), 0, 1, 0, "struct", ""),
++    ("timer-1e19", M('{"timers":{"t":1e19}}'), 0, 0, 0, "agree", "decoder shortcut e>18"),
++    ("timer-max-1-half", M('{"timers":{"t":9007199254740990.5}}'), 1, 0, 0, "prec",
++     "float rounds to …990"),
++    ("timer-1e-400", M('{"timers":{"t":1e-400}}'), 1, 0, 0, "prec", "float underflow to 0.0"),
++    ("timer-1e400", M('{"timers":{"t":1e400}}'), 0, 0, 0, "agree", "Python: inf, not integer"),
++    ("timer-str", M('{"timers":{"t":"5"}}'), 0, 0, 0, "agree", ""),
++    ("timer-bool", M('{"timers":{"t":true}}'), 0, 0, 0, "agree", ""),
++    ("timer-null", M('{"timers":{"t":null}}'), 0, 0, 0, "agree", ""),
++    ("timers-empty-on-msg", M('{"timers":{}}'), 1, 1, 1, "agree", "explicit default"),
++    ("timers-on-section", D(sec=',"timers":{}'), 0, 0, 0, "agree", ""),
++    ("initial-on-message", M('{"initial":"a"}'), 0, 0, 0, "agree", ""),
++    ("resume-false", VAR('{"to":"a","resume":false}'), 1, 1, 1, "agree", "explicit default"),
++    ("resume-str", VAR('{"to":"a","resume":"true"}'), 0, 0, 0, "agree", ""),
++    ("resume-null", VAR('{"to":"a","resume":null}'), 0, 0, 0, "agree", ""),
++    ("resume-to-message", VAR('{"to":"a","resume":true}'), 1, 1, 0, "V", "V3"),
++    ("do-empty", VAR('{"to":"a","do":[]}'), 1, 1, 1, "agree", "explicit default"),
++    ("do-str", VAR('{"to":"a","do":"k"}'), 0, 0, 0, "agree", ""),
++    ("requires-empty", D(top=',"requires":[]'), 1, 1, 1, "agree", ""),
++    ("requires-unknown", D(top=',"requires":["x"]'), 0, 0, 0, "agree", "К5б"),
++    ("requires-dup", D(top=',"requires":["x","x"]'), 0, 0, 0, "agree", ""),
++    ("requires-str", D(top=',"requires":"x"'), 0, 0, 0, "agree", ""),
++    ("dup-node-across-sections", D('{"a":{},"s":{"initial":"a","children":{"a":{}}}}'), 1, 1, 0, "V", "V1"),
++    ("undeclared-cond", VAR('{"if":"c","to":"a"}'), 1, 1, 0, "V", "V4"),
++    ("undeclared-call", VAR('{"to":"a","do":["k"]}'), 1, 1, 0, "V", "V4"),
++    ("timer-event-no-timer", M('{"on":{"timer:t":[{"to":"a"}]}}'), 1, 1, 0, "V", "V5"),
++    ("timer-event-empty", M('{"on":{"timer:":[{"to":"a"}]}}'), 1, 1, 0, "V", "V5"),
++    ("timer-event-other-msg", D('{"a":{"on":{"timer:t":[{"to":"b"}]}},"b":{"timers":{"t":5}}}'), 1, 1, 1,
++     "footgun", "V5 is global: handler for another message's timer is accepted"),
++    ("to-missing", VAR('{"to":"nope"}'), 1, 1, 0, "V", "V3"),
++    ("bot-is-message", '{"figram":1,"bot":{}}', 0, 0, 0, "agree", ""),
++    ("node-array", D('{"a":[]}'), 0, 0, 0, "agree", ""),
++    ("variant-no-to", VAR('{"if":"c"}'), 0, 0, 0, "agree", ""),
++    ("on-value-obj", M('{"on":{"btn:x":{}}}'), 0, 0, 0, "agree", ""),
++    ("on-array", M('{"on":[]}'), 0, 0, 0, "agree", ""),
++    ("on-null", M('{"on":null}'), 0, 0, 0, "agree", ""),
++    ("children-null", D('null'), 0, 0, 0, "agree", ""),
++    ("variables", D(top=',"variables":{"v":"x"}'), 1, 1, 1, "agree", ""),
++    ("cond-desc-num", D(top=',"conditions":{"c":1}'), 0, 0, 0, "agree", ""),
++    ("dup-bot-key", '{"figram":1,"bot":{"initial":"z","children":{"z":{}}},"bot":{"initial":"a","children":{"a":{}}}}',
++     1, 0, 0, "dev", "Python: last wins"),
++    ("dup-key-in-annotation", '{"figram":1,"x-ui":{"k":1,"k":2},"bot":{"initial":"a","children":{"a":{}}}}',
++     1, 0, 0, "dev", ""),
++    ("lone-surrogate-name", D('{"a":{},"\\ud800":{}}'), 1, 0, 0, "dev", ""),
++    ("annotation-exp-1001", '{"figram":1,"x-ui":1e1001,"bot":{"initial":"a","children":{"a":{}}}}', 1, 0, 0,
++     "dev", "Python: inf"),
++    ("annotation-depth-300", '{"figram":1,"x-ui":' + "[" * 300 + "]" * 300 + ',"bot":{"initial":"a","children":{"a":{}}}}',
++     1, 0, 0, "dev", ""),
++]
++
++SNAP_DOC = os.path.join(ROOT, "examples", "features.bot.json")
++SNAPS = [
++    # id, snapshot text, schema, engine, class, note
++    ("at", '{"at":"home"}', 1, 1, "agree", ""),
++    ("seq-1.0", '{"at":"home","seq":1.0}', 1, 1, "agree", ""),
++    ("seq-1e0", '{"at":"home","seq":1e0}', 1, 1, "agree", ""),
++    ("seq-10e-1", '{"at":"home","seq":10e-1}', 1, 1, "agree", ""),
++    ("seq-neg-zero", '{"at":"home","seq":-0}', 1, 1, "agree", ""),
++    ("seq-neg-zero-frac", '{"at":"home","seq":-0.0}', 1, 1, "agree", ""),
++    ("seq-1.5", '{"at":"home","seq":1.5}', 0, 0, "agree", ""),
++    ("seq-max.0", '{"at":"home","seq":9007199254740991.0}', 1, 1, "agree", ""),
++    ("seq-max-1-half", '{"at":"home","seq":9007199254740990.5}', 1, 0, "prec", ""),
++    ("seq-1e-400", '{"at":"home","seq":1e-400}', 1, 0, "prec", ""),
++    ("seq-bool", '{"at":"home","seq":true}', 0, 0, "agree", ""),
++    ("seq-null", '{"at":"home","seq":null}', 0, 0, "agree", ""),
++    ("v-1", '{"v":1,"at":"home"}', 1, 1, "agree", ""),
++    ("v-1.0", '{"v":1.0,"at":"home"}', 1, 1, "agree", ""),
++    ("v-1e0", '{"v":1e0,"at":"home"}', 1, 1, "agree", ""),
++    ("v-true", '{"v":true,"at":"home"}', 0, 0, "agree", ""),
++    ("v-0", '{"v":0,"at":"home"}', 0, 0, "agree", ""),
++    ("v-neg-zero", '{"v":-0,"at":"home"}', 0, 0, "agree", ""),
++    ("v-null", '{"v":null,"at":"home"}', 0, 0, "agree", ""),
++    ("v-str", '{"v":"1","at":"home"}', 0, 0, "agree", ""),
++    ("v-1+1e-16", '{"v":1.0000000000000001,"at":"home"}', 1, 0, "prec", ""),
++    ("token-1.0", '{"at":"home","timers":{"idle":1.0}}', 1, 1, "agree", ""),
++    ("resume-unknown-sec", '{"at":"home","resume":{"nope":"nope"}}', 1, 1, "agree", "kept as is"),
++    ("at-unknown", '{"at":"nope"}', 1, 1, "agree", "recovered"),
++    ("dup-at", '{"at":"home","at":"vip"}', 1, 0, "dev", "Python last wins; engine: parse error id:null (ET-07)"),
++    ("at-lone-surrogate", '{"at":"\\ud800"}', 1, 0, "dev", ""),
++    ("unknown-field", '{"at":"home","x-ui":1}', 0, 0, "agree", "strict snapshot"),
++]
++
++
++def schema(path, brk):
++    s = json.load(open(path, encoding="utf-8"))
++    if brk == "no-minlength":
++        def strip(o):
++            if isinstance(o, dict):
++                o.pop("minLength", None)
++                o.pop("minProperties", None)
++                for v in o.values():
++                    strip(v)
++            elif isinstance(o, list):
++                for v in o:
++                    strip(v)
++        strip(s)
++    elif brk == "const2" and "figram" in s.get("properties", {}):
++        s["properties"]["figram"]["const"] = 2
++    elif brk == "no-integer":
++        s = json.loads(json.dumps(s).replace('"integer"', '"number"'))
++    return jsonschema.Draft202012Validator(s)
++
++
++def schema_ok(v, text):
++    try:
++        inst = json.loads(text)
++    except ValueError:
++        return 0
++    return int(v.is_valid(inst))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--break", dest="brk", default=None)
++    ap.add_argument("--tmp", default=os.environ.get("TMPDIR", "/tmp"))
++    a = ap.parse_args()
++    dv = schema(os.path.join(ROOT, "figram.schema.json"), a.brk)
++    sv = schema(os.path.join(ROOT, "snapshot.schema.json"), a.brk)
++    tmp = os.path.join(a.tmp, f"fc-c-{os.getpid()}.json")
++    bad = 0
++    counts = {}
++    print(f"{'id':28s} schema decode check | expected | class    note")
++    for rid, text, es, ed, ec, cls, note in DOCS:
++        with open(tmp, "w", encoding="utf-8") as f:
++            f.write(text)
++        s = schema_ok(dv, text)
++        rc_f, out_f, err_f = run([FIGRAM, "fmt", tmp])
++        rc_c, out_c, err_c = run([FIGRAM, "check", tmp])
++        d = int(rc_f == 0)
++        c = int(rc_c == 0 and out_c == b"ok\n")
++        ok = (s, d, c) == (es, ed, ec)
++        bad += not ok
++        counts[cls] = counts.get(cls, 0) + 1
++        why = (err_f.decode().strip() or out_c.decode().strip()).replace("\n", " | ")[:90]
++        print(f"{'' if ok else 'DIFF '}{rid:28s} {s:6d} {d:6d} {c:5d} | {es}{ed}{ec}      | {cls:8s} {note}"
++              + (f"  [{why}]" if not c else ""))
++        if rid == "x-ui-in-children":
++            print("    stats:", run([FIGRAM, "stats", tmp])[1].decode().strip(),
++                  "(base has states=1)")
++    # snapshots
++    lines = []
++    for i, (rid, snap, *_rest) in enumerate(SNAPS):
++        lines.append('{"id":%d,"op":"step","event":"unknown:event","snapshot":%s}' % (i, snap))
++    rc, out, err = run([ENGINE, SNAP_DOC], ("\n".join(lines) + "\n").encode())
++    replies = out.decode().split("\n")[:-1]
++    if rc != 0 or len(replies) != len(SNAPS):
++        print("engine failed", rc, len(replies), err[:200])
++        sys.exit(2)
++    print(f"\n{'snapshot id':28s} schema engine | expected | class   reply")
++    for (rid, snap, es, ee, cls, note), rep in zip(SNAPS, replies):
++        s = schema_ok(sv, snap)
++        e = int('"snapshot"' in rep and '"error"' not in rep)
++        ok = (s, e) == (es, ee)
++        bad += not ok
++        counts["snap-" + cls] = counts.get("snap-" + cls, 0) + 1
++        print(f"{'' if ok else 'DIFF '}{rid:28s} {s:6d} {e:6d} | {es}{ee}       | {cls:7s} {rep[:110]}  {note}")
++    total = len(DOCS) + len(SNAPS)
++    print(f"\nrows={total} (docs {len(DOCS)}, snapshots {len(SNAPS)}) classes={counts} "
++          f"mismatches-vs-expected={bad} break={a.brk}")
++    os.unlink(tmp)
++    sys.exit(1 if bad else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/formats/common.py b/tests/formats/common.py
+new file mode 100644
+index 0000000..a74e59c
+--- /dev/null
++++ b/tests/formats/common.py
+@@ -0,0 +1,460 @@
++"""Shared helpers for the formats-correctness audit tests.
++
++Independent re-implementation (in Python) of the pieces of Figram that the
++tests use as an oracle:
++
++* J model: numbers as exact (m, e) pairs taken from the source text,
++  objects as ordered lists of pairs, strings as Python str;
++* the Lean printer `render` / `renderCompact` (FormatIO.lean) — re-written
++  from the specification in FORMAT.md / the source comments;
++* the document decoder + encoder (FORMAT.md §4) — `canon_doc`.
++
++Nothing here imports or calls Figram code; the binaries are only run as
++subprocesses through `run()`.
++"""
++
++from __future__ import annotations
++
++import json
++import os
++import re
++import subprocess
++from fractions import Fraction
++
++ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
++FIGRAM = os.environ.get("FIGRAM", os.path.join(ROOT, "bin", "figram"))
++ENGINE = os.environ.get("FIGRAM_ENGINE", os.path.join(ROOT, "bin", "figram-engine"))
++MAX_INT = 2 ** 53 - 1
++MAX_EXP = 1000
++MAX_DEPTH = 256
++
++
++def run(args, stdin: bytes | None = None, timeout: float = 20.0):
++    p = subprocess.run(args, input=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
++                       timeout=timeout)
++    return p.returncode, p.stdout, p.stderr
++
++
++# --------------------------------------------------------------------------
++# J model
++# --------------------------------------------------------------------------
++# null -> None, bool -> True/False, number -> Num(m, e), string -> str,
++# array -> list, object -> Obj([(k, v), ...])
++
++
++class Num(tuple):
++    """Exact decimal m * 10^e as produced by the Lean parser from the text."""
++
++    def __new__(cls, m: int, e: int):
++        return tuple.__new__(cls, (m, e))
++
++    @property
++    def m(self):
++        return self[0]
++
++    @property
++    def e(self):
++        return self[1]
++
++    def value(self) -> Fraction:
++        return Fraction(self.m) * (Fraction(10) ** self.e)
++
++    def __repr__(self):
++        return f"Num({self.m},{self.e})"
++
++
++class Obj(list):
++    """Ordered list of (key, value) pairs."""
++
++    def get(self, k, default=None):
++        for kk, v in self:
++            if kk == k:
++                return v
++        return default
++
++    def has(self, k):
++        return any(kk == k for kk, _ in self)
++
++    # an object never equals an array (Obj subclasses list only for convenience)
++    def __eq__(self, other):
++        return isinstance(other, Obj) and list.__eq__(self, other)
++
++    def __ne__(self, other):
++        return not self.__eq__(other)
++
++    __hash__ = None
++
++    def __repr__(self):
++        return "Obj(" + list.__repr__(self) + ")"
++
++
++NUM_RE = re.compile(r"^(-?)(0|[1-9][0-9]*)(?:\.([0-9]+))?(?:[eE]([+-]?[0-9]+))?$")
++
++
++def num_of_text(t: str) -> Num:
++    """Lean `parseNum`: m = ip·10^fc + fp (sign applied, -0 = 0), e = ex − fc."""
++    mt = NUM_RE.match(t)
++    if not mt:
++        raise ValueError(f"not a JSON number: {t!r}")
++    neg, ip, fp, ex = mt.groups()
++    fp = fp or ""
++    m = int(ip + fp)
++    if neg:
++        m = -m
++    e = (int(ex) if ex else 0) - len(fp)
++    return Num(m, e)
++
++
++class Reject(Exception):
++    pass
++
++
++def _pairs(pairs):
++    keys = [k for k, _ in pairs]
++    if len(keys) != len(set(keys)):
++        raise Reject("duplicate key")
++    return Obj(pairs)
++
++
++def _no_const(x):
++    raise Reject(f"constant {x}")
++
++
++def _exp_text_ok(t: str) -> bool:
++    mt = NUM_RE.match(t)
++    return mt.group(4) is None or abs(int(mt.group(4))) <= MAX_EXP
++
++
++def _num_hook(t: str):
++    if not _exp_text_ok(t):
++        raise Reject("exponent > 1000")
++    return num_of_text(t)
++
++
++def _walk(v, depth=0):
++    if isinstance(v, str):
++        if any(0xD800 <= ord(c) <= 0xDFFF for c in v):
++            raise Reject("lone surrogate")
++    elif isinstance(v, Obj):
++        if depth + 1 > MAX_DEPTH:
++            raise Reject("depth")
++        for k, x in v:
++            _walk(k, depth + 1)
++            _walk(x, depth + 1)
++    elif isinstance(v, list):
++        if depth + 1 > MAX_DEPTH:
++            raise Reject("depth")
++        for x in v:
++            _walk(x, depth + 1)
++
++
++def load_j(text: str, deviations: bool = True):
++    """Python json + the documented Figram deviations (FORMAT.md §3 «Числа»,
++    FormatIO.lean header): duplicate keys, |exponent| > 1000, depth > 256,
++    lone surrogates, NaN/Infinity are rejected.  Raises Reject/ValueError."""
++    if deviations:
++        v = json.loads(text, object_pairs_hook=_pairs, parse_int=_num_hook,
++                       parse_float=_num_hook, parse_constant=_no_const)
++        _walk(v)
++        return v
++    # "lax" oracle — plain RFC 8259 / Python semantics (last duplicate wins etc.)
++    return json.loads(text, object_pairs_hook=lambda p: Obj(dict(p).items()),
++                      parse_int=num_of_text, parse_float=num_of_text)
++
++
++# --------------------------------------------------------------------------
++# Printer — re-implementation of FormatIO.render / renderCompact
++# --------------------------------------------------------------------------
++
++def escape(s: str) -> str:
++    out = []
++    for c in s:
++        if c == '"':
++            out.append('\\"')
++        elif c == "\\":
++            out.append("\\\\")
++        elif c == "\n":
++            out.append("\\n")
++        elif c == "\r":
++            out.append("\\r")
++        elif c == "\t":
++            out.append("\\t")
++        elif ord(c) < 0x20:
++            out.append("\\u00%02x" % ord(c))
++        else:
++            out.append(c)
++    return "".join(out)
++
++
++def render_num(m: int, e: int) -> str:
++    if e == 0:
++        return str(m)
++    if e > 0 or e < -30:
++        return f"{m}e{e}"
++    neg = m < 0
++    ds = str(abs(m))
++    k = -e
++    if len(ds) <= k:
++        ds = "0" * (k + 1 - len(ds)) + ds
++    return ("-" if neg else "") + ds[: len(ds) - k] + "." + ds[len(ds) - k:]
++
++
++def render(v, ind: str = "") -> str:
++    if v is None:
++        return "null"
++    if v is True:
++        return "true"
++    if v is False:
++        return "false"
++    if isinstance(v, Num):
++        return render_num(v.m, v.e)
++    if isinstance(v, str):
++        return '"' + escape(v) + '"'
++    if isinstance(v, Obj):
++        if not v:
++            return "{}"
++        ind2 = ind + "  "
++        return "{\n" + ",\n".join(ind2 + '"' + escape(k) + '": ' + render(x, ind2) for k, x in v) \
++            + "\n" + ind + "}"
++    if isinstance(v, list):
++        if not v:
++            return "[]"
++        if all(isinstance(x, str) for x in v):
++            return "[" + ", ".join(render(x, ind) for x in v) + "]"
++        ind2 = ind + "  "
++        return "[\n" + ",\n".join(ind2 + render(x, ind2) for x in v) + "\n" + ind + "]"
++    raise TypeError(v)
++
++
++def compact(v) -> str:
++    if isinstance(v, Obj):
++        return "{" + ",".join('"' + escape(k) + '":' + compact(x) for k, x in v) + "}"
++    if isinstance(v, list):
++        return "[" + ",".join(compact(x) for x in v) + "]"
++    return render(v)
++
++
++# --------------------------------------------------------------------------
++# Writer with full control over the text (for non-canonical inputs)
++# --------------------------------------------------------------------------
++
++class RawNum:
++    """A number written with an exact chosen text (e.g. '7.2e3')."""
++
++    def __init__(self, text: str):
++        num_of_text(text)
++        self.text = text
++
++
++def write(v, ws=lambda: "", ascii_=False) -> str:
++    """Serialise J/RawNum with arbitrary inter-token whitespace."""
++    if v is None:
++        return "null"
++    if v is True:
++        return "true"
++    if v is False:
++        return "false"
++    if isinstance(v, RawNum):
++        return v.text
++    if isinstance(v, Num):
++        return render_num(v.m, v.e)
++    if isinstance(v, str):
++        return json.dumps(v, ensure_ascii=ascii_)
++    if isinstance(v, Obj):
++        items = [ws() + json.dumps(k, ensure_ascii=ascii_) + ws() + ":" + ws() + write(x, ws, ascii_) + ws()
++                 for k, x in v]
++        return "{" + (",".join(items) if items else ws()) + "}"
++    if isinstance(v, list):
++        items = [ws() + write(x, ws, ascii_) + ws() for x in v]
++        return "[" + (",".join(items) if items else ws()) + "]"
++    raise TypeError(v)
++
++
++def to_j(py):
++    """Plain Python JSON value (dict/list/int/str) -> J model (int only)."""
++    if isinstance(py, dict):
++        return Obj([(k, to_j(v)) for k, v in py.items()])
++    if isinstance(py, list):
++        return [to_j(x) for x in py]
++    if isinstance(py, bool) or py is None or isinstance(py, str):
++        return py
++    if isinstance(py, int):
++        return Num(py, 0)
++    if isinstance(py, (Num, RawNum, Obj)):
++        return py
++    raise TypeError(py)
++
++
++# --------------------------------------------------------------------------
++# Document decoder + encoder oracle (FORMAT.md §4, §2 К1, §3 decision 11/12)
++# --------------------------------------------------------------------------
++
++DOC_KEYS = ["figram", "requires", "conditions", "calls", "variables", "bot"]
++NODE_KEYS = ["initial", "children", "on", "timers"]
++VARIANT_KEYS = ["if", "to", "resume", "do"]
++KNOWN_FEATURES: list[str] = []
++
++
++class DecodeError(Exception):
++    pass
++
++
++def num_to_nat(n):
++    """FORMAT.md decision 12: value of the number if it is a non-negative
++    integer.  Mirrors the documented shortcut 'huge powers are not computed'
++    (e > 18 with m > 0 is rejected: such a number exceeds 2^53 anyway)."""
++    if not isinstance(n, Num):
++        return None
++    m, e = n
++    if m < 0:
++        return None
++    if m == 0:
++        return 0
++    if e >= 0:
++        return m * 10 ** e if e <= 18 else None
++    q, r = divmod(m, 10 ** (-e))
++    return q if r == 0 else None
++
++
++class Canon:
++    """decode∘encode for documents.  `brk` names a deliberate oracle bug."""
++
++    def __init__(self, brk: str | None = None):
++        self.brk = brk
++
++    def unknown(self, known, kvs):
++        ext = [(k, v) for k, v in kvs if k not in known]
++        if self.brk == "sort-unknown":
++            ext.sort(key=lambda p: p[0])
++        if self.brk == "drop-unknown":
++            ext = []
++        return ext
++
++    def strs(self, xs):
++        if not isinstance(xs, list) or not all(isinstance(x, str) for x in xs):
++            raise DecodeError("list of strings")
++        return list(xs)
++
++    def strmap(self, o):
++        if not isinstance(o, Obj):
++            raise DecodeError("object")
++        out = []
++        for k, v in o:
++            if not isinstance(v, str):
++                raise DecodeError("string value")
++            out.append((k, v))
++        return out
++
++    def variant(self, v):
++        if not isinstance(v, Obj):
++            raise DecodeError("variant object")
++        cond = v.get("if")
++        if v.has("if") and not isinstance(cond, str):
++            raise DecodeError("if")
++        to = v.get("to")
++        if not isinstance(to, str):
++            raise DecodeError("to")
++        resume = v.get("resume", False) if v.has("resume") else False
++        if not isinstance(resume, bool):
++            raise DecodeError("resume")
++        calls = self.strs(v.get("do")) if v.has("do") else []
++        if v.has("do") and not isinstance(v.get("do"), list):
++            raise DecodeError("do")
++        out = Obj()
++        if v.has("if"):
++            out.append(("if", cond))
++        out.append(("to", to))
++        if resume or (self.brk == "keep-resume-false" and v.has("resume")):
++            out.append(("resume", resume))
++        if calls:
++            out.append(("do", list(calls)))
++        out.extend(self.unknown(VARIANT_KEYS, v))
++        return out
++
++    def on(self, kvs):
++        if not kvs.has("on"):
++            return Obj()
++        o = kvs.get("on")
++        if not isinstance(o, Obj):
++            raise DecodeError("on")
++        out = Obj()
++        for ev, vs in o:
++            if not isinstance(vs, list):
++                raise DecodeError("variants")
++            out.append((ev, [self.variant(x) for x in vs]))
++        return out
++
++    def node(self, n):
++        if not isinstance(n, Obj):
++            raise DecodeError("node object")
++        on = self.on(n)
++        if n.has("children"):
++            ch = n.get("children")
++            if not isinstance(ch, Obj):
++                raise DecodeError("children")
++            kids = Obj((k, self.node(x)[0]) for k, x in ch)
++            if n.has("timers"):
++                raise DecodeError("section timers")
++            init = n.get("initial")
++            if not isinstance(init, str):
++                raise DecodeError("initial")
++            out = Obj([("initial", init)])
++            if on:
++                out.append(("on", on))
++            out.append(("children", kids))
++            out.extend(self.unknown(NODE_KEYS, n))
++            return out, True
++        if n.has("initial"):
++            raise DecodeError("initial without children")
++        ts = Obj()
++        if n.has("timers"):
++            t = n.get("timers")
++            if not isinstance(t, Obj):
++                raise DecodeError("timers")
++            for k, v in t:
++                nat = num_to_nat(v)
++                if nat is None:
++                    raise DecodeError("timer value")
++                ts.append((k, v if self.brk == "keep-num-text" else Num(nat, 0)))
++        out = Obj()
++        if on:
++            out.append(("on", on))
++        if ts:
++            out.append(("timers", ts))
++        out.extend(self.unknown(NODE_KEYS, n))
++        return out, False
++
++    def doc(self, d):
++        if not isinstance(d, Obj):
++            raise DecodeError("doc object")
++        if num_to_nat(d.get("figram")) != 1:
++            raise DecodeError("figram")
++        req = self.strs(d.get("requires")) if d.has("requires") else []
++        if any(f not in KNOWN_FEATURES for f in req):
++            raise DecodeError("requires")
++        decls = {}
++        for k in ("conditions", "calls", "variables"):
++            decls[k] = self.strmap(d.get(k)) if d.has(k) else []
++        if not d.has("bot"):
++            raise DecodeError("bot")
++        bot, is_sec = self.node(d.get("bot"))
++        if not is_sec:
++            raise DecodeError("bot is a message")
++        out = Obj([("figram", Num(1, 0))])
++        if req:
++            out.append(("requires", req))
++        for k in ("conditions", "calls", "variables"):
++            if decls[k]:
++                out.append((k, Obj(decls[k])))
++        out.append(("bot", bot))
++        out.extend(self.unknown(DOC_KEYS, d))
++        return out
++
++
++def oracle_fmt(text: str, brk: str | None = None):
++    """Expected stdout of `figram fmt` (bytes) or None if it must fail."""
++    try:
++        j = load_j(text)
++        return (render(Canon(brk).doc(j)) + "\n").encode()
++    except (Reject, ValueError, DecodeError):
++        return None
+diff --git a/tests/formats/d_engine_requests.py b/tests/formats/d_engine_requests.py
+new file mode 100644
+index 0000000..75b6f8e
+--- /dev/null
++++ b/tests/formats/d_engine_requests.py
+@@ -0,0 +1,203 @@
++#!/usr/bin/env python3
++"""(d) Engine request table: small hand-written request lines, exact replies.
++
++Document: examples/features.bot.json (guard is_vip on home/btn:go, timer
++«remind» on item with a handler, timer «idle» on home without one).
++Every request is a raw text line (so 1.0 / 1e0 / -0 / duplicate keys reach
++the engine as written).  The expected reply column is the exact byte string;
++it was recorded from the baseline binary and then reviewed by hand against
++FORMAT.md §7 — the column `why` says which rule each reply follows.
++
++Rows already reported by the engine-timers agent are tagged ET-07 / ET-12 and
++are kept only as context; rows tagged FC-xx are new.
++
++    python3 d_engine_requests.py [--break flip|lax-id] [--record]
++"""
++
++import argparse
++import json
++import os
++import sys
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++from common import ENGINE, ROOT, run  # noqa: E402
++
++DOC = os.path.join(ROOT, "examples", "features.bot.json")
++H = '{"at":"home"}'
++ITEM = '{"at":"item","timers":{"remind":5},"seq":5}'
++
++# (row id, request line, expected reply, tag, why)
++ROWS = [
++    # ---- id of every JSON type -----------------------------------------
++    ("id-absent", '{"op":"hello"}', '{"id":null,"protocol":1,"states":8}', "", "missing id -> null"),
++    ("id-null", '{"id":null,"op":"hello"}', '{"id":null,"protocol":1,"states":8}', "", ""),
++    ("id-true", '{"id":true,"op":"hello"}', '{"id":true,"protocol":1,"states":8}', "", "any JSON echoed"),
++    ("id-str", '{"id":"abc","op":"hello"}', '{"id":"abc","protocol":1,"states":8}', "", ""),
++    ("id-str-esc", '{"id":"\\u00e9\\ud83d\\ude00\\u0000\\/","op":"hello"}',
++     '{"id":"é😀\\u0000/","protocol":1,"states":8}', "ET-07", "echoed by value: escapes re-spelled"),
++    ("id-neg-zero", '{"id":-0,"op":"hello"}', '{"id":0,"protocol":1,"states":8}', "ET-07", "by value"),
++    ("id-1.5e3", '{"id":1.5e3,"op":"hello"}', '{"id":15e2,"protocol":1,"states":8}', "ET-07", "by value"),
++    ("id-1E2", '{"id":1E2,"op":"hello"}', '{"id":1e2,"protocol":1,"states":8}', "ET-07", ""),
++    ("id-0.1e1", '{"id":0.1e1,"op":"hello"}', '{"id":1,"protocol":1,"states":8}', "ET-07", ""),
++    ("id-1.10", '{"id":1.10,"op":"hello"}', '{"id":1.10,"protocol":1,"states":8}', "", ""),
++    ("id-bigint", '{"id":12345678901234567890123,"op":"hello"}',
++     '{"id":12345678901234567890123,"protocol":1,"states":8}', "", "exact"),
++    ("id-1e400", '{"id":1e400,"op":"hello"}', '{"id":1e400,"protocol":1,"states":8}', "", ""),
++    ("id-array", '{"id":[1,{"a":2}],"op":"hello"}', '{"id":[1,{"a":2}],"protocol":1,"states":8}', "", ""),
++    ("id-object", '{"id":{},"op":"hello"}', '{"id":{},"protocol":1,"states":8}', "", ""),
++    ("id-after-op", '{"op":"hello","id":7}', '{"id":7,"protocol":1,"states":8}', "", "key order irrelevant"),
++    ("id-dup", '{"id":1,"id":2,"op":"hello"}', '{"id":null,"error":"повторяющийся ключ «id»"}', "ET-07", ""),
++    # ---- unknown / misspelt top-level fields ---------------------------
++    ("extra-on-hello", '{"id":1,"op":"hello","extra":1,"snapshot":"garbage"}',
++     '{"id":1,"protocol":1,"states":8}', "FC-04", "unknown fields ignored"),
++    ("typo-gaurds", '{"id":2,"op":"step","snapshot":' + H + ',"event":"btn:go","gaurds":{"is_vip":true}}',
++     '{"id":2,"need":["is_vip"]}', "FC-04", "misspelt guards ignored -> need forever"),
++    ("typo-guard", '{"id":3,"op":"step","snapshot":' + H + ',"event":"btn:go","guard":{"is_vip":true}}',
++     '{"id":3,"need":["is_vip"]}', "FC-04", ""),
++    ("typo-evnt", '{"id":4,"op":"step","snapshot":' + H + ',"evnt":"btn:go"}',
++     '{"id":4,"error":"нужно поле «event»"}', "", "required field caught"),
++    ("start-with-junk", '{"id":5,"op":"start","event":"x","guards":5,"snapshot":null}',
++     '{"id":5,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}',
++     "FC-04", "start ignores everything"),
++    ("op-case", '{"id":6,"op":"HELLO"}', '{"id":6,"error":"неизвестная операция «op»"}', "", ""),
++    ("op-missing", '{"id":7}', '{"id":7,"error":"неизвестная операция «op»"}', "", ""),
++    ("op-null", '{"id":8,"op":null}', '{"id":8,"error":"неизвестная операция «op»"}', "", ""),
++    ("not-object", '[1]', '{"id":null,"error":"запрос должен быть объектом"}', "", ""),
++    # ---- guards ---------------------------------------------------------
++    ("g-true", '{"id":10,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":true}}',
++     '{"id":10,"snapshot":{"at":"vip","seq":1},"actions":[{"cancel_timer":"idle"},{"send":"vip"}]}', "",
++     "exit(home) cancels idle"),
++    ("g-false", '{"id":11,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":false}}',
++     '{"id":11,"snapshot":{"at":"catalog","resume":{"shop":"catalog"},"seq":1},"actions":[{"cancel_timer":"idle"},{"send":"catalog"}]}',
++     "", "shop -> catalog, place remembered"),
++    ("g-empty", '{"id":12,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{}}',
++     '{"id":12,"need":["is_vip"]}', "", "rule 3"),
++    ("g-absent", '{"id":13,"op":"step","snapshot":' + H + ',"event":"btn:go"}',
++     '{"id":13,"need":["is_vip"]}', "", ""),
++    ("g-1", '{"id":14,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":1}}',
++     '{"id":14,"error":"условие «is_vip»: ожидалось true или false"}', "", ""),
++    ("g-str", '{"id":15,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":"true"}}',
++     '{"id":15,"error":"условие «is_vip»: ожидалось true или false"}', "", ""),
++    ("g-null-val", '{"id":16,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":null}}',
++     '{"id":16,"error":"условие «is_vip»: ожидалось true или false"}', "", ""),
++    ("g-null", '{"id":17,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":null}',
++     '{"id":17,"error":"«guards» должен быть объектом"}', "", ""),
++    ("g-array", '{"id":18,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":[]}',
++     '{"id":18,"error":"«guards» должен быть объектом"}', "", ""),
++    ("g-dup", '{"id":19,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":true,"is_vip":false}}',
++     '{"id":null,"error":"повторяющийся ключ «is_vip»"}', "ET-07", ""),
++    ("g-unneeded-nonbool", '{"id":20,"op":"step","snapshot":' + H + ',"event":"btn:self","guards":{"other":1}}',
++     '{"id":20,"error":"условие «other»: ожидалось true или false"}', "FC-04",
++     "names not checked, but values of unknown names are"),
++    ("g-unknown-names", '{"id":21,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"":true,"zz":false,"is_vip":true}}',
++     '{"id":21,"snapshot":{"at":"vip","seq":1},"actions":[{"cancel_timer":"idle"},{"send":"vip"}]}', "FC-04",
++     "unknown names ignored"),
++    # ---- token / timers -------------------------------------------------
++    ("t-match", '{"id":30,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":5}',
++     '{"id":30,"snapshot":{"at":"reminder","resume":{"shop":"reminder"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}',
++     "", ""),
++    ("t-5.0", '{"id":31,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":5.0}',
++     '{"id":31,"snapshot":{"at":"reminder","resume":{"shop":"reminder"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}',
++     "ET-12", "by value"),
++    ("t-stale", '{"id":32,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":4}',
++     '{"id":32,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}', "", "rule 2"),
++    ("t-2^53+1", '{"id":33,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":9007199254740993}',
++     '{"id":33,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}', "ET-12",
++     "> 2^53 accepted, never matches"),
++    ("t-str", '{"id":34,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":"5"}',
++     '{"id":34,"error":"для события таймера нужно поле «token»"}', "ET-12", "misleading text"),
++    ("t-neg", '{"id":35,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":-1}',
++     '{"id":35,"error":"«token» должен быть неотрицательным целым"}', "", ""),
++    ("t-1e19", '{"id":36,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":1e19}',
++     '{"id":36,"error":"«token» должен быть неотрицательным целым"}', "ET-12", ""),
++    ("t-missing", '{"id":37,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind"}',
++     '{"id":37,"error":"для события таймера нужно поле «token»"}', "", ""),
++    ("t-on-named", '{"id":38,"op":"step","snapshot":' + ITEM + ',"event":"btn:other","token":"junk"}',
++     '{"id":38,"snapshot":{"at":"item2","resume":{"shop":"item2"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"item2"}]}',
++     "", "token ignored for named events"),
++    # ---- event ----------------------------------------------------------
++    ("e-empty", '{"id":40,"op":"step","snapshot":' + H + ',"event":""}',
++     '{"id":40,"snapshot":{"at":"home"},"actions":[]}', "", "rule 4"),
++    ("e-timer-colon", '{"id":41,"op":"step","snapshot":' + ITEM + ',"event":"timer:","token":5}',
++     '{"id":41,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}', "", "timer «» never active"),
++    ("e-timer-colon-notoken", '{"id":42,"op":"step","snapshot":' + H + ',"event":"timer:"}',
++     '{"id":42,"error":"для события таймера нужно поле «token»"}', "", ""),
++    ("e-missing", '{"id":43,"op":"step","snapshot":' + H + '}', '{"id":43,"error":"нужно поле «event»"}', "", ""),
++    ("e-num", '{"id":44,"op":"step","snapshot":' + H + ',"event":5}', '{"id":44,"error":"нужно поле «event»"}', "", ""),
++    ("e-TIMER", '{"id":45,"op":"step","snapshot":' + ITEM + ',"event":"TIMER:remind","token":5}',
++     '{"id":45,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}', "", "case-sensitive"),
++    # ---- snapshot inside the request -------------------------------------
++    ("s-dup-at", '{"id":50,"op":"step","snapshot":{"at":"home","at":"vip"},"event":"btn:self"}',
++     '{"id":null,"error":"повторяющийся ключ «at»"}', "ET-07", ""),
++    ("s-dup-timer", '{"id":51,"op":"step","snapshot":{"at":"item","timers":{"remind":5,"remind":6}},"event":"x"}',
++     '{"id":null,"error":"повторяющийся ключ «remind»"}', "ET-07", ""),
++    ("s-seq-1.0", '{"id":52,"op":"step","snapshot":{"at":"home","seq":1.0},"event":"btn:self"}',
++     '{"id":52,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}',
++     "", "seq by value"),
++    ("s-seq-1e0", '{"id":53,"op":"step","snapshot":{"at":"home","seq":1e0},"event":"btn:self"}',
++     '{"id":53,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}',
++     "", ""),
++    ("s-seq-neg-zero", '{"id":54,"op":"step","snapshot":{"at":"home","seq":-0},"event":"btn:self"}',
++     '{"id":54,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}',
++     "", ""),
++    ("s-v-1.0", '{"id":55,"op":"step","snapshot":{"v":1.0,"at":"home"},"event":"x"}',
++     '{"id":55,"snapshot":{"at":"home"},"actions":[]}', "", "v dropped on output"),
++    ("s-v-2", '{"id":56,"op":"step","snapshot":{"v":2,"at":"home"},"event":"x"}',
++     '{"id":56,"error":"снимок: неизвестная версия"}', "", ""),
++    ("s-null", '{"id":57,"op":"step","snapshot":null,"event":"x"}',
++     '{"id":57,"error":"снимок должен быть объектом"}', "", ""),
++    ("s-missing", '{"id":58,"op":"step","event":"x"}', '{"id":58,"error":"нужно поле «snapshot»"}', "", ""),
++    ("restart-seq-1e0", '{"id":59,"op":"restart","snapshot":{"at":"vip","seq":1e0,"resume":{"shop":"sub"}}}',
++     '{"id":59,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}',
++     "", "resume cleared"),
++    # ---- framing --------------------------------------------------------
++    ("two-objects", '{"id":60,"op":"hello"}{"id":61,"op":"hello"}', '{"id":null,"error":"лишний текст после JSON"}',
++     "ET-07", ""),
++    ("crlf", '{"id":62,"op":"hello"}\r', '{"id":62,"protocol":1,"states":8}', "", "CR is JSON whitespace"),
++    ("bom", '﻿{"id":63,"op":"hello"}', '{"id":null,"error":"неожиданный символ «﻿»"}', "", "BOM rejected"),
++]
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--break", dest="brk", default=None, help="flip | lax-id")
++    ap.add_argument("--record", action="store_true", help="print actual replies only")
++    a = ap.parse_args()
++    data = "".join(line + "\n" for _, line, *_ in ROWS).encode("utf-8")
++    rc, out, err = run([ENGINE, DOC], data)
++    replies = out.decode("utf-8").split("\n")[:-1]
++    if rc != 0 or len(replies) != len(ROWS):
++        print(f"engine rc={rc}, replies {len(replies)} of {len(ROWS)}: {err[:300]!r}")
++        sys.exit(2)
++    bad = 0
++    tags = {}
++    for (rid, line, exp, tag, why), got in zip(ROWS, replies):
++        if a.brk == "flip" and rid == "g-true":
++            exp = exp.replace("vip", "shop")
++        if a.brk == "lax-id":
++            # a broken oracle that believes the id is echoed byte-for-byte
++            try:
++                req_id = line[line.index('"id":') + 5:].split(',"op"')[0] if line.startswith('{"id":') else None
++            except ValueError:
++                req_id = None
++            if req_id is not None and exp.startswith('{"id":') and '"id":null' not in exp:
++                exp = '{"id":' + req_id + exp[exp.index(","):]
++        ok = got == exp
++        # every reply must be one valid JSON object (sanity, independent of the table)
++        try:
++            obj = json.loads(got)
++            ok = ok and isinstance(obj, dict) and "id" in obj
++        except ValueError:
++            ok = False
++        bad += not ok
++        tags[tag or "-"] = tags.get(tag or "-", 0) + 1
++        if a.record:
++            print(f"{rid}\t{got}")
++        else:
++            print(f"{'    ' if ok else 'DIFF '}{rid:22s} {tag:6s} {got[:150]}" + ("" if ok else f"\n      expected {exp[:150]}"))
++    print(f"requests={len(ROWS)} replies={len(replies)} mismatches={bad} tags={tags} break={a.brk}")
++    sys.exit(1 if bad else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/formats/e_cli_names.py b/tests/formats/e_cli_names.py
+new file mode 100644
+index 0000000..46b5c22
+--- /dev/null
++++ b/tests/formats/e_cli_names.py
+@@ -0,0 +1,132 @@
++#!/usr/bin/env python3
++"""(e) Decoded names in CLI diagnostics: output injection, NUL handling.
++
++`figram check` prints its diagnostics with names from the document decoded
++(\\u001b becomes a raw ESC byte, \\n a real line break, \\u0000 a NUL byte).
++`figram fmt`/`check` parse errors and `figram-engine` document-load errors go
++to stderr the same way.  The engine protocol replies are JSON-escaped.
++
++Property P (expected of a safe CLI): stdout/stderr of `figram check`,
++`figram fmt` and `figram-engine <doc>` contain no raw C0 control byte other
++than the LF that ends each diagnostic line, and `check` never prints a line
++that is exactly "ok" when it exits non-zero.
++
++Rows marked FC-06 are expected to violate P on the baseline (finding).
++`--control` runs the same rows with harmless names: P must hold (shows the
++detector is not trivially red).  `--strict` makes FC-06 rows count.
++
++    python3 e_cli_names.py [--control] [--strict]
++"""
++
++import argparse
++import json
++import os
++import sys
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++from common import ENGINE, FIGRAM, run  # noqa: E402
++
++
++def doc_with_target(name):
++    return json.dumps({"figram": 1, "bot": {"initial": "a", "children": {
++        "a": {"on": {"btn:x": [{"to": name}]}}}}})
++
++
++def doc_with_cond(name):
++    return json.dumps({"figram": 1, "bot": {"initial": "a", "children": {
++        "a": {"on": {"btn:x": [{"if": name, "to": "a"}]}}}}})
++
++
++def doc_dup_node(name):
++    return json.dumps({"figram": 1, "bot": {"initial": "a", "children": {
++        "a": {}, name: {}, "s": {"initial": name, "children": {name: {}}}}}})
++
++
++ROWS = [
++    # id, document text, harmless-name control text
++    ("esc-in-target", doc_with_target("x\x1b[2K\x1b[1A\x1b[32mok\x1b[0m"), doc_with_target("x-plain")),
++    ("lf-forges-ok-line", doc_with_target("zz\nok\n"), doc_with_target("zz ok")),
++    ("nul-in-target", doc_with_target("a\x00HIDDEN"), doc_with_target("aHIDDEN")),
++    ("quote-in-cond", doc_with_cond('c"; rm -rf "'), doc_with_cond("c-plain")),
++    ("esc-in-dup-node", doc_dup_node("n\x1b]0;pwned\x07"), doc_dup_node("n-plain")),
++    ("cr-in-target", doc_with_target("x\rok      "), doc_with_target("x ok")),
++    # parse-level errors: raw text from the key / the input
++    ("esc-in-dup-key", '{"figram":1,"x-\\u001b[31m":1,"x-\\u001b[31m":2,"bot":{}}',
++     '{"figram":1,"x-r":1,"x-r":2,"bot":{}}'),
++    ("raw-esc-top-level", '{"figram":1,"bot":\x1b[31m}', '{"figram":1,"bot":?}'),
++    ("nl-in-dup-key", '{"figram":1,"a\\nok\\n":1,"a\\nok\\n":2,"bot":{}}', '{"figram":1,"a ok":1,"a ok":2,"bot":{}}'),
++]
++
++
++def raw_controls(b: bytes):
++    return sorted({c for c in b if c < 0x20 and c != 0x0A} | ({0x7F} if 0x7F in b else set()))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument("--control", action="store_true")
++    ap.add_argument("--strict", action="store_true")
++    ap.add_argument("--tmp", default=os.environ.get("TMPDIR", "/tmp"))
++    a = ap.parse_args()
++    p = os.path.join(a.tmp, f"fc-e-{os.getpid()}.json")
++    viol = checks = 0
++    for rid, text, ctl in ROWS:
++        t = ctl if a.control else text
++        with open(p, "w", encoding="utf-8") as f:
++            f.write(t)
++        results = {
++            "check.stdout": run([FIGRAM, "check", p]),
++            "fmt.stderr": run([FIGRAM, "fmt", p]),
++            "engine.stderr": run([ENGINE, p], b""),
++        }
++        rc_c, out_c, err_c = results["check.stdout"]
++        streams = {
++            "check.stdout": out_c, "check.stderr": err_c,
++            "fmt.stderr": results["fmt.stderr"][2],
++            "engine.stderr": results["engine.stderr"][2],
++        }
++        bad = []
++        for name, data in streams.items():
++            checks += 1
++            rc = raw_controls(data)
++            if rc:
++                bad.append(f"{name}: raw bytes {['0x%02x' % c for c in rc]}")
++        checks += 1
++        if rc_c != 0 and any(line.strip() == b"ok" for line in (out_c + err_c).split(b"\n")):
++            bad.append("check exited %d but printed a line 'ok'" % rc_c)
++        checks += 1
++        fmt_err = streams["fmt.stderr"]
++        if results["fmt.stderr"][0] != 0 and fmt_err.count(b"\n") != 1:
++            bad.append(f"fmt printed one error as {fmt_err.count(chr(10).encode())} lines")
++        print(f"{'VIOL' if bad else 'ok  '} {rid:20s} check rc={rc_c} engine rc={results['engine.stderr'][0]}")
++        for b in bad:
++            print("       ", b)
++        for name in ("check.stdout", "fmt.stderr", "engine.stderr"):
++            data = streams[name]
++            if data:
++                print(f"        {name}: {data[:160]!r}")
++        viol += bool(bad)
++    # Lean-level string: fmt keeps the NUL and everything after it (no C truncation)
++    with open(p, "w", encoding="utf-8") as f:
++        f.write(doc_with_target("a\x00HIDDEN"))
++    rc, out, _ = run([FIGRAM, "fmt", p])
++    lean_nul_ok = rc == 0 and b'"to": "a\\u0000HIDDEN"' in out
++    print(f"fmt keeps NUL as \\u0000 and the tail after it: {lean_nul_ok}")
++    # Engine protocol replies are JSON-escaped (contrast)
++    e_doc = os.path.join(a.tmp, f"fc-e-{os.getpid()}-ok.json")
++    with open(e_doc, "w") as f:
++        f.write(json.dumps({"figram": 1, "bot": {"initial": "a", "children": {"a": {}}}}))
++    req = '{"id":1,"op":"step","snapshot":{"at":"a"},"event":"e","guards":{"\\u001b[31m\\n":1}}\n'
++    rc, out, _ = run([ENGINE, e_doc], req.encode())
++    proto_ok = rc == 0 and not raw_controls(out[:-1]) and b"\\u001b" in out
++    print(f"engine protocol reply escaped: {proto_ok} {out[:120]!r}")
++    os.unlink(p)
++    os.unlink(e_doc)
++    print(f"rows={len(ROWS)} stream-checks={checks} rows-violating-P={viol} control={a.control}")
++    if a.control:
++        sys.exit(1 if viol else 0)
++    sys.exit(1 if (a.strict and viol) or not lean_nul_ok or not proto_ok else 0)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/formats/mutant_figram.sh b/tests/formats/mutant_figram.sh
+new file mode 100755
+index 0000000..2bcfd62
+--- /dev/null
++++ b/tests/formats/mutant_figram.sh
+@@ -0,0 +1,5 @@
++#!/bin/sh
++# Deliberately broken system under test for a_roundtrip.py: `fmt` turns every
++# "resume": true into false (a printer bug).  Everything else is the real binary.
++real="${FIGRAM_REAL:-$(dirname "$0")/../../bin/figram}"
++if [ "$1" = fmt ]; then "$real" "$@" | sed 's/"resume": true/"resume": false/'; else exec "$real" "$@"; fi
+diff --git a/tests/formats/run_all.sh b/tests/formats/run_all.sh
+new file mode 100755
+index 0000000..2dd6670
+--- /dev/null
++++ b/tests/formats/run_all.sh
+@@ -0,0 +1,43 @@
++#!/usr/bin/env bash
++# Runs every formats-correctness test, its strict mode and its deliberately
++# broken oracles, logging each run with /home/user/figram-audit/run.sh.
++#   tests/formats/run_all.sh [LOGDIR] [SEEDS]
++# Expected: normal runs exit 0; --strict runs of finding rows exit 1 on the
++# baseline (FC-01, FC-06); every --break / mutant run exits 1.
++set -u
++here="$(cd "$(dirname "$0")" && pwd)"
++L="${1:-/home/user/figram-audit/agents/formats-correctness/LOGS}"
++SEEDS="${2:-250}"
++R=/home/user/figram-audit/run.sh
++T="${TMPDIR:-/tmp}"
++N="nice -n 10 timeout 900"
++mkdir -p "$L"
++expect() {  # expect RC NAME CMD...
++  local want=$1 name=$2; shift 2
++  $R "$L/$name" $N "$@" >/dev/null; local rc=$?
++  local verdict=PASS; [ "$rc" = "$want" ] || verdict=UNEXPECTED
++  printf '%-34s want=%s got=%s %s  %s\n' "$name" "$want" "$rc" "$verdict" "$(tail -1 "$L/$name.stdout")"
++}
++cd "$here/../.."
++expect 0 a-roundtrip            python3 "$here/a_roundtrip.py" --seeds "$SEEDS" --tmp "$T"
++expect 1 a-roundtrip-strict     python3 "$here/a_roundtrip.py" --seeds 5 --strict --tmp "$T"
++for b in sort-unknown keep-resume-false keep-num-text drop-unknown; do
++  expect 1 "a-break-$b"         python3 "$here/a_roundtrip.py" --seeds 30 --break "$b" --tmp "$T"
++done
++expect 1 a-mutant-sut           env FIGRAM="$here/mutant_figram.sh" python3 "$here/a_roundtrip.py" --seeds 30 --tmp "$T"
++expect 0 b-rfc                  python3 "$here/b_rfc_table.py" --random 4000
++expect 1 b-rfc-strict           python3 "$here/b_rfc_table.py" --random 4000 --strict
++for b in dup-last-wins no-surrogate float; do
++  expect 1 "b-break-$b"         python3 "$here/b_rfc_table.py" --random 1000 --break "$b"
++done
++expect 0 c-schema               python3 "$here/c_schema_table.py" --tmp "$T"
++for b in no-minlength const2 no-integer; do
++  expect 1 "c-break-$b"         python3 "$here/c_schema_table.py" --break "$b" --tmp "$T"
++done
++expect 0 d-engine               python3 "$here/d_engine_requests.py"
++for b in flip lax-id; do
++  expect 1 "d-break-$b"         python3 "$here/d_engine_requests.py" --break "$b"
++done
++expect 0 e-cli                  python3 "$here/e_cli_names.py" --tmp "$T"
++expect 1 e-cli-strict           python3 "$here/e_cli_names.py" --strict --tmp "$T"
++expect 0 e-cli-control          python3 "$here/e_cli_names.py" --control --tmp "$T"
+-- 
+2.43.0
+

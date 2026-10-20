@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 600 lake env lean audit/proofs/Counterexamples.lean 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:39:50.517Z
+end: 2026-10-19T23:39:51.876Z
+exit_code: 0
+--- stdout (285 bytes, last 200 lines)
+"{\n  \"figram\": 1,\n  \"bot\": {\n    \"initial\": \"a\",\n    \"children\": {\n      \"a\": {}\n    }\n  },\n  \"x-scale\": 15e-1001\n}\n=> parse error: показатель степени по модулю больше 1000"
+"{\"at\":\"a\",\"timers\":{\"t\":1,\"t\":2},\"seq\":2}"
+--- stderr (0 bytes, last 100 lines)

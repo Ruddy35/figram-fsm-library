@@ -1,0 +1,208 @@
+command: nice -n 10 timeout 600 lake build FigramAudit 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:40:08.069Z
+end: 2026-10-19T23:40:18.586Z
+exit_code: 1
+--- stdout (106939 bytes, last 200 lines)
+warning: audit/proofs/FigramAudit/Glue.lean:219:28: This simp argument is unused:
+  except_bind_ok
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [decTimerEntry] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: audit/proofs/FigramAudit/Glue.lean:233:11: Tactic `cases` failed with a nested error:
+Dependent elimination failed: Failed to solve equation
+  Except.ok s =
+    match Format.get kvs "at" with
+    | some j => do
+      let st ← nonEmpty "«at»" j
+      match Format.get kvs "resume" with
+        | none => do
+          let res ← pure []
+          match Format.get kvs "timers" with
+            | none => do
+              let tms ← pure []
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some (J.obj m) => do
+              let tms ← List.mapM decTimerEntry m
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some val => do
+              let tms ← throw "снимок: «timers» должен быть объектом"
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+        | some (J.obj m) => do
+          let res ← List.mapM decResumeEntry m
+          match Format.get kvs "timers" with
+            | none => do
+              let tms ← pure []
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some (J.obj m) => do
+              let tms ← List.mapM decTimerEntry m
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some val => do
+              let tms ← throw "снимок: «timers» должен быть объектом"
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+        | some val => do
+          let res ← throw "снимок: «resume» должен быть объектом"
+          match Format.get kvs "timers" with
+            | none => do
+              let tms ← pure []
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some (J.obj m) => do
+              let tms ← List.mapM decTimerEntry m
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some val => do
+              let tms ← throw "снимок: «timers» должен быть объектом"
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+    | none => do
+      let st ← throw "у снимка нужно поле «at»"
+      match Format.get kvs "resume" with
+        | none => do
+          let res ← pure []
+          match Format.get kvs "timers" with
+            | none => do
+              let tms ← pure []
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some (J.obj m) => do
+              let tms ← List.mapM decTimerEntry m
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some val => do
+              let tms ← throw "снимок: «timers» должен быть объектом"
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+        | some (J.obj m) => do
+          let res ← List.mapM decResumeEntry m
+          match Format.get kvs "timers" with
+            | none => do
+              let tms ← pure []
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some (J.obj m) => do
+              let tms ← List.mapM decTimerEntry m
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some val => do
+              let tms ← throw "снимок: «timers» должен быть объектом"
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+        | some val => do
+          let res ← throw "снимок: «resume» должен быть объектом"
+          match Format.get kvs "timers" with
+            | none => do
+              let tms ← pure []
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some (J.obj m) => do
+              let tms ← List.mapM decTimerEntry m
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+            | some val => do
+              let tms ← throw "снимок: «timers» должен быть объектом"
+              match Format.get kvs "seq" with
+                | none => do
+                  let seq ← pure 0
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+                | some j => do
+                  let seq ← boundedNat "«seq»" j
+                  pure { state := st, resume := res, timers := tms, seq := seq }
+at case `Eq.refl`
+Some required targets logged failures:
+- FigramAudit.Glue
+--- stderr (20 bytes, last 100 lines)
+error: build failed

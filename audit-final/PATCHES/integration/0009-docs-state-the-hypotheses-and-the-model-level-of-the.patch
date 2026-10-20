@@ -1,0 +1,86 @@
+From 793d6881b80a9ee3f6173593955825bc26f93ac3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:54:45 +0000
+Subject: [PATCH 09/40] docs: state the hypotheses and the model level of the
+ proved guarantees
+
+README theorem table omitted DocWF (decode_encode/encode_injective are false without
+it, see audit/proofs/Counterexamples.lean CE3) and presented model-level (J/Obj)
+theorems as text-level guarantees (check_roundtrip, decSnapshot_encSnapshot,
+handle_step, reply_readable). reply_readable covers only 'step', not start/restart.
+Decision 7 (timer token) is enforced by Engine.decEvent only; in the Core model a
+named 'timer:x' event bypasses the token (CE2).
+
+(cherry picked from commit d9934d57b935484e0d2f1e9a8b2ece1e453a6d93)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ FORMAT.md |  7 ++++---
+ README.md | 19 +++++++++++--------
+ 2 files changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/FORMAT.md b/FORMAT.md
+index a5e1c33..d50afd5 100644
+--- a/FORMAT.md
++++ b/FORMAT.md
+@@ -94,8 +94,9 @@ JavaScript, Go, Rust и Python. Числа с большим отрицател
+ Кроме них `check` проверяет то, что в тексте JSON выполняется само собой, но
+ может нарушиться у документа, собранного программно: имена в словарях непусты
+ и не повторяются, аннотации не совпадают с ключами формата. Поэтому документ,
+-прошедший `check`, гарантированно записывается и читается обратно (теорема
+-`check_roundtrip`).
++прошедший `check`, гарантированно записывается в модель JSON `J` и читается
++обратно (теорема `check_roundtrip`); круг через текст (`print`/`parse`) не
++доказан и проверяется тестами.
+ 
+ V1 и V3–V5 — ссылки между частями документа. Значение JSON — конечное
+ дерево, а граф стрелок бота содержит циклы (меню → заказ → «Отмена» → меню).
+@@ -185,7 +186,7 @@ V2 можно было бы устранить, сделав начальным
+ | К5а: неизвестные ключи не влияют на поведение | `toChart_strip` |
+ | К5б: принятый документ требует только известных расширений | `decode_requires` |
+ | Описания условий, действий, переменных не влияют на поведение | `toChart_decls` |
+-| Документ, прошедший `check`, записывается и читается обратно | `check_roundtrip` |
++| Документ, прошедший `check`, записывается в модель `J` и читается обратно | `check_roundtrip` |
+ 
+ Условия теорем (`DocWF`): аннотации не используют ключи формата,
+ `requires` содержит только известные расширения, `bot` — раздел.
+diff --git a/README.md b/README.md
+index 1bd3200..274be83 100644
+--- a/README.md
++++ b/README.md
+@@ -54,20 +54,23 @@ Snapshot × List Action`. «Вернуться туда, где был» — о
+ | `Chart.chart_run_valid` | После любого события пользователь стоит на существующем сообщении, даже если снимок устарел |
+ | `Machine.step_state_valid` | То же для ядра на одном шаге |
+ | `Machine.step_guard_local` | Шаг зависит только от условий из `requiredGuards` (обоснование протокола `need`) |
+-| `Format.decode_encode` | Запись и чтение документа возвращают ровно тот же документ |
+-| `Format.encode_injective` | Разные документы записываются по-разному |
+-| `Format.check_roundtrip` | Документ, прошедший `check`, гарантированно записывается и читается обратно |
++| `Format.decode_encode` | Для документа с `DocWF`: запись в модель JSON `J` и чтение возвращают ровно тот же документ (текст JSON — `FormatIO` — не доказан) |
++| `Format.encode_injective` | Разные документы с `DocWF` записываются по-разному (следствие `decode_encode`; без `DocWF` неверно) |
++| `Format.check_roundtrip` | Документ, прошедший `check`, записывается в модель `J` и читается обратно (текстовый круг — только тесты) |
+ | `Format.decode_requires` | Документ с незнакомым смысловым расширением отвергается целиком |
+-| `Format.toChart_strip`, `toChart_decls` | Аннотации и тексты описаний не влияют на поведение бота |
+-| `Engine.decSnapshot_encSnapshot` | Снимок, записанный движком, читается обратно в точности тем же |
+-| `Engine.step_snapOK`, `reply_readable` | Движок никогда не выдаёт снимок, который сам не прочитает |
+-| `Engine.handle_step` | Запрос `step` исполняет ровно доказанный `Machine.step` |
++| `Format.toChart_strip`, `toChart_decls` | Аннотации и тексты описаний не влияют на поведение бота (`toChart_decls` верна по определению, `rfl`) |
++| `Engine.decSnapshot_encSnapshot` | Допустимый снимок (`SnapOK`), записанный в модель `J`, читается обратно в точности тем же |
++| `Engine.step_snapOK`, `reply_readable` | Ответ на `step` из допустимого снимка содержит снимок, который движок читает обратно (модель `J`; `start`/`restart` и связь `decSnapshot` → `SnapOK` в проекте не доказаны) |
++| `Engine.handle_step` | Запрос `step`, уже разобранный в модель `J` (`handleObj`), исполняет ровно доказанный `Machine.step`; строковый `handle` не доказан |
+ 
+ Точные формулировки, граница доказанного и проверенного, доверенная база —
+ AUDIT.md.
+ 
+ Условие теорем о корректности — `c.compile.wf`: проверка, которую выполняет
+-`check` при экспорте.
++`check` при экспорте (последняя проверка `lint`) и повторно `Engine.load`.
++Решение 7 (жетон таймера) обеспечивает разбор запроса `Engine.decEvent`:
++в модели ядра событие `.named "timer:x"` принимается без жетона, и теоремы
++этого не исключают.
+ 
+ ## Форматы
+ 
+-- 
+2.43.0
+

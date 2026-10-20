@@ -1,0 +1,34 @@
+✔ [26/42] Built Figram.Engine (1.1s)
+✔ [27/42] Built EngineMain (1.0s)
+✔ [29/42] Built Figram.Trace (1.5s)
+✖ [31/42] Building Figram.EngineProofs (1.8s)
+trace: .> LEAN_PATH=/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/Figram/EngineProofs.lean -o /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean/Figram/EngineProofs.olean -i /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/ir/Figram/EngineProofs.c --setup /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:230:67: unsolved goals
+m : Machine
+kvs : Obj
+j : J
+s : Snapshot
+ev : Event
+gs : List (String × Bool)
+hop : Format.get kvs "op" = some (J.str "step")
+hsn : Format.get kvs "snapshot" = some j
+hj : decSnapshot j = Except.ok s
+hev : decEvent kvs = Except.ok ev
+hgs : decGuards kvs = Except.ok gs
+hmiss : missing m s ev gs = []
+hseq : (m.step s ev (envOf gs)).fst.seq ≤ maxInt
+hle : ¬(m.step s ev (envOf gs)).fst.seq > maxInt
+⊢ (m.step s ev (envOf gs)).fst.seq ≤ maxInt + 1
+warning: Figram/EngineProofs.lean:234:8: This simp argument is unused:
+  hle
+
+Hint: Omit it from the simp argument list.
+  [apply] simp
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [33/42] Built Figram.Engine:c.o (2.0s)
+✔ [34/42] Built «figram-engine»:exe (373ms)
+✔ [35/42] Built Figram.Examples (1.4s)
+Some required targets logged failures:
+- Figram.EngineProofs
+error: build failed

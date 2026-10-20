@@ -1,0 +1,9 @@
+snapshot schema True {"at":"home","seq":1e-400}
+snapshot schema True {"at":"home","seq":9007199254740990.5}
+snapshot schema True {"v":1.0000000000000001,"at":"home"}
+document schema True {"figram":1.0000000000000001,"bot":{"initial":"a","children":{"a":{}}}}
+document schema True {"figram":1,"bot":{"initial":"a","children":{"a":{"timers":{"t":1e-400}}}}}
+{"id":1,"error":"снимок: «seq» должно быть неотрицательным целым"}
+{"id":2,"error":"снимок: «seq» должно быть неотрицательным целым"}
+{"id":3,"error":"снимок: «v» должно быть неотрицательным целым"}
+rc=1

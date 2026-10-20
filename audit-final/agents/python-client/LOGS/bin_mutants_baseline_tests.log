@@ -1,0 +1,25 @@
+command: nice -n 10 timeout 900 python3 mutate_client.py /home/user/figram-audit/agents/python-client/baseline-client /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/pizza.bot.json /home/user/figram-audit-worktrees/python-client/examples/features.bot.json 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:13:10.189Z
+end: 2026-10-19T22:22:27.386Z
+exit_code: 0
+--- stdout (3841 bytes, last 200 lines)
+исходник: /home/user/figram-audit/agents/python-client/baseline-client; тесты: ['client_faults.py', 'client_contract.py']
+исходный клиент: {'client_faults.py': 0, 'client_contract.py': 0}
+M01 нет пробуждения ожидающих в _fail: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 15.9с []; client_contract.py=0 3.2с []
+M02 нет срока ожидания: убит: client_faults.py  client_faults.py=1 141.0с ['НЕТ нет ответа: ошибок 5 из 8, зависло 8, 80.0 с, close 0.0 с', 'НЕТ не читает вход: ошибок 8 из 8, зависло 1, 30.0 с, close 0.0 с']; client_contract.py=0 2.3с []
+M03 запись в вызывающем потоке (без писателя): убит: client_faults.py, client_contract.py  client_faults.py=1 4.5с ['НЕТ невалидный JSON: ошибок 2 из 8, зависло 0, 0.1 с, close 0.0 с', 'НЕТ неизвестный id: ошибок 4 из 8, зависло 0, 0.1 с, close 0.0 с']; client_contract.py=1 2.2с []
+M04 _kill не убивает: убит: client_faults.py, client_contract.py  client_faults.py=timeout 240.1с []; client_contract.py=1 60.4с ['НЕТ аварийный процесс собран за 2.02 с без новых запросов', 'НЕТ close после аварии не зависает']
+M05 нет фонового wait (зомби): убит: client_contract.py  client_faults.py=0 4.0с []; client_contract.py=1 4.1с ['НЕТ аварийный процесс собран за 2.01 с без новых запросов']
+M06 нет check_reply: убит: client_faults.py  client_faults.py=1 7.8с ['НЕТ пустой результат: ошибок 7 из 8, зависло 0, 1.0 с, close 0.0 с', 'НЕТ seq = true: ошибок 7 из 8, зависло 0, 1.0 с, close 0.0 с']; client_contract.py=0 2.2с []
+M07 нет замены неисправного процесса: убит: client_faults.py  client_faults.py=1 3.6с ['НЕТ замена неисправного процесса: процесс движка неисправен: внедрённый сбой']; client_contract.py=0 2.2с []
+M08 EOF вывода не обнаруживается: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 4.2с []; client_contract.py=0 2.2с []
+M09 _fail не останавливает писателя (утечка потока): ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 4.1с []; client_contract.py=0 2.1с []
+M10 писатель не закрывает stdin: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 6.1с []; client_contract.py=0 4.2с []
+M11 _fail не очищает таблицу ожидающих: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 3.9с []; client_contract.py=0 2.2с []
+M12 не проверяются значения guards: убит: client_contract.py  client_faults.py=0 3.9с []; client_contract.py=1 0.1с []
+M13 неизвестный id игнорируется: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 5.0с []; client_contract.py=0 2.2с []
+M14 нет проверки failure перед регистрацией: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 5.1с []; client_contract.py=0 2.2с []
+M15 срок от записи, а не от начала вызова (+timeout): убит: client_faults.py  client_faults.py=1 7.0с ['НЕТ 300 одновременных запросов (~300 КБ) при заблокированном входе: ошибок 300, зависло 0, самый долгий вызов 2.03 с, всего 2.0 с']; client_contract.py=0 2.1с []
+выживших мутантов: 7 из 15
+--- stderr (0 bytes, last 100 lines)

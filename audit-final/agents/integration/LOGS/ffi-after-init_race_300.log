@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 bash ffi/audit/init_race.sh ffi/audit/out/contract 300 
+cwd: /home/user/figram-audit-worktrees/integration-ffi
+start: 2026-10-20T00:19:26.368Z
+end: 2026-10-20T00:19:30.111Z
+exit_code: 0
+--- stdout (50 bytes, last 200 lines)
+init_race: 300 runs, failed 0; exit codes: 0×300
+--- stderr (0 bytes, last 100 lines)

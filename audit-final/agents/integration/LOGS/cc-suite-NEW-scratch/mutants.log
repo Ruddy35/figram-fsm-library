@@ -1,0 +1,8 @@
+command: timeout 840 python3 mutants_red.py --engine /home/user/figram-audit-worktrees/integration-cc/.lake/build/bin/figram-engine --docs 8 --steps 100 --out /home/user/figram-audit/agents/integration/LOGS/cc-suite-NEW-scratch/mutant_survivors.json 
+cwd: /home/user/figram-audit-worktrees/integration-cc/audit/core-compiler
+start: 2026-10-19T23:56:50.252Z
+end: 2026-10-19T23:56:50.405Z
+exit_code: 1
+--- stdout (53 bytes, last 200 lines)
+REAL ENGINE DIVERGES on seed 700021 snapshot differs
+--- stderr (0 bytes, last 100 lines)

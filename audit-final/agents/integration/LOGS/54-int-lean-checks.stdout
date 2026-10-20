@@ -1,0 +1,6 @@
+STRICT GATE: PASS
+counterexamples: ok
+counterexamples negative control: red as expected
+statements: ok
+statements negative control: red as expected
+glue: built, standard axioms, leanchecker ok

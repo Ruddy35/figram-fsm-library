@@ -1,0 +1,14 @@
+command: bash REPRODUCTIONS/fc07_root_name_in_messages.sh 
+cwd: /home/user/figram-audit/agents/formats-correctness
+start: 2026-10-19T22:44:50.305Z
+end: 2026-10-19T22:44:50.346Z
+exit_code: 0
+--- stdout (348 bytes, last 200 lines)
+события узла «bot»: пустое имя
+вложенные узлы раздела «bot»: пустое имя
+Узел «» объявлен несколько раз
+Начальный экран «b» раздела «» должен лежать внутри него
+Узел «» объявлен несколько раз
+rc=1
+--- stderr (24 bytes, last 100 lines)
+figram: ошибок: 5

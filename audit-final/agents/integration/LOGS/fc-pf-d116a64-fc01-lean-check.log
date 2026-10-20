@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 bash -c cd\ \'/home/user/figram-audit-worktrees/integration-pf\'\ \&\&\ lake\ env\ lean\ \'/home/user/figram-audit-worktrees/integration-fc/tests/formats/fc01_lean_check.lean\' 
+cwd: /home/user/figram-audit-worktrees/integration-fc
+start: 2026-10-20T00:23:15.430Z
+end: 2026-10-20T00:23:16.172Z
+exit_code: 0
+--- stdout (21 bytes, last 200 lines)
+cases 13, failures 0
+--- stderr (0 bytes, last 100 lines)

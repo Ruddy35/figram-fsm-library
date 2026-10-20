@@ -1,0 +1,10 @@
+command: ./verify-faults.sh full engine-bug-golden-edited 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-20T00:37:03.491Z
+end: 2026-10-20T00:40:41.069Z
+exit_code: 1
+--- stdout (311 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+engine-bug-golden-edited 0      1        НЕТ ВСЁ В ПОРЯДКЕ
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-full-baseline-4/summary.txt)
+--- stderr (0 bytes, last 100 lines)

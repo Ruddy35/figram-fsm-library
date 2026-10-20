@@ -1,0 +1,2149 @@
+{
+ "host": "python",
+ "scenario": "load_u10",
+ "seed": 7,
+ "broken": null,
+ "bot": "pizza",
+ "users": {
+  "L0000": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1005",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1007",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1013",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1014",
+     "event": "btn:size",
+     "arg": "M",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1031",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1040",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1052",
+     "event": "msg:text",
+     "arg": "Mira 15, kv 3",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1073",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0001": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1002",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1017",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1028",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1058",
+     "event": "btn:size",
+     "arg": "M",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1075",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1078",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1079",
+     "event": "msg:text",
+     "arg": "Mira 15, kv 3",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1080",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0002": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1001",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1008",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1030",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1035",
+     "event": "btn:size",
+     "arg": "M",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1039",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1042",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1057",
+     "event": "msg:text",
+     "arg": "Mira 15, kv 3",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1059",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0003": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1041",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1053",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1056",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1061",
+     "event": "btn:size",
+     "arg": "M",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1062",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1065",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1067",
+     "event": "msg:text",
+     "arg": "Lenina 1",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1071",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0004": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1020",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1025",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1029",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1046",
+     "event": "btn:size",
+     "arg": "S",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1049",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1060",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1063",
+     "event": "msg:text",
+     "arg": "Mira 15, kv 3",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1072",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0005": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1016",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1023",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1034",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1036",
+     "event": "btn:size",
+     "arg": "S",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1037",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1051",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1055",
+     "event": "msg:text",
+     "arg": "Gagarina 7",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1066",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0006": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1006",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1009",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1012",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1018",
+     "event": "btn:size",
+     "arg": "M",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1021",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1054",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1064",
+     "event": "msg:text",
+     "arg": "Gagarina 7",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1068",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0007": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1004",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1010",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1015",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1032",
+     "event": "btn:size",
+     "arg": "L",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1038",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1044",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1048",
+     "event": "msg:text",
+     "arg": "Mira 15, kv 3",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1050",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0008": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1011",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1024",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1033",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1043",
+     "event": "btn:size",
+     "arg": "L",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1047",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1074",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1076",
+     "event": "msg:text",
+     "arg": "Lenina 1",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1077",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "L0009": {
+   "snapshot": {
+    "at": "done",
+    "resume": {
+     "order": "pay"
+    },
+    "seq": 8
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1003",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1019",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1022",
+     "event": "btn:pizza",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "pick_size",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "pick_size"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1026",
+     "event": "btn:size",
+     "arg": "S",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "pick_toppings",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_size"
+      },
+      {
+       "send": "pick_toppings"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1027",
+     "event": "btn:add",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "cart",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "add_to_cart"
+      },
+      {
+       "start_timer": "cart_reminder",
+       "ms": 7200000,
+       "token": 5
+      },
+      {
+       "send": "cart"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1045",
+     "event": "btn:checkout",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 6,
+     "at": "address",
+     "t_ms": 0,
+     "actions": [
+      {
+       "cancel_timer": "cart_reminder"
+      },
+      {
+       "send": "address"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1069",
+     "event": "msg:text",
+     "arg": "Lenina 1",
+     "token": null,
+     "kind": "step",
+     "seq": 7,
+     "at": "pay",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_address"
+      },
+      {
+       "send": "pay"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1070",
+     "event": "payment:success",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 8,
+     "at": "done",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "create_order"
+      },
+      {
+       "send": "done"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  }
+ },
+ "effects": [
+  {
+   "key": "L0000:1:0",
+   "user": "L0000",
+   "send": "menu"
+  },
+  {
+   "key": "L0000:2:0",
+   "user": "L0000",
+   "send": "catalog"
+  },
+  {
+   "key": "L0000:3:0",
+   "user": "L0000",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0000:4:1",
+   "user": "L0000",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0000:5:2",
+   "user": "L0000",
+   "send": "cart"
+  },
+  {
+   "key": "L0000:6:1",
+   "user": "L0000",
+   "send": "address"
+  },
+  {
+   "key": "L0000:7:1",
+   "user": "L0000",
+   "send": "pay"
+  },
+  {
+   "key": "L0000:8:0",
+   "user": "L0000",
+   "call": "create_order"
+  },
+  {
+   "key": "L0000:8:1",
+   "user": "L0000",
+   "send": "done"
+  },
+  {
+   "key": "L0001:1:0",
+   "user": "L0001",
+   "send": "menu"
+  },
+  {
+   "key": "L0001:2:0",
+   "user": "L0001",
+   "send": "catalog"
+  },
+  {
+   "key": "L0001:3:0",
+   "user": "L0001",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0001:4:1",
+   "user": "L0001",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0001:5:2",
+   "user": "L0001",
+   "send": "cart"
+  },
+  {
+   "key": "L0001:6:1",
+   "user": "L0001",
+   "send": "address"
+  },
+  {
+   "key": "L0001:7:1",
+   "user": "L0001",
+   "send": "pay"
+  },
+  {
+   "key": "L0001:8:0",
+   "user": "L0001",
+   "call": "create_order"
+  },
+  {
+   "key": "L0001:8:1",
+   "user": "L0001",
+   "send": "done"
+  },
+  {
+   "key": "L0002:1:0",
+   "user": "L0002",
+   "send": "menu"
+  },
+  {
+   "key": "L0002:2:0",
+   "user": "L0002",
+   "send": "catalog"
+  },
+  {
+   "key": "L0002:3:0",
+   "user": "L0002",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0002:4:1",
+   "user": "L0002",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0002:5:2",
+   "user": "L0002",
+   "send": "cart"
+  },
+  {
+   "key": "L0002:6:1",
+   "user": "L0002",
+   "send": "address"
+  },
+  {
+   "key": "L0002:7:1",
+   "user": "L0002",
+   "send": "pay"
+  },
+  {
+   "key": "L0002:8:0",
+   "user": "L0002",
+   "call": "create_order"
+  },
+  {
+   "key": "L0002:8:1",
+   "user": "L0002",
+   "send": "done"
+  },
+  {
+   "key": "L0003:1:0",
+   "user": "L0003",
+   "send": "menu"
+  },
+  {
+   "key": "L0003:2:0",
+   "user": "L0003",
+   "send": "catalog"
+  },
+  {
+   "key": "L0003:3:0",
+   "user": "L0003",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0003:4:1",
+   "user": "L0003",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0003:5:2",
+   "user": "L0003",
+   "send": "cart"
+  },
+  {
+   "key": "L0003:6:1",
+   "user": "L0003",
+   "send": "address"
+  },
+  {
+   "key": "L0003:7:1",
+   "user": "L0003",
+   "send": "pay"
+  },
+  {
+   "key": "L0003:8:0",
+   "user": "L0003",
+   "call": "create_order"
+  },
+  {
+   "key": "L0003:8:1",
+   "user": "L0003",
+   "send": "done"
+  },
+  {
+   "key": "L0004:1:0",
+   "user": "L0004",
+   "send": "menu"
+  },
+  {
+   "key": "L0004:2:0",
+   "user": "L0004",
+   "send": "catalog"
+  },
+  {
+   "key": "L0004:3:0",
+   "user": "L0004",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0004:4:1",
+   "user": "L0004",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0004:5:2",
+   "user": "L0004",
+   "send": "cart"
+  },
+  {
+   "key": "L0004:6:1",
+   "user": "L0004",
+   "send": "address"
+  },
+  {
+   "key": "L0004:7:1",
+   "user": "L0004",
+   "send": "pay"
+  },
+  {
+   "key": "L0004:8:0",
+   "user": "L0004",
+   "call": "create_order"
+  },
+  {
+   "key": "L0004:8:1",
+   "user": "L0004",
+   "send": "done"
+  },
+  {
+   "key": "L0005:1:0",
+   "user": "L0005",
+   "send": "menu"
+  },
+  {
+   "key": "L0005:2:0",
+   "user": "L0005",
+   "send": "catalog"
+  },
+  {
+   "key": "L0005:3:0",
+   "user": "L0005",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0005:4:1",
+   "user": "L0005",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0005:5:2",
+   "user": "L0005",
+   "send": "cart"
+  },
+  {
+   "key": "L0005:6:1",
+   "user": "L0005",
+   "send": "address"
+  },
+  {
+   "key": "L0005:7:1",
+   "user": "L0005",
+   "send": "pay"
+  },
+  {
+   "key": "L0005:8:0",
+   "user": "L0005",
+   "call": "create_order"
+  },
+  {
+   "key": "L0005:8:1",
+   "user": "L0005",
+   "send": "done"
+  },
+  {
+   "key": "L0006:1:0",
+   "user": "L0006",
+   "send": "menu"
+  },
+  {
+   "key": "L0006:2:0",
+   "user": "L0006",
+   "send": "catalog"
+  },
+  {
+   "key": "L0006:3:0",
+   "user": "L0006",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0006:4:1",
+   "user": "L0006",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0006:5:2",
+   "user": "L0006",
+   "send": "cart"
+  },
+  {
+   "key": "L0006:6:1",
+   "user": "L0006",
+   "send": "address"
+  },
+  {
+   "key": "L0006:7:1",
+   "user": "L0006",
+   "send": "pay"
+  },
+  {
+   "key": "L0006:8:0",
+   "user": "L0006",
+   "call": "create_order"
+  },
+  {
+   "key": "L0006:8:1",
+   "user": "L0006",
+   "send": "done"
+  },
+  {
+   "key": "L0007:1:0",
+   "user": "L0007",
+   "send": "menu"
+  },
+  {
+   "key": "L0007:2:0",
+   "user": "L0007",
+   "send": "catalog"
+  },
+  {
+   "key": "L0007:3:0",
+   "user": "L0007",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0007:4:1",
+   "user": "L0007",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0007:5:2",
+   "user": "L0007",
+   "send": "cart"
+  },
+  {
+   "key": "L0007:6:1",
+   "user": "L0007",
+   "send": "address"
+  },
+  {
+   "key": "L0007:7:1",
+   "user": "L0007",
+   "send": "pay"
+  },
+  {
+   "key": "L0007:8:0",
+   "user": "L0007",
+   "call": "create_order"
+  },
+  {
+   "key": "L0007:8:1",
+   "user": "L0007",
+   "send": "done"
+  },
+  {
+   "key": "L0008:1:0",
+   "user": "L0008",
+   "send": "menu"
+  },
+  {
+   "key": "L0008:2:0",
+   "user": "L0008",
+   "send": "catalog"
+  },
+  {
+   "key": "L0008:3:0",
+   "user": "L0008",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0008:4:1",
+   "user": "L0008",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0008:5:2",
+   "user": "L0008",
+   "send": "cart"
+  },
+  {
+   "key": "L0008:6:1",
+   "user": "L0008",
+   "send": "address"
+  },
+  {
+   "key": "L0008:7:1",
+   "user": "L0008",
+   "send": "pay"
+  },
+  {
+   "key": "L0008:8:0",
+   "user": "L0008",
+   "call": "create_order"
+  },
+  {
+   "key": "L0008:8:1",
+   "user": "L0008",
+   "send": "done"
+  },
+  {
+   "key": "L0009:1:0",
+   "user": "L0009",
+   "send": "menu"
+  },
+  {
+   "key": "L0009:2:0",
+   "user": "L0009",
+   "send": "catalog"
+  },
+  {
+   "key": "L0009:3:0",
+   "user": "L0009",
+   "send": "pick_size"
+  },
+  {
+   "key": "L0009:4:1",
+   "user": "L0009",
+   "send": "pick_toppings"
+  },
+  {
+   "key": "L0009:5:2",
+   "user": "L0009",
+   "send": "cart"
+  },
+  {
+   "key": "L0009:6:1",
+   "user": "L0009",
+   "send": "address"
+  },
+  {
+   "key": "L0009:7:1",
+   "user": "L0009",
+   "send": "pay"
+  },
+  {
+   "key": "L0009:8:0",
+   "user": "L0009",
+   "call": "create_order"
+  },
+  {
+   "key": "L0009:8:1",
+   "user": "L0009",
+   "send": "done"
+  }
+ ],
+ "invariants": {
+  "idempotency_keys_unique_lifetime": "PASS",
+  "external_effect_once_per_intent": "PASS",
+  "one_order_per_payment": "PASS",
+  "actions_complete": "PASS",
+  "outbox_drained": "PASS",
+  "seq_plus_one": "PASS",
+  "all_updates_acked": "PASS",
+  "no_lost_ack": "PASS",
+  "stale_timer_no_effect": "PASS",
+  "timer_not_early": "PASS",
+  "guards_match_domain_model": "PASS",
+  "domain_model_consistent": "PASS",
+  "send_at_least_once": "PASS",
+  "send_duplicates_explained": "PASS",
+  "crashes_effective": "PASS",
+  "external_faults_effective": "PASS",
+  "restart_reproduces_state": "PASS"
+ },
+ "invariant_failures": {},
+ "counts": {
+  "users": 10,
+  "transitions": 80,
+  "steps_logged": 80,
+  "updates_acked": 80,
+  "updates_abandoned": 0,
+  "acks_by_status": {
+   "ok": 80
+  },
+  "nacks": 0,
+  "crashes": 0,
+  "host_restarts": 0,
+  "recovered": 0,
+  "repairs": 0,
+  "resets": 0,
+  "rejected": 0,
+  "outbox_rows": 140,
+  "outbox_retried": 0,
+  "crm_effects": 10,
+  "crm_requests_by_outcome": {
+   "applied": 10
+  },
+  "tg_deliveries": 80,
+  "tg_duplicate_keys": 0,
+  "ext_fault_modes_seen": {},
+  "timers_by_state": {
+   "canceled": 10
+  },
+  "engine_retries": 0,
+  "upgrades": 0,
+  "orphaned_timers": 0,
+  "idempotency_key_conflicts_at_crm": 0,
+  "ext_reordered_batches": 0
+ },
+ "latency": {
+  "host_update_ms": {
+   "n": 80,
+   "p50": 9.768,
+   "p95": 145.559,
+   "p99": 302.576,
+   "max": 432.298
+  },
+  "host_step_ms": {
+   "n": 80,
+   "p50": 9.739,
+   "p95": 145.54,
+   "p99": 302.553,
+   "max": 432.28
+  },
+  "e2e_ms": {
+   "n": 80,
+   "p50": 13.775,
+   "p95": 146.137,
+   "p99": 304.287,
+   "max": 432.623
+  },
+  "elapsed_s": 1.168,
+  "throughput_updates_per_s": 68.5
+ },
+ "faults_injected": [],
+ "config": {
+  "workers": 8,
+  "engines": 3,
+  "executors": 4,
+  "window": 64,
+  "sync": "FULL",
+  "engine": "/home/user/figram-audit-worktrees/host-python/bin/figram-engine"
+ }
+}

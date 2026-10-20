@@ -1,0 +1,17 @@
+command: ./verify-faults.sh prebuilt 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-20T00:41:31.161Z
+end: 2026-10-20T00:48:55.644Z
+exit_code: 0
+--- stdout (1546 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+none                 0      0        ok ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+golden-truncated     1      1        ok НЕТ: фиксированные сценарии: «сценариев: 12» не удовлетворяет g[0] > 0 and g[0] == 2
+selftest-shrunk      1      1        ok НЕТ: самопроверка обвязки: пройдено 10 (нужно не меньше 35), провалено 0
+fixtures-shrunk      1      1        ok НЕТ: снимки: «снимков 2, ответов 2, расхождений схемы и движка 0» не удовлетворяет g[0] >= 24 and g[0] == g[1]
+random-docs-shrunk   1      1        ok документов 1, запросов 999, документов с расхождениями 0
+json-fuzz-shrunk     1      1        ok НЕТ: фаззинг JSON: «случаев 30000: принято обоими 2, отвергнуто обоими 8, расхождений 0» не удовлетворяет g[0]
+mutants-shrunk       1      1        ok НЕТ: мутации: «обнаружено 2 из 2 мутаций» не удовлетворяет g[1] >= 107 and g[0] == g[1]
+bin-swapped          1      1        ok sha256sum: WARNING: 1 computed checksum did NOT match
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

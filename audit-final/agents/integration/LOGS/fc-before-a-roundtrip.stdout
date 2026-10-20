@@ -1,0 +1,4 @@
+EDGE FC-01 annotation 1.0e-1000: fmt rc=0 oracle-match=False refmt rc=1 idempotent=False  refmt stderr: figram: не удалось прочитать документ: показатель степени по модулю больше 1000
+EDGE FC-01 annotation -2.50e-999: fmt rc=0 oracle-match=False refmt rc=1 idempotent=False  refmt stderr: figram: не удалось прочитать документ: показатель степени по модулю больше 1000
+EDGE FC-01 annotation 1001 fraction digits: fmt rc=0 oracle-match=False refmt rc=1 idempotent=False  refmt stderr: figram: не удалось прочитать документ: показатель степени по модулю больше 1000
+docs=253 variants=1265 P1=1265 P2=1265 P3=1265 P4=1265 failures=0 edge_fail=3/3 break=None

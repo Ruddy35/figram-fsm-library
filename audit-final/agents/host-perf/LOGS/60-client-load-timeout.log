@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 600 python3 audit/host-perf/client_load_timeout.py bin/figram-engine /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/big/states3000.bot.json 3 
+cwd: /home/user/figram-audit-worktrees/host-perf
+start: 2026-10-19T22:43:41.474Z
+end: 2026-10-19T22:44:39.010Z
+exit_code: 0
+--- stdout (444 bytes, last 200 lines)
+попытка 1: EngineError за 10.0 с: процесс движка неисправен: нет ответа за 10.0 с
+попытка 2: EngineError за 10.0 с: процесс движка неисправен: нет ответа за 10.0 с
+попытка 3: EngineError за 10.0 с: процесс движка неисправен: нет ответа за 10.0 с
+контроль (timeout=300): ответ за 27.4 с, at=m0
+--- stderr (0 bytes, last 100 lines)

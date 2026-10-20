@@ -1,0 +1,12 @@
+command: env FIGRAM_SIGNALS=30 ./gofig.test -test.run TestAuditSignals\$ -test.v 
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:49:54.373Z
+end: 2026-10-19T23:50:24.616Z
+exit_code: 0
+--- stdout (147 bytes, last 200 lines)
+=== RUN   TestAuditSignals
+    audit_test.go:408: signals: 1093872 requests under SIGPROF at 1 kHz, bad=0
+--- PASS: TestAuditSignals (30.23s)
+PASS
+--- stderr (74 bytes, last 100 lines)
+runtime: cannot set cpu profile rate until previous profile has finished.

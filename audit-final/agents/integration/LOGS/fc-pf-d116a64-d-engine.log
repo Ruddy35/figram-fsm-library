@@ -1,0 +1,73 @@
+command: nice -n 10 timeout 900 python3 tests/formats/d_engine_requests.py 
+cwd: /home/user/figram-audit-worktrees/integration-fc
+start: 2026-10-20T00:24:47.747Z
+end: 2026-10-20T00:24:47.814Z
+exit_code: 0
+--- stdout (6827 bytes, last 200 lines)
+    id-absent                     {"id":null,"protocol":1,"states":8}
+    id-null                       {"id":null,"protocol":1,"states":8}
+    id-true                       {"id":true,"protocol":1,"states":8}
+    id-str                        {"id":"abc","protocol":1,"states":8}
+    id-str-esc             ET-07  {"id":"é😀\u0000/","protocol":1,"states":8}
+    id-neg-zero            ET-07  {"id":0,"protocol":1,"states":8}
+    id-1.5e3               ET-07  {"id":15e2,"protocol":1,"states":8}
+    id-1E2                 ET-07  {"id":1e2,"protocol":1,"states":8}
+    id-0.1e1               ET-07  {"id":1,"protocol":1,"states":8}
+    id-1.10                       {"id":1.10,"protocol":1,"states":8}
+    id-bigint                     {"id":12345678901234567890123,"protocol":1,"states":8}
+    id-1e400                      {"id":1e400,"protocol":1,"states":8}
+    id-array                      {"id":[1,{"a":2}],"protocol":1,"states":8}
+    id-object                     {"id":{},"protocol":1,"states":8}
+    id-after-op                   {"id":7,"protocol":1,"states":8}
+    id-dup                 ET-07  {"id":null,"error":"повторяющийся ключ «id»"}
+    extra-on-hello         FC-04  {"id":1,"protocol":1,"states":8}
+    typo-gaurds            FC-04  {"id":2,"need":["is_vip"]}
+    typo-guard             FC-04  {"id":3,"need":["is_vip"]}
+    typo-evnt                     {"id":4,"error":"нужно поле «event»"}
+    start-with-junk        FC-04  {"id":5,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+    op-case                       {"id":6,"error":"неизвестная операция «op»"}
+    op-missing                    {"id":7,"error":"неизвестная операция «op»"}
+    op-null                       {"id":8,"error":"неизвестная операция «op»"}
+    not-object                    {"id":null,"error":"запрос должен быть объектом"}
+    g-true                        {"id":10,"snapshot":{"at":"vip","seq":1},"actions":[{"cancel_timer":"idle"},{"send":"vip"}]}
+    g-false                       {"id":11,"snapshot":{"at":"catalog","resume":{"shop":"catalog"},"seq":1},"actions":[{"cancel_timer":"idle"},{"send":"catalog"}]}
+    g-empty                       {"id":12,"need":["is_vip"]}
+    g-absent                      {"id":13,"need":["is_vip"]}
+    g-1                           {"id":14,"error":"условие «is_vip»: ожидалось true или false"}
+    g-str                         {"id":15,"error":"условие «is_vip»: ожидалось true или false"}
+    g-null-val                    {"id":16,"error":"условие «is_vip»: ожидалось true или false"}
+    g-null                        {"id":17,"error":"«guards» должен быть объектом"}
+    g-array                       {"id":18,"error":"«guards» должен быть объектом"}
+    g-dup                  ET-07  {"id":null,"error":"повторяющийся ключ «is_vip»"}
+    g-unneeded-nonbool     FC-04  {"id":20,"error":"условие «other»: ожидалось true или false"}
+    g-unknown-names        FC-04  {"id":21,"snapshot":{"at":"vip","seq":1},"actions":[{"cancel_timer":"idle"},{"send":"vip"}]}
+    t-match                       {"id":30,"snapshot":{"at":"reminder","resume":{"shop":"reminder"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}
+    t-5.0                  ET-12  {"id":31,"snapshot":{"at":"reminder","resume":{"shop":"reminder"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}
+    t-stale                       {"id":32,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}
+    t-2^53+1               ET-12  {"id":33,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}
+    t-str                  ET-12  {"id":34,"error":"для события таймера нужно поле «token»"}
+    t-neg                         {"id":35,"error":"«token» должен быть неотрицательным целым"}
+    t-1e19                 ET-12  {"id":36,"error":"«token» должен быть неотрицательным целым"}
+    t-missing                     {"id":37,"error":"для события таймера нужно поле «token»"}
+    t-on-named                    {"id":38,"snapshot":{"at":"item2","resume":{"shop":"item2"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"item2"}]}
+    e-empty                       {"id":40,"snapshot":{"at":"home"},"actions":[]}
+    e-timer-colon                 {"id":41,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}
+    e-timer-colon-notoken         {"id":42,"error":"для события таймера нужно поле «token»"}
+    e-missing                     {"id":43,"error":"нужно поле «event»"}
+    e-num                         {"id":44,"error":"нужно поле «event»"}
+    e-TIMER                       {"id":45,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}
+    s-dup-at               ET-07  {"id":null,"error":"повторяющийся ключ «at»"}
+    s-dup-timer            ET-07  {"id":null,"error":"повторяющийся ключ «remind»"}
+    s-seq-1.0                     {"id":52,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":2},{"send":"
+    s-seq-1e0                     {"id":53,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":2},{"send":"
+    s-seq-neg-zero                {"id":54,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":1},{"send":"
+    s-v-1.0                       {"id":55,"snapshot":{"at":"home"},"actions":[]}
+    s-v-2                         {"id":56,"error":"снимок: неизвестная версия"}
+    s-null                        {"id":57,"error":"снимок должен быть объектом"}
+    s-missing                     {"id":58,"error":"нужно поле «snapshot»"}
+    restart-seq-1e0               {"id":59,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}
+    two-objects            ET-07  {"id":null,"error":"лишний текст после JSON"}
+    crlf                          {"id":62,"protocol":1,"states":8}
+    bom                           {"id":null,"error":"неожиданный символ «﻿»"}
+requests=65 replies=65 mismatches=0 tags={'-': 45, 'ET-07': 10, 'FC-04': 6, 'ET-12': 4} break=None
+--- stderr (0 bytes, last 100 lines)

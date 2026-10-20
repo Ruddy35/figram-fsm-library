@@ -1,0 +1,14 @@
+>> {"id":1,"op":"start"}
+<< {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+>> {"id":2,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}
+<< {"id":2,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"event":"btn:cart"}
+<< {"id":3,"snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]}
+--- v2 renames cart's timer cart_reminder -> cart_nudge
+>> {"id":1,"op":"step","snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}
+<< {"id":1,"snapshot":{"at":"address","resume":{"order":"address"},"timers":{"cart_reminder":3},"seq":4},"actions":[{"cancel_timer":"cart_nudge"},{"send":"address"}]}
+>> {"id":2,"op":"step","snapshot":{"at":"address","resume":{"order":"address"},"timers":{"cart_reminder":3},"seq":4},"event":"msg:text","guards":{"in_delivery_zone":true}}
+<< {"id":2,"snapshot":{"at":"pay","resume":{"order":"pay"},"timers":{"cart_reminder":3},"seq":5},"actions":[{"call":"save_address"},{"send":"pay"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"pay","resume":{"order":"pay"},"timers":{"cart_reminder":3},"seq":5},"event":"payment:success"}
+<< {"id":3,"snapshot":{"at":"done","resume":{"order":"pay"},"timers":{"cart_reminder":3},"seq":6},"actions":[{"call":"create_order"},{"send":"done"}]}
+VERDICT: BUG: old timer never cancelled, still in snapshot after leaving cart: {'cart_reminder': 3}

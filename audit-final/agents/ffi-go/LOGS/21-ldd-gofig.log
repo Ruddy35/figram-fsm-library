@@ -1,0 +1,12 @@
+command: ldd gofig 
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:42:27.992Z
+end: 2026-10-19T23:42:28.005Z
+exit_code: 0
+--- stdout (297 bytes, last 200 lines)
+	linux-vdso.so.1 (0x00007f333095e000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f3330862000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f3330834000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f3330600000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f3330960000)
+--- stderr (0 bytes, last 100 lines)

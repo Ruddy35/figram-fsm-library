@@ -1,0 +1,6 @@
+{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 702, "coverage_targets": 42, "checks": 6073, "per_invariant": {"I1": 1067, "I10": 70, "I11": 99, "I12": 5, "I2": 1031, "I3": 498, "I4": 745, "I5": 299, "I6": 354, "I7": 446, "I8": 29, "I9": 1423, "T1": 7}, "violations": 29}
+  I2: cover target=address/cmd:start/0 i=2: reply kinds ['need', 'error']: b'{"id":15,"need":["cart_not_empty"],"error":"x"}\n'
+  I2: cover target=address/msg:text/0 i=3: reply kinds ['need', 'error']: b'{"id":23,"need":["in_delivery_zone"],"error":"x"}\n'
+  I2: cover target=address/msg:text/1 i=2: reply kinds ['need', 'error']: b'{"id":28,"need":["cart_not_empty"],"error":"x"}\n'
+  I2: cover target=address/msg:text/1 i=3: reply kinds ['need', 'error']: b'{"id":30,"need":["in_delivery_zone"],"error":"x"}\n'
+  I2: cover target=cart/btn:checkout/0 i=2: reply kinds ['need', 'error']: b'{"id":39,"need":["cart_not_empty"],"error":"x"}\n'

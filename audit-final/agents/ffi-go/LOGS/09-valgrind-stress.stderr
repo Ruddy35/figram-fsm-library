@@ -1,0 +1,16 @@
+==21247== Memcheck, a memory error detector
+==21247== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==21247== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==21247== Command: ffi/audit/out/stress examples/pizza.bot.json 16 300 2
+==21247== 
+==21247== Warning: set address range perms: large range [0x23f4f000000, 0x23f8f000000) (defined)
+==21247== Warning: set address range perms: large range [0x51e3000, 0x451e4000) (noaccess)
+==21247== 
+==21247== HEAP SUMMARY:
+==21247==     in use at exit: 95,302 bytes in 36 blocks
+==21247==   total heap usage: 72,190 allocs, 72,154 frees, 4,716,960 bytes allocated
+==21247== 
+==21247== For a detailed leak analysis, rerun with: --leak-check=full
+==21247== 
+==21247== For lists of detected and suppressed errors, rerun with: -s
+==21247== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

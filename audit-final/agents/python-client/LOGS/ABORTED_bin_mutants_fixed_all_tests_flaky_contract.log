@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 1700 python3 mutate_client.py /home/user/figram-audit-worktrees/python-client/ffi/python-example /home/user/figram-audit-worktrees/python-client/bin/figram-engine /home/user/figram-audit-worktrees/python-client/examples/pizza.bot.json /home/user/figram-audit-worktrees/python-client/examples/features.bot.json client_faults.py client_contract.py client_robustness.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T22:38:02.597Z
+end: 2026-10-19T22:38:27.517Z
+exit_code: 2
+--- stdout (518 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/python-client/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']
+исходный клиент: {'client_faults.py': 0, 'client_contract.py': 1, 'client_robustness.py': 0}
+ОТКАЗ: тесты красные на исходном клиенте — мутационный анализ бессмыслен {'client_faults.py': (0, 5.2, []), 'client_contract.py': (1, 2.2, []), 'client_robustness.py': (0, 16.9, [])}
+--- stderr (0 bytes, last 100 lines)

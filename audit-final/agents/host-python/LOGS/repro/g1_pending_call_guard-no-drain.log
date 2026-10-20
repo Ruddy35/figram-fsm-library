@@ -1,0 +1,17 @@
+command: /home/user/figram-audit/agents/host-python/REPRODUCTIONS/run_repro.sh g1_pending_call_guard.jsonl no-drain 
+cwd: /home/user/figram-audit-worktrees/host-python/audit/host-python
+start: 2026-10-19T23:21:17.398Z
+end: 2026-10-19T23:21:18.250Z
+exit_code: 1
+--- stdout (1736 bytes, last 200 lines)
+{"scenario": "g1_pending_call_guard", "broken": "no-drain", "elapsed_s": 0.36, "fails": ["guards_match_domain_model"], "counts": {"users": 1, "transitions": 6, "steps_logged": 6, "updates_acked": 8, "updates_abandoned": 0, "acks_by_status": {"ok": 6, "ignored": 2}, "nacks": 0, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 0, "outbox_rows": 10, "outbox_retried": 0, "crm_effects": 0, "crm_requests_by_outcome": {}, "tg_deliveries": 6, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {}, "timers_by_state": {"canceled": 1}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 8, "p50": 2.97, "p95": 11.572, "p99": 11.572, "max": 11.962}, "host_step_ms": {"n": 8, "p50": 2.946, "p95": 11.549, "p99": 11.549, "max": 11.899}, "e2e_ms": {"n": 8, "p50": 3.575, "p95": 12.775, "p99": 12.775, "max": 16.421}, "elapsed_s": 0.36, "throughput_updates_per_s": 22.2}}
+u final: {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 6}
+   tg:1 cmd:start  seq 1 -> menu t_ms 0 [{'send': 'menu'}]
+   tg:2 btn:order  seq 2 -> catalog t_ms 0 [{'send': 'catalog'}]
+   tg:3 btn:pizza  seq 3 -> pick_size t_ms 0 [{'send': 'pick_size'}]
+   tg:4 btn:size  seq 4 -> pick_toppings t_ms 0 [{'call': 'save_size'}, {'send': 'pick_toppings'}]
+   tg:5 btn:add  seq 5 -> cart t_ms 0 [{'call': 'add_to_cart'}, {'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 5}, {'send': 'cart'}]
+   tg:6 btn:checkout  seq 6 -> catalog t_ms 0 [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]
+effects: []
+FAILED invariants: {"guards_match_domain_model": [["u", 6, "btn:checkout", "cart_not_empty", false, true]]}
+--- stderr (0 bytes, last 100 lines)

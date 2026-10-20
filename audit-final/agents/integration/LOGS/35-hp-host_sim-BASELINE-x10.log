@@ -1,0 +1,18 @@
+command: /home/user/figram-audit/agents/integration/scripts/host_sim_repeat.sh /home/user/figram-audit-worktrees/integration/ffi/python-example /home/user/figram-audit/fresh/figram-engine 10 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T00:08:10.351Z
+end: 2026-10-20T00:08:23.529Z
+exit_code: 0
+--- stdout (174 bytes, last 200 lines)
+run 1 rc=0
+run 2 rc=0
+run 3 rc=0
+run 4 rc=0
+run 5 rc=0
+run 6 rc=0
+run 7 rc=0
+run 8 rc=0
+run 9 rc=0
+run 10 rc=0
+runs=10 exit0=10 exit1=0 control_not_red=0 main_scenario_red=0
+--- stderr (0 bytes, last 100 lines)

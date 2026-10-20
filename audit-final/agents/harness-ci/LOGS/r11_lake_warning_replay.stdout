@@ -1,0 +1,9 @@
+--- first build
+warning: Figram/Examples.lean:221:21: Variable name `x` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+Build completed successfully (42 jobs).
+--- second build (nothing to rebuild)
+⚠ [15/42] Replayed Figram.Examples
+warning: Figram/Examples.lean:221:21: Variable name `x` is not explicitly referenced.
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+Build completed successfully (42 jobs).

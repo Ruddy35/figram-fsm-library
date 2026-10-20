@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 870 prlimit --as=8000000000 -- python3 audit/host-perf/run_series.py --engine bin/figram-engine --series global_big --steps 2000 --load-timeout 600 --out /home/user/figram-audit/agents/host-perf/LOGS/48-series-global_big.jsonl --workdir /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series3 
+cwd: /home/user/figram-audit-worktrees/host-perf
+start: 2026-10-19T22:31:13.089Z
+end: 2026-10-19T22:35:04.765Z
+exit_code: 0
+--- stdout (953 bytes, last 200 lines)
+{"series": "global_big", "cfg": {"states": 1000, "branches": 2, "resume": 1, "timers": 0, "global": 1000}, "doc_bytes": 199829, "leaves": 1000, "rows_predicted": 1004999, "pipe": {"label": "global_big_states1000_branches2_resume1_timers0_global1000", "doc_bytes": 199829, "states": 1000, "load_s": 204.702, "load_cpu_s": 189.407, "rss_load_kb": 145388, "hwm_load_kb": 146492, "rss_end_kb": 145388, "hwm_end_kb": 146492, "steps": 2000, "transitions": 1792, "ignored": 208, "errors": 0, "max_snapshot_bytes": 56, "hello_p50_us": 12.9, "step_p50_us": 12867.5, "step_p95_us": 23427.9, "step_p99_us": 27626.5, "step_max_us": 45285.3, "sync_steps_per_s": 78.4, "cpu_p50_us": 12596.1, "cpu_p95_us": 22498.4, "cpu_p99_us": 24455.9, "cpu_max_us": 31668.7, "cpu_mean_us": 12293.3, "runq_p50_us": 209.9, "runq_p99_us": 6157.5}, "loadavg_before": [9.9404296875, 10.35693359375, 9.046875], "wall_s": 231.0, "loadavg_after": [9.9404296875, 10.35693359375, 9.046875]}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,19 @@
+command: /home/user/figram-audit-worktrees/host-go/audit/host-go/bin/fgmem -reloads 5000 -reqs 50 -goroutines 8 
+cwd: /home/user/figram-audit/agents/host-go
+start: 2026-10-20T00:13:37.750Z
+end: 2026-10-20T00:14:14.723Z
+exit_code: 0
+--- stdout (3474 bytes, last 200 lines)
+{"binding":{"Calls":0,"Nanos":0,"InBytes":0,"OutBytes":0,"Loads":0,"Unloads":0,"Live":0},"cycle":0,"go_heap":102832,"go_sys":6380560,"goroutines":1,"proc":{"Threads":"6","VmHWM":"7004 kB","VmRSS":"7004 kB","VmSize":"1611832 kB"},"t_s":0.000262079}
+{"binding":{"Calls":200000,"Nanos":8307292116,"InBytes":32800000,"OutBytes":27400000,"Loads":500,"Unloads":500,"Live":0},"cycle":500,"go_heap":260432,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29860 kB","VmRSS":"29356 kB","VmSize":"3996816 kB"},"t_s":4.008039702}
+{"binding":{"Calls":400000,"Nanos":16625585229,"InBytes":65600000,"OutBytes":54800000,"Loads":1000,"Unloads":1000,"Live":0},"cycle":1000,"go_heap":3810176,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29860 kB","VmRSS":"29336 kB","VmSize":"3996816 kB"},"t_s":7.84757168}
+{"binding":{"Calls":600000,"Nanos":24378345099,"InBytes":98400000,"OutBytes":82200000,"Loads":1500,"Unloads":1500,"Live":0},"cycle":1500,"go_heap":3641536,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29860 kB","VmRSS":"29364 kB","VmSize":"3996816 kB"},"t_s":11.562978334}
+{"binding":{"Calls":800000,"Nanos":32347932496,"InBytes":131200000,"OutBytes":109600000,"Loads":2000,"Unloads":2000,"Live":0},"cycle":2000,"go_heap":3513088,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29636 kB","VmSize":"3996816 kB"},"t_s":15.337380108}
+{"binding":{"Calls":1000000,"Nanos":39746942823,"InBytes":164000000,"OutBytes":137000000,"Loads":2500,"Unloads":2500,"Live":0},"cycle":2500,"go_heap":3410112,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29492 kB","VmSize":"3996816 kB"},"t_s":18.869532412}
+{"binding":{"Calls":1200000,"Nanos":47387579817,"InBytes":196800000,"OutBytes":164400000,"Loads":3000,"Unloads":3000,"Live":0},"cycle":3000,"go_heap":3282240,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29292 kB","VmSize":"3996816 kB"},"t_s":22.519328182}
+{"binding":{"Calls":1400000,"Nanos":54967724419,"InBytes":229600000,"OutBytes":191800000,"Loads":3500,"Unloads":3500,"Live":0},"cycle":3500,"go_heap":3218544,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29548 kB","VmSize":"3996816 kB"},"t_s":26.185453636}
+{"binding":{"Calls":1600000,"Nanos":62137551626,"InBytes":262400000,"OutBytes":219200000,"Loads":4000,"Unloads":4000,"Live":0},"cycle":4000,"go_heap":3127952,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29776 kB","VmSize":"3996816 kB"},"t_s":29.635623544}
+{"binding":{"Calls":1800000,"Nanos":70147248515,"InBytes":295200000,"OutBytes":246600000,"Loads":4500,"Unloads":4500,"Live":0},"cycle":4500,"go_heap":3043520,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29544 kB","VmSize":"3996816 kB"},"t_s":33.317464724}
+{"binding":{"Calls":2000000,"Nanos":77978917609,"InBytes":328000000,"OutBytes":274000000,"Loads":5000,"Unloads":5000,"Live":0},"cycle":5000,"go_heap":2976848,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29296 kB","VmSize":"3996816 kB"},"t_s":36.955695333}
+{"binding":{"Calls":2000400,"Nanos":77992627294,"InBytes":328065600,"OutBytes":274054800,"Loads":5001,"Unloads":5001,"Live":0},"cycle":5001,"go_heap":217456,"go_sys":11492368,"goroutines":1,"proc":{"Threads":"11","VmHWM":"29884 kB","VmRSS":"29296 kB","VmSize":"3996816 kB"},"t_s":36.964738483}
+--- stderr (0 bytes, last 100 lines)

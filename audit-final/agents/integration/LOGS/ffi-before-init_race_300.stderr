@@ -1,0 +1,12 @@
+ffi/audit/init_race.sh: line 7: 28949 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29015 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29039 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29094 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29118 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29142 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29238 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29648 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 29720 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 30183 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 30219 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1
+ffi/audit/init_race.sh: line 7: 30495 Segmentation fault      timeout 20 "$BIN" init_race examples/pizza.bot.json > /dev/null 2>&1

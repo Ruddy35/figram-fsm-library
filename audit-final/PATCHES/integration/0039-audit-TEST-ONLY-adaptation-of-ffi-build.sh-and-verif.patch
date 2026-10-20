@@ -1,0 +1,46 @@
+From 9778daceda691115d3e84e36becd7c67f7c1e033 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:38:04 +0000
+Subject: [PATCH 39/40] audit: TEST-ONLY adaptation of ffi/build.sh and
+ verify.sh for a from-source Lean toolchain
+
+Official releases bundle libc++/libuv/libgmp static archives; a from-source
+gcc build does not. Not a proposed product change.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ ffi/build.sh | 5 ++++-
+ verify.sh    | 2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/ffi/build.sh b/ffi/build.sh
+index 168efca..f274c11 100755
+--- a/ffi/build.sh
++++ b/ffi/build.sh
+@@ -14,5 +14,8 @@ leanc -c -o ffi/out/figram_ffi.o ffi/figram_ffi.c
+ rm -f ffi/out/libfigram.a
+ ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o $OBJS
+ cp "$P/lib/lean/libInit.a" "$P/lib/lean/libleanrt.a" ffi/out/lean/
+-cp "$P/lib/libc++.a" "$P/lib/libc++abi.a" "$P/lib/libuv.a" "$P/lib/libgmp.a" ffi/out/lean/
++# AUDIT TEST-ONLY ADAPTATION (Lean built from source with gcc/libstdc++): the prefix has no bundled
++# libc++/libuv/libgmp archives. Use system static libuv/libgmp and empty libc++ stubs (link with -lstdc++).
++if [ -f "$P/lib/libc++.a" ]; then cp "$P/lib/libc++.a" "$P/lib/libc++abi.a" "$P/lib/libuv.a" "$P/lib/libgmp.a" ffi/out/lean/
++else cp /usr/lib/x86_64-linux-gnu/libuv.a /usr/lib/x86_64-linux-gnu/libgmp.a ffi/out/lean/; ar rcs ffi/out/lean/libc++.a; ar rcs ffi/out/lean/libc++abi.a; fi
+ echo "готово: ffi/out/libfigram.a"
+diff --git a/verify.sh b/verify.sh
+index 092d5c8..ac9ef06 100755
+--- a/verify.sh
++++ b/verify.sh
+@@ -259,7 +259,7 @@ step "C-прослойка: невалидный UTF-8, огромные вхо
+ PFX=$(lean --print-prefix)
+ O=.lake/build/ir/Figram
+ OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
+-LIBS="-Lffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic -lm -ldl -lpthread -lrt"
++LIBS="-Lffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic -lstdc++ -lm -ldl -lpthread -lrt"  # AUDIT: -lstdc++ for from-source toolchain
+ ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
+ ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" ffi/c_harness_io.c
+ ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" $OBJS $LIBS
+-- 
+2.43.0
+

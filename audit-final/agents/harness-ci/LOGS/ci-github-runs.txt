@@ -1,0 +1,31 @@
+Source: GitHub MCP (mcp__github__actions_list list_workflow_jobs, mcp__github__get_job_logs), read 2026-10-19 ~22:00Z
+Repo Ruddy35/figram-fsm-library, branch claude/kind-ramanujan-n4q8mg, head_sha d69bbaf7881a0ae1c11b75a35cf5193ad604b925
+
+Run 39330382243 workflow "verify" job 118326767144: status completed, conclusion success
+  steps: checkout@v4 ok; "Lean 4.35.0" (elan-init --default-toolchain none) ok 1s; setup-go@v5 go 1.23 -> go1.23.12 ok;
+  "pip install jsonschema": "Defaulting to user installation because normal site-packages is not writeable"
+      "Requirement already satisfied: jsonschema in /usr/lib/python3/dist-packages (4.10.3)"  -> success (no PEP 668 error, preinstalled)
+  verify.sh 21:48:57 -> 21:51:48 (2m51s), key output lines:
+      Build completed successfully (42 jobs).
+      ok: хеши совпадают побайтно                       <-- official toolchain: bin/ hashes reproduce
+      14 x "depends on axioms: [propext, (Classical.choice,) Quot.sound]"
+      Фиксированные сценарии ... ok
+      покрыто вариантов стрелок: 42 из 42 / 36 из 36 ; запросов 18103, расхождений 0
+      документов 100, запросов 97282, документов с расхождениями 0
+      обнаружено 107 из 107 мутаций (100%)
+      случаев 30000: принято обоими 9786, отвергнуто обоими 20214, расхождений 0
+      потоков  64, процессов 2: шагов 8000 ..., 10,552 шагов/с
+      ботов 4, раундов 3, горутин 600, запросов 24600, расхождений 0, 56270 запросов/с (GOMAXPROCS=4, CPU=4)
+      ботов 3, раундов 3, горутин 60, запросов 1860, расхождений 0, 13567 запросов/с (GOMAXPROCS=4, CPU=4)
+      общий словарь запроса из 8 горутин: гонок нет     <-- line ABSENT from shipped VERIFY.log
+      ВСЁ В ПОРЯДКЕ
+  "Go — длительный параллельный прогон": nproc=4;
+      ботов 8, раундов 5, горутин 10000, запросов 410000, расхождений 0 (GOMAXPROCS=4, CPU=4)   [gofig-race]
+      ботов 8, раундов 50, горутин 100000, запросов 4100000, расхождений 0 (GOMAXPROCS=4, CPU=4)  [gofig]
+  warnings: setup-go "Restore cache failed: ... go.sum not found"; Node 20 deprecation for checkout@v4/setup-go@v5
+
+Run 39330382251 workflow "Lean Action CI" job 118326766617: conclusion success
+  actions/checkout@v7 resolved and ran (tag v7 exists: 3d3c42e5..., see ci-checkout-tags.log)
+  lean-action@v1: auto-config -> "will run lake build"; "lake check-test failed -> will not run lake test";
+      "lake check-lint failed -> will not run lake lint"; leanchecker / nanoda / axiom-audit steps: skipped
+  lake build: 42 jobs, "Build completed successfully (42 jobs)." (8.4 s, no warnings printed)

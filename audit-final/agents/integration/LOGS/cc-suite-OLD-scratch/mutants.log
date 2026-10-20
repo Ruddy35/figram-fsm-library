@@ -1,0 +1,8 @@
+command: timeout 840 python3 mutants_red.py --engine /home/user/figram-audit/fresh/figram-engine --docs 8 --steps 100 --out /home/user/figram-audit/agents/integration/LOGS/cc-suite-OLD-scratch/mutant_survivors.json 
+cwd: /home/user/figram-audit-worktrees/integration-cc/audit/core-compiler
+start: 2026-10-19T23:59:07.284Z
+end: 2026-10-20T00:04:20.238Z
+exit_code: 0
+--- stdout (145 bytes, last 200 lines)
+{"mutants": 2517, "killed": 2000, "survivors": 517, "equivalent_survivors": 517, "non_equivalent_survivors": 0, "kill_rate_non_equivalent": 1.0}
+--- stderr (0 bytes, last 100 lines)

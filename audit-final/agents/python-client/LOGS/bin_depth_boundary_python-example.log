@@ -1,0 +1,10 @@
+command: python3 /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/depth_boundary.py /home/user/figram-audit-worktrees/python-client/ffi/python-example bin/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/python-client
+start: 2026-10-19T22:26:25.472Z
+end: 2026-10-19T22:26:25.595Z
+exit_code: 0
+--- stdout (528 bytes, last 200 lines)
+255 контейнеров: EngineError: снимок: неизвестное поле «x» (снимок более новой версии?) | процесс тот же: True
+256 контейнеров: EngineError: снимок: неизвестное поле «x» (снимок более новой версии?) | процесс тот же: True
+257 контейнеров: EngineError: запрос не сериализуется в JSON: вложенность больше 256 | процесс тот же: True
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,1 @@
+{"doc": "docs/t_timers.bot.json", "mutate": null, "seed": 1, "replies": 1226, "coverage_targets": 25, "checks": 11675, "per_invariant": {"I1": 1837, "I10": 106, "I11": 202, "I12": 25, "I2": 1798, "I3": 880, "I4": 1427, "I5": 592, "I6": 1402, "I7": 835, "I8": 12, "I9": 2544, "T1": 15}, "violations": 0}

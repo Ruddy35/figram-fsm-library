@@ -1,0 +1,10 @@
+command: bash REPRODUCTIONS/r10_engine_mutants/run_matrix.sh /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/mutbuild /home/user/figram-audit/fresh/lake-cache none accepts-any-token engine-token-from-snapshot 
+cwd: /home/user/figram-audit/agents/harness-ci
+start: 2026-10-20T00:24:36.103Z
+end: 2026-10-20T00:26:12.334Z
+exit_code: 0
+--- stdout (220 bytes, last 200 lines)
+none	base	0	0	0	0	0	0	0	0	0	0	0	42/42 36/36 	SURVIVES	SURVIVES
+accepts-any-token	shared	0	1	1	0	0	0	1	0	0	0	1	42/42 36/36 	killed	killed
+engine-token-from-snapshot	engine	0	0	1	1	1	0	1	1	0	0	1	42/42 36/36 	killed	killed
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,11 @@
+command: /home/user/figram-audit/agents/integration/REPRODUCTIONS/fc01_fix_equivalence/compare.sh /home/user/figram-audit-worktrees/integration-fc/.lake/build/bin/figram /home/user/figram-audit-worktrees/integration-pf/.lake/build/bin/figram /home/user/figram-audit/fresh/figram 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T00:25:15.010Z
+end: 2026-10-20T00:25:16.979Z
+exit_code: 0
+--- stdout (199 bytes, last 200 lines)
+4a38b91 == d116a64: identical, 20156 lines
+lines differing from baseline: 124
+fixed outputs re-read by figram: 20156 lines, not OK: 0; longest output line: 1508
+baseline outputs not re-readable: 124
+--- stderr (0 bytes, last 100 lines)

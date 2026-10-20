@@ -1,0 +1,8 @@
+command: ffi/audit/out/contract threads examples/pizza.bot.json 20000 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:41:13.459Z
+end: 2026-10-19T23:41:16.330Z
+exit_code: 0
+--- stdout (104 bytes, last 200 lines)
+threads=20000 ok=20000 RSS 15220→14580 KB (Δ-640), VmSize 2253060→2253060 KB (Δ0), live threads 3
+--- stderr (0 bytes, last 100 lines)

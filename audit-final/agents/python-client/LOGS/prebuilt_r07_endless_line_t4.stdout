@@ -1,0 +1,2 @@
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
+timeout=4.0: EngineError: процесс движка неисправен: нет ответа за 4.0 с; 4.1 с; пик RSS клиента 694 МБ (до вызова 13 МБ)

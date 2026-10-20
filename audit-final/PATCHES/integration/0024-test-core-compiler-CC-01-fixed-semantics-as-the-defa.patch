@@ -1,0 +1,128 @@
+From 906d3d0bee0aba6dc713564ab1c7e59196524f8d Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 20 Oct 2026 00:07:12 +0000
+Subject: [PATCH 24/40] test(core-compiler): CC-01 fixed semantics as the
+ default expectation of run_all.sh
+
+The suite encoded the baseline (Lean) reading of decision 7: a stale timer
+from an older document version may fire on any message. With CC01=fixed
+(new default) the oracle uses the designer reading (timer_accept=owned,
+exit_cancels=snapshot) for diff-random, the red-oracle proofs and the
+mutant sweep (mutants_red.py gains --oracle-opt), designer-upgrades must
+be green and lint-gaps expects the non-owner timer arrow to stay dead.
+CC01=baseline restores the original expectations.
+Red on baseline d69bbaf (diff-random, designer-upgrades, mutants,
+lint-gaps), green with the CC-01 fix.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/core-compiler/lint_gaps.py   |  6 +++++-
+ audit/core-compiler/mutants_red.py |  6 ++++--
+ audit/core-compiler/run_all.sh     | 21 ++++++++++++++++-----
+ 3 files changed, 25 insertions(+), 8 deletions(-)
+
+diff --git a/audit/core-compiler/lint_gaps.py b/audit/core-compiler/lint_gaps.py
+index cba2469..acb7842 100755
+--- a/audit/core-compiler/lint_gaps.py
++++ b/audit/core-compiler/lint_gaps.py
+@@ -11,6 +11,7 @@ case behaves as documented in REPORT.md (accepted by check, defect observable)."
+ 
+ import argparse
+ import json
++import os
+ import subprocess
+ import tempfile
+ 
+@@ -101,7 +102,10 @@ def evidence(engine, name, doc):
+ 
+ 
+ EXPECT = {
+-    "timer_arrow_on_non_owner": lambda ev: ev["fire_on_a"] == [] and ev["fire_with_foreign_entry"] == "z",
++    # CC-01 fixed: a foreign snapshot entry no longer fires the arrow on a non-owner (stays on a);
++    # CC01=baseline: the original observation (the arrow fires, user moves to z).
++    "timer_arrow_on_non_owner": lambda ev: ev["fire_on_a"] == [] and ev["fire_with_foreign_entry"] == (
++        "z" if os.environ.get("CC01") == "baseline" else "a"),
+     "same_timer_two_messages": lambda ev: ev["old_token"] == [] and ev["new_token_at"] == "a",
+     "resume_only_from_inside": lambda ev: ev["back_goes_to"] == ev["at_before"],
+     "variant_after_unconditional": lambda ev: ev["targets_reached_for_all_c1"] == ["b"],
+diff --git a/audit/core-compiler/mutants_red.py b/audit/core-compiler/mutants_red.py
+index c6e59d2..d0a6e9e 100755
+--- a/audit/core-compiler/mutants_red.py
++++ b/audit/core-compiler/mutants_red.py
+@@ -112,6 +112,8 @@ def main():
+     ap.add_argument("--seed", type=int, default=7)
+     ap.add_argument("--max-mutants", type=int, default=100000)
+     ap.add_argument("--out")
++    ap.add_argument("--oracle-opt", action="append", default=[],
++                    help="k=v ambiguity switch of oracle.Options, passed to diff_random")
+     args = ap.parse_args()
+     killed = total = 0
+     survivors = []
+@@ -124,7 +126,7 @@ def main():
+         muts = subprocess.run([args.engine, "--mutants", f.name], capture_output=True, text=True,
+                               check=True, timeout=60).stdout.split()
+         base = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=None,
+-                                  oracle_bug=None, no_upgrade=True)
++                                  oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
+         st, divs = {}, []
+         diff_random.one_doc(base, seed, st, set(), divs)
+         if divs:
+@@ -132,7 +134,7 @@ def main():
+             sys.exit(1)
+         for m in muts[: args.max_mutants]:
+             a = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=m,
+-                                   oracle_bug=None, no_upgrade=True)
++                                   oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
+             st2, d2 = {}, []
+             diff_random.one_doc(a, seed, st2, set(), d2)
+             total += 1
+diff --git a/audit/core-compiler/run_all.sh b/audit/core-compiler/run_all.sh
+index 4be8e93..d2c5225 100755
+--- a/audit/core-compiler/run_all.sh
++++ b/audit/core-compiler/run_all.sh
+@@ -6,7 +6,17 @@
+ # mutated engine) and must ALSO exit 0 (they run with --expect-red);
+ # "findings" steps are regression tests of the reported findings and are
+ # expected to exit 1 on the baseline.
++#
++# CC01=fixed (default, integration): the oracle uses the CC-01 fix semantics
++# (a timer fires only on the message that owns it; leaving a message cancels
++# every snapshot timer), so diff-random / mutants / lint-gaps / designer-upgrades
++# are RED on the baseline engine and green on the fixed one.
++# CC01=baseline: the original expectations of the core-compiler agent (Lean
++# reading of decision 7), green on the baseline engine.
+ set -u
++CC01=${CC01:-fixed}; export CC01
++D=""; UPW=1
++if [ "$CC01" = fixed ]; then D="--oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot"; UPW=0; fi
+ HERE=$(cd "$(dirname "$0")" && pwd)
+ ENGINE=${1:-$HERE/../../bin/figram-engine}
+ FIGRAM=${2:-$HERE/../../bin/figram}
+@@ -25,17 +35,18 @@ step 0 directed-designer-oracle python3 directed.py --oracle-only --group all \
+      --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --oracle-opt need=min
+ for m in drop-exit drop-remember resume-default drop-timer-start; do
+   step 0 red-directed-$m python3 directed.py --engine "$ENGINE" --mutate $m --expect-red; done
+-step 0 diff-random timeout 840 python3 diff_random.py --engine "$ENGINE" --docs 600 --steps 120 --seed 1
++step 0 diff-random timeout 840 python3 diff_random.py --engine "$ENGINE" --docs 600 --steps 120 --seed 1 $D
+ for b in no-exit resume-initial accept-any-token need-own-only first-variant-only calls-after-entry no-restart-self; do
+   step 0 red-oracle-$b timeout 300 python3 diff_random.py --engine "$ENGINE" --docs 40 --steps 60 --seed 5 \
+-       --oracle-bug $b --expect-red; done
++       --oracle-bug $b --expect-red $D; done
+ # proposed CC-01 semantics (oracle designer reading) == baseline within ONE document version ...
+ step 0 designer-same-version timeout 600 python3 diff_random.py --engine "$ENGINE" --docs 300 --steps 120 --seed 9 \
+      --no-upgrade --no-perturb --no-exhaustive --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot
+-# ... and differs from it after document upgrades (CC-01 found by random search; expected exit 1)
+-step 1 designer-upgrades timeout 600 python3 diff_random.py --engine "$ENGINE" --docs 400 --steps 80 --seed 21 \
++# ... and differs from it after document upgrades (CC-01 found by random search; exit 1 on the
++# baseline engine, 0 once CC-01 is fixed)
++step $UPW designer-upgrades timeout 600 python3 diff_random.py --engine "$ENGINE" --docs 400 --steps 80 --seed 21 \
+      --no-exhaustive --no-perturb --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --out "$LOG/designer-upgrades"
+-step 0 mutants timeout 840 python3 mutants_red.py --engine "$ENGINE" --docs 8 --steps 100 --out "$LOG/mutant_survivors.json"
++step 0 mutants timeout 840 python3 mutants_red.py --engine "$ENGINE" --docs 8 --steps 100 --out "$LOG/mutant_survivors.json" $D
+ step 0 metamorphic timeout 840 python3 metamorphic.py --engine "$ENGINE" --docs 40 --steps 60
+ for t in rename_nodes annotations unreachable_resume shuffle_children; do
+   step 0 red-metamorphic-$t timeout 300 python3 metamorphic.py --engine "$ENGINE" --docs 3 --steps 20 \
+-- 
+2.43.0
+

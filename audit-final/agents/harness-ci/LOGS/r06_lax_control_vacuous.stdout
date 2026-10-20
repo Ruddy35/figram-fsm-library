@@ -1,0 +1,4 @@
+контроль: парсер без ограничений обнаружен
+--- what json_fuzz.py actually printed:
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/tmp/tmp.lbZ3yk17yx/lax.py'

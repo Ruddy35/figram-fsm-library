@@ -1,0 +1,36 @@
+command: python3 repro.py f10-mutate 
+cwd: /home/user/figram-audit/agents/engine-timers/REPRODUCTIONS
+start: 2026-10-19T22:14:18.954Z
+end: 2026-10-19T22:14:19.113Z
+exit_code: 0
+--- stdout (2911 bytes, last 200 lines)
+>> {"id":1,"op":"hello"}
+<< {"id":1,"protocol":1,"states":11}
+>> {"id":2,"op":"start"}
+<< {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}
+<< {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+>> {"id":4,"op":"step","snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"event":"btn:cart"}
+<< {"id":4,"snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]}
+>> {"id":5,"op":"step","snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}
+<< {"id":5,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"}]}
+>> {"id":6,"op":"step","snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"event":"msg:text","guards":{"in_delivery_zone":true}}
+<< {"id":6,"snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"actions":[{"call":"save_address"},{"send":"pay"}]}
+>> {"id":7,"op":"step","snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"event":"payment:success"}
+<< {"id":7,"snapshot":{"at":"done","resume":{"order":"pay"},"seq":6},"actions":[{"call":"create_order"},{"send":"done"}]}
+>> {"id":1,"op":"hello"}
+<< {"id":1,"protocol":1,"states":11}
+>> {"id":2,"op":"start"}
+<< {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+>> {"id":3,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}
+<< {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+>> {"id":4,"op":"step","snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"event":"btn:cart"}
+<< {"id":4,"snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]}
+>> {"id":5,"op":"step","snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}
+<< {"id":5,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"}]}
+>> {"id":6,"op":"step","snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"event":"msg:text","guards":{"in_delivery_zone":true}}
+<< {"id":6,"snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"actions":[{"call":"save_address"},{"send":"pay"}]}
+>> {"id":7,"op":"step","snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"event":"payment:success"}
+<< {"id":7,"snapshot":{"at":"done","resume":{"order":"pay"},"seq":6},"actions":[{"send":"done"}]}
+VERDICT: identical hello, mutant silently omits create_order
+--- stderr (0 bytes, last 100 lines)

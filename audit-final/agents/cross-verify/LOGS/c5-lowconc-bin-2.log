@@ -1,0 +1,14 @@
+command: python3 xverify/c4_c5_shared_process.py bin/figram-engine examples/pizza.bot.json c5 0 10 2 8 0.01 
+cwd: /home/user/figram-audit-worktrees/cross-verify
+start: 2026-10-20T00:04:26.672Z
+end: 2026-10-20T00:04:29.672Z
+exit_code: 0
+--- stdout (818 bytes, last 200 lines)
+engine=bin/figram-engine mode=c5 client timeout=10.0s (default is 10.0)
+normal users: 8, pause between their steps 0.01s
+warm-up: 724 normal requests ok, 0 failed
+bad request attempts: [('процесс движка неисправен: ответ без целого id: b\'{"id":null,"error":"\\xd0\\xbf\\x', 0.01), ('процесс движка неисправен: ответ без целого id: b\'{"id":null,"error":"\\xd0\\xbf\\x', 0.0), ('процесс движка неисправен: ответ без целого id: b\'{"id":null,"error":"\\xd0\\xbf\\x', 0.0)]
+normal users: ok=2111 FAILED=1; engine pid 7643 -> 8129
+  failure reason seen by a NORMAL user: процесс движка неисправен: ответ без целого id: b'{"id":null,"error":"\xd0\xbf\xd0\xbe\xd0
+REPRODUCED
+--- stderr (0 bytes, last 100 lines)

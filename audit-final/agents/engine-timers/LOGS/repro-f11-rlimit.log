@@ -1,0 +1,10 @@
+command: python3 repro.py f11-rlimit 
+cwd: /home/user/figram-audit/agents/engine-timers/REPRODUCTIONS
+start: 2026-10-19T22:14:19.165Z
+end: 2026-10-19T22:14:19.342Z
+exit_code: 0
+--- stdout (308 bytes, last 200 lines)
+RLIMIT_AS=3000000000: rc=-6 stdout=b'' stderr=b'libc++abi: terminating due to uncaught exception of type lean::exception: failed to create thread: Resource temporarily '
+RLIMIT_AS=4000000000: rc=0 stdout=b'{"id":1,"protocol":1,"states":11}\n' stderr=b''
+VERDICT: engine needs >3 GB of address space to start
+--- stderr (0 bytes, last 100 lines)

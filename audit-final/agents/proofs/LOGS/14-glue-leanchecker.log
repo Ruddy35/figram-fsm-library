@@ -1,0 +1,8 @@
+command: timeout 900 lake env leanchecker -v FigramAudit 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:45:08.545Z
+end: 2026-10-19T23:45:09.748Z
+exit_code: 0
+--- stdout (27 bytes, last 200 lines)
+replaying FigramAudit.Glue
+--- stderr (0 bytes, last 100 lines)

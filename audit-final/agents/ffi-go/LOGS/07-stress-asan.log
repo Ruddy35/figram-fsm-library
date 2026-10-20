@@ -1,0 +1,8 @@
+command: env ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 ffi/audit/out/stress_asan examples/pizza.bot.json 16 5000 4 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:37:42.845Z
+end: 2026-10-19T23:37:44.088Z
+exit_code: 0
+--- stdout (137 bytes, last 200 lines)
+shared handle: 16 threads x 5000 = 80000 requests, mismatches 0; 4 loader threads: 402 load/10 req/unload/check/fmt cycles, mismatches 0
+--- stderr (0 bytes, last 100 lines)

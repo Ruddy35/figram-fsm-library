@@ -1,0 +1,12 @@
+command: ./verify-faults.sh prebuilt fixtures-shrunk random-docs-shrunk json-fuzz-shrunk 
+cwd: /home/user/figram-audit-worktrees/harness-ci
+start: 2026-10-19T22:49:38.335Z
+end: 2026-10-19T22:59:27.198Z
+exit_code: 1
+--- stdout (782 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+fixtures-shrunk      0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+random-docs-shrunk   0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+json-fuzz-shrunk     0      1        НЕТ ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)
+НЕТ: шлюз пропускает неисправности (см. /home/user/figram-audit/agents/harness-ci/LOGS/faults-prebuilt-baseline-2/summary.txt)
+--- stderr (0 bytes, last 100 lines)

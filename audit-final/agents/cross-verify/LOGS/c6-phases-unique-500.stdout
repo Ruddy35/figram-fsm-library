@@ -1,0 +1,8 @@
+parse: 2 ms (size 1)
+decode: 0 ms (size 1)
+Doc.check (incl. lint -> compile.wf): 3084 ms (size 0)
+  of which Chart.lint alone: 3291 ms (size 0)
+Chart.compile (second compile in Engine.load): 3189 ms (size 500)
+Machine.wf (second wf in Engine.load): 0 ms (size 1)
+namesOK: 0 ms (size 1)
+TOTAL Engine.load: 6000 ms (size 500)

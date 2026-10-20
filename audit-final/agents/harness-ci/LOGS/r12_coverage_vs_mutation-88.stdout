@@ -1,0 +1,6 @@
+Build completed successfully (38 jobs).
+обнаружено 100 из 107 мутаций (93%)
+   выжила: examples/pizza.bot.json: redirect:7
+   выжила: examples/pizza.bot.json: redirect:31
+   выжила: examples/pizza.bot.json: redirect:36
+mutation.py exit: 1

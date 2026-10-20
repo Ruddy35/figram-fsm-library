@@ -1,0 +1,56 @@
+command: /home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-20T00:00:40.004Z
+end: 2026-10-20T00:00:46.431Z
+exit_code: 0
+--- stdout (2708 bytes, last 200 lines)
+== FFI-01 одновременный figram_init (ожидается: часть процессов SIGSEGV=139)
+$ /home/user/figram-audit-worktrees/ffi-go/ffi/audit/init_race.sh /tmp/tmp.2TTmwIdgr1/contract 300
+init_race: 300 runs, failed 17; exit codes: 139×17 0×283
+  -> exit 1
+== FFI-05 отказ malloc в dup (ожидается 139)
+$ /tmp/tmp.2TTmwIdgr1/oom
+baseline: check({}) → 40 bytes: error: нужно поле «figram»: 1
+  -> exit 139
+== FFI-06 figram_unload(NULL) после неудачной загрузки (ожидается 139)
+$ /tmp/tmp.2TTmwIdgr1/contract null unload_failed_load /home/user/figram-audit-worktrees/ffi-go/examples/pizza.bot.json
+NULL case unload_failed_load
+  -> exit 139
+== FFI-03 вызов до figram_init (load+request: 139)
+$ /tmp/tmp.2TTmwIdgr1/contract before_init load /home/user/figram-audit-worktrees/ffi-go/examples/pizza.bot.json
+calling load before figram_init
+load → 0x577f0a70480
+  -> exit 139
+== FFI-07 use-after-unload: ответ меняется молча (exit 0)
+$ /tmp/tmp.2TTmwIdgr1/contract use_after_unload /home/user/figram-audit-worktrees/ffi-go/examples/pizza.bot.json /home/user/figram-audit-worktrees/ffi-go/examples/features.bot.json
+use after unload: before={"id":1,"protocol":1,"states":11}
+                  after ={"id":1,"protocol":1,"states":0}
+use after unload: ANSWER CHANGED
+  -> exit 0
+== FFI-07 двойная выгрузка (exit 0 — молча)
+$ /tmp/tmp.2TTmwIdgr1/contract unload_twice /home/user/figram-audit-worktrees/ffi-go/examples/pizza.bot.json
+double unload: returned normally
+  -> exit 139
+== FFI-08 NUL в документе: хвост игнорируется; NUL в тексте ошибки
+$ /tmp/tmp.2TTmwIdgr1/contract nul /home/user/figram-audit-worktrees/ffi-go/examples/pizza.bot.json
+load(doc + NUL + garbage) → LOADED (garbage after NUL ignored)
+check("{\"figram\":1}\0...") → error: нужно поле «bot»
+check(dup key "a\u0000b") → strlen=46 text=error: повторяющийся ключ «a
+  bytes after first NUL: b»
+  -> exit 0
+== FFI-09 побочные эффекты figram_init
+$ /tmp/tmp.2TTmwIdgr1/contract side_effects
+before init threads=1 VmSize=16536 KB SIGPIPE=SIG_DFL SIGSEGV=SIG_DFL sigaltstack=disabled size=0
+after init  threads=3 VmSize=2179328 KB SIGPIPE=SIG_IGN SIGSEGV=handler sigaltstack=enabled size=14528
+  -> exit 0
+== FFI-10 figram_init при RLIMIT_AS=1.5 ГБ (ожидается abort=134 вместо кода 1)
+$ prlimit --as=1500000000 -- /tmp/tmp.2TTmwIdgr1/contract init_twice
+terminate called after throwing an instance of 'lean::exception'
+  what():  failed to create thread: Resource temporarily unavailable
+  -> exit 134
+--- stderr (700 bytes, last 100 lines)
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21375 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21381 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21387 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21401 Segmentation fault      timeout 60 "$@" > $S/o 2>&1
+/home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_c_baseline.sh: line 16: 21423 Aborted                 timeout 60 "$@" > $S/o 2>&1

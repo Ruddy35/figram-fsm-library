@@ -1,0 +1,21 @@
+command: /home/user/figram-audit/agents/ffi-go/REPRODUCTIONS/repro_go_baseline.sh 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-20T00:01:29.223Z
+end: 2026-10-20T00:01:48.459Z
+exit_code: 0
+--- stdout (1352 bytes, last 200 lines)
+== FFI-11/13/14: op без строки → panic; NUL в Load принят; hello всегда ошибка (ожидается FAIL)
+    audit_test.go:106: open bot, hello → resp=map[id:1 protocol:1 states:11] variant="" err=ответ hello: поля map[protocol:1 states:11]
+    audit_test.go:108: hello on an open bot returns an error, so main.go's post-Close check is vacuous: ответ hello: поля map[protocol:1 states:11]
+--- FAIL: TestAuditHelloAlwaysError (0.00s)
+    audit_test.go:122: Request(map[]) panicked: interface conversion: interface {} is nil, not string
+    audit_test.go:122: Request(map[op:1]) panicked: interface conversion: interface {} is int, not string
+    audit_test.go:122: Request(map[op:<nil>]) panicked: interface conversion: interface {} is nil, not string
+    audit_test.go:122: Request(map[op:[step]]) panicked: interface conversion: interface {} is []interface {}, not string
+--- FAIL: TestAuditRequestBadOp (0.00s)
+    audit_test.go:146: Load accepted a document with NUL and trailing garbage (3697 bytes, 19 after NUL)
+--- FAIL: TestAuditLoadNUL (0.00s)
+== FFI-01 в Go: 8 горутин одновременно вызывают figram_init (ожидается часть процессов SIGSEGV)
+    audit_test.go:435: concurrent init: 32 of 50 processes failed
+--- FAIL: TestAuditInitRace (1.71s)
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 ffi/python-example/json_fuzz.py .lake/build/bin/figram 30000 1 
+cwd: /home/user/figram-audit-worktrees/proofs
+start: 2026-10-19T23:49:31.034Z
+end: 2026-10-19T23:49:40.664Z
+exit_code: 0
+--- stdout (122 bytes, last 200 lines)
+случаев 30000: принято обоими 9786, отвергнуто обоими 20214, расхождений 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,23 @@
+theorems in Figram modules (environment): 599; from sources: 79; non-internal env theorems not in source list (auto-generated equation lemmas etc.): 147
+definitions: 925; opaque constants (partial/opaque defs): 15; declared axioms: 0
+opaque constants: [Figram.Format.allEvents,
+ Figram.Format.allTimers,
+ Figram.Format.nodeErrors,
+ Figram.Format.parseArr,
+ Figram.Format.parseDigits,
+ Figram.Format.parseObj,
+ Figram.Format.parseStr,
+ Figram.Format.parseValue,
+ Figram.Format.render,
+ Figram.Format.renderCompact,
+ Figram.Format.skipWs,
+ Figram.RandomDoc.build,
+ Figram.Format.J.keysUnique,
+ Figram.Format.instReprJ.repr,
+ Figram.Format.instReprNodeDoc.repr]
+axiom set [Quot.sound]: 1 theorems
+axiom set [propext, Quot.sound]: 51 theorems
+axiom set [propext]: 194 theorems
+axiom set []: 301 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 52 theorems
+STRICT AXIOM GATE: PASS

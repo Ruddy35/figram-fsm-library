@@ -1,0 +1,108 @@
+command: env TSAN_OPTIONS=halt_on_error=0\ report_signal_unsafe=0\ history_size=4 ffi/audit/out/stress_tsan examples/pizza.bot.json 16 2000 4 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:37:59.131Z
+end: 2026-10-19T23:38:16.536Z
+exit_code: 66
+--- stdout (136 bytes, last 200 lines)
+shared handle: 16 threads x 2000 = 32000 requests, mismatches 0; 4 loader threads: 38 load/10 req/unload/check/fmt cycles, mismatches 0
+--- stderr (5418887 bytes, last 100 lines)
+WARNING: ThreadSanitizer: data race (pid=16576)
+  Write of size 8 at 0x7f40fd010e00 by thread T5:
+    #0 lean_ctor_set /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:862 (stress_tsan+0xe5821) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #1 lp_figram_Figram_Format_field .lake/build/ir/Figram/Format.c:2157 (stress_tsan+0xe5821)
+    #2 lp_figram_Figram_Format_encVariant .lake/build/ir/Figram/Format.c:4461 (stress_tsan+0xec715) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #3 lp_figram_List_mapTR_loop___at___00Figram_Format_encOn_spec__0 .lake/build/ir/Figram/Format.c:4565 (stress_tsan+0xec98d) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #4 lp_figram_List_mapTR_loop___at___00Figram_Format_encOn_spec__1 .lake/build/ir/Figram/Format.c:4647 (stress_tsan+0xecda5) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #5 lp_figram_Figram_Format_encOn .lake/build/ir/Figram/Format.c:4701 (stress_tsan+0xed007) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #6 lp_figram_Figram_Format_encNode .lake/build/ir/Figram/Format.c:4751 (stress_tsan+0xed397) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #7 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4896 (stress_tsan+0xed114) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #8 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #9 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #10 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #11 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #12 lp_figram_Figram_Format_encNode .lake/build/ir/Figram/Format.c:4824 (stress_tsan+0xed642) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #13 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4896 (stress_tsan+0xed114) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #14 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #15 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #16 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #17 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #18 lp_figram_Figram_Format_encNode .lake/build/ir/Figram/Format.c:4824 (stress_tsan+0xed642) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #19 lp_figram_Figram_Format_encode .lake/build/ir/Figram/Format.c:5023 (stress_tsan+0xeda8e) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #20 figram_fmt .lake/build/ir/Figram/Api.c:136 (stress_tsan+0x1203f4) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #21 figram_fmt_json ffi/figram_ffi.c:52 (stress_tsan+0xb5ec6) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #22 other ffi/audit/stress.c:77 (stress_tsan+0xb510c) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+  Previous atomic read of size 4 at 0x7f40fd010e00 by thread T6:
+    #0 lean_internal_get_rc /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:371 (stress_tsan+0x111756) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #1 lean_dec_ref /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:722 (stress_tsan+0x111756)
+    #2 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 .lake/build/ir/Figram/FormatIO.c:5689 (stress_tsan+0x111756)
+    #3 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5730 (stress_tsan+0x1111f5) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #4 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 .lake/build/ir/Figram/FormatIO.c:5687 (stress_tsan+0x111738) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #5 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5730 (stress_tsan+0x1111f5) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #6 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 .lake/build/ir/Figram/FormatIO.c:5687 (stress_tsan+0x111738) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #7 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5730 (stress_tsan+0x1111f5) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #8 lp_figram_Figram_Engine_handle .lake/build/ir/Figram/Engine.c:3898 (stress_tsan+0x11ddc6) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #9 figram_request .lake/build/ir/Figram/Api.c:210 (stress_tsan+0x1207af) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #10 figram_request_json ffi/figram_ffi.c:76 (stress_tsan+0xb60d1) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #11 user ffi/audit/stress.c:57 (stress_tsan+0xb5353) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+  Thread T5 (tid=16583, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 main ffi/audit/stress.c:122 (stress_tsan+0xb56f9) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+  Thread T6 (tid=16584, finished) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 main ffi/audit/stress.c:123 (stress_tsan+0xb572e) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+SUMMARY: ThreadSanitizer: data race /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:862 in lean_ctor_set
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=16576)
+  Write of size 8 at 0x7f40fd010e38 by thread T5:
+    #0 lean_ctor_set /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:862 (stress_tsan+0xe582e) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #1 lp_figram_Figram_Format_field .lake/build/ir/Figram/Format.c:2158 (stress_tsan+0xe582e)
+    #2 lp_figram_Figram_Format_encNode .lake/build/ir/Figram/Format.c:4754 (stress_tsan+0xed3d8) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #3 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4896 (stress_tsan+0xed114) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #4 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #5 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #6 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #7 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #8 lp_figram_Figram_Format_encNode .lake/build/ir/Figram/Format.c:4824 (stress_tsan+0xed642) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #9 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4896 (stress_tsan+0xed114) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #10 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #11 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #12 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #13 lp_figram_Figram_Format_encChildren .lake/build/ir/Figram/Format.c:4915 (stress_tsan+0xed12b) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #14 lp_figram_Figram_Format_encNode .lake/build/ir/Figram/Format.c:4824 (stress_tsan+0xed642) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #15 lp_figram_Figram_Format_encode .lake/build/ir/Figram/Format.c:5023 (stress_tsan+0xeda8e) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #16 figram_fmt .lake/build/ir/Figram/Api.c:136 (stress_tsan+0x1203f4) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #17 figram_fmt_json ffi/figram_ffi.c:52 (stress_tsan+0xb5ec6) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #18 other ffi/audit/stress.c:77 (stress_tsan+0xb510c) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+  Previous atomic read of size 4 at 0x7f40fd010e38 by thread T6:
+    #0 lean_internal_get_rc /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:371 (stress_tsan+0x10fa33) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #1 lean_dec_ref /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:722 (stress_tsan+0x10fa33)
+    #2 lp_figram_Figram_Format_render .lake/build/ir/Figram/FormatIO.c:5463 (stress_tsan+0x10fa33)
+    #3 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5759 (stress_tsan+0x111572) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #4 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 .lake/build/ir/Figram/FormatIO.c:5687 (stress_tsan+0x111738) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #5 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5730 (stress_tsan+0x1111f5) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #6 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__1 .lake/build/ir/Figram/FormatIO.c:5798 (stress_tsan+0x111015) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #7 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5747 (stress_tsan+0x1113f1) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #8 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 .lake/build/ir/Figram/FormatIO.c:5687 (stress_tsan+0x111738) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #9 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5730 (stress_tsan+0x1111f5) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #10 lp_figram_Figram_Engine_handle .lake/build/ir/Figram/Engine.c:3898 (stress_tsan+0x11ddc6) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #11 figram_request .lake/build/ir/Figram/Api.c:210 (stress_tsan+0x1207af) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #12 figram_request_json ffi/figram_ffi.c:76 (stress_tsan+0xb60d1) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+    #13 user ffi/audit/stress.c:57 (stress_tsan+0xb5353) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+  Thread T5 (tid=16583, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 main ffi/audit/stress.c:122 (stress_tsan+0xb56f9) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+  Thread T6 (tid=16584, finished) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 main ffi/audit/stress.c:123 (stress_tsan+0xb572e) (BuildId: fd9382640e011ef7c82e088eb2244833797758ec)
+
+SUMMARY: ThreadSanitizer: data race /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:862 in lean_ctor_set
+==================
+ThreadSanitizer: reported 1046 warnings

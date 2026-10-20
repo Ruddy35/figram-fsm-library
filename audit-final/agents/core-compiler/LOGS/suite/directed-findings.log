@@ -1,0 +1,24 @@
+command: python3 directed.py --engine /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler/../../bin/figram-engine --group findings 
+cwd: /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler
+start: 2026-10-19T22:53:27.917Z
+end: 2026-10-19T22:53:28.029Z
+exit_code: 1
+--- stdout (2496 bytes, last 200 lines)
+FAIL [engine] findings/H2_upgrade_moved_timer_fires_on_other_message -- HOST §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. Leaving A must cancel it (or its fire must be ignored); baseline keeps it forever and the section handler fires on D, calling k1
+     step 0 btn:next: timers={'remind': 1} still contain {'remind'}
+     step 2 timer:remind: expected unchanged, got {'id': 4, 'snapshot': {'at': 'R', 'timers': {'remind': 1}, 'seq': 4}, 'actions': [{'call': 'k1'}, {'send': 'R'}]}
+FAIL [engine] findings/H2_upgrade_renamed_timer_unreachable_arrow_fires -- v2 renamed A's reminder remind->nudge; arrow timer:remind on C (C owns no timer) is unreachable by design, yet fires on the stale v1 token
+     step 0 btn:next: timers={'remind': 1} still contain {'remind'}
+     step 1 timer:remind: expected unchanged, got {'id': 3, 'snapshot': {'at': 'R', 'timers': {'remind': 1}, 'seq': 3}, 'actions': [{'send': 'R'}]}
+FAIL [engine] findings/H3_need_after_unconditional -- message has an unconditional variant; the section's guarded variant can never win, yet engine asks the host to evaluate c1
+     step 0 btn:y: engine asked need ['c1'] although the winning variant is unconditional
+FAIL [oracle] findings/H2_upgrade_moved_timer_fires_on_other_message -- HOST §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. Leaving A must cancel it (or its fire must be ignored); baseline keeps it forever and the section handler fires on D, calling k1
+     step 0 btn:next: timers={'remind': 1} still contain {'remind'}
+     step 2 timer:remind: expected unchanged, got {'snapshot': {'at': 'R', 'timers': {'remind': 1}, 'seq': 4}, 'actions': [{'call': 'k1'}, {'send': 'R'}]}
+FAIL [oracle] findings/H2_upgrade_renamed_timer_unreachable_arrow_fires -- v2 renamed A's reminder remind->nudge; arrow timer:remind on C (C owns no timer) is unreachable by design, yet fires on the stale v1 token
+     step 0 btn:next: timers={'remind': 1} still contain {'remind'}
+     step 1 timer:remind: expected unchanged, got {'snapshot': {'at': 'R', 'timers': {'remind': 1}, 'seq': 3}, 'actions': [{'send': 'R'}]}
+FAIL [oracle] findings/H3_need_after_unconditional -- message has an unconditional variant; the section's guarded variant can never win, yet engine asks the host to evaluate c1
+     step 0 btn:y: engine asked need ['c1'] although the winning variant is unconditional
+cases run: 6 (targets: ['engine', 'oracle']), requests: 14, failed: 6
+--- stderr (0 bytes, last 100 lines)

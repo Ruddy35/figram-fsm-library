@@ -1,0 +1,5 @@
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit-worktrees/python-client/ffi/python-example
+исключения: {'EngineError': 1000}
+ожидающих в таблице после 1000 запросов: 0 процесс жив: True
+процесс обслуживает обычные запросы: True
+дефекта нет

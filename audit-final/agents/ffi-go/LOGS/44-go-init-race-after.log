@@ -1,0 +1,11 @@
+command: env FIGRAM_INIT_RACE=100 ./gofig.test -test.run TestAuditInitRace\$ -test.v 
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:54:30.987Z
+end: 2026-10-19T23:54:34.955Z
+exit_code: 0
+--- stdout (135 bytes, last 200 lines)
+=== RUN   TestAuditInitRace
+    audit_test.go:435: concurrent init: 0 of 100 processes failed
+--- PASS: TestAuditInitRace (3.96s)
+PASS
+--- stderr (0 bytes, last 100 lines)

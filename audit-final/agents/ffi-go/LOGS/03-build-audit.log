@@ -1,0 +1,16 @@
+command: ffi/audit/build_audit.sh 
+cwd: /home/user/figram-audit-worktrees/ffi-go
+start: 2026-10-19T23:36:05.700Z
+end: 2026-10-19T23:36:34.840Z
+exit_code: 0
+--- stdout (68 bytes, last 200 lines)
+Build completed successfully (22 jobs).
+готово: ffi/audit/out
+--- stderr (593 bytes, last 100 lines)
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+ffi/audit/contract.c: In function 'main':
+ffi/audit/contract.c:221:58: warning: '%s' directive argument is null [-Wformat-overflow=]
+  221 |   printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
+      |                                                          ^~

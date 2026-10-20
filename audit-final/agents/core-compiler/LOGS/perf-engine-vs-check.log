@@ -1,0 +1,12 @@
+command: timeout 880 sh /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/PERF_compile_cliff/repro.sh 
+cwd: /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler
+start: 2026-10-19T23:15:58.770Z
+end: 2026-10-19T23:17:52.617Z
+exit_code: 0
+--- stdout (411 bytes, last 200 lines)
+flat 1000 1 bytes=98647 engine_load_s=1.288032755 rc=0  check_s=.937026655 rc=0
+flat 2000 1 bytes=201647 engine_load_s=4.841999223 rc=0  check_s=2.400260522 rc=0
+flat 2000 50 bytes=202912 engine_load_s=31.784176680 rc=0  check_s=15.196260160 rc=0
+hist 50 20 bytes=53832 engine_load_s=4.072972220 rc=0  check_s=2.085657838 rc=0
+hist 100 20 bytes=108032 engine_load_s=33.451445911 rc=0  check_s=17.383093815 rc=0
+--- stderr (0 bytes, last 100 lines)

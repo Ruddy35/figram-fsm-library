@@ -1,0 +1,105 @@
+From 2385d496b1696755f4841e632bd31649de34073c Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:59:35 +0000
+Subject: [PATCH 27/40] ffi: thread-safe figram_init, NULL on malloc failure,
+ figram_unload(NULL) no-op
+
+- figram_init: a plain 'ready' flag let two threads initialise the Lean
+  runtime and module concurrently; the loser saw half-initialised closed
+  terms and crashed (C: 20-29/300 processes SIGSEGV, Go: 46/100).
+  Now an atomic once-state; concurrent callers wait for the first.
+- dup(): malloc failure was memcpy to NULL (SIGSEGV); now returns NULL.
+- figram_unload(NULL) is a no-op like free(NULL) (figram_load_doc returns
+  NULL on failure).
+
+Regression: ffi/audit/regress.sh (FAIL before, PASS after).
+
+(cherry picked from commit 499824472bdd056f296930f522baad67ab7685f7)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ ffi/figram_ffi.c | 34 +++++++++++++++++++++++-----------
+ 1 file changed, 23 insertions(+), 11 deletions(-)
+
+diff --git a/ffi/figram_ffi.c b/ffi/figram_ffi.c
+index 2439a0c..b856943 100644
+--- a/ffi/figram_ffi.c
++++ b/ffi/figram_ffi.c
+@@ -9,6 +9,7 @@ void lean_initialize_thread(void);
+ void* malloc(size_t n);
+ void free(void* p);
+ void* memcpy(void* dst, const void* src, size_t n);
++int sched_yield(void);
+ 
+ extern lean_object* initialize_figram_Figram_Api(uint8_t builtin);
+ extern lean_object* figram_check(lean_object* doc);
+@@ -16,7 +17,9 @@ extern lean_object* figram_fmt(lean_object* doc);
+ extern lean_object* figram_load(lean_object* doc);
+ extern lean_object* figram_request(lean_object* m, lean_object* line);
+ 
+-static int ready = 0;
++/* Состояние инициализации: 0 — не начата, 1 — идёт, 2 — готово, 3 — отказ.
++   Меняется атомарно: figram_init можно вызывать из нескольких потоков одновременно. */
++static int init_state = 0;
+ /* Каждый чужой поток (например, поток Go) нужно один раз представить рантайму Lean. */
+ static __thread int thread_ready = 0;
+ 
+@@ -24,8 +27,10 @@ static void enter_thread(void) {
+   if (!thread_ready) { lean_initialize_thread(); thread_ready = 1; }
+ }
+ 
++/* NULL, если памяти нет: вызывающий получает NULL вместо строки. */
+ static char* dup(const char* s, size_t n) {
+   char* r = (char*)malloc(n + 1);
++  if (r == NULL) return NULL;
+   memcpy(r, s, n + 1);
+   return r;
+ }
+@@ -36,16 +41,22 @@ static char* take_string(lean_object* out) {
+   return res;
+ }
+ 
++/* Инициализация ровно один раз; одновременные вызовы ждут первый и
++   возвращают его результат (0 — готово, 1 — отказ). */
+ FIGRAM_API int figram_init(void) {
+-  if (ready) return 0;
+-  lean_initialize_runtime_module();
+-  lean_object* r = initialize_figram_Figram_Api(1);
+-  if (!lean_io_result_is_ok(r)) { lean_dec_ref(r); return 1; }
+-  lean_dec_ref(r);
+-  lean_io_mark_end_initialization();
+-  ready = 1;
+-  thread_ready = 1;
+-  return 0;
++  int s = 0;
++  if (__atomic_compare_exchange_n(&init_state, &s, 1, 0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
++    lean_initialize_runtime_module();
++    lean_object* r = initialize_figram_Figram_Api(1);
++    int ok = lean_io_result_is_ok(r);
++    lean_dec_ref(r);
++    if (ok) lean_io_mark_end_initialization();
++    thread_ready = 1;
++    __atomic_store_n(&init_state, ok ? 2 : 3, __ATOMIC_RELEASE);
++    return ok ? 0 : 1;
++  }
++  while ((s = __atomic_load_n(&init_state, __ATOMIC_ACQUIRE)) == 1) sched_yield();
++  return s == 2 ? 0 : 1;
+ }
+ 
+ FIGRAM_API char* figram_check_json(const char* doc) { enter_thread(); return take_string(figram_check(lean_mk_string(doc))); }
+@@ -76,9 +87,10 @@ FIGRAM_API char* figram_request_json(void* machine, const char* line) {
+   return take_string(figram_request(m, lean_mk_string(line)));
+ }
+ 
+-/* Освободить автомат. Вызывающий гарантирует, что одновременно с этим и после
++/* Освободить автомат; NULL допускается и ничего не делает. Вызывающий гарантирует, что одновременно с этим и после
+    этого дескриптор не используется (обёртка Go — через RWMutex). */
+ FIGRAM_API void figram_unload(void* machine) {
++  if (machine == NULL) return;                   /* как free(NULL) */
+   enter_thread();
+   lean_dec((lean_object*)machine);
+ }
+-- 
+2.43.0
+

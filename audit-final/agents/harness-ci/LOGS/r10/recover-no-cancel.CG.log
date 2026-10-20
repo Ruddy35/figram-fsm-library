@@ -1,0 +1,2 @@
+запросов 62, расхождений 1
+   {'op': 'step', 'snapshot': {'at': 'deleted_message', 'resume': {'shop': 'item'}, 'timers': {'old_timer': 3}, 'seq': 9}, 'event': 'btn:go'} → {'id': 41, 'snapshot': {'at': 'home', 'resume': {'shop': 'item'}, 'timers': {'idle': 10, 'old_timer': 3}, 'seq': 10}, 'actions': [{'start_timer': 'idle', 'ms':

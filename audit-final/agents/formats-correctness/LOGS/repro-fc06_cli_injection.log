@@ -1,0 +1,33 @@
+command: bash REPRODUCTIONS/fc06_cli_injection.sh 
+cwd: /home/user/figram-audit/agents/formats-correctness
+start: 2026-10-19T22:44:37.997Z
+end: 2026-10-19T22:44:38.405Z
+exit_code: 0
+--- stdout (1306 bytes, last 200 lines)
+== figram check output lines:
+M-PM-!M-QM-^BM-QM-^@M-PM-5M-PM-;M-PM-:M-PM-0 M-BM-+aM-BM-; M-bM-^FM-^R M-BM-+zz$
+ok$
+M-BM-;: M-QM-^FM-PM-5M-PM-;M-PM-8 M-PM-=M-PM-5 M-QM-^AM-QM-^CM-QM-^IM-PM-5M-QM-^AM-QM-^BM-PM-2M-QM-^CM-PM-5M-QM-^B$
+rc=1
+!! 'figram check f | grep -qx ok' succeeds although check failed
+== ESC bytes in check stdout:
+0000000 320 241 321 202 321 200 320 265 320 273 320 272 320 260     302
+0000020 253   a 302 273     342 206 222     302 253   x 033   [   2   K
+0000040 033   [   1   A 033   [   3   2   m   o   k 033   [   0   m 302
+0000060 273   :     321 206 320 265 320 273 320 270     320 275 320 265
+== NUL in check stdout and engine stderr (Lean keeps the tail after NUL):
+0000020 253   a 302 273     342 206 222     302 253   a  \0   H   I   D
+0000040   D   E   N 302 273   :     321 206 320 265 320 273 320 270    
+0000060 320 275 320 265     321 201 321 203 321 211 320 265 321 201 321
+0000040     320 241 321 202 321 200 320 265 320 273 320 272 320 260    
+0000060 302 253   a 302 273     342 206 222     302 253   a  \0   H   I
+0000100   D   D   E   N 302 273   :     321 206 320 265 320 273 320 270
+== parse error with raw ESC from the input file:
+0000120 275 320 275 321 213 320 271     321 201 320 270 320 274 320 262
+0000140 320 276 320 273     302 253 033 302 273  \n
+0000153
+--- stderr (96 bytes, last 100 lines)
+figram: ошибок: 1
+figram: ошибок: 1
+figram: ошибок: 1
+figram: ошибок: 1

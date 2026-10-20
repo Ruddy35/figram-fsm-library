@@ -1,0 +1,78 @@
+{
+  "figram": 1,
+  "conditions": {
+    "can_escalate": "У пользователя есть открытое обращение, ещё не переданное оператору",
+    "ticket_open": "Обращение пользователя открыто (в том числе у оператора)"
+  },
+  "calls": {
+    "create_ticket": "Создать обращение в helpdesk с текстом сообщения (внешний сервис)",
+    "log_message": "Добавить текст сообщения в обращение (внешний сервис)",
+    "escalate": "Передать обращение оператору (внешний сервис)",
+    "close_ticket": "Закрыть обращение (внешний сервис)"
+  },
+  "bot": {
+    "initial": "home",
+    "on": {
+      "cmd:start": [{"to": "home"}],
+      "cmd:help": [{"to": "faq"}]
+    },
+    "children": {
+      "home": {
+        "on": {"btn:support": [{"to": "support"}]}
+      },
+      "faq": {
+        "on": {"btn:back": [{"to": "support", "resume": true}]}
+      },
+      "closed": {
+        "on": {"btn:new": [{"to": "support"}]}
+      },
+      "support": {
+        "initial": "triage",
+        "on": {
+          "btn:escalate": [{"if": "can_escalate", "to": "human", "do": ["escalate"]}],
+          "btn:close": [{"if": "ticket_open", "to": "closed", "do": ["close_ticket"]}, {"to": "home"}]
+        },
+        "children": {
+          "triage": {
+            "on": {
+              "btn:billing": [{"to": "billing"}],
+              "btn:tech": [{"to": "tech"}]
+            }
+          },
+          "billing": {
+            "initial": "b_ask",
+            "children": {
+              "b_ask": {
+                "on": {"msg:text": [{"to": "b_wait", "do": ["create_ticket"]}]}
+              },
+              "b_wait": {
+                "on": {
+                  "msg:text": [{"to": "b_wait", "do": ["log_message"]}],
+                  "timer:sla": [{"if": "ticket_open", "to": "human", "do": ["escalate"]}]
+                },
+                "timers": {"sla": 3600000}
+              }
+            }
+          },
+          "tech": {
+            "initial": "t_ask",
+            "children": {
+              "t_ask": {
+                "on": {"msg:text": [{"to": "t_wait", "do": ["create_ticket"]}]}
+              },
+              "t_wait": {
+                "on": {"msg:text": [{"to": "t_wait", "do": ["log_message"]}]}
+              }
+            }
+          },
+          "human": {
+            "on": {
+              "msg:text": [{"to": "human", "do": ["log_message"]}],
+              "btn:resolved": [{"to": "closed", "do": ["close_ticket"]}]
+            }
+          }
+        }
+      }
+    }
+  }
+}

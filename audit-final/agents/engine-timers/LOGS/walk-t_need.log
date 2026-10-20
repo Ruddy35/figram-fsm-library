@@ -1,0 +1,8 @@
+command: python3 ptdriver.py ../../bin/figram-engine walk docs/t_need.bot.json --users 30 --steps 60 --seed 1 
+cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
+start: 2026-10-19T22:15:05.205Z
+end: 2026-10-19T22:15:05.590Z
+exit_code: 0
+--- stdout (293 bytes, last 200 lines)
+{"doc": "docs/t_need.bot.json", "mutate": null, "seed": 1, "replies": 2869, "coverage_targets": 19, "checks": 22459, "per_invariant": {"I1": 4357, "I10": 250, "I11": 441, "I12": 75, "I2": 3989, "I3": 1811, "I4": 2584, "I5": 822, "I6": 822, "I7": 1762, "I8": 291, "I9": 5255}, "violations": 0}
+--- stderr (0 bytes, last 100 lines)

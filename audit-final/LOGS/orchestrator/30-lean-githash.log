@@ -1,0 +1,9 @@
+command: bash -c lean\ --githash\;\ git\ -C\ /home/user/leanprover/lean4\ rev-parse\ HEAD 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-19T23:33:25.948Z
+end: 2026-10-19T23:33:26.018Z
+exit_code: 0
+--- stdout (82 bytes, last 200 lines)
+eb6cafb7290e8bd5f2937522d8d804f58f02bafc
+eb6cafb7290e8bd5f2937522d8d804f58f02bafc
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,156 @@
+{
+ "figram": 1,
+ "conditions": {
+  "cart_not_empty": "В корзине есть хотя бы одна пицца",
+  "in_delivery_zone": "Адрес входит в зону доставки"
+ },
+ "calls": {
+  "clear_cart": "Очистить корзину",
+  "save_size": "Запомнить выбранный размер",
+  "add_to_cart": "Добавить пиццу в корзину",
+  "save_address": "Сохранить адрес из сообщения",
+  "create_order": "Создать заказ в CRM"
+ },
+ "variables": {
+  "cart": "Содержимое корзины",
+  "address": "Адрес доставки"
+ },
+ "bot": {
+  "initial": "menu",
+  "on": {
+   "cmd:start": [
+    {
+     "to": "menu"
+    }
+   ],
+   "cmd:help": [
+    {
+     "to": "help"
+    }
+   ]
+  },
+  "children": {
+   "menu": {
+    "on": {
+     "btn:order": [
+      {
+       "to": "order"
+      }
+     ]
+    }
+   },
+   "help": {
+    "on": {
+     "btn:back": [
+      {
+       "to": "order",
+       "resume": true
+      }
+     ]
+    }
+   },
+   "done": {},
+   "reminder": {
+    "on": {
+     "btn:back": [
+      {
+       "to": "order",
+       "resume": true
+      }
+     ]
+    }
+   },
+   "order": {
+    "initial": "catalog",
+    "on": {
+     "btn:cancel": [
+      {
+       "to": "menu",
+       "do": [
+        "clear_cart"
+       ]
+      }
+     ]
+    },
+    "children": {
+     "catalog": {
+      "on": {
+       "btn:pizza": [
+        {
+         "to": "pizza"
+        }
+       ],
+       "btn:cart": [
+        {
+         "to": "cart"
+        }
+       ]
+      }
+     },
+     "pizza": {
+      "on": {
+       "btn:add": [
+        {
+         "to": "cart",
+         "do": [
+          "add_to_cart"
+         ]
+        }
+       ]
+      }
+     },
+     "cart": {
+      "on": {
+       "btn:checkout": [
+        {
+         "if": "cart_not_empty",
+         "to": "address"
+        },
+        {
+         "to": "catalog"
+        }
+       ],
+       "timer:cart_reminder": [
+        {
+         "to": "reminder"
+        }
+       ]
+      },
+      "timers": {
+       "cart_reminder": 7200000
+      }
+     },
+     "address": {
+      "on": {
+       "msg:text": [
+        {
+         "if": "in_delivery_zone",
+         "to": "pay",
+         "do": [
+          "save_address"
+         ]
+        },
+        {
+         "to": "pickup"
+        }
+       ]
+      }
+     },
+     "pay": {
+      "on": {
+       "payment:success": [
+        {
+         "to": "done",
+         "do": [
+          "create_order"
+         ]
+        }
+       ]
+      }
+     },
+     "pickup": {}
+    }
+   }
+  }
+ }
+}

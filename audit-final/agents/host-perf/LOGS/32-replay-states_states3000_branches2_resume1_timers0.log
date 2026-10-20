@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 audit/host-perf/replay.sh bin/figram-engine /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series/states_states3000_branches2_resume1_timers0.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series/states_states3000_branches2_resume1_timers0.reqs.jsonl /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/series/states_states3000_branches2_resume1_timers0.out.jsonl 
+cwd: /home/user/figram-audit-worktrees/host-perf
+start: 2026-10-19T22:17:26.421Z
+end: 2026-10-19T22:18:16.690Z
+exit_code: 0
+--- stdout (393 bytes, last 200 lines)
+{"requests": 5000, "replies": 5000, "error_replies": 0, "hello_only": {"label": "hello-only", "rc": 0, "wall_s": 23.1478, "user_s": 21.3366, "sys_s": 0.0649, "maxrss_kb": 27724}, "replay": {"label": "replay", "rc": 0, "wall_s": 26.8666, "user_s": 23.8886, "sys_s": 0.0929, "maxrss_kb": 27776}, "wall_per_req_us": 743.76, "cpu_per_req_us": 516.0, "req_per_s_wall": 1345, "req_per_s_cpu": 1938}
+--- stderr (0 bytes, last 100 lines)

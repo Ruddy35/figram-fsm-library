@@ -1,0 +1,4 @@
+OK {"id":1,"op":"step","snapshot":{"at":
+figram json (parse only) K=10000 wall=.465882546
+OK {"id":1,"op":"step","snapshot":{"at":
+figram json (parse only) K=20000 wall=1.429626164

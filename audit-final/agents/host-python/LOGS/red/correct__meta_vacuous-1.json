@@ -1,0 +1,196 @@
+{
+ "host": "python",
+ "scenario": "meta_vacuous",
+ "seed": 1,
+ "broken": null,
+ "bot": "pizza",
+ "users": {
+  "v1": {
+   "snapshot": {
+    "at": "catalog",
+    "resume": {
+     "order": "catalog"
+    },
+    "seq": 2
+   },
+   "doc": "pizza",
+   "transitions": [
+    {
+     "update_id": "tg:1001",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "menu",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "menu"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1002",
+     "event": "btn:order",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "catalog",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "catalog"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  }
+ },
+ "effects": [
+  {
+   "key": "v1:1:0",
+   "user": "v1",
+   "send": "menu"
+  },
+  {
+   "key": "v1:2:0",
+   "user": "v1",
+   "send": "catalog"
+  }
+ ],
+ "invariants": {
+  "idempotency_keys_unique_lifetime": "PASS",
+  "external_effect_once_per_intent": "PASS",
+  "one_order_per_payment": "PASS",
+  "actions_complete": "PASS",
+  "outbox_drained": "PASS",
+  "seq_plus_one": "PASS",
+  "all_updates_acked": "PASS",
+  "no_lost_ack": "PASS",
+  "stale_timer_no_effect": "PASS",
+  "timer_not_early": "PASS",
+  "guards_match_domain_model": "PASS",
+  "domain_model_consistent": "PASS",
+  "send_at_least_once": "PASS",
+  "send_duplicates_explained": "PASS",
+  "crashes_effective": "FAIL",
+  "external_faults_effective": "FAIL",
+  "engine_faults_effective": "FAIL",
+  "restart_reproduces_state": "PASS"
+ },
+ "invariant_failures": {
+  "crashes_effective": {
+   "armed": 1,
+   "fired": [],
+   "never_fired": [
+    [
+     "before_commit",
+     null
+    ]
+   ],
+   "exits": []
+  },
+  "external_faults_effective": {
+   "unconsumed": [
+    [
+     "crm",
+     "500",
+     5
+    ]
+   ],
+   "seen": {},
+   "reordered_batches": 0
+  },
+  "engine_faults_effective": {
+   "armed": 1,
+   "engine_retries_logged": 0
+  }
+ },
+ "counts": {
+  "users": 1,
+  "transitions": 2,
+  "steps_logged": 2,
+  "updates_acked": 2,
+  "updates_abandoned": 0,
+  "acks_by_status": {
+   "ok": 2
+  },
+  "nacks": 0,
+  "crashes": 0,
+  "host_restarts": 0,
+  "recovered": 0,
+  "repairs": 0,
+  "resets": 0,
+  "rejected": 0,
+  "outbox_rows": 2,
+  "outbox_retried": 0,
+  "crm_effects": 0,
+  "crm_requests_by_outcome": {},
+  "tg_deliveries": 2,
+  "tg_duplicate_keys": 0,
+  "ext_fault_modes_seen": {},
+  "timers_by_state": {},
+  "engine_retries": 0,
+  "upgrades": 0,
+  "orphaned_timers": 0,
+  "idempotency_key_conflicts_at_crm": 0,
+  "ext_reordered_batches": 0
+ },
+ "latency": {
+  "host_update_ms": {
+   "n": 2,
+   "p50": 3.39,
+   "p95": 3.39,
+   "p99": 3.39,
+   "max": 67.376
+  },
+  "host_step_ms": {
+   "n": 2,
+   "p50": 3.355,
+   "p95": 3.355,
+   "p99": 3.355,
+   "max": 67.324
+  },
+  "e2e_ms": {
+   "n": 2,
+   "p50": 5.196,
+   "p95": 5.196,
+   "p99": 5.196,
+   "max": 71.561
+  },
+  "elapsed_s": 0.381,
+  "throughput_updates_per_s": 5.3
+ },
+ "faults_injected": [
+  {
+   "line": 4,
+   "fault": "crash",
+   "at": "before_commit",
+   "on": null
+  },
+  {
+   "line": 5,
+   "fault": "external",
+   "target": "crm",
+   "mode": "500",
+   "count": 5
+  },
+  {
+   "line": 6,
+   "fault": "engine_fault",
+   "mode": "corrupt"
+  }
+ ],
+ "config": {
+  "workers": 8,
+  "engines": 2,
+  "executors": 4,
+  "window": 32,
+  "sync": "FULL",
+  "engine": "/home/user/figram-audit-worktrees/host-python/bin/figram-engine"
+ }
+}

@@ -1,0 +1,9 @@
+command: bash -c CC=gcc\ go\ test\ -c\ -o\ gofig-recheck.test\ .\ \&\&\ nm\ gofig-recheck.test\ \|\ grep\ -E\ \"\ b\ \(init_state\|ready\)\$\"\;\ CC=gcc\ go\ test\ -race\ -count=1\ -run\ XXX\ -v\ -x\ .\ 2\>\&1\ \|\ grep\ -c\ \"libfigram\"\  
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:54:50.218Z
+end: 2026-10-19T23:54:57.258Z
+exit_code: 0
+--- stdout (32 bytes, last 200 lines)
+00000000010bdb78 b init_state
+3
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,56 @@
+From b733f4f891f8a9841de2e0cd8c34afde6ec1f500 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:56:27 +0000
+Subject: [PATCH 05/40] audit(proofs): list theorem statements that depend on
+ opaque partial defs
+
+(cherry picked from commit b5bc7e9e82de403629bcbf65576dddb56342ef8f)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/proofs/OpaqueDeps.lean | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+ create mode 100644 audit/proofs/OpaqueDeps.lean
+
+diff --git a/audit/proofs/OpaqueDeps.lean b/audit/proofs/OpaqueDeps.lean
+new file mode 100644
+index 0000000..5b09a55
+--- /dev/null
++++ b/audit/proofs/OpaqueDeps.lean
+@@ -0,0 +1,32 @@
++/- Which theorem STATEMENTS (types) depend, through definition bodies, on opaque constants
++(partial defs)? Such statements mention functions whose logical value is unspecified, so their
++hypotheses cannot be discharged by evaluation. Run: lake env lean audit/proofs/OpaqueDeps.lean -/
++import Figram
++import FigramAudit.Glue
++import Lean.Elab.Command
++open Lean Elab Command
++
++partial def reach (env : Environment) (todo : List Name) (seen : NameSet) : NameSet :=
++  match todo with
++  | [] => seen
++  | n :: rest =>
++    if seen.contains n then reach env rest seen else
++    let seen := seen.insert n
++    match env.find? n with
++    | some (.defnInfo v) => reach env (v.value.getUsedConstants.toList ++ rest) seen
++    | _ => reach env rest seen
++
++elab "#opaque_deps" : command => do
++  let env ← getEnv
++  let isProj (n : Name) : Bool :=
++    match env.getModuleIdxFor? n with
++    | some i => let m := env.header.moduleNames[i.toNat]!; m.getRoot == `Figram || m.getRoot == `FigramAudit
++    | none => false
++  for (n, ci) in env.constants.map₁.toList do
++    if isProj n && !n.isInternalDetail then
++      if let .thmInfo v := ci then
++        let r := reach env v.type.getUsedConstants.toList {}
++        let ops := r.toList.filter fun c =>
++          isProj c && (match env.find? c with | some (.opaqueInfo _) => true | _ => false)
++        unless ops.isEmpty do logInfo m!"{n}: statement depends on opaque {ops}"
++#opaque_deps
+-- 
+2.43.0
+

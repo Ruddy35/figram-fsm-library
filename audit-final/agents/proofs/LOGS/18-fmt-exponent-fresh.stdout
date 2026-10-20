@@ -1,0 +1,15 @@
+binary: /home/user/figram-audit/fresh/figram
+ok
+check(original) rc=0
+fmt rc=0
+{
+  "figram": 1,
+  "bot": {
+    "initial": "a",
+    "children": {
+      "a": {}
+    }
+  },
+  "x-scale": 15e-1001
+}
+check(fmt output) rc=1

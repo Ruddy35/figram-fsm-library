@@ -1,0 +1,16 @@
+command: ./gofig.test -test.run TestAuditLargeRequests\$ -test.v 
+cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
+start: 2026-10-19T23:51:05.502Z
+end: 2026-10-19T23:51:19.821Z
+exit_code: 0
+--- stdout (589 bytes, last 200 lines)
+=== RUN   TestAuditLargeRequests
+    audit_test.go:212: event 1 MB: variant=result err=<nil> time=120ms VmHWM 19→75 MB
+    audit_test.go:212: event 8 MB: variant=result err=<nil> time=2.57s VmHWM 91→483 MB
+    audit_test.go:212: event 32 MB: variant=result err=<nil> time=10.437s VmHWM 547→1859 MB
+    audit_test.go:224: guards with 1000 keys: variant=need err=<nil> time=4ms
+    audit_test.go:224: guards with 4000 keys: variant=need err=<nil> time=46ms
+    audit_test.go:224: guards with 16000 keys: variant=need err=<nil> time=940ms
+--- PASS: TestAuditLargeRequests (14.26s)
+PASS
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,17 @@
+command: timeout 880 python3 perf.py --engine /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler/../../bin/figram-engine --timeout 150 
+cwd: /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler
+start: 2026-10-19T23:01:18.716Z
+end: 2026-10-19T23:15:58.730Z
+exit_code: 124
+--- stdout (1843 bytes, last 200 lines)
+{"load_s": 0.387, "status": "OK", "states": 500, "step_us_unmatched_event": 41.4, "maxrss_children_mb": 15, "scenario": "flat_500", "doc_bytes": 49146, "oracle_valid": true}
+{"load_s": 1.641, "status": "OK", "states": 1000, "step_us_unmatched_event": 87.7, "maxrss_children_mb": 17, "scenario": "flat_1000", "doc_bytes": 98646, "oracle_valid": true}
+{"load_s": 8.324, "status": "OK", "states": 2000, "step_us_unmatched_event": 474.5, "maxrss_children_mb": 22, "scenario": "flat_2000", "doc_bytes": 201646, "oracle_valid": true}
+{"load_s": 41.709, "status": "OK", "states": 2000, "step_us_unmatched_event": 3031.2, "maxrss_children_mb": 25, "scenario": "flat_2000_50rootev", "doc_bytes": 202911, "oracle_valid": true}
+{"load_s": 26.866, "status": "OK", "states": 4000, "step_us_unmatched_event": 701.1, "maxrss_children_mb": 30, "scenario": "flat_4000", "doc_bytes": 407646, "oracle_valid": true}
+{"load_s": 0.021, "status": "OK", "states": 2, "step_us_unmatched_event": 40.8, "maxrss_children_mb": 30, "scenario": "deep_60", "doc_bytes": 4832, "oracle_valid": true}
+{"load_s": 0.066, "status": "OK", "states": 2, "step_us_unmatched_event": 26.2, "maxrss_children_mb": 30, "scenario": "deep_120", "doc_bytes": 9632, "oracle_valid": true}
+{"load_s": 0.12, "status": "REJECTED", "rc": 1, "stderr": "ошибка документа: вложенность больше 256", "scenario": "deep_127_hist", "doc_bytes": 16207, "oracle_valid": true}
+{"load_s": 0.16, "status": "REJECTED", "rc": 1, "stderr": "ошибка документа: вложенность больше 256", "scenario": "deep_128", "doc_bytes": 10288, "oracle_valid": true}
+{"load_s": 0.022, "status": "REJECTED", "rc": 1, "stderr": "ошибка документа: вложенность больше 256", "scenario": "deep_200", "doc_bytes": 16192, "oracle_valid": true}
+--- stderr (0 bytes, last 100 lines)

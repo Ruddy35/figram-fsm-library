@@ -1,0 +1,90 @@
+From d381d6e22546f823cbfe41bcd58ef7b4f2db0b52 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 19 Oct 2026 23:54:24 +0000
+Subject: [PATCH 08/40] =?UTF-8?q?test(verify):=20replace=20'=D0=A2=D0=B5?=
+ =?UTF-8?q?=D0=BE=D1=80=D0=B5=D0=BC=D1=8B=20=D0=B1=D0=B5=D0=B7=20sorry'=20?=
+ =?UTF-8?q?grep=20with=20the=20strict=20proof=20gate?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The old step printed #print axioms for 14 hand-picked theorems and only grepped the
+word 'sorry': a custom 'axiom cheat : ∀ p, p' or native_decide (aux axiom
+*._native.native_decide.ax_*) passes it, and theorems outside the list (e.g.
+guards_irrelevant, toChart_decls) were never checked. An unchecked declaration added
+via addDeclCore (doCheck := false) shows 'does not depend on any axioms'.
+
+audit/proofs/strict_gate.sh: static ban on sorry/admit/axiom/native_decide/
+skipKernelTC/run_elab/modifyEnv/addDeclCore/unsafe/csimp in sources; #print axioms
+for ALL theorems extracted from sources (count must match); AxiomGate.lean over every
+theorem/def/opaque of Figram.* modules; pinned statements (Statements.lean);
+leanchecker kernel replay of all Figram.* modules.
+
+Before (baseline verify.sh): canaries pass the gate (LOGS/16-canary-baseline-verify).
+After: both canaries red, clean tree green (LOGS/16-canary-patched-verify, LOGS/25).
+
+(cherry picked from commit 90201dd62d520ba465d414745d65cad326e33609)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JgWRtX2jyUidN8gxEhe5qx
+---
+ audit/proofs/strict_gate.sh |  5 +++++
+ verify.sh                   | 26 +++++---------------------
+ 2 files changed, 10 insertions(+), 21 deletions(-)
+
+diff --git a/audit/proofs/strict_gate.sh b/audit/proofs/strict_gate.sh
+index 50cc40a..52b37c1 100755
+--- a/audit/proofs/strict_gate.sh
++++ b/audit/proofs/strict_gate.sh
+@@ -13,6 +13,11 @@
+ set -euo pipefail
+ cd "$(dirname "$0")/../.."
+ T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
++# 0. static: constructs that bypass or weaken checking must not appear in project sources
++if grep -nE '\bsorry\b|\badmit\b|^[[:space:]]*(private |protected )?axiom\b|native_decide|ofReduceBool|ofReduceNat|trustCompiler|debug\.skipKernelTC|\brun_elab\b|\brun_cmd\b|\brun_meta\b|modifyEnv|addDeclCore|\bunsafe\b|@\[csimp\]' \
++     Figram/*.lean Figram.lean Main.lean EngineMain.lean; then
++  echo "STRICT GATE: forbidden construct in sources (see lines above)"; exit 1
++fi
+ python3 -I audit/proofs/gen_axioms.py . audit/proofs/AllAxioms.lean audit/proofs/theorems.txt
+ n=$(wc -l < audit/proofs/theorems.txt)
+ lake env lean audit/proofs/AllAxioms.lean > "$T/ax.log" 2>&1
+diff --git a/verify.sh b/verify.sh
+index d554ed0..f2c2ead 100755
+--- a/verify.sh
++++ b/verify.sh
+@@ -48,27 +48,11 @@ for b in figram figram-engine; do cp .lake/build/bin/$b "$T/$b" && strip "$T/$b"
+ # (сборка ffi/out нужна шагам C и Go ниже)
+ (cd "$T" && sha256sum figram figram-engine) | diff - bin/SHA256SUMS && echo "ok: хеши совпадают побайтно"
+ 
+-step "Теоремы без sorry"
+-cat > "$T/ax.lean" <<'LEAN'
+-import Figram
+-open Figram Figram.Format
+-#print axioms Chart.compile_correct
+-#print axioms Chart.session_correct
+-#print axioms Chart.chart_run_valid
+-#print axioms Machine.step_state_valid
+-#print axioms Machine.step_guard_local
+-#print axioms decode_encode
+-#print axioms encode_injective
+-#print axioms decode_requires
+-#print axioms toChart_strip
+-#print axioms check_roundtrip
+-#print axioms Engine.decSnapshot_encSnapshot
+-#print axioms Engine.step_snapOK
+-#print axioms Engine.handle_step
+-#print axioms Engine.reply_readable
+-LEAN
+-lake env lean "$T/ax.lean" | tee "$T/ax.log"
+-if grep -q sorry "$T/ax.log"; then exit 1; fi
++step "Теоремы: только propext, Quot.sound, Classical.choice; ядро перепроверено"
++# Все теоремы из исходников (а не список из 14), все определения модулей Figram.*,
++# запрет объявлений axiom, sorryAx, native_decide; формулировки теорем README/AUDIT
++# закреплены; leanchecker заново проверяет ядром каждое объявление.
++SHOW=4 logged proofs bash audit/proofs/strict_gate.sh
+ 
+ step "Фиксированные сценарии совпадают с сохранёнными"
+ $F golden "$T/golden" >/dev/null
+-- 
+2.43.0
+

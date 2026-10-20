@@ -1,0 +1,16 @@
+command: /home/user/figram-audit/agents/host-python/REPRODUCTIONS/run_repro.sh et01_reset_timer.jsonl seq-keys-start 
+cwd: /home/user/figram-audit-worktrees/host-python/audit/host-python
+start: 2026-10-19T23:21:15.198Z
+end: 2026-10-19T23:21:16.348Z
+exit_code: 1
+--- stdout (2110 bytes, last 200 lines)
+{"scenario": "et01_reset_timer", "broken": "seq-keys-start", "elapsed_s": 0.59, "fails": ["idempotency_keys_unique_lifetime", "seq_plus_one", "timer_not_early", "send_duplicates_explained"], "counts": {"users": 1, "transitions": 5, "steps_logged": 5, "updates_acked": 3, "updates_abandoned": 0, "acks_by_status": {"ok": 3}, "nacks": 0, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 1, "rejected": 0, "outbox_rows": 9, "outbox_retried": 0, "crm_effects": 1, "crm_requests_by_outcome": {"applied": 1}, "tg_deliveries": 5, "tg_duplicate_keys": 2, "ext_fault_modes_seen": {}, "timers_by_state": {"canceled": 4}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 3, "p50": 6.529, "p95": 6.529, "p99": 6.529, "max": 24.015}, "host_step_ms": {"n": 3, "p50": 6.496, "p95": 6.496, "p99": 6.496, "max": 23.955}, "e2e_ms": {"n": 3, "p50": 6.899, "p95": 6.899, "p99": 6.899, "max": 29.642}, "elapsed_s": 0.585, "throughput_updates_per_s": 5.1}}
+r final: {'at': 'idle', 'seq': 3}
+   tg:1 cmd:start  seq 1 -> idle t_ms 0 [{'send': 'idle'}]
+   tg:2 btn:set  seq 2 -> waiting t_ms 0 [{'call': 'save_reminder'}, {'start_timer': 'remind', 'ms': 60000, 'token': 2}, {'start_timer': 'nag', 'ms': 45000, 'token': 2}, {'send': 'waiting'}]
+   reset:8 reset  seq 1 -> idle t_ms 30000 [{'send': 'idle'}]
+   tg:3 btn:set  seq 2 -> waiting t_ms 30000 [{'call': 'save_reminder'}, {'start_timer': 'remind', 'ms': 60000, 'token': 2}, {'start_timer': 'nag', 'ms': 45000, 'token': 2}, {'send': 'waiting'}]
+   timer:nag:2 timer:nag tok=2 seq 3 -> idle t_ms 45000 [{'cancel_timer': 'remind'}, {'cancel_timer': 'nag'}, {'call': 'notify_owner'}, {'send': 'idle'}]
+effects: [('r:3:2', 'notify')]
+FAILED invariants: {"idempotency_keys_unique_lifetime": {"reused_keys": ["r:1:0", "r:2:0", "r:2:3"], "crm_key_conflicts": []}, "seq_plus_one": [["r", "reset", "reset", 2, 1]], "timer_not_early": [["r", "nag", 2, 45000, 75000]], "send_duplicates_explained": {"duplicated_keys": 2, "client_timeouts_on_send": 0}}
+--- stderr (0 bytes, last 100 lines)

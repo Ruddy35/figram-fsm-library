@@ -1,0 +1,29 @@
+command: nice -n 10 timeout 300 python3 r10_id_null_poison.py 
+cwd: /home/user/figram-audit/agents/python-client/REPRODUCTIONS
+start: 2026-10-19T23:11:55.506Z
+end: 2026-10-19T23:12:02.432Z
+exit_code: 0
+--- stdout (2196 bytes, last 200 lines)
+# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit-worktrees/python-client/ffi/python-example
+[dup-int] на проводе: b'{"op":"step","snapshot":{"at":"menu","resume":{"1":"menu","1":"menu"}},"event":"btn:x"}'
+[dup-int] плохой запрос ×20: {'EngineError: запрос не сериализуется в JSON: ключ 1 не строка': 20}
+[dup-int] обычные пользователи: успешно 12354, ошибок 0; процессов движка 1
+
+[dup-bool] на проводе: b'{"op":"step","snapshot":{"at":"menu","timers":{"true":1,"true":2}},"event":"btn:x"}'
+[dup-bool] плохой запрос ×20: {'EngineError: запрос не сериализуется в JSON: ключ True не строка': 20}
+[dup-bool] обычные пользователи: успешно 6894, ошибок 0; процессов движка 1
+
+[deep] на проводе: b'{"op":"step","snapshot":{"at":"menu","x":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a"...'
+[deep] плохой запрос ×20: {'EngineError: запрос не сериализуется в JSON: вложенность больше 256': 20}
+[deep] обычные пользователи: успешно 11817, ошибок 0; процессов движка 1
+
+[surrogate] на проводе: не сериализуется: UnicodeEncodeError
+[surrogate] плохой запрос ×20: {"EngineError: запрос не сериализуется в JSON: 'utf-8' codec can't encode c": 20}
+[surrogate] обычные пользователи: успешно 15817, ошибок 0; процессов движка 1
+
+[control] на проводе: b'{"op":"step","snapshot":{"at":"menu","x":1},"event":"btn:x"}'
+[control] плохой запрос ×20: {'EngineError: снимок: неизвестное поле «x» (снимок более новой версии?)': 20}
+[control] обычные пользователи: успешно 11074, ошибок 0; процессов движка 1
+
+FS-4 не подтверждена
+--- stderr (0 bytes, last 100 lines)

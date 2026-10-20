@@ -1,0 +1,12 @@
+command: python3 xverify/c4_c5_shared_process.py /home/user/figram-audit/fresh/figram-engine examples/pizza.bot.json control 
+cwd: /home/user/figram-audit-worktrees/cross-verify
+start: 2026-10-19T23:51:03.945Z
+end: 2026-10-19T23:51:09.078Z
+exit_code: 0
+--- stdout (245 bytes, last 200 lines)
+engine=/home/user/figram-audit/fresh/figram-engine mode=control client timeout=10.0s (default is 10.0)
+warm-up: 11094 normal requests ok, 0 failed
+bad request attempts: []
+normal users: ok=46155 FAILED=0; engine pid 26968 -> 26968
+CONTROL GREEN
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 mutants_red.py --engine /home/user/figram-audit/fresh/figram-engine --docs 8 --steps 100 --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot 
+cwd: /home/user/figram-audit-worktrees/integration/audit/core-compiler
+start: 2026-10-20T01:00:46.150Z
+end: 2026-10-20T01:00:46.264Z
+exit_code: 1
+--- stdout (53 bytes, last 200 lines)
+REAL ENGINE DIVERGES on seed 700021 snapshot differs
+--- stderr (0 bytes, last 100 lines)

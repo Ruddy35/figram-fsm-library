@@ -1,0 +1,4 @@
+запросов 62, расхождений 46
+   {'op': 'start'} → {'id': 0, 'snapshot': {'at': 'menu'}, 'actions': [{'send': 'menu'}]}, ожидалось {'result': {'snapshot': {'at': 'menu', 'seq': 1}, 'actions': [{'send': 'menu'}]}}
+   {'op': 'step', 'snapshot': {'at': 'menu', 'seq': 1}, 'event': 'btn:order'} → {'id': 1, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 1}, 'actions': [{'send': 'catalog'}]}, ожидалось {'result': {'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'actions':
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'event': 'btn:pizza'} → {'id': 2, 'snapshot': {'at': 'pick_size', 'resume': {'order': 'pick_size'}, 'seq': 2}, 'actions': [{'send': 'pick_size'}]}, ожидалось {'result': {'snapshot': {'at': 'pick_size', 'resume': 

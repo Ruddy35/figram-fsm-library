@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 900 lake build Figram.Api 
+cwd: /home/user/figram-audit-worktrees/integration-cc
+start: 2026-10-19T23:53:57.158Z
+end: 2026-10-19T23:53:57.744Z
+exit_code: 0
+--- stdout (74 bytes, last 200 lines)
+✔ [9/9] Built Figram.Api (419ms)
+Build completed successfully (9 jobs).
+--- stderr (0 bytes, last 100 lines)
