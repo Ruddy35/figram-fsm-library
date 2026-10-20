@@ -14,7 +14,7 @@ import json
 import os
 import sys
 
-from protocol import ChildTimeout, ProtocolError, check_reply, default_timeout, run_child
+from protocol import ChildTimeout, ProtocolError, check_reply, default_timeout, mutant_env, run_child
 
 
 def plan(trace):
@@ -62,7 +62,7 @@ def run(engine, doc, traces, mutate=None, timeout=None):
     lines = [json.dumps({**req, "id": i}, ensure_ascii=False) for i, (req, _) in enumerate(pairs)]
     try:
         out = run_child(cmd, ("\n".join(lines) + "\n").encode(), timeout or default_timeout(),
-                        f"conformance {os.path.basename(doc)}")
+                        f"conformance {os.path.basename(doc)}", env=mutant_env() if mutate else None)
     except ChildTimeout as e:
         return len(pairs), [str(e)]
     if out.returncode != 0:

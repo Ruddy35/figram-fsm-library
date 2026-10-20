@@ -9,7 +9,8 @@ Each row: (id, input bytes, expected `figram json` line, class).
                     FORMAT.md §3 «Числа», AUDIT.md §4): Python json differs;
             model — Figram's exact m·10^e model prints the value differently
                     from Python's float (value-equal);
-            fc01 / fc02 / fc03 — rows of findings in REPORT.md.
+            fc01 / fc02 / fc03 — rows of findings in REPORT.md (fc01, fc03 fixed:
+                    their rows now expect the fixed behaviour).
 
 Checks, for every row:
   T1  figram output == expected column (handwritten);
@@ -179,15 +180,18 @@ T = [
 ]
 
 # Byte-level rows: invalid UTF-8 on the stdin line.  RFC 8259 §8.1: text MUST be
-# UTF-8; Python json.loads(bytes) raises.  Figram's stream path replaces with
-# U+FFFD (AUDIT.md §4: "невалидный UTF-8 … рантайм Lean заменяет символом U+FFFD").
+# UTF-8; Python json.loads(bytes) raises.  At the audit Figram's stream path
+# replaced invalid bytes with U+FFFD (finding FC-03: `"\xff"` and `"\xfe"` became
+# the same string); since the fix `figram json` and `figram-engine` read bytes and
+# reject a line that is not UTF-8, like `figram check` rejects such a file.
 TB = [
-    ("u-ff", b'"\xff"', 'OK "�"', "fc03"),
-    ("u-cesu-surrogate", b'"\xed\xa0\x80"', 'OK "�"', "fc03"),
-    ("u-overlong-slash", b'"\xc0\xaf"', None, "fc03"),
-    ("u-above-10ffff", b'"\xf4\x90\x80\x80"', None, "fc03"),
-    ("u-truncated", b'"\xe2\x82"', None, "fc03"),
-    ("u-ff-in-key", b'{"\xff":1,"\xfe":2}', None, "fc03"),
+    ("u-ff", b'"\xff"', "ERR", "rfc"),
+    ("u-cesu-surrogate", b'"\xed\xa0\x80"', "ERR", "rfc"),
+    ("u-overlong-slash", b'"\xc0\xaf"', "ERR", "rfc"),
+    ("u-above-10ffff", b'"\xf4\x90\x80\x80"', "ERR", "rfc"),
+    ("u-truncated", b'"\xe2\x82"', "ERR", "rfc"),
+    ("u-ff-in-key", b'{"\xff":1,"\xfe":2}', "ERR", "rfc"),
+    ("u-valid-fffd", "\"\ufffd\"".encode("utf-8"), 'OK "\ufffd"', "rfc"),   # a real U+FFFD is text
 ]
 
 

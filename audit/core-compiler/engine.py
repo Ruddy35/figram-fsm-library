@@ -21,8 +21,10 @@ class Engine:
             args += ["--mutate", mutate]
         args.append(self.tmp.name)
         self.timeout = timeout
+        # --mutate is a test mode enabled only by FIGRAM_ALLOW_MUTANTS=1 (fix wave, P-17)
         self.p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE, text=True, bufsize=1)
+                                  stderr=subprocess.PIPE, text=True, bufsize=1,
+                                  env=dict(os.environ, FIGRAM_ALLOW_MUTANTS="1") if mutate else None)
         self.n = 0
         hello = self.req({"op": "hello"})
         if hello is None:

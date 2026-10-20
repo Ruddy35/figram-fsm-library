@@ -11,6 +11,7 @@ that no guard values can select, or a reversed row that behaves identically
 for all guard values)."""
 
 import argparse
+import os
 import json
 import subprocess
 import sys
@@ -124,7 +125,8 @@ def main():
         with tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False) as f:
             f.write(text)
         muts = subprocess.run([args.engine, "--mutants", f.name], capture_output=True, text=True,
-                              check=True, timeout=60).stdout.split()
+                              check=True, timeout=60,
+                              env=dict(os.environ, FIGRAM_ALLOW_MUTANTS="1")).stdout.split()
         base = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=None,
                                   oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
         st, divs = {}, []

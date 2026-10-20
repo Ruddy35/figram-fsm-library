@@ -3,6 +3,8 @@
 
 Правило: ответ — ровно один из вариантов «результат», «need», «error»;
 типы полей проверяются точно (булево значение не считается числом).
+Ответ-ошибка — ровно поля `id`, `error` (текст для человека) и `code`
+(машинный код из ERROR_CODES, FORMAT.md §7).
 """
 
 from __future__ import annotations
@@ -12,6 +14,9 @@ import signal
 import subprocess
 
 MAX_INT = 9007199254740991
+
+# Машинные коды ответа-ошибки (FORMAT.md §7, «Ошибки»).
+ERROR_CODES = frozenset({"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow"})
 
 
 class ProtocolError(Exception):
@@ -82,6 +87,18 @@ def check_actions(acts) -> None:
             nat(a["token"], "start_timer.token")
 
 
+def check_error(resp) -> str:
+    """Проверить форму ответа-ошибки (ровно `id`, `error`, `code`; `id` — любое
+    значение JSON или null); вернуть код."""
+    if type(resp) is not dict or set(resp) != {"id", "error", "code"}:
+        raise ProtocolError(f"ответ-ошибка: поля {sorted(resp) if type(resp) is dict else resp!r}")
+    if type(resp["error"]) is not str or not resp["error"]:
+        raise ProtocolError(f"error не непустая строка: {resp['error']!r}")
+    if resp["code"] not in ERROR_CODES:
+        raise ProtocolError(f"неизвестный код ошибки {resp['code']!r}")
+    return resp["code"]
+
+
 def check_reply(resp, rid: int, op: str) -> str:
     """Проверить ответ на запрос `op` с id `rid`; вернуть вариант:
     'result', 'need', 'error' или 'hello'."""
@@ -90,12 +107,13 @@ def check_reply(resp, rid: int, op: str) -> str:
     if not is_int(resp.get("id")) or resp["id"] != rid:
         raise ProtocolError(f"id ответа {resp.get('id')!r} вместо {rid}")
     keys = set(resp) - {"id"}
-    if keys == {"error"}:
-        if type(resp["error"]) is not str:
-            raise ProtocolError("error не строка")
+    if "error" in keys:
+        check_error(resp)
         return "error"
     if op == "hello":
-        if keys != {"protocol", "states"} or not is_int(resp["protocol"]) or not is_int(resp["states"]):
+        # "mutant" — только у испорченного движка тестового режима (FIGRAM_ALLOW_MUTANTS=1)
+        if keys - {"mutant"} != {"protocol", "states"} or not is_int(resp["protocol"]) \
+                or not is_int(resp["states"]) or ("mutant" in resp and type(resp["mutant"]) is not str):
             raise ProtocolError(f"ответ hello: {resp!r}")
         return "hello"
     if op == "step" and keys == {"need"}:
@@ -114,11 +132,11 @@ def check_reply(resp, rid: int, op: str) -> str:
     return "result"
 
 
-def run_child(cmd, data: bytes, timeout: float, phase: str) -> subprocess.CompletedProcess:
+def run_child(cmd, data: bytes, timeout: float, phase: str, env=None) -> subprocess.CompletedProcess:
     """Запустить процесс с данными на вход; по истечении срока убить его
     вместе с потомками и выбросить ChildTimeout с названием фазы."""
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, start_new_session=True)
+                         stderr=subprocess.PIPE, start_new_session=True, env=env)
     try:
         out, err = p.communicate(data, timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -129,6 +147,12 @@ def run_child(cmd, data: bytes, timeout: float, phase: str) -> subprocess.Comple
         p.communicate()
         raise ChildTimeout(f"фаза «{phase}»: процесс не завершился за {timeout} с")
     return subprocess.CompletedProcess(cmd, p.returncode, out, err)
+
+
+def mutant_env() -> dict:
+    """Окружение для запуска испорченного движка (`--mutants`, `--mutate`): тестовый
+    режим включается только явно (FORMAT.md §7, «Мутанты»)."""
+    return dict(os.environ, FIGRAM_ALLOW_MUTANTS="1")
 
 
 def default_timeout() -> float:

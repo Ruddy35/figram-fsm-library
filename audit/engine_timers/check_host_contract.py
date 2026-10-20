@@ -60,28 +60,31 @@ def main(host_md, format_md, engine, examples):
     s4, s6 = section(host, 4), section(host, 6)
     fails = []
 
-    # 1. the documented lost-snapshot procedure
+    # 1. the documented lost-snapshot procedures: `restart` with a placeholder snapshot and/or
+    # `start` with the high-water `seq` (fix wave, PROTOCOL_CHANGES 4); every one found is executed.
     # the doc may write the high-water mark as a placeholder `N`; the test plugs in the real value
-    reqs = [json.loads(re.sub(r'"seq":\s*N\b', '"seq": 0', m))
-            for m in re.findall(r'^\{.*"op":\s*"restart".*\}$', s4, re.M)]
-    if reqs:
-        proc = "restart with placeholder snapshot " + json.dumps(reqs[0]["snapshot"], ensure_ascii=False)
-    elif re.search(r"снимок утерян.*?`start`", s4, re.S):
-        proc = "start"
-    else:
-        proc = None
+    procs = []
+    for m in re.findall(r'^\{.*"op":\s*"(?:restart|start)".*\}$', s4, re.M):
+        req = json.loads(re.sub(r'"seq":\s*N\b', '"seq": 0', m))
+        if req["op"] == "restart":
+            procs.append(("restart with placeholder snapshot " + json.dumps(req["snapshot"], ensure_ascii=False), req))
+        elif "seq" in req:
+            procs.append(("start with the high-water seq", req))
+    if not procs and re.search(r"снимок утерян.*?`start`", s4, re.S):
+        procs.append(("start", {"op": "start"}))
+    if not procs:
         fails.append("§4: no procedure for a lost snapshot found")
-    if proc:
+    for proc, req in procs:
         e = Engine(engine, os.path.join(examples, "pizza.bot.json"))
         l1 = life(e, call(e, {"op": "start"}))
         k1 = keys(l1)
         high_water = max(int(k.split(":")[1]) for k in k1)
-        if proc == "start":
-            first = call(e, {"op": "start"})
-        else:
-            snap = dict(reqs[0]["snapshot"])
-            snap["seq"] = high_water          # N = largest seq ever issued to the user
-            first = call(e, {"op": "restart", "snapshot": snap})
+        req = json.loads(json.dumps(req))
+        if req["op"] == "restart":
+            req["snapshot"]["seq"] = high_water   # N = largest seq ever issued to the user
+        elif "seq" in req:
+            req["seq"] = high_water
+        first = call(e, req)
         l2 = life(e, first)
         k2 = keys(l2)
         coll = sorted(k for k in k2 if k in k1)

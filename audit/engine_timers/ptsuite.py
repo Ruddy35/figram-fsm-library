@@ -18,7 +18,7 @@ import subprocess
 import tempfile
 import time
 
-from ptdriver import MAXINT, Engine, Ref, snap_from_json, snap_to_json
+from ptdriver import MAXINT, Engine, Ref, mutant_env, snap_from_json, snap_to_json
 
 RESULTS = []
 ENGINE = None
@@ -146,8 +146,10 @@ def timer_scenarios(ex, own):
     r = step(e, s1, "timer:zzz", token=1)
     r2 = step(e, s1, "timer:t", token=1)        # timer of another message
     r3 = step(e, s1, "timer:", token=1)          # empty id
-    hard("T2", "timers", all(x.get("actions") == [] and x.get("snapshot") == s1 for x in (r, r2, r3)),
-         "token for unknown / other message's / empty timer name: ignored, snapshot unchanged", [r, r2, r3])
+    hard("T2", "timers", all(x.get("actions") == [] and x.get("snapshot") == s1 for x in (r, r2))
+         and r3.get("code") == "bad_request" and "snapshot" not in r3,
+         "token for unknown / other message's timer name: ignored, snapshot unchanged; empty timer name "
+         "(\"timer:\") -> bad_request (strict requests, fix wave)", [r, r2, r3])
     # T3: token boundary
     outs = {}
     for label, tokraw in [("2^53+1", str(2 ** 53 + 1)), ("2^64", str(2 ** 64)), ("1e18", "1e18"),
@@ -156,12 +158,16 @@ def timer_scenarios(ex, own):
         line = ('{"id":"%s","op":"step","snapshot":%s,"event":"timer:tick","token":%s}\n'
                 % (label.replace('"', ''), json.dumps(s1), tokraw)).encode()
         outs[label] = json.loads(e.raw(line))
-    big_ok = all(outs[k].get("actions") == [] and outs[k].get("snapshot") == s1 for k in ("2^53+1", "2^64", "1e18"))
-    hard("T3", "timers", big_ok, "token > 2^53-1 accepted syntactically, never matches, ignored (no error)",
-         {k: outs[k] for k in ("2^53+1", "2^64", "1e18")})
-    rec("T3b", "timers", "OBS", "token spelling: 1.0 / 10e-1 equal 1 and FIRE the timer; 1e19 rejected as "
-        "'not a non-negative integer' (numToNat e>18), 1.5/-1/\"1\" -> error; -0 = 0",
-        {k: (outs[k].get("error") or ("fired" if outs[k].get("actions") else "ignored")) for k in outs})
+    big_ok = all(outs[k].get("code") == "bad_request" and "snapshot" not in outs[k]
+                 for k in ("2^53+1", "2^64", "1e18", "1e19", "1.5", "\"1\"", "-1"))
+    fire_ok = all(outs[k].get("actions") for k in ("1.0", "10e-1")) and outs["-0"].get("actions") == []
+    hard("T3", "timers", big_ok and fire_ok,
+         "token must be an integer 0..2^53-1 by value: > 2^53-1, 1e19, 1.5, -1, \"1\" -> bad_request; "
+         "1.0 / 10e-1 equal 1 and fire (fix wave: ET-12)",
+         {k: outs[k] for k in outs})
+    rec("T3b", "timers", "OBS", "token spelling (fix wave): 1.0 / 10e-1 equal 1 and FIRE the timer; -0 = 0 "
+        "(stale here: ignored); everything outside 0..2^53-1 or non-integer -> bad_request",
+        {k: (outs[k].get("code") or ("fired" if outs[k].get("actions") else "ignored")) for k in outs})
     # T4: replay of the same fire twice + self-loop restarting BOTH timers
     f1 = step(e, s1, "timer:tick", token=1)
     s2 = f1["snapshot"]
@@ -370,7 +376,8 @@ def upgrade_scenarios(ex, own):
         d = copy.deepcopy(base)
         fn(d)
         p = write_doc(name + ".bot.json", d)
-        chk = subprocess.run([ENGINE, "--mutants", p], capture_output=True, text=True, timeout=30)
+        chk = subprocess.run([ENGINE, "--mutants", p], capture_output=True, text=True, timeout=30,
+                             env=mutant_env())
         return p, chk.returncode, chk.stderr.strip()[:200]
 
     # U1 delete current message
@@ -525,10 +532,16 @@ def error_scenarios(ex, own):
     null_ids = [o for o in outs if o[1].get("id") is None]
     hard("E1", "errors", all("error" in o[1] and "snapshot" not in o[1] for o in outs),
          "malformed requests -> error, never a snapshot", outs)
-    rec("E2", "errors", "OBS", "id is null for: invalid JSON, non-object, missing id, DUPLICATE KEY anywhere "
-        "(even in guards), trailing text, nesting >256; the request's id is lost although it is often "
-        "syntactically present. Replies are strictly FIFO, so a sequential host can still correlate by order.",
+    rec("E2", "errors", "OBS", "id is null for: invalid JSON without a leading id, non-object, missing id; "
+        "a parse error (duplicate key, trailing text, nesting >256) echoes a LEADING scalar id (fix wave P-16). "
+        "Replies are strictly FIFO (documented), so a sequential host can still correlate by order.",
         {"null_id_cases": [o[0] for o in null_ids]})
+    echo = {o[0]: o[1].get("id") for o in outs}
+    hard("E2c", "errors", echo.get('{"id":8,"id":9,"op":"hello"}\n') == 8
+         and echo.get('{"id":10,"op":"hello"} trailing\n') == 10
+         and echo.get(outs[6][0]) == 11 and echo.get(outs[8][0]) == 13 and echo.get("garbage\n", 0) is None
+         and all(o[1].get("code") in ("parse_error", "bad_request", "bad_snapshot") for o in outs),
+         "parse error with a leading scalar id echoes it; every error has a machine code", outs)
     ids = {}
     for raw in [b'{"id":-0,"op":"hello"}', b'{"id":1.50,"op":"hello"}', b'{"id":1e2,"op":"hello"}',
                 b'{"id":18446744073709551617,"op":"hello"}', b'{"id":"x\\u0000y","op":"hello"}',
@@ -544,8 +557,14 @@ def error_scenarios(ex, own):
     # invalid UTF-8 inside a string
     t0 = time.time()
     rep = e.raw(b'{"id":20,"op":"step","snapshot":{"at":"menu"},"event":"btn:\xff\xfe"}\n', timeout=10)
-    rec("E7", "errors", "OBS", "invalid UTF-8 in a request line", {"reply": rep[:300].decode(errors="replace"),
-                                                                   "alive": e(op="hello").get("protocol") == 1})
+    try:
+        rj = json.loads(rep)
+    except ValueError:
+        rj = {}
+    hard("E7", "errors", rj.get("id") == 20 and rj.get("code") == "parse_error" and "snapshot" not in rj
+         and e(op="hello").get("protocol") == 1,
+         "invalid UTF-8 in a request line -> parse_error with the leading id, no silent U+FFFD (fix wave P-18)",
+         {"reply": rep[:300].decode(errors="replace")})
     # state unchanged after errors: same request as before gives same answer
     ok1 = step(e, s, "btn:order")
     hard("E1b", "errors", ok1.get("snapshot", {}).get("at") == "catalog", "old snapshot still works after errors", ok1)
@@ -628,14 +647,23 @@ def mutate_scenarios(ex, own):
             ("msg:text", {"in_delivery_zone": True}), ("payment:success", None)]
     la, lb = run_path(a, path)[-1], run_path(b, path)[-1]
     a.close(), b.close()
-    rec("M1", "mutate", "OBS", "production binary accepts --mutate: a mutated engine is indistinguishable via "
-        "hello and silently drops create_order", {"hello_normal": ha, "hello_mutant": hb,
-                                                 "last_actions_normal": la["actions"], "last_actions_mutant": lb["actions"]})
+    hard("M1", "mutate", hb.get("mutant") == "drop-call:create_order" and "mutant" not in ha,
+         "a mutated engine (test mode, FIGRAM_ALLOW_MUTANTS=1) identifies itself in hello (fix wave P-17)",
+         {"hello_normal": ha, "hello_mutant": hb,
+          "last_actions_normal": la["actions"], "last_actions_mutant": lb["actions"]})
     p = subprocess.run([ENGINE, "--mutate", "redirect:999", pizza], input=b'{"id":1,"op":"hello"}\n',
-                       capture_output=True, timeout=20)
-    q = subprocess.run([ENGINE, "--mutate", "bogus", pizza], input=b"", capture_output=True, timeout=20)
-    rec("M2", "mutate", "OBS", "out-of-range mutant index is accepted silently (no-op); unknown spec -> exit 2",
-        {"redirect:999": [p.returncode, p.stdout.decode()], "bogus": [q.returncode, q.stderr.decode()[:120]]})
+                       capture_output=True, timeout=20, env=mutant_env())
+    q = subprocess.run([ENGINE, "--mutate", "bogus", pizza], input=b"", capture_output=True, timeout=20,
+                       env=mutant_env())
+    noenv = {k: v for k, v in os.environ.items() if k != "FIGRAM_ALLOW_MUTANTS"}
+    z = subprocess.run([ENGINE, "--mutate", "drop-call:create_order", pizza], input=b'{"id":1,"op":"hello"}\n',
+                       capture_output=True, timeout=20, env=noenv)
+    hard("M2", "mutate", p.returncode == 2 and p.stdout == b"" and q.returncode == 2 and z.returncode != 0
+         and z.stdout == b"",
+         "mutation index outside the machine (redirect:999) and unknown spec -> exit 2; without "
+         "FIGRAM_ALLOW_MUTANTS=1 --mutate is refused",
+         {"redirect:999": [p.returncode, p.stdout.decode()], "bogus": [q.returncode, q.stderr.decode()[:120]],
+          "no-env": [z.returncode, z.stderr.decode()[:160]]})
 
 
 def run(engine, examples_dir):

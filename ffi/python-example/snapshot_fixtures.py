@@ -76,6 +76,10 @@ for snap, (variant, resp) in zip(FIXTURES, replies):
     if by_engine != by_schema:
         bad += 1
         print(f"  расходятся: {snap}: схема {by_schema}, движок {by_engine} {resp.get('error', '')}")
+    elif not by_engine and resp.get("code") != "bad_snapshot":
+        # отвергнутый снимок — именно код bad_snapshot (FORMAT.md §7, «Ошибки»)
+        bad += 1
+        print(f"  расходятся: {snap}: код ошибки {resp.get('code')!r} вместо 'bad_snapshot'")
 print(f"снимков {len(FIXTURES)}, ответов {len(replies)}, расхождений схемы и движка {bad}")
 
 # N06: на границе seq движок не выдаёт снимок, который сам не прочитает.
@@ -84,7 +88,7 @@ edge = ask([
     {"op": "step", "snapshot": {"at": "home", "seq": M}, "event": "unknown:event"},
     {"op": "step", "snapshot": {"at": "home", "seq": M - 1}, "event": "btn:self"},
 ], "граница seq")
-edge_ok = (edge[0] == ("error", {"id": 0, "error": "seq_overflow"})
+edge_ok = (edge[0] == ("error", {"id": 0, "error": "seq_overflow", "code": "seq_overflow"})
            and edge[1][0] == "result" and edge[1][1]["snapshot"].get("seq") == M
            and edge[2][0] == "result" and edge[2][1]["snapshot"].get("seq") == M
            and validator.is_valid(edge[2][1]["snapshot"]))
