@@ -34,9 +34,9 @@ func (h *Host) setClock(t int64) error {
 	h.clock = t
 	h.clockMu.Unlock()
 	for i := 0; ; i++ {
-		tx, err := h.db.Begin()
+		tx, err := h.beginW()
 		if err == nil {
-			if err = setMeta(tx, "clock_ms", strconv.FormatInt(t, 10)); err == nil {
+			if err = setMeta(tx.Tx, "clock_ms", strconv.FormatInt(t, 10)); err == nil {
 				err = tx.Commit()
 			} else {
 				tx.Rollback()
@@ -130,7 +130,7 @@ func (h *Host) deliverTimers(rows []timerRow, dup int, suffix string) bool {
 						continue
 					}
 					if st == "dup" {
-						h.db.Exec(`UPDATE timers SET delivered=1 WHERE id=?`, t.id)
+						h.execW(`UPDATE timers SET delivered=1 WHERE id=?`, t.id)
 					}
 					h.stat("timer_"+st, 1)
 				}
@@ -246,12 +246,12 @@ func (h *Host) ResetUser(user, ctlID string) (string, error) {
 	}
 	newSeq := r.Snap.Seq
 	now := h.now()
-	tx, err := h.db.Begin()
+	tx, err := h.beginW()
 	if err != nil {
 		return "", err
 	}
 	defer tx.Rollback()
-	if err := ResetUserData(tx, family, user); err != nil {
+	if err := ResetUserData(tx.Tx, family, user); err != nil {
 		return "", err
 	}
 	if seqKeysStart {
@@ -280,7 +280,7 @@ func (h *Host) ResetUser(user, ctlID string) (string, error) {
 		string(r.ActsText), now, note); err != nil {
 		return "", err
 	}
-	if err := h.insertOutbox(tx, user, newSeq, r.Actions, nil, now); err != nil {
+	if err := h.insertOutbox(tx.Tx, user, newSeq, r.Actions, nil, now); err != nil {
 		return "", err
 	}
 	if err := tx.Commit(); err != nil {
@@ -303,7 +303,7 @@ func (h *Host) Upgrade(newDoc string) (map[string]any, error) {
 	}
 	oldDoc := h.FamilyDoc(family)
 	names := di.TimerNames()
-	tx, err := h.db.Begin()
+	tx, err := h.beginW()
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +313,7 @@ func (h *Host) Upgrade(newDoc string) (map[string]any, error) {
 		return nil, err
 	}
 	nUsers, _ := res.RowsAffected()
-	if err := setMeta(tx, "doc:"+family, newDoc); err != nil {
+	if err := setMeta(tx.Tx, "doc:"+family, newDoc); err != nil {
 		return nil, err
 	}
 	ph := strings.TrimSuffix(strings.Repeat("?,", len(names)), ",")
@@ -399,18 +399,18 @@ func (h *Host) Ctl(cmd map[string]any) (map[string]any, error) {
 			h.exec.kickAll()
 		}
 	case "timer_mode":
-		tx, err := h.db.Begin()
+		tx, err := h.beginW()
 		if err != nil {
 			return nil, err
 		}
 		if v, ok := cmd["dup"]; ok {
 			_ = v
 			n := num("dup")
-			setMeta(tx, "timer_dup", strconv.FormatInt(n, 10))
+			setMeta(tx.Tx, "timer_dup", strconv.FormatInt(n, 10))
 			h.timerDup.Store(n)
 		}
 		if v, ok := cmd["ignore_cancel"].(bool); ok {
-			setMeta(tx, "ignore_cancel", map[bool]string{true: "1", false: "0"}[v])
+			setMeta(tx.Tx, "ignore_cancel", map[bool]string{true: "1", false: "0"}[v])
 			h.ignoreCanc.Store(v)
 		}
 		if err := tx.Commit(); err != nil {

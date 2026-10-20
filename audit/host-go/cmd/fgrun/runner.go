@@ -145,6 +145,7 @@ type ackRec struct {
 }
 
 type exitRec struct {
+	TUs      int64  `json:"t_us"`
 	Gen      int    `json:"gen"`
 	Pid      int    `json:"pid"`
 	Signal   string `json:"signal,omitempty"`
@@ -339,7 +340,7 @@ func (r *Runner) readCrashLog() {
 func (r *Runner) supervise(p *hostProc) {
 	err := p.cmd.Wait()
 	close(p.done)
-	rec := exitRec{Gen: p.gen, Pid: p.pid}
+	rec := exitRec{Gen: p.gen, Pid: p.pid, TUs: time.Since(epoch).Microseconds()}
 	var ee *exec.ExitError
 	if errors.As(err, &ee) {
 		if ws, ok := ee.Sys().(syscall.WaitStatus); ok && ws.Signaled() {

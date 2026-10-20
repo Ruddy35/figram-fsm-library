@@ -60,7 +60,10 @@ type tgDelivery struct {
 	Key       string `json:"key"`
 	User      string `json:"user"`
 	Text      string `json:"text"`
+	TUs       int64  `json:"t_us"` // since the runner epoch
 }
+
+var epoch = time.Now()
 
 type ticket struct {
 	ID       int64
@@ -252,7 +255,7 @@ func (x *ExtSim) tgApply(key, user, text, mode string) map[string]any {
 	x.mu.Lock()
 	defer x.mu.Unlock()
 	id := len(x.TG) + 1
-	x.TG = append(x.TG, tgDelivery{MessageID: id, Key: key, User: user, Text: text})
+	x.TG = append(x.TG, tgDelivery{MessageID: id, Key: key, User: user, Text: text, TUs: time.Since(epoch).Microseconds()})
 	x.Requests = append(x.Requests, extReq{"tg", key, user, "send", mode, "delivered"})
 	return map[string]any{"message_id": id}
 }

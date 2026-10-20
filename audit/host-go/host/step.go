@@ -323,7 +323,7 @@ func (h *Host) computeGuards(need []string, u Update) (map[string]bool, error) {
 }
 
 func (h *Host) commitError(c *stepCtx, msg string) (string, error) {
-	tx, err := h.db.Begin()
+	tx, err := h.beginW()
 	if err != nil {
 		return "", err
 	}
@@ -375,7 +375,7 @@ func (h *Host) commit(c *stepCtx, early func(string)) (string, error) {
 		early(status) // BROKEN: acknowledged before the transaction is durable
 	}
 	now := h.now()
-	tx, err := h.db.Begin()
+	tx, err := h.beginW()
 	if err != nil {
 		return "", err
 	}
@@ -451,7 +451,7 @@ func (h *Host) commit(c *stepCtx, early func(string)) (string, error) {
 	}
 	split := h.broken["outbox-after-ack"]
 	if !split {
-		if err := h.insertOutbox(tx, u.User, newSeq, r.Actions, u.Arg, now); err != nil {
+		if err := h.insertOutbox(tx.Tx, u.User, newSeq, r.Actions, u.Arg, now); err != nil {
 			return "", err
 		}
 	}
@@ -468,11 +468,11 @@ func (h *Host) commit(c *stepCtx, early func(string)) (string, error) {
 			early(status) // BROKEN: ack before the outbox rows are durable
 		}
 		h.crashPoint("after_commit", u.Event)
-		tx2, err := h.db.Begin()
+		tx2, err := h.beginW()
 		if err != nil {
 			return status, nil
 		}
-		if err := h.insertOutbox(tx2, u.User, newSeq, r.Actions, u.Arg, now); err != nil {
+		if err := h.insertOutbox(tx2.Tx, u.User, newSeq, r.Actions, u.Arg, now); err != nil {
 			tx2.Rollback()
 			return status, nil
 		}

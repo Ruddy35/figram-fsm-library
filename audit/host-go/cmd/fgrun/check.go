@@ -688,10 +688,21 @@ func (c *checkCtx) run() {
 	c.set("send_at_least_once", badSend)
 
 	// send_duplicates_explained: a key delivered more than once must have seen a
-	// fault on one of its requests (timeout/dup/delay) or a host crash happened.
+	// fault on one of its requests (timeout/dup/delay) or the host process died
+	// between its first and its last delivery (kill -9 between effect and mark).
 	bad = nil
-	crashes := len(c.r.Fired)
-	extra := 0
+	ext.mu.Lock()
+	tgTimes := map[string][]int64{}
+	for _, d := range ext.TG {
+		tgTimes[d.Key] = append(tgTimes[d.Key], d.TUs)
+	}
+	ext.mu.Unlock()
+	var deaths []int64
+	for _, e := range c.r.Exits {
+		if e.Gen >= 0 && (e.Signal != "" || (!e.Expected && e.Code != 0)) {
+			deaths = append(deaths, e.TUs) // any abrupt end of a host process
+		}
+	}
 	for _, k := range sortedKeys(tgBy) {
 		if tgBy[k] <= 1 {
 			continue
@@ -702,11 +713,14 @@ func (c *checkCtx) run() {
 				explained = true
 			}
 		}
-		if !explained {
-			extra += tgBy[k] - 1
-			if crashes == 0 || extra > crashes*c.r.o.Executors {
-				bad = append(bad, fmt.Sprintf("%s delivered %d times, no fault on its requests, %d crashes", k, tgBy[k], crashes))
+		ts := tgTimes[k]
+		for _, d := range deaths {
+			if d > ts[0] && d <= ts[len(ts)-1] {
+				explained = true
 			}
+		}
+		if !explained {
+			bad = append(bad, fmt.Sprintf("%s delivered %d times without a fault on its requests or a host death in between", k, tgBy[k]))
 		}
 	}
 	c.set("send_duplicates_explained", bad)
@@ -865,6 +879,21 @@ func (c *checkCtx) run() {
 		}
 	}
 	c.set("crashes_effective", bad)
+
+	// no_unexpected_host_death: the host process only ever died by our own kill -9
+	bad = nil
+	for _, e := range c.r.Exits {
+		if e.Gen < 0 {
+			continue // startup attempt while the DB was locked (expected retry)
+		}
+		if !e.Expected && e.Signal != "killed" {
+			bad = append(bad, fmt.Sprintf("host gen %d pid %d died: signal=%q code=%d", e.Gen, e.Pid, e.Signal, e.Code))
+		}
+		if e.Expected && e.Signal != "" && e.Signal != "killed" {
+			bad = append(bad, fmt.Sprintf("host gen %d pid %d died during stop: signal=%q", e.Gen, e.Pid, e.Signal))
+		}
+	}
+	c.set("no_unexpected_host_death", bad)
 
 	// external_faults_effective
 	bad = nil

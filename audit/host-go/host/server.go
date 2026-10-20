@@ -114,7 +114,7 @@ func (h *Host) reject(body []byte, why string) {
 		txt = txt[:2000]
 	}
 	for i := 0; i < 20; i++ {
-		if _, err := h.db.Exec(`INSERT INTO rejected(body,reason,t_ms) VALUES(?,?,?)`, string(txt), why, h.now()); err == nil {
+		if _, err := h.execW(`INSERT INTO rejected(body,reason,t_ms) VALUES(?,?,?)`, string(txt), why, h.now()); err == nil {
 			return
 		}
 		time.Sleep(50 * time.Millisecond)

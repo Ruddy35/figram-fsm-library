@@ -5,11 +5,34 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"figramhost/figram"
 )
 
+func threads() string {
+	ents, _ := os.ReadDir("/proc/self/task")
+	var names []string
+	for _, e := range ents {
+		b, _ := os.ReadFile("/proc/self/task/" + e.Name() + "/comm")
+		names = append(names, strings.TrimSpace(string(b)))
+	}
+	st, _ := os.ReadFile("/proc/self/status")
+	vm := ""
+	for _, l := range strings.Split(string(st), "\n") {
+		if strings.HasPrefix(l, "VmSize") || strings.HasPrefix(l, "VmRSS") {
+			vm += strings.Join(strings.Fields(l), " ") + "; "
+		}
+	}
+	return fmt.Sprintf("%d threads %v %s", len(names), names, vm)
+}
+
 func main() {
+	fmt.Println("before init:", threads())
+	figram.Init()
+	time.Sleep(200 * time.Millisecond)
+	fmt.Println("after init: ", threads())
 	doc, err := os.ReadFile(os.Args[1])
 	if err != nil {
 		panic(err)

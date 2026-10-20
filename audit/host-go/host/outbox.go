@@ -160,7 +160,7 @@ func (h *Host) runOutbox(user string, upto int64) (bool, int64, error) {
 
 func (h *Host) transient(r outRow, code string, retryMs int64) (bool, int64) {
 	h.stat("ext_"+code, 1)
-	h.db.Exec(`UPDATE outbox SET attempts=attempts+1, last_error=? WHERE id=?`, code, r.id)
+	h.execW(`UPDATE outbox SET attempts=attempts+1, last_error=? WHERE id=?`, code, r.id)
 	b := int64(5) << uint(min64(r.attempts, 6))
 	if b > 200 {
 		b = 200
@@ -179,7 +179,7 @@ func min64(a, b int64) int64 {
 }
 
 func (h *Host) fail(r outRow, msg string) (bool, int64) {
-	h.db.Exec(`UPDATE outbox SET state='failed', last_error=? WHERE id=?`, msg, r.id)
+	h.execW(`UPDATE outbox SET state='failed', last_error=? WHERE id=?`, msg, r.id)
 	h.stat("outbox_failed", 1)
 	h.log("outbox_failed", r.user, map[string]any{"key": r.key, "error": msg})
 	return true, 0
@@ -226,7 +226,7 @@ func (h *Host) execRow(r outRow) (bool, int64) {
 }
 
 func (h *Host) execLocal(r outRow, tag string) (bool, int64) {
-	tx, err := h.db.Begin()
+	tx, err := h.beginW()
 	if err != nil {
 		h.stat("exec_db_error", 1)
 		return false, 50
@@ -239,7 +239,7 @@ func (h *Host) execLocal(r outRow, tag string) (bool, int64) {
 	if st != "pending" {
 		return true, 0
 	}
-	if err := ApplyLocal(tx, r.name, r.user, r.key, r.param, !h.broken["no-capacity-check"]); err != nil {
+	if err := ApplyLocal(tx.Tx, r.name, r.user, r.key, r.param, !h.broken["no-capacity-check"]); err != nil {
 		var p *ErrPermanent
 		if errors.As(err, &p) {
 			tx.Exec(`UPDATE outbox SET state='failed', last_error=? WHERE id=?`, p.Error(), r.id)
@@ -272,7 +272,7 @@ var nonceRng = struct {
 
 func (h *Host) execExternal(r outRow, spec CallSpec, tag string) (bool, int64) {
 	if h.broken["skip-external"] {
-		h.db.Exec(`UPDATE outbox SET state='done', done_ms=? WHERE id=?`, h.now(), r.id) // BROKEN
+		h.execW(`UPDATE outbox SET state='done', done_ms=? WHERE id=?`, h.now(), r.id) // BROKEN
 		return true, 0
 	}
 	payload, err := ExternalPayload(h.db, r.name, r.user, r.param)
@@ -333,12 +333,12 @@ func (h *Host) persistAck(fn func(tx *sql.Tx) error) error {
 	delay := 10 * time.Millisecond
 	for {
 		err := func() error {
-			tx, err := h.db.Begin()
+			tx, err := h.beginW()
 			if err != nil {
 				return err
 			}
 			defer tx.Rollback()
-			if err := fn(tx); err != nil {
+			if err := fn(tx.Tx); err != nil {
 				return err
 			}
 			return tx.Commit()

@@ -80,6 +80,7 @@ type Host struct {
 	crashMu sync.Mutex
 	armed   []CrashPoint
 
+	writeMu    sync.Mutex
 	inflight   sync.WaitGroup
 	inflightN  atomic.Int64
 	exec       *Executor
@@ -149,7 +150,7 @@ func New(cfg Config) (*Host, error) {
 	}
 	if h.broken["memory-timers"] {
 		// BROKEN: the scheduler kept its state in memory only -> lost on restart
-		db.Exec(`UPDATE timers SET state='lost', delivered=1 WHERE delivered=0`)
+		db.Exec(`UPDATE timers SET state='lost', delivered=1 WHERE delivered=0`) // before any writer exists
 	}
 	h.exec = newExecutor(h, cfg.Executors)
 	return h, nil
@@ -219,7 +220,7 @@ func (h *Host) Arm(p CrashPoint) {
 
 func (h *Host) log(kind, user string, detail any) {
 	b, _ := json.Marshal(detail)
-	h.db.Exec(`INSERT INTO host_log(kind,user,detail) VALUES(?,?,?)`, kind, user, string(b))
+	h.execW(`INSERT INTO host_log(kind,user,detail) VALUES(?,?,?)`, kind, user, string(b))
 }
 
 // FamilyDoc returns the current document of a family (persisted in meta doc:<family>).

@@ -49,6 +49,8 @@ void  figram_free(char*);
 
 // fg_init calls figram_init and (optionally) gives the calling Go M its signal
 // stack back. *changed = 1 if the Lean runtime replaced the thread's sigaltstack.
+static int fg_noop(int x) { return x + 1; }
+
 static int fg_init(int restore, int* changed, long* lean_ss_size) {
 	stack_t before, after;
 	memset(&before, 0, sizeof before);
@@ -356,3 +358,6 @@ func GetStats() Stats {
 	return Stats{stCalls.Load(), stNanos.Load(), stInBytes.Load(), stOutBytes.Load(),
 		stLoads.Load(), stUnloads.Load(), stLive.Load()}
 }
+
+// cgoNoop measures the bare cgo transition cost (benchmarks only).
+func cgoNoop(x int) int { return int(C.fg_noop(C.int(x))) }

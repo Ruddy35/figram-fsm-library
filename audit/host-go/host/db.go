@@ -125,3 +125,55 @@ func setMeta(tx *sql.Tx, k, v string) error {
 	_, err := tx.Exec(`INSERT INTO meta(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v`, k, v)
 	return err
 }
+
+// wtx is a write transaction serialised by the host's in-process writer mutex:
+// SQLite has one writer anyway; queueing in Go avoids the busy-handler sleeps
+// (latency spikes) while an outside process holding the DB lock still makes
+// BEGIN IMMEDIATE fail after busy_timeout (-> NACK).
+type wtx struct {
+	*sql.Tx
+	h    *Host
+	done bool
+}
+
+func (h *Host) beginW() (*wtx, error) {
+	h.writeMu.Lock()
+	tx, err := h.db.Begin()
+	if err != nil {
+		h.writeMu.Unlock()
+		return nil, err
+	}
+	return &wtx{Tx: tx, h: h}, nil
+}
+
+func (w *wtx) release() {
+	if !w.done {
+		w.done = true
+		w.h.writeMu.Unlock()
+	}
+}
+
+func (w *wtx) Commit() error {
+	if w.done {
+		return sql.ErrTxDone
+	}
+	err := w.Tx.Commit()
+	w.release()
+	return err
+}
+
+func (w *wtx) Rollback() error {
+	if w.done {
+		return nil
+	}
+	err := w.Tx.Rollback()
+	w.release()
+	return err
+}
+
+// execW: an autocommit write under the writer mutex.
+func (h *Host) execW(q string, args ...any) (sql.Result, error) {
+	h.writeMu.Lock()
+	defer h.writeMu.Unlock()
+	return h.db.Exec(q, args...)
+}
