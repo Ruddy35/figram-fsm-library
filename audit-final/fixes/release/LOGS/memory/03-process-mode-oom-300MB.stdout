@@ -1,4 +1,0 @@
-1. до сбоя: start ok, pid движка 627, pid хоста 626
-2. запрос 300 МБ: EngineError за 31.6 с, retryable=True, code=None
-   текст: процесс движка неисправен: запись не удалась: BrokenPipeError(32, 'Broken pipe'); движок завершился с кодом 1; stderr: INTERNAL PANIC: out of memory
-3. после сбоя: start ok ({'at': 'menu', 'seq': 1}), pid движка 636 (новый процесс: True), хост жив: pid 626

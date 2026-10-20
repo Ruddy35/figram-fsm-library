@@ -1,2 +1,0 @@
-запросов 62, расхождений 1
-   {'op': 'step', 'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 5}, 'seq': 5}, 'event': 'timer:remind', 'token': 4} → {'id': 33, 'snapshot': {'at': 'reminder', 'resume': {'shop': 'reminder'}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'send': 'reminder'}]}, ожидал

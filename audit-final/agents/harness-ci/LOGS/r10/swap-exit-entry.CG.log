@@ -1,4 +1,0 @@
-запросов 62, расхождений 20
-   {'op': 'step', 'snapshot': {'at': 'pick_size', 'resume': {'order': 'pick_size'}, 'seq': 3}, 'event': 'btn:size'} → {'id': 3, 'snapshot': {'at': 'pick_toppings', 'resume': {'order': 'pick_toppings'}, 'seq': 4}, 'actions': [{'send': 'pick_toppings'}, {'call': 'save_size'}]}, ожидалось {'result': {'sna
-   {'op': 'step', 'snapshot': {'at': 'pick_toppings', 'resume': {'order': 'pick_toppings'}, 'seq': 4}, 'event': 'btn:add'} → {'id': 4, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 5}, 'seq': 5}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 5}, 'seq': 5}, 'event': 'btn:checkout', 'guards': {'cart_not_empty': True}} → {'id': 6, 'snapshot': {'at': 'address', 'resume': {'order': 'address'}, 'seq': 6}, 'actions': [{'send': 'address'}, {'cance

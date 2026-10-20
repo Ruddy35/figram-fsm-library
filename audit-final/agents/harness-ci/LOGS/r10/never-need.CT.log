@@ -1,4 +1,0 @@
-запросов 18041, расхождений 1641
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 23}, 'seq': 23}, 'event': 'btn:checkout'} → {'id': 29, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 24}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]}, ож
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 5}, 'seq': 5}, 'event': 'btn:checkout'} → {'id': 47, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 6}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]}, ожида
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 9}, 'seq': 9}, 'event': 'btn:checkout'} → {'id': 94, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 10}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]}, ожид

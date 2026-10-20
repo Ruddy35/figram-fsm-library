@@ -1,8 +1,0 @@
-command: env TSAN_OPTIONS=halt_on_error=0\ report_signal_unsafe=0 ffi/audit/out/contract_tsan init_race examples/pizza.bot.json 
-cwd: /home/user/figram-audit-worktrees/ffi-go
-start: 2026-10-19T23:53:44.358Z
-end: 2026-10-19T23:53:45.481Z
-exit_code: 0
---- stdout (40 bytes, last 200 lines)
-init_race: thread A ok=1, thread B ok=1
---- stderr (0 bytes, last 100 lines)

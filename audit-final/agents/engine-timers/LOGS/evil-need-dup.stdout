@@ -1,6 +1,0 @@
-{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 702, "coverage_targets": 42, "checks": 6073, "per_invariant": {"I1": 1067, "I10": 70, "I11": 99, "I12": 5, "I2": 1031, "I3": 498, "I4": 745, "I5": 299, "I6": 354, "I7": 446, "I8": 29, "I9": 1423, "T1": 7}, "violations": 58}
-  I9: cover target=address/cmd:start/0 i=2: ev=btn:checkout tok=None guards={} reply={'id': 15, 'need': ['cart_not_empty', 'cart_not_empty']} expected need ['cart_not_empty']
-  I8: cover target=address/cmd:start/0 i=2: need ['cart_not_empty', 'cart_not_empty']
-  I9: cover target=address/msg:text/0 i=3: ev=msg:text tok=None guards={} reply={'id': 23, 'need': ['in_delivery_zone', 'in_delivery_zone']} expected need ['in_delivery_zone']
-  I8: cover target=address/msg:text/0 i=3: need ['in_delivery_zone', 'in_delivery_zone']
-  I9: cover target=address/msg:text/1 i=2: ev=btn:checkout tok=None guards={} reply={'id': 28, 'need': ['cart_not_empty', 'cart_not_empty']} expected need ['cart_not_empty']

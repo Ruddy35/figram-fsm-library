@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 prlimit --as=8000000000 -- /usr/bin/python3 -I /home/user/figram-audit-worktrees/host-python/audit/host-python/runner.py /home/user/figram-audit/agents/host-python/REPRODUCTIONS/red_outbox_after_ack-1.jsonl --out /home/user/figram-audit/agents/host-python/LOGS/red/outbox-after-ack__red_outbox_after_ack-1.json --engine /home/user/figram-audit-worktrees/host-python/bin/figram-engine --bots /home/user/figram-audit/hosts/shared/bots --broken outbox-after-ack --no-ref 
-cwd: /home/user/figram-audit-worktrees/host-python/audit/host-python
-start: 2026-10-19T23:15:45.454Z
-end: 2026-10-19T23:15:46.183Z
-exit_code: 1
---- stdout (1036 bytes, last 200 lines)
-{"scenario": "red_outbox_after_ack-1", "broken": "outbox-after-ack", "elapsed_s": 0.4, "fails": ["actions_complete", "guards_match_domain_model", "send_at_least_once"], "counts": {"users": 1, "transitions": 6, "steps_logged": 6, "updates_acked": 8, "updates_abandoned": 0, "acks_by_status": {"ok": 6, "ignored": 2}, "nacks": 0, "crashes": 1, "host_restarts": 1, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 0, "outbox_rows": 7, "outbox_retried": 0, "crm_effects": 0, "crm_requests_by_outcome": {}, "tg_deliveries": 5, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {}, "timers_by_state": {}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 8, "p50": 7.701, "p95": 25.108, "p99": 25.108, "max": 27.971}, "host_step_ms": {"n": 8, "p50": 0.0, "p95": 0.0, "p99": 0.0, "max": 0.0}, "e2e_ms": {"n": 8, "p50": 7.977, "p95": 29.231, "p99": 29.231, "max": 30.331}, "elapsed_s": 0.403, "throughput_updates_per_s": 19.8}}
---- stderr (0 bytes, last 100 lines)

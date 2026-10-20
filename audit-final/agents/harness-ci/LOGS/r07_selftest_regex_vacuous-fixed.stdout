@@ -1,4 +1,0 @@
-conformance: rc=0 (real engine, success) ; DETECTED matches=False on None in 'запросов 659, расхождений 0'
-loadtest: rc=0 (real engine, success) ; DETECTED matches=False on None in 'потоков   8, процессов 1: шагов 600 (из них с запросом условий 39), расхождений 0, 9,256 ш'
-snapshot_fixtures: rc=0 (real engine, success) ; DETECTED matches=False on None in 'снимков 24, ответов 24, расхождений схемы и движка 0'
-tools whose clean success output already satisfies caught(): 0 of 3

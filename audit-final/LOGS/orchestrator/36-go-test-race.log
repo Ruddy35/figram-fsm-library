@@ -1,8 +1,0 @@
-command: go test -race -count=1 . 
-cwd: /home/user/figram-audit-worktrees/ref/ffi/go-example
-start: 2026-10-19T23:35:17.482Z
-end: 2026-10-19T23:35:23.385Z
-exit_code: 0
---- stdout (18 bytes, last 200 lines)
-ok  	gofig	1.064s
---- stderr (0 bytes, last 100 lines)

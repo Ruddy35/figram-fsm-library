@@ -1,9 +1,0 @@
-.lake/build/bin/figram-engine: узлов 21657, корней 18, достижимо 19581
-ok  unreachable «(lean::)?lean_uv_.*»: недостижимо 70 из 70
-ok  unreachable «(lean::)?event_loop_.*»: недостижимо 5 из 5
-ok  unreachable «initialize_libuv»: недостижимо 1 из 1
-ok  unreachable «(lean::)?initialize_libuv_.*»: недостижимо 9 из 9
-ok  unreachable «(lean::)?g_uv_.*_external_class»: недостижимо 4 из 4
-ok  reachable «(lean::)?segv_handler.*»: достижимо 1 из 1
-      путь: segv_handler ← lean::initialize_stack_overflow() ← lean_initialize_runtime_module ← initialize_figram_EngineMain ← main
-проверок 6, отказов 0

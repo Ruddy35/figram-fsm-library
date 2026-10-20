@@ -1,7 +1,0 @@
-cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
-cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
-cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
-ffi/audit/contract.c: In function 'main':
-ffi/audit/contract.c:225:58: warning: '%s' directive argument is null [-Wformat-overflow=]
-  225 |   printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
-      |                                                          ^~

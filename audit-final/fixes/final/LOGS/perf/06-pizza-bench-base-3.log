@@ -1,8 +1,0 @@
-command: python3 -B /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/perf/bench_engine.py /home/user/figram-audit/fixes/protocol/base-bin/figram-engine examples/pizza.bot.json --steps 50000 --seed 3 --label base 
-cwd: /home/user/figram-audit-worktrees/fix-final
-start: 2026-10-20T04:22:10.281Z
-end: 2026-10-20T04:22:16.421Z
-exit_code: 0
---- stdout (552 bytes, last 200 lines)
-{"label": "base", "doc_bytes": 3677, "states": 11, "load_s": 0.007, "load_cpu_s": 0.007, "rss_load_kb": 10480, "hwm_load_kb": 10480, "rss_end_kb": 10420, "hwm_end_kb": 10420, "steps": 50000, "transitions": 45136, "ignored": 4864, "errors": 0, "max_snapshot_bytes": 93, "hello_p50_us": 41.9, "step_p50_us": 65.1, "step_p95_us": 115.9, "step_p99_us": 169.6, "step_max_us": 3639.7, "sync_steps_per_s": 13253.1, "cpu_p50_us": 40.1, "cpu_p95_us": 78.9, "cpu_p99_us": 111.4, "cpu_max_us": 2924.3, "cpu_mean_us": 47.8, "runq_p50_us": 0.0, "runq_p99_us": 0.0}
---- stderr (0 bytes, last 100 lines)

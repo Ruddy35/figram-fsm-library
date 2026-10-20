@@ -1,4 +1,0 @@
-запросов 62, расхождений 18
-   {'op': 'step', 'snapshot': {'at': 'pick_toppings', 'resume': {'order': 'pick_toppings'}, 'seq': 4}, 'event': 'btn:add'} → {'id': 4, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 4}, 'seq': 5}, 'actions': [{'call': 'add_to_cart'}, {'start_timer': 'cart_reminder',
-   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'event': 'btn:cart'} → {'id': 12, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 2}, 'seq': 3}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 2}, {'send
-   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 4}, 'event': 'btn:cart'} → {'id': 15, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 4}, 'seq': 5}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 4}, {'send

@@ -1,8 +1,0 @@
-command: bash REPRODUCTIONS/r02_client_contract_flaky.sh /home/user/figram-audit-worktrees/harness-ci 30 
-cwd: /home/user/figram-audit/agents/harness-ci
-start: 2026-10-19T22:15:04.199Z
-end: 2026-10-19T22:16:09.969Z
-exit_code: 0
---- stdout (42 bytes, last 200 lines)
-client_contract.py: 0 failures of 30 runs
---- stderr (0 bytes, last 100 lines)

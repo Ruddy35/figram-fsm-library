@@ -1,8 +1,0 @@
-command: timeout 900 bash scripts/build.sh 
-cwd: /home/user/figram-audit-worktrees/fix-final/audit/host-go
-start: 2026-10-20T04:14:21.266Z
-end: 2026-10-20T04:14:33.656Z
-exit_code: 0
---- stdout (46 bytes, last 200 lines)
-built: fghost fgmem fgprobe fgrun fgsigprobe 
---- stderr (0 bytes, last 100 lines)

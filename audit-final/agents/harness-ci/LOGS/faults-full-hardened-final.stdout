@@ -1,3 +1,0 @@
-неисправность код ожидание последняя строка
-none                 3      3        ok   - хеши сверены с /home/user/figram-audit/agents/harness-ci/LOGS/local-SHA256SUMS, а не с bin/SHA256SUMS: соо
-шлюз красный на каждой неисправности и зелёный без них

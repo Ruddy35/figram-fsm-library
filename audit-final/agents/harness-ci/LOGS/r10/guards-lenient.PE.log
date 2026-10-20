@@ -1,2 +1,0 @@
-НЕТ не-булево значение условия — ошибка: {'snapshot': {'at': 'catalog', 'resume': {'shop': 'catalog'}, 'seq': 1}, 'actions': [{'cancel_timer': 'idle'}, {'send': 'catalog'}]} ≠ ожидалось error
-граничных случаев протокола 11, ответов 11, расхождений 1

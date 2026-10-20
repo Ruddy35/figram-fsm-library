@@ -1,5 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
-после close: потомков/потоков/fd до вызовов (0, 1, 6) после (2, 5, 8)
-исходы вызовов после close: ['ответ menu', 'ответ menu', 'ответ menu', 'ответ menu', 'ответ menu', 'ответ menu', 'ответ menu', 'ответ menu']
-живых процессов движка, запущенных после close: 2
-ДЕФЕКТ ВОСПРОИЗВЕДЁН

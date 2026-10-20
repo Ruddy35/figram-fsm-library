@@ -1,6 +1,0 @@
-{"scenario": "load_u1000-7", "broken": null, "elapsed_s": 51.15, "fails": ["send_duplicates_explained"], "counts": {"users": 1000, "transitions": 8000, "steps_logged": 8000, "updates_acked": 8000, "acks_by_status": {"ok": 8000}, "nacks": 23, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 0, "outbox_rows": 14000, "outbox_retried": 0, "crm_effects": 1000, "crm_requests_by_outcome": {"applied": 1000, "dedup": 1}, "tg_deliveries": 8014, "tg_duplicate_keys": 14, "ext_fault_modes_seen": {}, "timers_by_state": {"canceled": 1000}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 8000, "p50": 4.664, "p95": 159.122, "p99": 610.864, "max": 1574.636}, "host_step_ms": {"n": 8000, "p50": 4.642, "p95": 159.091, "p99": 610.845, "max": 1574.615}, "e2e_ms": {"n": 8000, "p50": 122.834, "p95": 406.833, "p99": 741.411, "max": 1883.296}, "elapsed_s": 51.147, "throughput_updates_per_s": 156.4}}
-
-real	0m52.805s
-user	0m11.103s
-sys	0m6.865s
-rc=1

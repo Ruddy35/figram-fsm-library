@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 600 python3 ptdriver.py /home/user/figram-audit-worktrees/integration/.lake/build/bin/figram-engine walk docs/t_need.bot.json --users 20 --steps 40 
-cwd: /home/user/figram-audit-worktrees/integration/audit/engine_timers
-start: 2026-10-20T00:41:49.710Z
-end: 2026-10-20T00:41:50.060Z
-exit_code: 0
---- stdout (291 bytes, last 200 lines)
-{"doc": "docs/t_need.bot.json", "mutate": null, "seed": 1, "replies": 1307, "coverage_targets": 19, "checks": 10532, "per_invariant": {"I1": 2015, "I10": 109, "I11": 191, "I12": 26, "I2": 1857, "I3": 850, "I4": 1235, "I5": 424, "I6": 424, "I7": 811, "I8": 130, "I9": 2460}, "violations": 0}
---- stderr (0 bytes, last 100 lines)

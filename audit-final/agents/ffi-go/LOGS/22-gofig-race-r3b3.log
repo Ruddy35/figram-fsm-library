@@ -1,8 +1,0 @@
-command: ./gofig-race -rounds 3 -bots 3 ../../examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/traces/small.jsonl 
-cwd: /home/user/figram-audit-worktrees/ffi-go/ffi/go-example
-start: 2026-10-19T23:42:43.936Z
-end: 2026-10-19T23:42:45.128Z
-exit_code: 0
---- stdout (148 bytes, last 200 lines)
-ботов 3, раундов 3, горутин 60, запросов 1860, расхождений 0, 15456 запросов/с (GOMAXPROCS=4, CPU=4)
---- stderr (0 bytes, last 100 lines)

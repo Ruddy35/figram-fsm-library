@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 300 python3 ffi/python-example/snapshot_fixtures.py /home/user/figram-audit/fixes/protocol/base-bin/figram-engine examples/features.bot.json snapshot.schema.json 
-cwd: /home/user/figram-audit-worktrees/fix-protocol
-start: 2026-10-20T02:07:29.236Z
-end: 2026-10-20T02:07:29.472Z
-exit_code: 1
---- stdout (0 bytes, last 200 lines)
---- stderr (131 bytes, last 100 lines)
-граничные снимки: ответ 3 нарушает протокол: ответ-ошибка: поля ['error', 'id']

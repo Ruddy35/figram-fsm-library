@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 sh /home/user/figram-audit/agents/python-client/REPRODUCTIONS/stability_robustness.sh /home/user/figram-audit-worktrees/python-client 5 
-cwd: /home/user/figram-audit-worktrees/python-client
-start: 2026-10-19T23:14:46.013Z
-end: 2026-10-19T23:16:00.681Z
-exit_code: 0
---- stdout (37 bytes, last 200 lines)
-прогонов 5, отказов 0
---- stderr (0 bytes, last 100 lines)

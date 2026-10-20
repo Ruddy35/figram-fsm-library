@@ -1,1 +1,0 @@
-{"survivors": 1033, "non_equivalent_survivors": 0}

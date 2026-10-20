@@ -1,2 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit/agents/python-client/baseline-client
-close() пула из 4 зависших процессов при timeout=1.0: 4.01 с

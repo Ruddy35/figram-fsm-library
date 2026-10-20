@@ -1,8 +1,0 @@
-command: python3 ptdriver.py ../../bin/figram-engine walk ../../examples/features.bot.json --users 30 --steps 60 --seed 1 
-cwd: /home/user/figram-audit-worktrees/engine-timers/audit/engine_timers
-start: 2026-10-19T22:15:04.603Z
-end: 2026-10-19T22:15:05.147Z
-exit_code: 0
---- stdout (317 bytes, last 200 lines)
-{"doc": "../../examples/features.bot.json", "mutate": null, "seed": 1, "replies": 2846, "coverage_targets": 36, "checks": 23919, "per_invariant": {"I1": 4241, "I10": 253, "I11": 473, "I12": 65, "I2": 4035, "I3": 1915, "I4": 2887, "I5": 1038, "I6": 1437, "I7": 1849, "I8": 139, "I9": 5562, "T1": 25}, "violations": 0}
---- stderr (0 bytes, last 100 lines)

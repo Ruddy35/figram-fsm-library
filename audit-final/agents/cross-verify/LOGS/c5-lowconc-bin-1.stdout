@@ -1,6 +1,0 @@
-engine=bin/figram-engine mode=c5 client timeout=10.0s (default is 10.0)
-normal users: 8, pause between their steps 0.01s
-warm-up: 731 normal requests ok, 0 failed
-bad request attempts: [('процесс движка неисправен: ответ без целого id: b\'{"id":null,"error":"\\xd0\\xbf\\x', 0.0), ('процесс движка неисправен: ответ без целого id: b\'{"id":null,"error":"\\xd0\\xbf\\x', 0.0), ('процесс движка неисправен: ответ без целого id: b\'{"id":null,"error":"\\xd0\\xbf\\x', 0.0)]
-normal users: ok=2109 FAILED=0; engine pid 6843 -> 7255
-NOT REPRODUCED / CONTROL RED

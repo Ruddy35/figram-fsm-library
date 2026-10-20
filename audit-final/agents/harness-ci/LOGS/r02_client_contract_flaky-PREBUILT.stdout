@@ -1,6 +1,0 @@
-run 3: FAIL: ProcessLookupError: [Errno 3] No such process
-run 5: FAIL: ProcessLookupError: [Errno 3] No such process
-run 6: FAIL: ProcessLookupError: [Errno 3] No such process
-run 15: FAIL: ProcessLookupError: [Errno 3] No such process
-run 18: FAIL: ProcessLookupError: [Errno 3] No such process
-client_contract.py: 5 failures of 20 runs

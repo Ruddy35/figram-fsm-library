@@ -1,4 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
-(a) два события без блокировки: итоговый снимок {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2} — последовательно было бы {'at': 'help', 'resume': {'order': 'catalog'}, 'seq': 3}
-(b) e1 отправлен раньше e2, процесс упал с обоими в очереди: e2 зафиксирован раньше e1 в 12 из 40 прогонов
-утверждение о порядке НЕ выполняется без блокировки на пользователя

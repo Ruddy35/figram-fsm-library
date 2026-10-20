@@ -1,2 +1,0 @@
-неисправность код ожидание последняя строка
-engine-bug-golden-edited 1      1        ok НЕТ: examples/golden.jsonl не совпадает с выводом figram golden

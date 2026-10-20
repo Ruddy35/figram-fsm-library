@@ -1,8 +1,0 @@
-command: timeout 840 python3 diff_random.py --engine /home/user/figram-audit/fixes/core/final-bin/figram-engine --docs 600 --steps 120 --seed 1 --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot 
-cwd: /home/user/figram-audit-worktrees/fix-core/audit/core-compiler
-start: 2026-10-20T02:55:08.745Z
-end: 2026-10-20T02:56:42.092Z
-exit_code: 0
---- stdout (1240 bytes, last 200 lines)
-{"stats": {"docs": 600, "exhaustive": {"branch": 247065, "all-false": 40615, "dead": 53332, "branch-unowned-timer": 91070, "all-false-unowned-timer": 15555}, "requests": 493742, "transitions": 295351, "ignored": 169325, "hits_steps": {"A7-unowned-timer-accepted@exhaustive": 106625, "A3-need-superset": 1288, "A3-need-superset@perturbed": 3006, "A3-need-superset@upgraded@perturbed": 1553, "A3-need-superset@upgraded": 244, "A7-unowned-timer-accepted@perturbed": 90, "A1-moved-memory@perturbed": 21, "A1-moved-memory@upgraded@perturbed": 19, "A1-moved-memory@upgraded": 1, "A7-unowned-timer-accepted@upgraded@perturbed": 38}, "events": {"live": 50738, "timer-forged": 11384, "unknown": 2180, "named": 1655, "timer-stale": 1248, "timer-valid": 3733}, "steps": 70938, "need_replies": 26270, "perturb": {"bad_resume": 621, "foreign_resume": 579, "extra_timer": 604, "seq_edge": 591, "deleted_at": 593, "older": 588, "section_at": 588}, "restarts": 1057, "errors": 567, "recovered": 1225, "upgrades": 369, "upgrade_ops": {"drop": 86, "message": 49, "rename": 49, "add": 56, "move": 94, "delete": 35}}, "ambiguity_hits_docs": {"A7-unowned-timer-accepted": 533, "A3-need-superset": 556, "A1-moved-memory": 37}, "divergences": 0, "seconds": 93.2}
---- stderr (0 bytes, last 100 lines)

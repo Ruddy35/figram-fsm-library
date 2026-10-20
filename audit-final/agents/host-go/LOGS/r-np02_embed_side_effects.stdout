@@ -1,6 +1,0 @@
-before init: 6 threads [fgprobe fgprobe fgprobe fgprobe fgprobe fgprobe] VmSize: 1611816 kB; VmRSS: 6616 kB; 
-after init:  8 threads [fgprobe fgprobe fgprobe fgprobe fgprobe fgprobe iou-sqp-9761 fgprobe] VmSize: 3774864 kB; VmRSS: 17384 kB; 
-init: {Code:0 SigaltstackChange:true LeanSigstackSize:14528 Restored:true Duration:3.340037ms} load=925.882µs
-init={Code:0 SigaltstackChange:true LeanSigstackSize:14528 Restored:false Duration:4.692512ms} tid=9770 keep="1"
-survived: iterations=4427699
-rc=0

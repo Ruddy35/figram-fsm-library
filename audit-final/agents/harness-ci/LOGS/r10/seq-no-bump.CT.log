@@ -1,4 +1,0 @@
-запросов 18041, расхождений 12966
-   {'op': 'start'} → {'id': 0, 'snapshot': {'at': 'menu'}, 'actions': [{'send': 'menu'}]}, ожидалось {'result': {'snapshot': {'at': 'menu', 'seq': 1}, 'actions': [{'send': 'menu'}]}}
-   {'op': 'step', 'snapshot': {'at': 'menu', 'seq': 1}, 'event': 'btn:order'} → {'id': 1, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 1}, 'actions': [{'send': 'catalog'}]}, ожидалось {'result': {'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'actions':
-   {'op': 'step', 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'event': 'btn:cart'} → {'id': 2, 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 2}, 'actions': [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 3}, {'send'

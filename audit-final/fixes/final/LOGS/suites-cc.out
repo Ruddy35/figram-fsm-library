@@ -1,5 +1,0 @@
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/10-cc-run_all.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/11-cc-lint_warnings.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/12-cc-check_messages-fc07.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/13-cc-compile_same.log
-SUITES-DONE

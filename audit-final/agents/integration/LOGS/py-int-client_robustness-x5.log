@@ -1,8 +1,0 @@
-command: /home/user/figram-audit/agents/integration/scripts/repeat.sh 5 nice -n 10 timeout 600 python3 client_robustness.py /home/user/figram-audit-worktrees/integration/.lake/build/bin/figram-engine ../../examples/pizza.bot.json ../../examples/features.bot.json 
-cwd: /home/user/figram-audit-worktrees/integration/ffi/python-example
-start: 2026-10-20T00:40:10.046Z
-end: 2026-10-20T00:40:47.300Z
-exit_code: 0
---- stdout (25 bytes, last 200 lines)
-runs=5 exit0=5 nonzero=0
---- stderr (0 bytes, last 100 lines)

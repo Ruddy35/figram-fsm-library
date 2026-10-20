@@ -1,3 +1,0 @@
-  расходятся: {'at': 'home', 'seq': 9007199254740991}: схема True, движок False seq_overflow
-снимков 24, ответов 24, расхождений схемы и движка 1
-граница seq: НЕТ [('error', {'id': 0, 'error': 'seq_overflow'}), ('error', {'id': 1, 'error': 'seq_overflow'}), ('result', {'id': 2, 'snapshot': {'at': 'home', 'timers': {'idle': 9007199254740991}, 'seq': 9007199254740991}, 'actions': [{'cancel_timer': 'idle'}, {'start_timer': 'idle', 'ms': 60000, 'token': 9007199254740991}, {'send': 'home'}]})]

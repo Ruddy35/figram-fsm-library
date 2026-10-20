@@ -1,2 +1,0 @@
-неисправность код ожидание последняя строка
-coverage-drop        1      1        ok НЕТ: пересобранные бинарники не совпадают с /home/user/figram-audit/fixes/final/gate-sums/SUMS

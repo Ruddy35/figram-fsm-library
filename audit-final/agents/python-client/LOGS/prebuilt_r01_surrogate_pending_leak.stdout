@@ -1,5 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
-исключения: {'UnicodeEncodeError': 1000}
-ожидающих в таблице после 1000 запросов: 1000 процесс жив: True
-процесс обслуживает обычные запросы: True
-ДЕФЕКТ ВОСПРОИЗВЕДЁН

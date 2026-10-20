@@ -1,8 +1,0 @@
-command: timeout 600 python3 -B ptdriver.py /home/user/figram-audit/fixes/core/final-bin/figram-engine walk ../../examples/pizza.bot.json --users 20 --steps 40 
-cwd: /home/user/figram-audit-worktrees/fix-core/audit/engine_timers
-start: 2026-10-20T03:49:25.465Z
-end: 2026-10-20T03:49:25.827Z
-exit_code: 0
---- stdout (308 bytes, last 200 lines)
-{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 1397, "coverage_targets": 42, "checks": 12140, "per_invariant": {"I1": 2121, "I10": 130, "I11": 207, "I12": 25, "I2": 2048, "I3": 988, "I4": 1512, "I5": 586, "I6": 699, "I7": 926, "I8": 46, "I9": 2845, "T1": 7}, "violations": 0}
---- stderr (0 bytes, last 100 lines)

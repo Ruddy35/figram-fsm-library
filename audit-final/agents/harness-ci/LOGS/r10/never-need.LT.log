@@ -1,6 +1,0 @@
-потоков  64, процессов 2: шагов 8000 (из них с запросом условий 0), расхождений 2993, 5,522 шагов/с, задержка p50 9,415 мкс, p99 26,480 мкс
-   user-4 шаг 4: условия [] ≠ ['cart_not_empty']
-   user-4 шаг 4: {'id': 6, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 6}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]} ≠ {'event': 'btn:checkout', 'guards': {'cart_not_empty': True}, 'snapshot': {'at': 'address', 'resume': {'order': 'address'}, 'seq': 6}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'address'}]}
-   user-4 шаг 5: {'id': 8, 'snapshot': {'at': 'menu', 'resume': {'order': 'catalog'}, 'seq': 7}, 'actions': [{'call': 'clear_cart'}, {'send': 'menu'}]} ≠ {'event': 'btn:cancel', 'guards': {}, 'snapshot': {'at': 'menu', 'resume': {'order': 'address'}, 'seq': 7}, 'actions': [{'call': 'clear_cart'}, {'send': 'menu'}]}
-   user-5 шаг 5: условия [] ≠ ['cart_not_empty']
-   user-17 шаг 4: условия [] ≠ ['cart_not_empty']

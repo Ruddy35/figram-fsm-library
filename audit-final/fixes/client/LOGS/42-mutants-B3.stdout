@@ -1,8 +1,0 @@
-исходник: /home/user/figram-audit-worktrees/fix-client/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fresh/figram-engine
-M13 неизвестный id игнорируется: убит: client_robustness.py  client_faults.py=0 9.4с []; client_contract.py=0 2.1с []; client_robustness.py=1 67.0с ['НЕТ R1 неизвестный id: ошибок 8 из 8, самый долгий 6.00 с (срок 6 с)']
-M14 нет проверки failure перед регистрацией: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 7.1с []; client_contract.py=0 2.1с []; client_robustness.py=0 53.5с []
-M15 срок от записи, а не от начала вызова (+timeout): убит: client_faults.py  client_faults.py=1 10.1с ['НЕТ 300 одновременных запросов (~300 КБ) при заблокированном входе: ошибок 300, зависло 0, самый долгий вызов 2.00 с, всего 3.1 с']
-M16 нет _check_wire (id:null снова роняет процесс): ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 7.1с []; client_contract.py=0 2.1с []; client_robustness.py=0 53.3с []
-M17 кодирование после регистрации (утечка _pending): убит: client_robustness.py  client_faults.py=0 7.0с []; client_contract.py=0 2.1с []; client_robustness.py=1 54.1с ["НЕТ R5 200 запросов с одиночным суррогатом: {'UnicodeEncodeError': 200}, ожидающих 200, процесс жив True"]
-M18 закрытый пул воскрешает процессы: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 8.3с []; client_contract.py=0 2.2с []; client_robustness.py=0 59.5с []
-выживших мутантов: 3 из 6

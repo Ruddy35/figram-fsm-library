@@ -1,8 +1,0 @@
-life 1:
-life 2 (start again, e.g. snapshot lost / 'delete my data'):
-  CRM dedup: save_size with key u:4:0 -> returns result of earlier save_size
-  CRM dedup: add_to_cart with key u:5:0 -> returns result of earlier add_to_cart
-  CRM dedup: save_address with key u:7:0 -> returns result of earlier save_address
-  CRM dedup: create_order with key u:8:0 -> returns result of earlier create_order
-final at: done / done; keys life1=14 life2=14 colliding=14
-create_order executed in CRM: 1 (expected 2)

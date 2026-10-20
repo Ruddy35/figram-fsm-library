@@ -34,8 +34,7 @@ def ex(name):
     return json.load(open(os.path.join(REPO, "examples", name), encoding="utf-8"))
 
 
-TIMERS = json.load(open(os.path.join(REPO, "audit", "engine_timers", "docs", "t_timers.bot.json"),
-                        encoding="utf-8"))
+TIMERS = json.load(open(os.path.join(HERE, "t_timers.bot.json"), encoding="utf-8"))
 
 # (name, document, fragments that must be warned about; [] = no warning at all)
 CASES = [

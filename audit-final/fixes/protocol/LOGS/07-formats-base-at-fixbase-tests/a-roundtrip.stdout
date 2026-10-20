@@ -1,4 +1,0 @@
-EDGE FC-01 annotation 1.0e-1000: fmt rc=0 oracle-match=True refmt rc=0 idempotent=True
-EDGE FC-01 annotation -2.50e-999: fmt rc=0 oracle-match=True refmt rc=0 idempotent=True
-EDGE FC-01 annotation 1001 fraction digits: fmt rc=0 oracle-match=True refmt rc=0 idempotent=True
-docs=103 variants=515 P1=515 P2=515 P3=515 P4=515 failures=0 edge_fail=0/3 break=None

@@ -1,8 +1,0 @@
-command: python3 -B check_messages_diff.py --old /home/user/figram-audit/fixes/core/base-bin/figram --new /home/user/figram-audit-worktrees/fix-final/.lake/build/bin/figram --docs 20 --fc07 
-cwd: /home/user/figram-audit-worktrees/fix-final/audit/core-compiler
-start: 2026-10-20T04:40:38.079Z
-end: 2026-10-20T04:40:48.427Z
-exit_code: 0
---- stdout (50 bytes, last 200 lines)
-documents 505, rejected by old 358, differences 0
---- stderr (0 bytes, last 100 lines)

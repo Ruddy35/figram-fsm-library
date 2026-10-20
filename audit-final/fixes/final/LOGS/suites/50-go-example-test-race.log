@@ -1,8 +1,0 @@
-command: timeout 1700 env CC=gcc GOMAXPROCS=4 go test -race -count=1 ./... 
-cwd: /home/user/figram-audit-worktrees/fix-final/ffi/go-example
-start: 2026-10-20T04:46:08.128Z
-end: 2026-10-20T04:46:35.857Z
-exit_code: 0
---- stdout (19 bytes, last 200 lines)
-ok  	gofig	26.070s
---- stderr (0 bytes, last 100 lines)

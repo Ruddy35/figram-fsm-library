@@ -1,6 +1,0 @@
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/01-check_docs.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/02-g_protocol_docs.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/03-ffi-doc_check.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/04-test_strict_gate_clean.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/05-strict_gate.log
-SUITES-DONE

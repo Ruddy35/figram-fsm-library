@@ -1,9 +1,0 @@
-command: bash ffi/build.sh 
-cwd: /home/user/figram-audit-worktrees/before-p22
-start: 2026-10-20T19:51:17.705Z
-end: 2026-10-20T19:51:18.934Z
-exit_code: 0
---- stdout (124 bytes, last 200 lines)
-Build completed successfully (24 jobs).
-готово: ffi/out/libfigram.a, флаги компоновки: ffi/out/LDFLAGS
---- stderr (0 bytes, last 100 lines)

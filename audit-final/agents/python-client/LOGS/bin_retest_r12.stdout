@@ -1,2 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit-worktrees/python-client/ffi/python-example
-500 сбоев: вызовов killpg 1047, из них по уже собранному pid 0; kernel.pid_max=32768

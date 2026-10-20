@@ -1,4 +1,0 @@
-исходник: /home/user/figram-fsm-library/ffi/python-example; тесты: ['client_robustness.py']; движок: /home/user/figram-fsm-library/bin/figram-engine
-исходный клиент: {'client_robustness.py': 0}
-M20 killpg при каждом _fail: убит: client_robustness.py  client_robustness.py=1 43.7с ['НЕТ R9 killpg: вызовов 298, из них по уже собранному (свободному) pid 17']
-выживших мутантов: 0 из 1

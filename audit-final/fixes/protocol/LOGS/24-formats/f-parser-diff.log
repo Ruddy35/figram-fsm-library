@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/fix-protocol/tests/formats/f_parser_diff.py /home/user/figram-audit/fixes/protocol/base-bin/figram /home/user/figram-audit-worktrees/fix-protocol/.lake/build/bin/figram --n 60000 
-cwd: /home/user/figram-audit-worktrees/fix-protocol
-start: 2026-10-20T02:55:15.376Z
-end: 2026-10-20T02:56:31.611Z
-exit_code: 0
---- stdout (108 bytes, last 200 lines)
-inputs=60000 identical=60000 (accepted 31200, rejected 28800) differences=0 error-messages-covered=22/22 []
---- stderr (0 bytes, last 100 lines)

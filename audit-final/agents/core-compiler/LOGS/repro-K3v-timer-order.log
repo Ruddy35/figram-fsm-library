@@ -1,9 +1,0 @@
-command: sh /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/K3v_timer_order/repro.sh 
-cwd: /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/PERF_compile_cliff
-start: 2026-10-19T22:27:51.857Z
-end: 2026-10-19T22:27:52.129Z
-exit_code: 0
---- stdout (342 bytes, last 200 lines)
-{"id":1,"snapshot":{"at":"a","timers":{"t2":1,"t1":1},"seq":1},"actions":[{"start_timer":"t1","ms":1000,"token":1},{"start_timer":"t2","ms":2000,"token":1},{"send":"a"}]}
-{"id":1,"snapshot":{"at":"a","timers":{"t1":1,"t2":1},"seq":1},"actions":[{"start_timer":"t2","ms":2000,"token":1},{"start_timer":"t1","ms":1000,"token":1},{"send":"a"}]}
---- stderr (0 bytes, last 100 lines)

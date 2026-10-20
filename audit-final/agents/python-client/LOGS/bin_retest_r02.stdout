@@ -1,5 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [bin (CI-verified = official fresh build, LOGS/10-ci-verify-run-39330382243.log)]  client=/home/user/figram-audit-worktrees/python-client/ffi/python-example
-после close: потомков/потоков/fd до вызовов (0, 1, 6) после (0, 1, 6)
-исходы вызовов после close: ['EngineError', 'EngineError', 'EngineError', 'EngineError', 'EngineError', 'EngineError', 'EngineError', 'EngineError']
-живых процессов движка, запущенных после close: 0
-дефекта нет

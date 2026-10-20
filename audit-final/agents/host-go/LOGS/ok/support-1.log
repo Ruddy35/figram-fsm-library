@@ -1,8 +1,0 @@
-command: /home/user/figram-audit-worktrees/host-go/audit/host-go/bin/fgrun run /home/user/figram-audit/hosts/shared/corpus/support-1.jsonl -out /home/user/figram-audit/hosts/out/go/support-1.json -ref /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/final2/ref -quiet 
-cwd: /home/user/figram-audit-worktrees/host-go/audit/host-go
-start: 2026-10-20T00:53:54.753Z
-end: 2026-10-20T00:53:55.931Z
-exit_code: 0
---- stdout (1249 bytes, last 200 lines)
-{"broken":"","counts":{"acks_by_status":{"dup":22,"ignored":2,"ok":62,"recovered":1},"binding_final_process":{"c_nanos":962332,"calls":6,"in_bytes":479,"live_machines":1,"loads":1,"out_bytes":606,"unloads":0},"crashes":4,"engine_faults":{"engine_fault_detected":{},"engine_fault_injected":{}},"ext":{"by_outcome":{"crm:429":2,"crm:500":3,"crm:applied":32,"crm:dedup":5,"tg:delivered":70},"crm_effects":32,"fault_modes_seen":{"429":2,"500":3,"timeout":2},"key_conflicts":0,"reordered_batches":0,"requests":112,"tg_deliveries":70,"tg_duplicate_keys":2},"host_log":{"recovered":1,"upgrade":1},"host_restarts":5,"host_stats_final_process":{"dup":2,"exec_external":3,"exec_send":9},"nack_reasons":{},"nacks":0,"outbox_rows":122,"recovered":1,"rejected":0,"repairs":0,"resets":0,"steps_logged":70,"timers_by_state":{"canceled":6,"fired":4,"orphaned":1},"transitions":68,"updates_abandoned":0,"updates_acked":87,"users":9},"elapsed_s":0.65,"fails":null,"latency":{"e2e_ms":{"max":28.035,"n":87,"p50":5.306,"p95":24.37,"p99":28.035},"elapsed_s":0.65,"host_step_ms":{"max":21.24,"n":87,"p50":3.188,"p95":10.851,"p99":21.24},"host_update_ms":{"max":21.53,"n":87,"p50":3.212,"p95":10.91,"p99":21.53},"throughput_updates_per_s":133.866},"scenario":"support-1"}
---- stderr (0 bytes, last 100 lines)

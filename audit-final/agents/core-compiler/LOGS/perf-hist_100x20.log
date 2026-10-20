@@ -1,8 +1,0 @@
-command: timeout 400 python3 perf.py --engine /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler/../../bin/figram-engine --only hist_100x20 --timeout 300 
-cwd: /home/user/figram-audit-worktrees/core-compiler/audit/core-compiler
-start: 2026-10-19T23:18:32.222Z
-end: 2026-10-19T23:19:06.105Z
-exit_code: 0
---- stdout (181 bytes, last 200 lines)
-{"load_s": 33.682, "status": "OK", "states": 2001, "step_us_unmatched_event": 151.1, "maxrss_children_mb": 17, "scenario": "hist_100x20", "doc_bytes": 108031, "oracle_valid": true}
---- stderr (0 bytes, last 100 lines)

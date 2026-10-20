@@ -1,7 +1,0 @@
-неисправность код ожидание последняя строка
-golden-truncated     1      1        ok НЕТ: фиксированные сценарии: «сценариев: 12» не удовлетворяет g[0] > 0 and g[0] == 2
-sums-tampered        1      1        ok НЕТ: пересобранные бинарники не совпадают с /tmp/tmp.rg9BCOrl2K/sums.tampered
-bin-swapped          1      1        ok НЕТ: bin/* не совпадают с bin/SHA256SUMS
-custom-axiom         1      1        ok НЕТ: Figram.Engine.guards_irrelevant: недопустимые аксиомы ['Figram.Machine.figram_cheat']
-native-decide        1      1        ok НЕТ: в исходниках Lean запрещённые конструкции (axiom, native_decide, implemented_by, extern, sorry, admit, sk
-theorem-weakened     1      1        ok НЕТ: формулировки теорем отличаются от ci/THEOREMS.expected (менять формулировку — только осознанно, вместе с 

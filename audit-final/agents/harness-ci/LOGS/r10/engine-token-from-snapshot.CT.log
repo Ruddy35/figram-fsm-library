@@ -1,4 +1,0 @@
-запросов 18041, расхождений 68
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 22}, 'seq': 22}, 'event': 'timer:cart_reminder', 'token': 21} → {'id': 154, 'snapshot': {'at': 'reminder', 'resume': {'order': 'cart'}, 'seq': 23}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 31}, 'seq': 31}, 'event': 'timer:cart_reminder', 'token': 30} → {'id': 256, 'snapshot': {'at': 'reminder', 'resume': {'order': 'cart'}, 'seq': 32}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 20}, 'seq': 20}, 'event': 'timer:cart_reminder', 'token': 19} → {'id': 540, 'snapshot': {'at': 'reminder', 'resume': {'order': 'cart'}, 'seq': 21}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send

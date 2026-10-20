@@ -1,4 +1,0 @@
-ok   load
-ok   request: {"id":7,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
-FAIL no runtime threads: threads 1 → 3 after init → 3 after load and request
-FAIL no runtime file descriptors: fds 4 → 12 after init → 12 after load and request

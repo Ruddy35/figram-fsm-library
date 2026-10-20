@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 400 prlimit --as=8000000000 -- python3 audit/host-perf/bench_engine.py bin/figram-engine /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/big/unique2000.bot.json --steps 1000 --load-timeout 300 --label unique2000 
-cwd: /home/user/figram-audit-worktrees/host-perf
-start: 2026-10-19T22:35:04.813Z
-end: 2026-10-19T22:40:05.016Z
-exit_code: 2
---- stdout (90 bytes, last 200 lines)
-{"label": "unique2000", "doc_bytes": 420463, "load_s": ">300.0", "error": "load timeout"}
---- stderr (0 bytes, last 100 lines)

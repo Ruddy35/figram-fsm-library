@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 200 python3 audit/host-perf/soak.py audit/host-perf/leaky_engine.sh examples/pizza.bot.json --seconds 60 --sample 5 --users 1000 
-cwd: /home/user/figram-audit-worktrees/host-perf
-start: 2026-10-19T23:02:07.930Z
-end: 2026-10-19T23:03:09.180Z
-exit_code: 0
---- stdout (444 bytes, last 200 lines)
-{"doc": "examples/pizza.bot.json", "seconds": 60.0, "users": 1000, "steps": 405746, "errors": 0, "rss_first_kb": 70384, "rss_after_warmup_kb": 104900, "rss_end_kb": 576336, "rss_max_kb": 576336, "hwm_end_kb": 576336, "rss_slope_kb_per_min_after_warmup": 558870.98, "p50_us_median_over_intervals": 101.4, "p99_us_max_over_intervals": 3371.5, "mean_steps_per_s": 6762.4, "engine_cpu_us_per_step_first": 27.3, "engine_cpu_us_per_step_last": 41.2}
---- stderr (0 bytes, last 100 lines)

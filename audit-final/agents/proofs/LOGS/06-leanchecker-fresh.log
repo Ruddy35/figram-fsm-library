@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 lake env leanchecker --fresh -v Figram 
-cwd: /home/user/figram-audit-worktrees/proofs
-start: 2026-10-19T23:37:56.928Z
-end: 2026-10-19T23:39:31.817Z
-exit_code: 0
---- stdout (30 bytes, last 200 lines)
-replaying Figram with --fresh
---- stderr (0 bytes, last 100 lines)

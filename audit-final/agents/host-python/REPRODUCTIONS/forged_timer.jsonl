@@ -1,7 +1,0 @@
-{"ctl":"init","bot":"pizza","scenario":"forged_timer","seed":1}
-{"user":"v","update_id":1,"event":"cmd:start"}
-{"user":"v","update_id":2,"event":"btn:order"}
-{"user":"v","update_id":3,"event":"btn:cart"}
-{"ctl":"note","text":"v is at cart, cart_reminder token = seq of entering cart = 3 (predictable); the forged fire must be rejected"}
-{"raw":{"user":"v","update_id":4,"event":"timer:cart_reminder","token":3}}
-{"user":"v","update_id":5,"event":"btn:pizza"}

@@ -1,9 +1,0 @@
->> {"id":1,"op":"start"}
-<< {"id":1,"snapshot":{"at":"a","seq":1},"actions":[{"send":"a"}]}
->> {"id":2,"op":"step","snapshot":{"at":"a","seq":1},"event":"btn:go"}
-<< {"id":2,"need":["expensive"]}
->> {"id":3,"op":"step","snapshot":{"at":"a","seq":1},"event":"btn:go","guards":{"expensive":true}}
-<< {"id":3,"snapshot":{"at":"c","seq":2},"actions":[{"send":"c"}]}
->> {"id":4,"op":"step","snapshot":{"at":"a","seq":1},"event":"btn:go","guards":{"expensive":false}}
-<< {"id":4,"snapshot":{"at":"c","seq":2},"actions":[{"send":"c"}]}
-VERDICT: need=['expensive'] although the result is identical for both values: True

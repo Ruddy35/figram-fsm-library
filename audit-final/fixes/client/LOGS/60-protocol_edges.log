@@ -1,8 +1,0 @@
-command: python3 ffi/python-example/protocol_edges.py /home/user/figram-audit/fresh/figram-engine examples/features.bot.json 
-cwd: /home/user/figram-audit-worktrees/fix-client
-start: 2026-10-20T02:44:41.239Z
-end: 2026-10-20T02:44:41.298Z
-exit_code: 0
---- stdout (101 bytes, last 200 lines)
-граничных случаев протокола 11, ответов 11, расхождений 0
---- stderr (0 bytes, last 100 lines)

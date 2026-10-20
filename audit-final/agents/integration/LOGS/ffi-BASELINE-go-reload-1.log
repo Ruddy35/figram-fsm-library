@@ -1,9 +1,0 @@
-command: nice -n 10 timeout 600 ./gofig -reload 5000 ../../examples/pizza.bot.json /tmp/tmp.jvWfNDmVkZ/small.jsonl 
-cwd: /home/user/figram-audit-worktrees/integration-py/ffi/go-example
-start: 2026-10-20T00:38:17.478Z
-end: 2026-10-20T00:38:24.925Z
-exit_code: 1
---- stdout (139 bytes, last 200 lines)
-5000 загрузок с Close (после прогрева): рост памяти 2520 КБ; без Close (контроль): 49232 КБ
---- stderr (100 bytes, last 100 lines)
-Close не освобождает память или контроль нечувствителен

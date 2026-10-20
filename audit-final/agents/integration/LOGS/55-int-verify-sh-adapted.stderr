@@ -1,5 +1,0 @@
-покрыто вариантов стрелок: 42 из 42
-покрыто вариантов стрелок: 36 из 36
-cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
-cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
-cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done

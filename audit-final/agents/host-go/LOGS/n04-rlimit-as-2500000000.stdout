@@ -1,1 +1,0 @@
-{"binding":{"Calls":0,"Nanos":0,"InBytes":0,"OutBytes":0,"Loads":0,"Unloads":0,"Live":0},"cycle":0,"go_heap":97184,"go_sys":6118416,"goroutines":1,"proc":{"Threads":"5","VmHWM":"6960 kB","VmRSS":"6960 kB","VmSize":"1537844 kB"},"t_s":0.010522559}

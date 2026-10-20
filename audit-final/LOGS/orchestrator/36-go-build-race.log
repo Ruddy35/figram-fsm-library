@@ -1,7 +1,0 @@
-command: go build -race -o gofig-race . 
-cwd: /home/user/figram-audit-worktrees/ref/ffi/go-example
-start: 2026-10-19T23:35:00.419Z
-end: 2026-10-19T23:35:14.492Z
-exit_code: 0
---- stdout (0 bytes, last 200 lines)
---- stderr (0 bytes, last 100 lines)

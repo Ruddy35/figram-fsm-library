@@ -1,6 +1,0 @@
-{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 417, "coverage_targets": 42, "checks": 2277, "per_invariant": {"I1": 821, "I10": 2, "I11": 5, "I12": 12, "I2": 479, "I3": 69, "I4": 33, "I5": 16, "I6": 20, "I7": 17, "I8": 2, "I9": 800, "T1": 1}, "violations": 423}
-  I11: cover target=address/msg:text/0 i=3: guards changed result b'{"id":24,"snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"actions":[{"call":"save_address"},{"send":"pay"}]}\n' vs b'{"id":24,"snapshot":{"at":"pay","resume":{"order":"pay"},"seq":-1},"actions":[{"call":"save_address"},{"send":"pay"}]}\n' ({'in_delivery_zone': True, 'cart_not_empty': True, 'undeclared_guard': True})
-  I3: start: snapshot violates schema {'at': 'menu', 'seq': -1}
-  I9: start {'id': 25, 'snapshot': {'at': 'menu', 'seq': -1}, 'actions': [{'send': 'menu'}]} expected {'at': 'menu', 'seq': 1} [{'send': 'menu'}]
-  I9: cover target=address/msg:text/1 i=0: unexpected error {'id': 26, 'error': 'снимок: «seq» должно быть неотрицательным целым'} for {'op': 'step', 'snapshot': {'at': 'menu', 'seq': -1}, 'event': 'btn:order'}
-  I3: start: snapshot violates schema {'at': 'menu', 'seq': -1}

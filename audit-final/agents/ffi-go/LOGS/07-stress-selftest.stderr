@@ -1,4 +1,0 @@
-MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
-MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
-MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}
-MISMATCH req 2: {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":1},"actions":[{"send":"catalog"}]}

@@ -1,9 +1,0 @@
-command: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fds 
-cwd: /home/user/figram-audit-worktrees/ffi-go
-start: 2026-10-20T00:03:41.122Z
-end: 2026-10-20T00:03:41.132Z
-exit_code: 0
---- stdout (607 bytes, last 200 lines)
-before: 0->socket:[995273] 1->/home/user/figram-audit/agents/ffi-go/LOGS/52-init-fds.stdout 2->/home/user/figram-audit/agents/ffi-go/LOGS/52-init-fds.stderr 3->/proc/3839/fd(cloexec)
-after: 0->socket:[995273] 1->/home/user/figram-audit/agents/ffi-go/LOGS/52-init-fds.stdout 2->/home/user/figram-audit/agents/ffi-go/LOGS/52-init-fds.stderr 3->anon_inode:[eventpoll](cloexec) 4->anon_inode:[io_uring](cloexec) 5->anon_inode:[io_uring](cloexec) 6->pipe:[997676](cloexec) 7->pipe:[997676](cloexec) 8->pipe:[997677](cloexec) 9->pipe:[997677](cloexec) 10->anon_inode:[eventfd](cloexec) 11->/proc/3839/fd(cloexec)
---- stderr (0 bytes, last 100 lines)

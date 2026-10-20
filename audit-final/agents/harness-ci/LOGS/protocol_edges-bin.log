@@ -1,8 +1,0 @@
-command: python3 /home/user/figram-audit-worktrees/harness-ci/ffi/python-example/protocol_edges.py /home/user/figram-audit-worktrees/harness-ci/bin/figram-engine /home/user/figram-audit-worktrees/harness-ci/examples/features.bot.json 
-cwd: /home/user/figram-audit/agents/harness-ci
-start: 2026-10-19T23:03:11.881Z
-end: 2026-10-19T23:03:12.100Z
-exit_code: 0
---- stdout (101 bytes, last 200 lines)
-граничных случаев протокола 11, ответов 11, расхождений 0
---- stderr (0 bytes, last 100 lines)

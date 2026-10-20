@@ -1,7 +1,0 @@
-{"ctl":"init","bot":"pizza","scenario":"meta_vacuous","seed":1,"engine_proxy":true}
-{"user":"v1","update_id":1001,"event":"cmd:start"}
-{"user":"v1","update_id":1002,"event":"btn:order"}
-{"ctl":"note","text":"faults armed after the last update: nothing can trigger them -> the *_effective invariants must turn RED"}
-{"ctl":"crash","at":"before_commit"}
-{"ctl":"external","target":"crm","mode":"500","count":5}
-{"ctl":"engine_fault","mode":"corrupt"}

@@ -1,1 +1,0 @@
-{"doc": "docs/t_need.bot.json", "mutate": null, "seed": 1, "replies": 1307, "coverage_targets": 19, "checks": 10532, "per_invariant": {"I1": 2015, "I10": 109, "I11": 191, "I12": 26, "I2": 1857, "I3": 850, "I4": 1235, "I5": 424, "I6": 424, "I7": 811, "I8": 130, "I9": 2460}, "violations": 0}

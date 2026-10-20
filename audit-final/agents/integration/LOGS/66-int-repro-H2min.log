@@ -1,8 +1,0 @@
-command: sh /home/user/figram-audit/agents/core-compiler/REPRODUCTIONS/H2_min_shrunk/repro.sh /home/user/figram-audit-worktrees/integration/.lake/build/bin/figram-engine 
-cwd: /home/user/figram-fsm-library
-start: 2026-10-20T00:44:57.878Z
-end: 2026-10-20T00:44:57.912Z
-exit_code: 0
---- stdout (88 bytes, last 200 lines)
-{"id":1,"snapshot":{"at":"m2","seq":2},"actions":[{"cancel_timer":"t2"},{"send":"m2"}]}
---- stderr (0 bytes, last 100 lines)

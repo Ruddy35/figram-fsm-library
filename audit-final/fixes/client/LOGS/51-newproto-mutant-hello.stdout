@@ -1,2 +1,0 @@
-start: {'at': 'menu', 'seq': 1}
-stderr tail: figram-engine: ВНИМАНИЕ: испорченный движок (мутация «drop-call:clear_cart») — только для проверки тестов

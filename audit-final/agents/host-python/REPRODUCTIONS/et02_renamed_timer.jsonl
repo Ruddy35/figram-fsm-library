@@ -1,8 +1,0 @@
-{"ctl":"init","bot":"pizza","scenario":"et02_renamed_timer","seed":1}
-{"user":"m","update_id":1,"event":"cmd:start"}
-{"user":"m","update_id":2,"event":"btn:order"}
-{"user":"m","update_id":3,"event":"btn:cart"}
-{"ctl":"upgrade","bot":"pizza.v2"}
-{"ctl":"advance_ms","ms":7200000}
-{"user":"m","update_id":4,"event":"btn:checkout"}
-{"user":"m","update_id":5,"event":"btn:pizza"}

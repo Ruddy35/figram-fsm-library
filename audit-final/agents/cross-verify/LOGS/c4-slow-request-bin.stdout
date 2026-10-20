@@ -1,7 +1,0 @@
-engine=bin/figram-engine mode=c4 client timeout=10.0s (default is 10.0)
-direct engine time for the K=60000 request (no client): 14.74s rc=0 reply starts b'{"id":1,"snapshot":{"at":"cart","resume"'
-warm-up: 9570 normal requests ok, 0 failed
-bad request attempts: [('процесс движка неисправен: нет ответа за 10.0 с', 10.0), ('процесс движка неисправен: нет ответа за 10.0 с', 10.0), ('процесс движка неисправен: нет ответа за 10.0 с', 10.0)]
-normal users: ok=30252 FAILED=96; engine pid 9565 -> 12934
-  failure reason seen by a NORMAL user: процесс движка неисправен: нет ответа за 10.0 с
-REPRODUCED

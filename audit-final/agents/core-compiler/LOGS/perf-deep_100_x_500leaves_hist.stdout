@@ -1,2 +1,0 @@
-{"load_s": 92.874, "status": "OK", "states": 501, "step_us_unmatched_event": 686.3, "maxrss_children_mb": 19, "scenario": "deep_100_x_500leaves_hist", "doc_bytes": 37903, "oracle_valid": true}
-{"load_s": 32.117, "status": "OK", "states": 2000, "step_us_unmatched_event": 1163.8, "maxrss_children_mb": 25, "scenario": "flat_2000_50rootev", "doc_bytes": 202911, "oracle_valid": true}

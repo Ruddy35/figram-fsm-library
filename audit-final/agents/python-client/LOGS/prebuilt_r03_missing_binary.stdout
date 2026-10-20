@@ -1,3 +1,0 @@
-# engine=/home/user/figram-audit-worktrees/python-client/bin/figram-engine [PREBUILT]  client=/home/user/figram-audit/agents/python-client/baseline-client
-исключения при замене процесса без бинарника: {'FileNotFoundError': 3}
-ДЕФЕКТ ВОСПРОИЗВЕДЁН

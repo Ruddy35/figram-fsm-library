@@ -1,8 +1,0 @@
-command: nice python3 ffi/python-example/random_docs.py /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/s0build/.lake/build/bin/figram /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/s0build/.lake/build/bin/figram-engine 100 12 
-cwd: /home/user/figram-audit-worktrees/formats-correctness
-start: 2026-10-19T22:55:42.733Z
-end: 2026-10-19T22:56:11.619Z
-exit_code: 0
---- stdout (103 bytes, last 200 lines)
-документов 100, запросов 97282, документов с расхождениями 0
---- stderr (0 bytes, last 100 lines)

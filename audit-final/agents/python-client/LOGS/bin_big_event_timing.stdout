@@ -1,7 +1,0 @@
-event 4096 0.02s b'{"id":1,"snapshot":{"at":"menu"},"actions":[]}\n'
-event 100000 0.03s b'{"id":1,"snapshot":{"at":"menu"},"actions":[]}\n'
-event 1000000 0.29s b'{"id":1,"snapshot":{"at":"menu"},"actions":[]}\n'
-timers 1000 12861 0.02s b'{"id":1,"snapshot":{"at":"menu","timers":{"t0":0,"t1":1,"t2":2,"t3":3,"t4":4,"t5":5,"t6":6,"t7":7,"t'
-timers 5000 72861 0.08s b'{"id":1,"snapshot":{"at":"menu","timers":{"t0":0,"t1":1,"t2":2,"t3":3,"t4":4,"t5":5,"t6":6,"t7":7,"t'
-timers 10000 147861 0.33s b'{"id":1,"snapshot":{"at":"menu","timers":{"t0":0,"t1":1,"t2":2,"t3":3,"t4":4,"t5":5,"t6":6,"t7":7,"t'
-timers 20000 317861 1.61s b'{"id":1,"snapshot":{"at":"menu","timers":{"t0":0,"t1":1,"t2":2,"t3":3,"t4":4,"t5":5,"t6":6,"t7":7,"t'

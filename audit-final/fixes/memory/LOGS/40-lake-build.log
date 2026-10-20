@@ -1,8 +1,0 @@
-command: nice -n 10 lake build 
-cwd: /home/user/figram-audit-worktrees/fix-memory
-start: 2026-10-20T15:20:18.670Z
-end: 2026-10-20T15:20:20.139Z
-exit_code: 0
---- stdout (40 bytes, last 200 lines)
-Build completed successfully (50 jobs).
---- stderr (0 bytes, last 100 lines)

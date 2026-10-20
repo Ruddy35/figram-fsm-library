@@ -1,4 +1,0 @@
-запросов 62, расхождений 15
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 5}, 'seq': 5}, 'event': 'btn:checkout'} → {'id': 5, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 6}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]}, ожидал
-   {'op': 'step', 'snapshot': {'at': 'address', 'resume': {'order': 'address'}, 'seq': 6}, 'event': 'msg:text'} → {'id': 7, 'snapshot': {'at': 'pickup', 'resume': {'order': 'pickup'}, 'seq': 7}, 'actions': [{'send': 'pickup'}]}, ожидалось {'need': ['in_delivery_zone']}
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3}, 'event': 'btn:checkout'} → {'id': 13, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 4}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'catalog'}]}, ожида

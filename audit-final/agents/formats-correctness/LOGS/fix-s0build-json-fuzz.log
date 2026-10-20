@@ -1,8 +1,0 @@
-command: nice python3 ffi/python-example/json_fuzz.py /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/s0build/.lake/build/bin/figram 30000 1 
-cwd: /home/user/figram-audit-worktrees/formats-correctness
-start: 2026-10-19T22:55:30.899Z
-end: 2026-10-19T22:55:42.541Z
-exit_code: 0
---- stdout (122 bytes, last 200 lines)
-случаев 30000: принято обоими 9786, отвергнуто обоими 20214, расхождений 0
---- stderr (0 bytes, last 100 lines)

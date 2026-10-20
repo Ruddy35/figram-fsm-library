@@ -1,9 +1,0 @@
-command: bash -c /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/s0build/.lake/build/bin/figram\ golden\ /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/golden\ \&\&\ cmp\ /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/golden/golden.jsonl\ examples/golden.jsonl\ \&\&\ echo\ golden-identical 
-cwd: /home/user/figram-audit-worktrees/formats-correctness
-start: 2026-10-19T22:55:30.836Z
-end: 2026-10-19T22:55:30.858Z
-exit_code: 0
---- stdout (40 bytes, last 200 lines)
-сценариев: 12
-golden-identical
---- stderr (0 bytes, last 100 lines)

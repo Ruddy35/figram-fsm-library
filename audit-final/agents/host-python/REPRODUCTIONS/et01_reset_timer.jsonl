@@ -1,9 +1,0 @@
-{"ctl":"init","bot":"reminders","scenario":"et01_reset_timer","seed":1}
-{"user":"r","update_id":1,"event":"cmd:start"}
-{"user":"r","update_id":2,"event":"btn:set","arg":"!deploy"}
-{"ctl":"timer_mode","ignore_cancel":true}
-{"ctl":"advance_ms","ms":30000}
-{"ctl":"reset_user","user":"r"}
-{"user":"r","update_id":3,"event":"btn:set","arg":"!deploy v2"}
-{"ctl":"advance_ms","ms":15000}
-{"ctl":"advance_ms","ms":60000}

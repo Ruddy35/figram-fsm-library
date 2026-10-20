@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/red-final/client_robustness.py", line 163, in <module>
-    eng = Engine(fake(HELLO + 'read l; kill -SEGV $$'), pizza, timeout=5.0, restart_backoff=(0, 0))
-TypeError: Engine.__init__() got an unexpected keyword argument 'restart_backoff'

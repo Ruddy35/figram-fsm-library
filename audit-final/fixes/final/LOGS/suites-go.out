@@ -1,4 +1,0 @@
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/50-go-example-test-race.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/51-go-example-test.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/52-host-go-test-race.log
-SUITES-DONE

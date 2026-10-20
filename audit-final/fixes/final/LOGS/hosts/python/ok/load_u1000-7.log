@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 prlimit --as=8000000000 -- /usr/bin/python3 -I /home/user/figram-audit-worktrees/fix-final/audit/host-python/runner.py /home/user/figram-audit/hosts/shared/corpus/load_u1000-7.jsonl --out /home/user/figram-audit/fixes/final/hosts/out/python/load_u1000-7.json --engine /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped --bots /home/user/figram-audit/hosts/shared/bots --no-ref --window 64 --engines 3 
-cwd: /home/user/figram-audit-worktrees/fix-final/audit/host-python
-start: 2026-10-20T04:51:26.483Z
-end: 2026-10-20T04:51:46.539Z
-exit_code: 0
---- stdout (1018 bytes, last 200 lines)
-{"scenario": "load_u1000-7", "broken": null, "elapsed_s": 19.2, "fails": [], "counts": {"users": 1000, "transitions": 8000, "steps_logged": 8000, "updates_acked": 8000, "updates_abandoned": 0, "acks_by_status": {"ok": 8000}, "nacks": 0, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 0, "outbox_rows": 14000, "outbox_retried": 0, "crm_effects": 1000, "crm_requests_by_outcome": {"applied": 1000}, "tg_deliveries": 8000, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {}, "timers_by_state": {"canceled": 1000}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 8000, "p50": 2.41, "p95": 79.936, "p99": 181.246, "max": 1550.402}, "host_step_ms": {"n": 8000, "p50": 2.394, "p95": 79.922, "p99": 181.227, "max": 1550.385}, "e2e_ms": {"n": 8000, "p50": 51.811, "p95": 133.238, "p99": 240.881, "max": 1631.667}, "elapsed_s": 19.202, "throughput_updates_per_s": 416.6}}
---- stderr (0 bytes, last 100 lines)

@@ -1,3 +1,0 @@
-{"id":1,"error":"для события таймера нужно поле «token»"}
-{"id":2,"snapshot":{"at":"item","timers":{"remind":3},"seq":3},"actions":[]}
-{"id":3,"snapshot":{"at":"reminder","resume":{"shop":"reminder"},"seq":4},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}

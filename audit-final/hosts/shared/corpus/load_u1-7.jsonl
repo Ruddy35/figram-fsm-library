@@ -1,9 +1,0 @@
-{"ctl":"init","bot":"pizza","scenario":"load_u1","seed":7}
-{"user":"L0000","update_id":1001,"event":"cmd:start"}
-{"user":"L0000","update_id":1002,"event":"btn:order"}
-{"user":"L0000","update_id":1003,"event":"btn:pizza"}
-{"user":"L0000","update_id":1004,"event":"btn:size","arg":"M"}
-{"user":"L0000","update_id":1005,"event":"btn:add"}
-{"user":"L0000","update_id":1006,"event":"btn:checkout"}
-{"user":"L0000","update_id":1007,"event":"msg:text","arg":"Gagarina 7"}
-{"user":"L0000","update_id":1008,"event":"payment:success"}

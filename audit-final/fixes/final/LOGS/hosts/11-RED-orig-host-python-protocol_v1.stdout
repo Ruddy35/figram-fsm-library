@@ -1,8 +1,0 @@
-FAIL {id,error,code} with a known code is an error reply
-FAIL {id,error} without code is a protocol violation
-ok   unknown code is a protocol violation
-ok   extra key in an error reply
-FAIL id null with parse_error (request not read)
-ok   id null with bad_request
-ok   error reply with a foreign id
-FAIL invalid snapshot → transport failure instead of an engine error: bad reply fields ['code', 'error']

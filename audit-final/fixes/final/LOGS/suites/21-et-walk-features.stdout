@@ -1,1 +1,0 @@
-{"doc": "examples/features.bot.json", "mutate": null, "seed": 1, "replies": 1369, "coverage_targets": 36, "checks": 11521, "per_invariant": {"I1": 2071, "I10": 118, "I11": 216, "I12": 54, "I2": 2005, "I3": 916, "I4": 1366, "I5": 506, "I6": 685, "I7": 860, "I8": 64, "I9": 2635, "T1": 25}, "violations": 0}

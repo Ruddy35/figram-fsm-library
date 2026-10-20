@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 300 audit/host-perf/replay.sh bin/figram-engine examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza_reqs_3.jsonl /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza_out_3.jsonl 
-cwd: /home/user/figram-audit-worktrees/host-perf
-start: 2026-10-19T22:13:17.526Z
-end: 2026-10-19T22:13:18.777Z
-exit_code: 0
---- stdout (389 bytes, last 200 lines)
-{"requests": 50000, "replies": 50000, "error_replies": 0, "hello_only": {"label": "hello-only", "rc": 0, "wall_s": 0.0132, "user_s": 0.0054, "sys_s": 0.0, "maxrss_kb": 11376}, "replay": {"label": "replay", "rc": 0, "wall_s": 0.9715, "user_s": 0.7304, "sys_s": 0.0353, "maxrss_kb": 11508}, "wall_per_req_us": 19.17, "cpu_per_req_us": 15.21, "req_per_s_wall": 52176, "req_per_s_cpu": 65764}
---- stderr (0 bytes, last 100 lines)

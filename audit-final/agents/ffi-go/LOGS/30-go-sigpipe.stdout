@@ -1,5 +1,0 @@
-=== RUN   TestAuditSIGPIPE
-    audit_test.go:460: mode=noinit: child exit: signal: broken pipe; stderr: 
-    audit_test.go:460: mode=init: child exit: signal: broken pipe; stderr: 
---- PASS: TestAuditSIGPIPE (0.22s)
-PASS

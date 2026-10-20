@@ -1,4 +1,0 @@
-запросов 18041, расхождений 4795
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3}, 'event': 'cmd:help'} → {'id': 3, 'snapshot': {'at': 'help', 'resume': {'order': 'cart'}, 'seq': 4}, 'actions': [{'send': 'help'}, {'cancel_timer': 'cart_reminder'}]}, ожидалось {'result'
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 11}, 'seq': 11}, 'event': 'btn:cancel'} → {'id': 12, 'snapshot': {'at': 'menu', 'resume': {'order': 'cart'}, 'seq': 12}, 'actions': [{'send': 'menu'}, {'call': 'clear_cart'}, {'cancel_timer': 'cart_rem
-   {'op': 'step', 'snapshot': {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 14}, 'seq': 14}, 'event': 'cmd:start'} → {'id': 16, 'snapshot': {'at': 'menu', 'resume': {'order': 'cart'}, 'seq': 15}, 'actions': [{'send': 'menu'}, {'cancel_timer': 'cart_reminder'}]}, ожидалось {'re

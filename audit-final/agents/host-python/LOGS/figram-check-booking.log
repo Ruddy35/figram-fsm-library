@@ -1,8 +1,0 @@
-command: ./bin/figram check /home/user/figram-audit/hosts/shared/bots/booking.bot.json 
-cwd: /home/user/figram-audit-worktrees/host-python
-start: 2026-10-19T22:32:27.401Z
-end: 2026-10-19T22:32:27.418Z
-exit_code: 0
---- stdout (3 bytes, last 200 lines)
-ok
---- stderr (0 bytes, last 100 lines)

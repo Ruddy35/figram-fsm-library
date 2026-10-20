@@ -1,7 +1,0 @@
-{"scenario": "forged_timer", "broken": null, "elapsed_s": 0.34, "fails": [], "counts": {"users": 1, "transitions": 3, "steps_logged": 3, "updates_acked": 4, "updates_abandoned": 0, "acks_by_status": {"ok": 3, "rejected": 1, "ignored": 1}, "nacks": 0, "crashes": 0, "host_restarts": 0, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 1, "outbox_rows": 4, "outbox_retried": 0, "crm_effects": 0, "crm_requests_by_outcome": {}, "tg_deliveries": 3, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {}, "timers_by_state": {"scheduled": 1}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 5, "p50": 9.571, "p95": 10.214, "p99": 10.214, "max": 19.992}, "host_step_ms": {"n": 5, "p50": 9.54, "p95": 10.197, "p99": 10.197, "max": 19.921}, "e2e_ms": {"n": 5, "p50": 10.623, "p95": 11.327, "p99": 11.327, "max": 25.361}, "elapsed_s": 0.337, "throughput_updates_per_s": 14.8}}
-v final: {'at': 'cart', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3}
-   tg:1 cmd:start  seq 1 -> menu t_ms 0 [{'send': 'menu'}]
-   tg:2 btn:order  seq 2 -> catalog t_ms 0 [{'send': 'catalog'}]
-   tg:3 btn:cart  seq 3 -> cart t_ms 0 [{'start_timer': 'cart_reminder', 'ms': 7200000, 'token': 3}, {'send': 'cart'}]
-effects: []
-FAILED invariants: {}

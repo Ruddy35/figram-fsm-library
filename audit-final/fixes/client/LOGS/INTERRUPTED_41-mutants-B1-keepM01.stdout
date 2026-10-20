@@ -1,3 +1,0 @@
-исходник: /home/user/figram-audit-worktrees/fix-client/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fresh/figram-engine
-исходный клиент: {'client_faults.py': 0, 'client_contract.py': 0, 'client_robustness.py': 0}
-M01 нет пробуждения ожидающих в _fail: убит: client_robustness.py  client_faults.py=0 18.6с []; client_contract.py=0 3.1с []; client_robustness.py=1 113.0с ['НЕТ R1 невалидный JSON: ошибок 8 из 8, самый долгий 6.02 с (срок 6 с)', 'НЕТ R1 неизвестный id: ошибок 8 из 8, самый долгий 6.01 с (срок 6 с)']

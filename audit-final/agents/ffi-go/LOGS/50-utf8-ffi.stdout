@@ -1,4 +1,0 @@
-utf8 req 1 → {"id":1,"snapshot":{"at":"menu"},"actions":[]}
-utf8 req 2 → {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}],"recovered":true}
-utf8 req 3 → {"id":null,"error":"лишний текст после JSON"}
-utf8 req 4 → {"id":4,"error":"неизвестная операция «op»"}

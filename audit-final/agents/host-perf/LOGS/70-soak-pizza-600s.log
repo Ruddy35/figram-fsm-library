@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 800 python3 audit/host-perf/soak.py bin/figram-engine examples/pizza.bot.json --seconds 600 --sample 10 --users 1000 --out /home/user/figram-audit/agents/host-perf/LOGS/70-soak-pizza-600s.samples.jsonl 
-cwd: /home/user/figram-audit-worktrees/host-perf
-start: 2026-10-19T22:48:57.887Z
-end: 2026-10-19T22:58:58.238Z
-exit_code: 0
---- stdout (432 bytes, last 200 lines)
-{"doc": "examples/pizza.bot.json", "seconds": 600.0, "users": 1000, "steps": 9088145, "errors": 0, "rss_first_kb": 9124, "rss_after_warmup_kb": 9124, "rss_end_kb": 9068, "rss_max_kb": 9124, "hwm_end_kb": 9068, "rss_slope_kb_per_min_after_warmup": -8.65, "p50_us_median_over_intervals": 38.6, "p99_us_max_over_intervals": 746.5, "mean_steps_per_s": 15146.9, "engine_cpu_us_per_step_first": 22.4, "engine_cpu_us_per_step_last": 23.8}
---- stderr (0 bytes, last 100 lines)

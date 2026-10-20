@@ -1,3 +1,0 @@
-хост pid 656: figram_init = 0 
-1. до сбоя: {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
-2. запрос 600 МБ, предел запроса 0 байт...

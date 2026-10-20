@@ -1,7 +1,0 @@
-RLIMIT_AS=4000000000 rc=0
-RLIMIT_AS=3000000000 rc=2
-panic: figram: runtime initialisation failed: figram_init returned 2
-RLIMIT_AS=2500000000 rc=2
-panic: figram: runtime initialisation failed: figram_init returned 2
-RLIMIT_AS=1500000000 rc=2
-panic: figram: runtime initialisation failed: figram_init returned 2

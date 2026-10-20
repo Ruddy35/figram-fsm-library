@@ -1,8 +1,0 @@
-command: env FIGRAM_THREADS_LEAK=1 ffi/audit/out/contract threads examples/pizza.bot.json 1000 
-cwd: /home/user/figram-audit-worktrees/ffi-go
-start: 2026-10-19T23:41:36.054Z
-end: 2026-10-19T23:41:36.259Z
-exit_code: 0
---- stdout (107 bytes, last 200 lines)
-threads=1000 ok=1000 RSS 18480→82564 KB (Δ64084), VmSize 2253060→2318596 KB (Δ65536), live threads 3
---- stderr (0 bytes, last 100 lines)

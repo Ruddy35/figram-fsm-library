@@ -1,2 +1,0 @@
-before init threads=1 VmSize=11240 KB SIGPIPE=SIG_DFL SIGSEGV=SIG_DFL sigaltstack=disabled size=0
-after init  threads=1 VmSize=12008 KB SIGPIPE=SIG_DFL SIGSEGV=SIG_DFL sigaltstack=disabled size=0

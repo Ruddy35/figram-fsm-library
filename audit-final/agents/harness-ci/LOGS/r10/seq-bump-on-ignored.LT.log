@@ -1,6 +1,0 @@
-потоков  64, процессов 2: шагов 8000 (из них с запросом условий 464), расхождений 7143, 4,654 шагов/с, задержка p50 11,757 мкс, p99 31,562 мкс
-   user-7 шаг 0: {'id': 11, 'snapshot': {'at': 'menu', 'seq': 2}, 'actions': []} ≠ {'event': 'unknown:event', 'guards': {}, 'snapshot': {'at': 'menu', 'seq': 1}, 'actions': []}
-   user-2 шаг 0: {'id': 11, 'snapshot': {'at': 'menu', 'seq': 2}, 'actions': []} ≠ {'event': 'unknown:event', 'guards': {}, 'snapshot': {'at': 'menu', 'seq': 1}, 'actions': []}
-   user-2 шаг 1: {'id': 21, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 3}, 'actions': [{'send': 'catalog'}]} ≠ {'event': 'btn:order', 'guards': {}, 'snapshot': {'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2}, 'actions': [{'send': 'catalog'}]}
-   user-16 шаг 0: {'id': 14, 'snapshot': {'at': 'menu', 'seq': 2}, 'actions': []} ≠ {'event': 'unknown:event', 'guards': {}, 'snapshot': {'at': 'menu', 'seq': 1}, 'actions': []}
-   user-7 шаг 1: {'id': 16, 'snapshot': {'at': 'menu', 'seq': 3}, 'actions': []} ≠ {'event': 'unknown:event', 'guards': {}, 'snapshot': {'at': 'menu', 'seq': 1}, 'actions': []}

@@ -1,9 +1,0 @@
-command: python3 -c $'\nimport figram_client as fc\ne = fc.Engine(\'/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/newproto/mut.sh\', \'/home/user/figram-audit-worktrees/fix-client/examples/pizza.bot.json\', timeout=5)\nprint(\'start:\', e.start(\'u\')[\'snapshot\'])\np = e._procs[0]\nprint(\'stderr tail:\', p.stderr_tail()[:120])\ne.close()\n' 
-cwd: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/newproto/py
-start: 2026-10-20T02:37:47.522Z
-end: 2026-10-20T02:37:47.590Z
-exit_code: 0
---- stdout (210 bytes, last 200 lines)
-start: {'at': 'menu', 'seq': 1}
-stderr tail: figram-engine: ВНИМАНИЕ: испорченный движок (мутация «drop-call:clear_cart») — только для проверки тестов
---- stderr (0 bytes, last 100 lines)

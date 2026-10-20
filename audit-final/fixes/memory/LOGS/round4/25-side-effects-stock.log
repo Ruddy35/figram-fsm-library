@@ -1,9 +1,0 @@
-command: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/initchk/contract-stock side_effects 
-cwd: /home/user/figram-audit-worktrees/fix-memory
-start: 2026-10-20T19:54:29.554Z
-end: 2026-10-20T19:54:29.562Z
-exit_code: 0
---- stdout (196 bytes, last 200 lines)
-before init threads=1 VmSize=11280 KB SIGPIPE=SIG_DFL SIGSEGV=SIG_DFL sigaltstack=disabled size=0
-after init  threads=3 VmSize=86008 KB SIGPIPE=SIG_DFL SIGSEGV=handler sigaltstack=disabled size=0
---- stderr (0 bytes, last 100 lines)

@@ -1,8 +1,0 @@
-command: python3 /home/user/figram-audit/fixes/memory/bench_env.py /home/user/figram-audit-worktrees/before-p22/.lake/build/bin/figram-engine examples/pizza.bot.json 200000 - 
-cwd: /home/user/figram-fsm-library
-start: 2026-10-20T19:52:12.588Z
-end: 2026-10-20T19:52:24.234Z
-exit_code: 0
---- stdout (117 bytes, last 200 lines)
--                                                       лучшее из 3: 3.75 с, 53 тыс. запросов/с
---- stderr (0 bytes, last 100 lines)

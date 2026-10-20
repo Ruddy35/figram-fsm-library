@@ -1,8 +1,0 @@
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/50-build_audit.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/51-sanitizers.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/52-mutants.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/53-stack-stress.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/54-perf_scale.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/55-formats.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/round4/56-core-compiler.log
-SUITES-DONE

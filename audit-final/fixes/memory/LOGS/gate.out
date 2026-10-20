@@ -1,5 +1,0 @@
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/40-lake-build.log
-exit_code=3 log=/home/user/figram-audit/fixes/memory/LOGS/41-verify-full.log
-verify exit: 3
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/42-check_docs.log
-exit_code=0 log=/home/user/figram-audit/fixes/memory/LOGS/43-ffi-doc_check.log

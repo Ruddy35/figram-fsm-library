@@ -1,8 +1,0 @@
-command: python3 audit/host-python/freeze_shared.py --check 
-cwd: /home/user/figram-audit-worktrees/host-python
-start: 2026-10-19T23:21:43.721Z
-end: 2026-10-19T23:21:44.669Z
-exit_code: 0
---- stdout (34 bytes, last 200 lines)
-ok: 24 shared files match VERSION
---- stderr (0 bytes, last 100 lines)

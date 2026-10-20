@@ -1,8 +1,0 @@
-command: timeout 600 python3 diff_random.py --engine /home/user/figram-audit-worktrees/fix-protocol/.lake/build/bin/figram-engine --docs 400 --steps 80 --seed 21 --no-exhaustive --no-perturb --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --out /home/user/figram-audit/fixes/protocol/LOGS/25-core-compiler/designer-upgrades 
-cwd: /home/user/figram-audit-worktrees/fix-protocol/audit/core-compiler
-start: 2026-10-20T02:53:05.681Z
-end: 2026-10-20T02:53:20.079Z
-exit_code: 0
---- stdout (716 bytes, last 200 lines)
-{"stats": {"docs": 400, "requests": 46534, "events": {"live": 22905, "unknown": 925, "timer-valid": 1554, "timer-forged": 5205, "timer-stale": 510, "named": 426}, "need_replies": 13403, "transitions": 21356, "steps": 31525, "restarts": 475, "ignored": 9438, "need_superfluous": 2740, "hits_steps": {"A3-need-superset": 2026, "A3-need-superset@upgraded": 714, "A1-moved-memory@upgraded": 5, "A7-unowned-timer-accepted@upgraded": 7}, "upgrades": 228, "upgrade_ops": {"drop": 78, "add": 33, "delete": 21, "move": 51, "message": 28, "rename": 17}, "errors": 731, "recovered": 40}, "ambiguity_hits_docs": {"A3-need-superset": 364, "A1-moved-memory": 5, "A7-unowned-timer-accepted": 4}, "divergences": 0, "seconds": 14.3}
---- stderr (0 bytes, last 100 lines)

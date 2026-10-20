@@ -1,3 +1,0 @@
-run 39457015771 (verify.yml, commit 4adce87): success; artifact 12280119412 sha256 8bcf423e…c7b1 (GitHub digest matches)
-release-bin run 39455870675 (commit 778516d): artifact 12279892797 zip sha256 ccbc30ae…42fe; figram 90a86af3…, figram-engine 7f28e3a7…
-expected red: verify 39455870858 on 778516d (bin/ stale)

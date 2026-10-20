@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 300 python3 audit/host-perf/bench_engine.py bin/figram-engine examples/pizza.bot.json --steps 50000 --seed 3 --reqs /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza_reqs_3.jsonl --label bin-pizza-3 
-cwd: /home/user/figram-audit-worktrees/host-perf
-start: 2026-10-19T22:12:55.236Z
-end: 2026-10-19T22:13:03.018Z
-exit_code: 0
---- stdout (389 bytes, last 200 lines)
-{"label": "bin-pizza-3", "doc_bytes": 3677, "states": 11, "load_s": 0.01, "rss_load_kb": 9028, "hwm_load_kb": 9028, "rss_end_kb": 8964, "hwm_end_kb": 8964, "steps": 50000, "transitions": 45136, "ignored": 4864, "errors": 0, "max_snapshot_bytes": 93, "hello_p50_us": 30.1, "step_p50_us": 99.3, "step_p95_us": 194.4, "step_p99_us": 281.7, "step_max_us": 17455.7, "sync_steps_per_s": 8096.1}
---- stderr (0 bytes, last 100 lines)

@@ -1,4 +1,0 @@
-K=5000 bytes=99015 engine_step_ms=178 rc=0 parse_only_ms=89 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
-K=10000 bytes=199015 engine_step_ms=353 rc=0 parse_only_ms=389 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
-K=20000 bytes=409015 engine_step_ms=1493 rc=0 parse_only_ms=1456 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres
-K=40000 bytes=829015 engine_step_ms=6548 rc=0 parse_only_ms=6528 rc=0 reply={"id":1,"snapshot":{"at":"address","resume":{"order":"addres

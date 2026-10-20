@@ -1,9 +1,0 @@
-command: timeout 300 python3 ffi/python-example/snapshot_fixtures.py /home/user/figram-audit-worktrees/fix-protocol/.lake/build/bin/figram-engine examples/features.bot.json snapshot.schema.json 
-cwd: /home/user/figram-audit-worktrees/fix-protocol
-start: 2026-10-20T02:52:41.585Z
-end: 2026-10-20T02:52:41.845Z
-exit_code: 0
---- stdout (113 bytes, last 200 lines)
-снимков 24, ответов 24, расхождений схемы и движка 0
-граница seq: ok
---- stderr (0 bytes, last 100 lines)

@@ -1,9 +1,0 @@
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/20-et-suite.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/21-et-walk-t_need.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/21-et-walk-t_timers.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/21-et-walk-pizza.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/21-et-walk-features.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/22-et-mutants-features.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/22-et-mutants-pizza.log
-exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/23-check_host_contract.log
-SUITES-DONE

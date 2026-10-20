@@ -1,8 +1,0 @@
-command: env LEAN_PATH=/home/user/leanprover/lean4/build/release/stage0/lib/lean:/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/s0build/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage0/bin/lean tests/formats/fc01_lean_check.lean 
-cwd: /home/user/figram-audit-worktrees/formats-correctness
-start: 2026-10-19T22:52:19.333Z
-end: 2026-10-19T22:52:20.500Z
-exit_code: 0
---- stdout (21 bytes, last 200 lines)
-cases 13, failures 0
---- stderr (0 bytes, last 100 lines)

@@ -1,2 +1,0 @@
-{"doc": "../../examples/pizza.bot.json", "mutate": null, "seed": 1, "replies": 702, "coverage_targets": 42, "checks": 6070, "per_invariant": {"I1": 1067, "I10": 70, "I11": 99, "I12": 5, "I2": 1029, "I3": 497, "I4": 745, "I5": 299, "I6": 354, "I7": 446, "I8": 29, "I9": 1423, "T1": 7}, "violations": 1}
-  I1: start: id mismatch b'{"id":1000000000,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}\n' expected 32

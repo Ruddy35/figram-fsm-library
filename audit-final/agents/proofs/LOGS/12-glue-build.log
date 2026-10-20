@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 600 lake build FigramAudit 
-cwd: /home/user/figram-audit-worktrees/proofs
-start: 2026-10-19T23:45:07.544Z
-end: 2026-10-19T23:45:07.808Z
-exit_code: 0
---- stdout (40 bytes, last 200 lines)
-Build completed successfully (20 jobs).
---- stderr (0 bytes, last 100 lines)

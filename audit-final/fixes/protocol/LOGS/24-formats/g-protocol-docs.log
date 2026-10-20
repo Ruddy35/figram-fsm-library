@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/fix-protocol/tests/formats/g_protocol_docs.py 
-cwd: /home/user/figram-audit-worktrees/fix-protocol
-start: 2026-10-20T02:55:15.316Z
-end: 2026-10-20T02:55:15.352Z
-exit_code: 0
---- stdout (42 bytes, last 200 lines)
-protocol docs: codes 5, ops 4, failures 0
---- stderr (0 bytes, last 100 lines)

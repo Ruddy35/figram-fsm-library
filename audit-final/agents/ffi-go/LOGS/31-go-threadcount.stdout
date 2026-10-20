@@ -1,4 +1,0 @@
-=== RUN   TestAuditThreadCount
-    audit_test.go:480: 1000 goroutines × 50 requests, GOMAXPROCS=4: OS threads before 8, max during 13, after 13, bad 0
---- PASS: TestAuditThreadCount (1.12s)
-PASS

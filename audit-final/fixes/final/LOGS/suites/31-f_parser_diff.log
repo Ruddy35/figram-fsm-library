@@ -1,8 +1,0 @@
-command: timeout 1700 python3 tests/formats/f_parser_diff.py /home/user/figram-audit/fixes/protocol/base-bin/figram /home/user/figram-audit/fixes/final/bin-final/figram --n 60000 
-cwd: /home/user/figram-audit-worktrees/fix-final
-start: 2026-10-20T05:40:18.571Z
-end: 2026-10-20T05:41:26.139Z
-exit_code: 0
---- stdout (108 bytes, last 200 lines)
-inputs=60000 identical=60000 (accepted 31200, rejected 28800) differences=0 error-messages-covered=22/22 []
---- stderr (0 bytes, last 100 lines)

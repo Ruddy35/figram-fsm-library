@@ -1,8 +1,0 @@
-command: nice -n 10 timeout 900 bash -c \'/home/user/figram-audit-worktrees/integration/.lake/build/bin/figram\'\ golden\ \'/tmp/tmp.BI3ALy2MZg/g\'\ \>/dev/null\ \&\&\ cmp\ \'/tmp/tmp.BI3ALy2MZg/g/golden.jsonl\'\ examples/golden.jsonl\ \&\&\ echo\ golden-identical 
-cwd: /home/user/figram-audit-worktrees/integration
-start: 2026-10-20T00:34:58.934Z
-end: 2026-10-20T00:34:58.955Z
-exit_code: 0
---- stdout (17 bytes, last 200 lines)
-golden-identical
---- stderr (0 bytes, last 100 lines)

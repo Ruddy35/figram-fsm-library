@@ -1,3 +1,0 @@
-run 39450097996 (verify.yml, commit 2119c8b): success; verify.sh 15:37:43Z-15:42:07Z (264 s); Go long step success; artifact 12278226634 sha256 985296bf…1d82 (GitHub digest matches)
-run 39449543737 (commit a7c2495): failure — c_contract: 16 MiB headroom → figram_init=2 (caught), fixed by 2119c8b
-release-bin run 39448541379 (commit 7737933): artifact 12276483563 zip sha256 f33de202…0564; figram 7a86a928…, figram-engine 0d0242d2…

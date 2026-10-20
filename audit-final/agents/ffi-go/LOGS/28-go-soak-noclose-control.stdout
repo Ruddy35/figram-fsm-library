@@ -1,9 +1,0 @@
-=== RUN   TestAuditSoak
-    audit_test.go:348: t= 10s RSS=79848 KB requests=316782 cycles=4543 bad=0
-    audit_test.go:348: t= 20s RSS=139196 KB requests=683426 cycles=10251 bad=0
-    audit_test.go:348: t= 30s RSS=180292 KB requests=1031531 cycles=14497 bad=0
-    audit_test.go:348: t= 40s RSS=204316 KB requests=1283174 cycles=16752 bad=0
-    audit_test.go:363: soak 40s: load/close cycles=16754 bad=0 RSS after warm-up 139196 KB, last 204316 KB, max 204316 KB, growth 65120 KB
-    audit_test.go:369: RSS grew by 65120 KB after warm-up
---- FAIL: TestAuditSoak (40.37s)
-FAIL
