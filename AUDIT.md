@@ -21,6 +21,10 @@
 | `Machine.step_state_valid` | Для автомата с `wf` после шага из **любого** снимка текущее сообщение принадлежит `states` |
 | `Chart.chart_run_valid` | После любого непустого сценария из любого снимка пользователь на сообщении схемы |
 | `Machine.step_guard_local` | Если два набора значений условий совпадают на `requiredGuards`, результаты шага равны |
+| `Chart.compile_eq_spec` | `c.compile = c.compileSpec`: быстрый компилятор на индексах равен списковому определению-спецификации |
+| `Chart.wfDirect_eq` | `c.compile.wf = c.wfDirect`: проверка по схеме без построения автомата равна `wf` скомпилированного автомата |
+| `Chart.lint_nil_wf` | `c.lint = [] → c.compile.wf = true` |
+| `Machine.wfFast_eq` | `m.wfFast = m.wf`: линейная проверка загрузки движка равна `wf` |
 
 ### Формат документа
 
@@ -41,8 +45,11 @@
 | `Engine.reply_readable` | Следствие двух предыдущих: снимок в ответе движка читается движком обратно тем же — в модели JSON `J`; текст ответа и его разбор не доказаны |
 | `Engine.handle_step` | Если запрос `step` уже разобран в модель `J` (`handleObj`; строковый `handle` не доказан), все нужные условия переданы и счётчик не переполнен, ответ — ровно `result id (m.step s ev (envOf gs))` |
 | `Engine.guards_irrelevant` | Значения условий вне `requiredGuards` не влияют на шаг |
+| `Engine.missing_nil_step` | Если `missing m s ev gs = []` (движок не отвечает `need`), то для любых значений условий `env`, согласных с переданными в `gs`, `m.step s ev (envOf gs) = m.step s ev env` |
+| `Engine.startAt_snapOK` | Для автомата с `wf` и `namesOK` и `n + 1 ≤ 2^53 − 1` снимок `start` с `seq = n` допустим (`SnapOK`); `startAt_zero`: `startAt m 0 = m.start` |
 
-Условия `wf` и `namesOK` проверяются при загрузке движка (`Engine.load`):
+Условия `wf` и `namesOK` проверяются при загрузке движка (`Engine.load`;
+`wf` — линейной проверкой `wfFast`, равной ему по `Machine.wfFast_eq`):
 автомат, не прошедший их, не загружается. Поэтому условия теорем на автомат
 выполняются для любого реально исполняемого автомата. Условие `SnapOK` на
 входной снимок обеспечивает строгий `decSnapshot`; связь `decSnapshot` →
