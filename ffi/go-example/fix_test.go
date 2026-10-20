@@ -2,7 +2,7 @@ package main
 
 // Регрессионные тесты исправлений fix-ffi для обёртки Bot:
 //   I-17  — Load без явного figram_init (ленивая инициализация, sync.Once);
-//   P-09  — отказ figram_init под RLIMIT_AS — ошибка Load, а не SIGABRT процесса;
+//   P-09  — под RLIMIT_AS рантайм Lean запускается (резерв адресов — десятки МБ, а не 2,2 ГБ);
 //   NP-06 — Load сообщает причину отказа документа;
 //   PROTOCOL_CHANGES — checkReply: ошибки {id,error,code}, hello с mutant,
 //   предел размера запроса (too_large, id null).
@@ -62,8 +62,8 @@ func runChild(mode string) int {
 		return 0
 	case "rlimit": // RLIMIT_AS задан до первого обращения к библиотеке
 		as, _ := strconv.ParseUint(os.Getenv("FIGRAM_CHILD_AS"), 10, 64)
-		if as == 0 {
-			as = vmSizeBytes() + 1<<30 // заведомо меньше, чем нужно рантайму Lean (+2,2 ГБ)
+		if h, _ := strconv.ParseUint(os.Getenv("FIGRAM_CHILD_AS_HEADROOM"), 10, 64); h != 0 {
+			as = vmSizeBytes() + h // лимит = занято сейчас + запас
 		}
 		var lim syscall.Rlimit
 		syscall.Getrlimit(syscall.RLIMIT_AS, &lim)
@@ -93,6 +93,10 @@ func runChild(mode string) int {
 			}
 			return 0
 		}
+		if _, v, err := b.Request(map[string]any{"op": "start"}); err != nil || v != "result" {
+			fmt.Println("Request under RLIMIT_AS:", v, err)
+			return 1
+		}
 		b.Close()
 		fmt.Printf("RLIMIT_AS=%d: loaded (enough address space)\n", as)
 		return 0
@@ -117,16 +121,19 @@ func TestFixLazyLoadWithoutInit(t *testing.T) {
 	}
 }
 
-// P-09: под RLIMIT_AS figram_init не может создать поток рантайма; хост получает ошибку.
+// P-09: под RLIMIT_AS рантайм Lean запускается и работает: стеки его потоков — системного
+// размера (`ulimit -s`), арена mimalloc заранее не резервируется (ffi/figram_rt.c). Раньше ему
+// нужно было ≈2,2 ГБ адресов сверх занятого, и под таким лимитом figram_init отказывал.
 func TestFixInitUnderRlimitAS(t *testing.T) {
 	if raceEnabled {
 		t.Skip("под -race адресное пространство занято теневой памятью TSan")
 	}
-	for _, as := range []string{"", "3000000000"} { // "" — VmSize ребёнка + 1 ГиБ
-		out, err := child(t, "rlimit", "FIGRAM_CHILD_AS="+as)
-		t.Logf("RLIMIT_AS=%q: child %v\n%.800s", as, err, out)
-		if err != nil {
-			t.Errorf("RLIMIT_AS=%q: the process died instead of getting an error from Load: %v", as, err)
+	for _, env := range []string{"FIGRAM_CHILD_AS_HEADROOM=268435456", "FIGRAM_CHILD_AS_HEADROOM=1073741824",
+		"FIGRAM_CHILD_AS=3000000000"} {
+		out, err := child(t, "rlimit", env)
+		t.Logf("%s: child %v\n%.800s", env, err, out)
+		if err != nil || !strings.Contains(out, "loaded (enough address space)") {
+			t.Errorf("%s: Load under RLIMIT_AS must succeed (err %v)", env, err)
 		}
 	}
 }

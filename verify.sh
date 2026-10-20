@@ -224,6 +224,12 @@ if [ "$rc" -ne 1 ] || ! grep -q "показатель степени" "$T/big.er
 fi
 echo "ok (код 1, $(head -1 "$T/big.err"))"
 
+step "Память движка: запуск под ulimit -v 64 и 256 МБ, резерв адресов ≤ 512 МБ, занято ≤ 64 МБ"
+logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
+expect "$LOGS/engine_memory.log" '^память движка: резерв адресов (\d+) МБ, занято (\d+) МБ$' \
+  'g[0] <= 512 and g[1] <= 64' "память движка"
+expect "$LOGS/engine_memory.log" '^ok  ulimit -v 64 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 64 МБ"
+
 step "Снимок: схема и движок согласованы, граница seq; restart, условия, жетоны, hello"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json snapshot.schema.json
 expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), расхождений схемы и движка (\d+)$' \
@@ -268,7 +274,7 @@ OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$
 LIBS=$(cat ffi/out/LDFLAGS.runtime)
 ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -fexceptions -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
 ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" ffi/c_harness_io.c
-ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o $OBJS $LIBS
+ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS $LIBS
 SHOW=2 logged c_asan env ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 "$T/harness" examples/pizza.bot.json
 expect "$LOGS/c_asan.log" '^16 потоков × (\d+) вызовов к одному автомату: расхождений (\d+)$' 'g[0] > 0 and g[1] == 0' "C, 16 потоков"
 # Память при загрузке и выгрузке — на обычной сборке (у ASan карантин памяти).
@@ -286,7 +292,7 @@ done
 ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" ffi/audit/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
 logged c_contract bash ffi/audit/regress.sh "$CA"
-expect "$LOGS/c_contract.log" '^регрессионных проверок C-ABI (\d+), провалено (\d+)$' 'g[0] >= 24 and g[1] == 0' "C-ABI"
+expect "$LOGS/c_contract.log" '^регрессионных проверок C-ABI (\d+), провалено (\d+)$' 'g[0] >= 30 and g[1] == 0' "C-ABI"
 # Заголовок с контрактом самодостаточен для C и C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h
@@ -344,11 +350,11 @@ if command -v go >/dev/null; then
       || { tail -5 "$LOGS/go_shared_map.log"; fail "тест $t не выполнялся или не прошёл"; }
   done
   echo "общий словарь запроса из 8 горутин: гонок нет; регрессионные тесты обёртки Bot (hello, op, NUL, ленивый Load, причина отказа, too_large, коды ошибок): пройдены"
-  # Отказ figram_init под RLIMIT_AS (P-09) — ошибка Load, процесс Go жив (без -race: TSan занимает адресное пространство).
+  # Под RLIMIT_AS (P-09) рантайм Lean запускается, Load и запрос работают (без -race: TSan занимает адресное пространство).
   (cd $G && CC=${CC:-gcc} go test -count=1 -v -run '^TestFixInitUnderRlimitAS$' .) > "$LOGS/go_rlimit.log" 2>&1 \
-    || { tail -20 "$LOGS/go_rlimit.log"; fail "Go: figram_init под RLIMIT_AS роняет процесс"; }
+    || { tail -20 "$LOGS/go_rlimit.log"; fail "Go: под RLIMIT_AS рантайм Lean не запускается или роняет процесс"; }
   grep -q "^--- PASS: TestFixInitUnderRlimitAS " "$LOGS/go_rlimit.log" || { tail -5 "$LOGS/go_rlimit.log"; fail "тест TestFixInitUnderRlimitAS не выполнялся"; }
-  echo "Go под RLIMIT_AS: Load возвращает ошибку figram_init, процесс жив"
+  echo "Go под RLIMIT_AS (занято + 256 МиБ, + 1 ГиБ, 3 ГБ): рантайм запускается, Load и запрос работают"
   # Повреждённый сценарий рядом с корректным обязан провалить Go-проверку.
   (head -1 "$T/small.jsonl"; echo '{oops') > "$T/corrupt.jsonl"
   if $G/gofig examples/pizza.bot.json "$T/corrupt.jsonl" >/dev/null 2>&1; then

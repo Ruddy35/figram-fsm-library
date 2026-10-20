@@ -105,6 +105,12 @@ if [ $QUICK = 0 ]; then
   expect "$LOGS/mutation.log" '^обнаружено (\d+) из (\d+) мутаций' "g[1] >= $MIN_MUTANTS and g[0] == g[1]" "мутации"
 fi
 
+step "Память движка (P-09)"
+logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
+expect "$LOGS/engine_memory.log" '^память движка: резерв адресов (\d+) МБ, занято (\d+) МБ$' \
+  'g[0] <= 512 and g[1] <= 64' "память движка"
+expect "$LOGS/engine_memory.log" '^ok  ulimit -v 64 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 64 МБ"
+
 step "Снимок и текстовый JSON"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json snapshot.schema.json
 expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), расхождений схемы и движка (\d+)$' \
