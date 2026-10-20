@@ -319,7 +319,7 @@ expect "$LOGS/load.log" '^потоков +(\d+), процессов (\d+): ша�
 if command -v go >/dev/null; then
   step "Go: встроенный движок, сценарии из многих горутин"
   G=ffi/go-example
-  (cd $G && CC=${CC:-gcc} go build -o gofig .) > "$LOGS/go_build.log" 2>&1 || { cat "$LOGS/go_build.log"; fail "go build"; }
+  (cd $G && CC=${CC:-gcc} go build -ldflags=-extldflags=-Wl,--gc-sections -o gofig .) > "$LOGS/go_build.log" 2>&1 || { cat "$LOGS/go_build.log"; fail "go build"; }
   (cd $G && CC=${CC:-gcc} go build -race -o gofig-race .) > "$LOGS/go_build_race.log" 2>&1 \
     || { cat "$LOGS/go_build_race.log"; fail "go build -race"; }
   SHOW=1 logged go_conf $G/gofig -rounds 3 -bots 4 examples/pizza.bot.json "$T/pizza.jsonl"

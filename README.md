@@ -166,7 +166,11 @@ CGO_LDFLAGS="$(cat ffi/out/LDFLAGS)" go build        # своя обёртка �
 ```
 
 `ffi/go-example` собирается обычным `go build`: `ffi/build.sh` генерирует рядом
-`zz_figram_ldflags.go` с теми же флагами. Библиотека — это `libfigram.a` и архивы
+`zz_figram_ldflags.go` с теми же флагами, кроме `-Wl,--gc-sections` (cgo не пропускает его в
+директиве `#cgo`). Его стоит передать при сборке, как это делают сами исполняемые файлы Lean:
+`go build -ldflags=-extldflags=-Wl,--gc-sections` — тогда в программу попадает только
+достижимый код рантайма и стандартной библиотеки Lean (замер: пример на Go 10,2 → 3,9 МБ,
+RSS после `figram_init` +7,4 → +2,5 МБ). В `ffi/out/LDFLAGS` (C-хосты, `CGO_LDFLAGS`) флаг уже есть. Библиотека — это `libfigram.a` и архивы
 рантайма в `ffi/out/lean/`, а не один файл:
 
 | Тулчейн Lean | Архивы `ffi/out/lean/` | Зависимости исполняемого файла |
