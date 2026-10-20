@@ -4,9 +4,11 @@
 # одновременные загрузки дают сотни ложных «гонок» из-за переиспользования страниц mimalloc
 # (неинструментированный аллокатор), поэтому под TSan не запускаются lazy_race и стресс с
 # потоками загрузки. Настоящий оракул — функциональный стресс со сверкой ответов (stress.c).
+# Ленивая инициализация замкнутых термов (lean_obj_once) публикуется неинструментированным
+# рантаймом — такие ложные отчёты подавлены в ffi/audit/tsan.supp (только они).
 cd "$(dirname "$0")/../.."
 B=ffi/audit/out; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0
-run() { local name=$1; shift; out=$(ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 TSAN_OPTIONS=halt_on_error=1 timeout 300 "$@" 2>&1); rc=$?
+run() { local name=$1; shift; out=$(ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 TSAN_OPTIONS="halt_on_error=1 suppressions=$PWD/ffi/audit/tsan.supp" timeout 300 "$@" 2>&1); rc=$?
   if [ $rc -eq 0 ] && ! printf '%s' "$out" | grep -qE "ERROR: AddressSanitizer|runtime error:|WARNING: ThreadSanitizer"; then echo "PASS $name"; else echo "FAIL $name rc=$rc"; printf '%s\n' "$out" | grep -E "^FAIL|Sanitizer|runtime error" | head -8; fail=1; fi; }
 for v in asan tsan; do
   run "$v lazy" $B/contract_$v lazy $D
