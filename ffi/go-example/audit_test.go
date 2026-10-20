@@ -452,7 +452,9 @@ func TestAuditThreadCount(t *testing.T) {
 	var bad atomic.Int64
 	maxT := 0
 	stop := make(chan struct{})
+	sampled := make(chan struct{}) // the sampler's write of maxT happens before the read below
 	go func() {
+		defer close(sampled)
 		for {
 			select {
 			case <-stop:
@@ -477,6 +479,7 @@ func TestAuditThreadCount(t *testing.T) {
 	}
 	wg.Wait()
 	close(stop)
+	<-sampled
 	t.Logf("1000 goroutines × 50 requests, GOMAXPROCS=%d: OS threads before %d, max during %d, after %d, bad %d",
 		runtime.GOMAXPROCS(0), before, maxT, tasks(), bad.Load())
 	if bad.Load() != 0 {
