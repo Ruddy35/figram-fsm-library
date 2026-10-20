@@ -1,0 +1,1 @@
+gofig: invalid flag in #cgo LDFLAGS: -Wl,--gc-sections

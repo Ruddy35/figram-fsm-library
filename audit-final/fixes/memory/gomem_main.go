@@ -32,11 +32,56 @@ func mem() (rss, vsz int) {
 	return
 }
 
+var huge int
+
+func privDirty() int {
+	pd := -1
+	f, _ := os.Open("/proc/self/smaps_rollup")
+	defer f.Close()
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		var v int
+		if n, _ := fmt.Sscanf(s.Text(), "Private_Dirty: %d kB", &v); n == 1 {
+			pd = v
+		}
+		if n, _ := fmt.Sscanf(s.Text(), "AnonHugePages: %d kB", &v); n == 1 {
+			huge = v
+		}
+	}
+	return pd
+}
+
 func show(stage string, base int) int {
 	runtime.GC()
 	rss, vsz := mem()
-	fmt.Printf("%-44s RSS %7d КБ (+%6d КБ к началу)   адресов %8d КБ\n", stage, rss, rss-base, vsz)
+	pd := privDirty()
+	fmt.Printf("%-44s RSS %7d КБ (+%6d КБ к началу), своих данных %6d КБ (из них огромных страниц %5d КБ), адресов %8d КБ\n", stage, rss, rss-base, pd, huge, vsz)
 	return rss
+}
+
+// dumpMaps: крупнейшие области по своим изменённым данным (Private_Dirty).
+func dumpMaps() {
+	f, _ := os.Open("/proc/self/smaps")
+	defer f.Close()
+	sc := bufio.NewScanner(f)
+	type area struct{ name, perm string; size, dirty int }
+	var cur *area
+	var all []*area
+	for sc.Scan() {
+		fs := strings.Fields(sc.Text())
+		if len(fs) >= 5 && strings.Contains(fs[0], "-") && !strings.HasSuffix(fs[0], ":") {
+			var a, b uint64
+			fmt.Sscanf(fs[0], "%x-%x", &a, &b)
+			name := "(анонимная)"
+			if len(fs) > 5 { name = fs[5] }
+			cur = &area{name, fs[1], int((b - a) >> 10), 0}
+			all = append(all, cur)
+		} else if len(fs) >= 2 && fs[0] == "Private_Dirty:" && cur != nil {
+			fmt.Sscanf(fs[1], "%d", &cur.dirty)
+		}
+	}
+	for i := 0; i < len(all); i++ { for j := i + 1; j < len(all); j++ { if all[j].dirty > all[i].dirty { all[i], all[j] = all[j], all[i] } } }
+	for _, a := range all[:8] { fmt.Printf("    своих %6d КБ в области %8d КБ %s %s\n", a.dirty, a.size, a.perm, a.name) }
 }
 
 func main() {
@@ -48,6 +93,9 @@ func main() {
 		os.Exit(1)
 	}
 	afterInit := show("после figram_init (рантайм Lean)", base)
+	if os.Getenv("GOMEM_MAPS") != "" {
+		dumpMaps()
+	}
 	cdoc := C.CString(string(doc))
 	defer C.free(unsafe.Pointer(cdoc))
 	ms := []unsafe.Pointer{C.figram_load_doc(cdoc)}

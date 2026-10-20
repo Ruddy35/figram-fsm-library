@@ -42,12 +42,12 @@
  },
  "ci_verify_previous": {
   "workflow": "verify.yml",
-  "run": 39453038163,
-  "commit": "494bfc6bc45dad6ed1281bc221dbe09f6b5aa6a1",
+  "run": 39457015771,
+  "commit": "4adce875b780cedfdb0ead2ac8238ce45aac5f9f",
   "conclusion": "success",
   "verdict": "ВСЁ В ПОРЯДКЕ",
-  "artifact": 12280095163,
-  "artifact_zip_sha256": "86b75658e484e9f0fb0823eec63de16cec8acaab60d0d0f884a84c62d15c8736",
+  "artifact": 12280119412,
+  "artifact_zip_sha256": "8bcf423e1c6ccea20b93842b50d4dd85d274760bcfaa934c8c1d963c8cc2c7b1",
   "verify_log": "VERIFY.log (verbatim verify-full.log)"
  },
  "memory": {
@@ -55,18 +55,19 @@
   "engine_rss_mb": "8 -> 5..7",
   "engine_min_ulimit_v": "3.2 GB -> <= 32 MB",
   "go_runtime_reserve": "+2.16 GB -> +76 MB",
-  "go_runtime_rss": "+11 MB -> +7 MB",
+  "go_runtime_rss": "+11 MB -> +7 MB -> +2.5 MB with --gc-sections",
   "per_machine_kb": "~9",
-  "arena_tradeoff": "shared glibc arena ~5% slower; MALLOC_ARENA_MAX=2 restores speed at +64 MB reserve"
+  "arena_tradeoff": "shared glibc arena ~5% slower; MALLOC_ARENA_MAX=2 restores speed at +64 MB reserve",
+  "go_binary_stripped": "10.6 MB -> 4.3 MB with --gc-sections (empty Go program 1.4 MB)"
  },
  "ci_verify": {
   "workflow": "verify.yml",
-  "run": 39457015771,
-  "commit": "4adce875b780cedfdb0ead2ac8238ce45aac5f9f",
+  "run": 39468895503,
+  "commit": "f117d943b8af8d8e085a86993cae0c05f4abac92",
   "conclusion": "success",
   "verdict": "ВСЁ В ПОРЯДКЕ",
-  "artifact": 12280119412,
-  "artifact_zip_sha256": "8bcf423e1c6ccea20b93842b50d4dd85d274760bcfaa934c8c1d963c8cc2c7b1",
+  "artifact": 12285744156,
+  "artifact_zip_sha256": "035c2157018685c9d033c288c3d407d10f23e4e2f66be9f9a4983087efa66c6e",
   "verify_log": "VERIFY.log (verbatim verify-full.log)"
  }
 }

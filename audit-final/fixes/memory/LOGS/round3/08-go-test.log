@@ -1,0 +1,8 @@
+command: nice -n 10 go test -count=1 . 
+cwd: /home/user/figram-audit-worktrees/fix-memory/ffi/go-example
+start: 2026-10-20T17:44:13.569Z
+end: 2026-10-20T17:44:19.437Z
+exit_code: 0
+--- stdout (18 bytes, last 200 lines)
+ok  	gofig	4.274s
+--- stderr (0 bytes, last 100 lines)

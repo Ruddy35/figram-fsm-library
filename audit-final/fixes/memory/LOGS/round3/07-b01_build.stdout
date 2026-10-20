@@ -1,0 +1,17 @@
+ok   ffi/build.sh rc=0
+ok   ffi/out/LDFLAGS: -L/home/user/figram-audit-worktrees/fix-memory/ffi/out -l:libfigram.a -L/home/user/figram-audit-worktrees/fix-memory/ffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -luv -lgmp -Wl,-Bdynamic -lstdc++ -Wl,--gc-sections -lm -ldl -lpthread -lrt
+ok   ffi/out/LDFLAGS.runtime: -L/home/user/figram-audit-worktrees/fix-memory/ffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -luv -lgmp -Wl,-Bdynamic -lstdc++ -Wl,--gc-sections -lm -ldl -lpthread -lrt
+ok   архив libInit.a: 653 объектов
+ok   архив libgmp.a: 530 объектов
+ok   архив libleanrt.a: 35 объектов
+ok   архив libuv.a: 35 объектов
+ok   C-хост скомпонован флагами ffi/out/LDFLAGS
+ok   C-хост: shared handle: 4 threads x 2000 = 8000 requests, mismatches 0; 1 loader threads: 51 load/10 req/unload/check/fmt cycles, mismatches 0
+     ldd C-хоста: linux-vdso.so.1 libstdc++.so.6 libm.so.6 libgcc_s.so.1 libc.so.6 /lib64/ld-linux-x86-64.so.2 
+ok   go build без CGO_LDFLAGS
+ok   Go: ботов 1, раундов 1, горутин 20, запросов 620, расхождений 0, 36125 запросов/с (GOMAXPROCS=4, CPU=4)
+     ldd Go: linux-vdso.so.1 libstdc++.so.6 libm.so.6 libgcc_s.so.1 libc.so.6 /lib64/ld-linux-x86-64.so.2 
+ok   ffi/figram_exe.c компилируется без системных заголовков (как leanc официального релиза)
+ok   ffi/figram_ffi.c компилируется без системных заголовков (как leanc официального релиза)
+ok   ffi/figram_rt.c компилируется без системных заголовков (как leanc официального релиза)
+ok   ffi/figram_guard.cpp компилируется без системных заголовков (как leanc официального релиза)

@@ -1,0 +1,8 @@
+command: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gofig-gc -rounds 3 -bots 4 examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza-trace.jsonl 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T17:45:04.828Z
+end: 2026-10-20T17:45:05.532Z
+exit_code: 0
+--- stdout (150 bytes, last 200 lines)
+ботов 4, раундов 3, горутин 900, запросов 36900, расхождений 0, 64351 запросов/с (GOMAXPROCS=4, CPU=4)
+--- stderr (0 bytes, last 100 lines)
