@@ -473,12 +473,12 @@ static char* request_impl(void* machine, const char* line, size_t len, int have_
   if (len == 0) return err_reply("parse_error", "пустой запрос", 0, NULL);
   size_t max = __atomic_load_n(&g_max_request, __ATOMIC_RELAXED);
   if (max != 0 && len > max)
-    return err_reply("too_large", "запрос длиннее предела ", max, " байт (figram_set_max_request)");
+    return err_reply("too_large", "запрос длиннее предела ", max, " байт");   /* тот же текст, что у figram-engine */
   const char* z = have_len ? (const char*)memchr(line, 0, len) : NULL;
-  if (z != NULL) return err_reply("parse_error", "запрос содержит байт NUL, смещение ", (unsigned long long)(z - line), "");
+  if (z != NULL) return err_reply("parse_error", "запрос содержит байт NUL (смещение ", (unsigned long long)(z - line), ")");
   size_t chars = 0, bad = 0;
   if (!utf8_ok((const unsigned char*)line, len, &chars, &bad))
-    return err_reply("parse_error", "запрос не в UTF-8, смещение ", bad, "");
+    return err_reply("parse_error", "запрос не в кодировке UTF-8", 0, NULL);   /* как у figram-engine */
   enter_thread();
   lean_inc(m);
   return take_string(figram_request(m, lean_mk_string_unchecked(line, len, chars)));
