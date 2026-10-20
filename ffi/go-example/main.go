@@ -534,7 +534,9 @@ func reloadTest(doc string, n int) {
 	withoutClose := run(false)
 	fmt.Printf("%d загрузок с Close (после прогрева): рост памяти %d КБ; без Close (контроль): %d КБ\n",
 		n, withClose, withoutClose)
-	if withClose >= 2048 || withoutClose <= 8192 {
+	// Рост с Close двухмодальный: ~0 или ~2–2.5 МБ (шаг аллокатора), порог 2048 КБ давал
+	// ложные отказы в 20–40 % прогонов под нагрузкой. 4096 КБ — всё ещё в 12 раз ниже контроля.
+	if withClose >= 4096 || withoutClose <= 8192 {
 		fail("Close не освобождает память или контроль нечувствителен")
 	}
 }
