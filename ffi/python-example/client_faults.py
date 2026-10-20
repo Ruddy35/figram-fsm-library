@@ -1,8 +1,11 @@
 """Клиент не зависает ни при каком поведении движка (N01).
 
-Подставные «движки» нарушают протокол разными способами; каждый запрос из
-многих потоков должен завершиться контролируемой ошибкой за ограниченное
-время, а следующий запрос — уйти в новый, исправный процесс.
+Подставные «движки» (тестовые двойники, sh) нарушают протокол разными
+способами; каждый запрос из многих потоков должен завершиться контролируемой
+ошибкой за ограниченное время, а следующий запрос — уйти в новый, исправный
+процесс. Двойники сбоят на запросе после ответа на hello (клиент отправляет
+hello при запуске процесса и ждёт ответа); сбои до готовности — отдельно:
+конструктор обязан завершиться EngineError за start_timeout.
 
     python3 client_faults.py ENGINE bot.json
 """
@@ -16,6 +19,7 @@ import time
 
 from figram_client import Engine, EngineError
 
+HELLO = 'read l; echo \'{"id":0,"protocol":1,"states":1}\'; '
 FAKES = {
     "невалидный JSON": 'read l; echo "{oops"; sleep 30',
     "неизвестный id": 'read l; echo \'{"id": 999, "snapshot": {}}\'; sleep 30',
@@ -29,7 +33,7 @@ FAKES = {
     "обрыв вывода": 'read l; exit 0',
     "падение": 'read l; kill -SEGV $$',
     "не читает вход": 'sleep 30',
-    "мусор и не читает вход": 'echo "{oops"; sleep 30',
+    "мусор и не читает вход": 'sleep 0.3; echo "{oops"; sleep 30',
 }
 BIG = {"at": "home", "resume": {f"s{i}": "m" for i in range(7000)}}
 
@@ -39,7 +43,7 @@ with tempfile.TemporaryDirectory() as d:
     for name, body in FAKES.items():
         path = os.path.join(d, "fake.sh")
         with open(path, "w") as f:
-            f.write(f"#!/bin/sh\n{body}\n")
+            f.write(f"#!/bin/sh\n{HELLO}{body}\n")
         os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
         engine = Engine(path, doc, processes=1, timeout=1.0)
         results = []
@@ -75,7 +79,7 @@ with tempfile.TemporaryDirectory() as d:
     # Каждый вызов обязан завершиться ошибкой в пределах одного таймаута.
     path = os.path.join(d, "fake.sh")
     with open(path, "w") as f:
-        f.write("#!/bin/sh\nsleep 30\n")
+        f.write(f"#!/bin/sh\n{HELLO}sleep 30\n")
     os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
     engine = Engine(path, doc, processes=1, timeout=1.0)
     snap = {"at": "home", "resume": {f"s{i}": "m" for i in range(60)}}
@@ -103,6 +107,31 @@ with tempfile.TemporaryDirectory() as d:
     ok &= good
     print(f"{'ok ' if good else 'НЕТ'} 300 одновременных запросов (~300 КБ) при заблокированном входе: "
           f"ошибок {len(errors)}, зависло {hung}, самый долгий вызов {max(durations):.2f} с, всего {took:.1f} с")
+
+    # Сбои до готовности (фаза запуска): конструктор ждёт hello и бросает
+    # EngineError за ограниченное время, а не висит и не возвращает пул.
+    START = {
+        "мусор вместо hello": 'read l; echo "{oops"; sleep 30',
+        "выход до hello": 'exit 1',
+        "падение до hello": 'kill -SEGV $$',
+        "не отвечает на hello": 'sleep 30',
+        "hello неверной формы": 'read l; echo \'{"id": 0, "protocol": 1}\'; sleep 30',
+    }
+    for name, body in START.items():
+        path = os.path.join(d, "fake.sh")
+        with open(path, "w") as f:
+            f.write(f"#!/bin/sh\n{body}\n")
+        os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
+        t0 = time.monotonic()
+        try:
+            Engine(path, doc, processes=2, timeout=1.0, start_timeout=1.0).close()
+            r = "пул создан"
+        except EngineError:
+            r = "ошибка"
+        took = time.monotonic() - t0
+        good = r == "ошибка" and took < 3.0
+        ok &= good
+        print(f"{'ok ' if good else 'НЕТ'} запуск, {name}: {r}, {took:.1f} с (start_timeout 1 с)")
 
     # После сбоя пул заменяет процесс: следующий запрос к настоящему движку проходит.
     engine = Engine(real_engine, doc, processes=1, timeout=2.0)

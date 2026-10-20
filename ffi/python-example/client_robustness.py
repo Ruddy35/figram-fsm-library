@@ -1,6 +1,7 @@
 """Устойчивость клиента: то, чего не ловят client_faults.py и client_contract.py
-(аудит python-client). Подставные «движки» — тестовые двойники (sh), плюс
-настоящий движок.
+(аудит python-client). Подставные «движки» — тестовые двойники (sh, Python),
+плюс настоящий движок. Клиент при запуске процесса отправляет hello с id 0 и
+ждёт ответа: sh-двойники сначала отвечают на него (HELLO), затем сбоят.
 
     python3 client_robustness.py ENGINE pizza.bot.json features.bot.json
 
@@ -11,8 +12,9 @@ R2  300 циклов «сбой → замена»: не растут поток
     зомби; close() исправного пула мгновенный (stdin закрывается)
 R3  после сбоя таблица ожидающих пуста; вызов неисправного процесса —
     ошибка сразу, без ожидания срока
-R4  поздний ответ медленного движка: ошибка по сроку, следующий запрос
-    получает свой ответ; движок под SIGSTOP: ошибка по сроку, процесс собран
+R4  поздний ответ медленного движка: ошибка по сроку, процесс не убит, поздний
+    ответ отброшен, следующий запрос получает свой ответ от того же процесса;
+    движок под SIGSTOP: ошибка по сроку, процесс собран по hang_timeout
 R5  строка с одиночным суррогатом: EngineError, таблица ожидающих не растёт
 R6  после close(): EngineError, новых процессов нет (и при close посреди
     активных вызовов)
@@ -129,9 +131,14 @@ def fake(body):
     return path
 
 
+# Клиент сначала отправляет {"id":0,"op":"hello"} и ждёт ответа (фаза запуска):
+# двойник, который должен сбоить на ЗАПРОСЕ, сначала отвечает на hello.
+HELLO = 'read l; echo \'{"id":0,"protocol":1,"states":1}\'; '
 RESP = '{"id":1,"snapshot":{"at":"a"},"actions":[]}'
-ECHO = ('while read l; do id=$(echo "$l" | sed \'s/^{"id":\\([0-9]*\\).*/\\1/\'); '
-        'echo "{\\"id\\":$id,\\"snapshot\\":{\\"at\\":\\"a\\"},\\"actions\\":[]}"; done')
+# Эхо: на hello — ответ hello, на остальное — результат с тем же id.
+ECHO = (r'''while read l; do id=$(echo "$l" | sed 's/^{"id":\([0-9]*\).*/\1/'); '''
+        r'''case "$l" in *'"op":"hello"'*) echo "{\"id\":$id,\"protocol\":1,\"states\":1}";; '''
+        r'''*) echo "{\"id\":$id,\"snapshot\":{\"at\":\"a\"},\"actions\":[]}";; esac; done''')
 
 # R1: мгновенно обнаружимые сбои будят всех сразу (срок 6 с, порог 1.5 с).
 INSTANT = {
@@ -143,14 +150,15 @@ INSTANT = {
     "stdout закрыт сразу": 'exec 1>&-; while read l; do :; done',
 }
 for name, body in INSTANT.items():
-    eng = Engine(fake(body), pizza, timeout=6.0)
+    eng = Engine(fake(HELLO + body), pizza, timeout=6.0)
     res, times, hung = parallel(lambda i: eng.start("u"), 8)
     eng.close()
     report(res.count("ошибка") == 8 and hung == 0 and max(times) < 1.5,
            f"R1 {name}: ошибок {res.count('ошибка')} из 8, самый долгий {max(times):.2f} с (срок 6 с)")
 
-# R2: ресурсы после многих циклов «сбой → замена».
-eng = Engine(fake('read l; kill -SEGV $$'), pizza, timeout=5.0)
+# R2: ресурсы после многих циклов «сбой → замена» (пауза перезапуска отключена,
+# иначе замен было бы несколько, а не 300; сама пауза — R13).
+eng = Engine(fake(HELLO + 'read l; kill -SEGV $$'), pizza, timeout=5.0, restart_backoff=(0, 0))
 base = resources()
 done = 0
 for _ in range(300):
@@ -174,7 +182,7 @@ took = time.monotonic() - t0
 report(took < 1.0 and not wait_children(0, 1.0), f"R2 close() исправного пула из 2 процессов: {took:.2f} с (срок 5 с)")
 
 # R3: таблица ожидающих после сбоя; вызов неисправного процесса.
-eng = Engine(fake('while read l; do :; done'), pizza, timeout=6.0)
+eng = Engine(fake(HELLO + 'while read l; do :; done'), pizza, timeout=6.0)
 p = eng._procs[0]
 th = [threading.Thread(target=lambda: parallel(lambda i: p.call({"op": "start"}), 4))]
 th[0].start()
@@ -192,10 +200,14 @@ report(len(p._pending) == 0 and r == "ошибка" and took < 0.5,
        f"R3 после сбоя: ожидающих {len(p._pending)}, вызов неисправного процесса — {r} за {took:.2f} с")
 eng.close()
 
-# R4: поздний ответ и SIGSTOP.
-late = os.path.join(tmp, "late-once")   # медленный только первый процесс
-eng = Engine(fake(f"if [ ! -e {late} ]; then touch {late}; read l; sleep 3; echo '{RESP}'; fi; " + ECHO),
+# R4: поздний ответ и SIGSTOP. Таймаут проваливает только свой вызов (I-04):
+# процесс не убивается, поздний ответ отбрасывается, следующий запрос получает
+# свой ответ от того же процесса. Зависший (SIGSTOP) процесс заменяется по
+# hang_timeout.
+late = os.path.join(tmp, "late-once")   # медленный только первый запрос
+eng = Engine(fake(HELLO + f"if [ ! -e {late} ]; then touch {late}; read l; sleep 3; echo '{RESP}'; fi; " + ECHO),
              pizza, timeout=1.0)
+pid0 = eng._procs[0]._p.pid
 t0 = time.monotonic()
 try:
     eng.start("u")
@@ -203,21 +215,24 @@ try:
 except EngineError:
     first = "ошибка"
 took = time.monotonic() - t0
+time.sleep(max(0.0, t0 + 3.5 - time.monotonic()))   # поздний ответ уже пришёл
 try:
     second = eng.start("u")["snapshot"]["at"]
 except EngineError as e:
     second = f"ошибка {e}"
+same = eng._procs[0].alive and eng._procs[0]._p.pid == pid0
 eng.close()
-report(first == "ошибка" and 0.9 < took < 2.0 and second == "a",
-       f"R4 поздний ответ: первый вызов — {first} за {took:.2f} с, следующий — {second}")
-eng = Engine(engine_bin, pizza, timeout=1.0)
+report(first == "ошибка" and 0.9 < took < 2.0 and second == "a" and same,
+       f"R4 поздний ответ: первый вызов — {first} за {took:.2f} с, следующий — {second}, процесс тот же {same}")
+eng = Engine(engine_bin, pizza, timeout=1.0, hang_timeout=1.5)
 pid = eng._procs[0]._p.pid
 os.kill(pid, signal.SIGSTOP)
 res, times, hung = parallel(lambda i: eng.start("u"), 4)
-gone = not os.path.exists(f"/proc/{pid}") or not wait_children(0, 2.0)
+gone = not os.path.exists(f"/proc/{pid}") or not wait_children(0, 3.0)
 eng.close()
 report(res.count("ошибка") == 4 and max(times) < 2.0 and gone,
-       f"R4 SIGSTOP: ошибок {res.count('ошибка')} из 4, самый долгий {max(times):.2f} с, процесс собран {gone}")
+       f"R4 SIGSTOP: ошибок {res.count('ошибка')} из 4, самый долгий {max(times):.2f} с, "
+       f"процесс собран по hang_timeout 1.5 с {gone}")
 
 # R5: одиночный суррогат.
 eng = Engine(engine_bin, pizza, timeout=5.0)
@@ -403,7 +418,7 @@ def spy(pid, sig):
 
 figram_client.os.killpg = spy
 try:
-    eng = Engine(fake('read l; kill -SEGV $$'), pizza, timeout=2.0)
+    eng = Engine(fake(HELLO + 'read l; kill -SEGV $$'), pizza, timeout=2.0, restart_backoff=(0, 0))
     for _ in range(200):
         t0 = time.monotonic()
         parallel(lambda i: eng.start("u"), 8)
