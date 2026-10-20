@@ -1,0 +1,6 @@
+неисправность код ожидание последняя строка
+none                 3      3        ok   - хеши сверены с /home/user/figram-audit/agents/integration/REPRODUCTIONS/sums/SHA256SUMS.integration-local-
+sums-tampered        1      1        ok НЕТ: пересобранные бинарники не совпадают с /tmp/tmp.IPJgYzVzIv/sums.tampered
+custom-axiom         1      1        ok НЕТ: Figram.Engine.guards_irrelevant: недопустимые аксиомы ['Figram.Machine.figram_cheat']
+engine-bug-golden-edited 1      1        ok НЕТ: examples/golden.jsonl не совпадает с выводом figram golden
+go-missing           1      1        ok НЕТ: go не установлен: Go-часть проверки обязательна (явный пропуск — FIGRAM_WAIVE=go, код выхода 3)

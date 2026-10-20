@@ -15,3 +15,15 @@ ffi 4998244 | regress.sh, init_race 300, TestAuditInitRace | ffi-before-* (init 
 go a027905 | TestAudit{HelloAlwaysError,RequestBadOp,LoadNUL} | ffi-before-go_test_race (FAIL) | ffi-after-go_test_race (PASS) | ffi-int-go_test_race | n/a | VERIFIED
 adapted verify.sh | — | — | — | 55, 70 (ВСЁ В ПОРЯДКЕ, exit 0; hash step diff = known TEST bug) | — | green
 verify-prebuilt.sh (bin/ unchanged) | — | — | — | 72 (json_fuzz red: 26 unreadable, old bin/figram has FC-01) | — | expected red until release rebuild
+
+ROUND 2 (harness-ci 7 commits) — HEAD 8be73ac2a9f76ba7dae0e3e6ec503b312d79a18f (baseline + 40 commits)
+lake build                                   90-r2-lake-build (ok); Lean product sources unchanged since round 1 (clean build 51)
+ci/theorems.lean vs ci/THEOREMS.expected     91-r2-ci-theorems: 17 statements identical after CC-01 repair
+all-theorems axioms                          96-r2-all-axioms: 601, nonstandard 0, identical to round 1
+hardened verify.sh, no waiver                92-r2-verify-sh-no-waiver: exit 1 at hash step (local rebuild 8051f148/77f2a0c2 vs official a08c666c/8d96cf27;
+                                             baseline local rebuild b825dac9/f4951ff8 -> toolchain AND source changes)
+hardened verify.sh, FIGRAM_SHA256SUMS        93-r2-verify-sh-waiver: exit 3, one declared waiver (hashes vs local sums), all steps incl. strict gate PASS
+protocol_edges.py                            94-r2-protocol_edges-INT / -BIN: 11/11, 0 divergences
+verify-faults prebuilt none (real tree)      faults-prebuilt-realtree: 1 (json_fuzz: shipped bin/figram has FC-01, 12 unreadable) = INT-01
+verify-faults prebuilt ALL (release-sim)     faults-prebuilt-releasesim: none 0, 7 faults 1 -> all expectations met
+verify-faults full (waiver, EXPECT_BASE=3)   faults-full-int: none 3, sums-tampered 1, custom-axiom 1, engine-bug-golden-edited 1, go-missing 1 -> all met

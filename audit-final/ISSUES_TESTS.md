@@ -3,6 +3,12 @@
 Путь в продукт у этих находок косвенный: дефект стенда позволяет выпустить дефект продукта с зелёной проверкой.
 Риск оценён для шлюза качества и процесса выпуска. Пути — относительно `audit-final/`.
 
+Все исправления стенда из `audit/harness-ci` влиты в `audit/integration` (раунд 2: 42274fd, 072a897, c6a4440,
+56d67c6 — слияние двух шлюзов теорем, 92e572b, e00a311, 4b7b3ee) и проверены агентом integration на HEAD `8be73ac`
+(`agents/integration/REPORT.md` §7): `verify-faults.sh prebuilt` в имитации выпуска — `none` 0, все 7 неисправностей 1;
+`verify-faults.sh full` (с объявленным отступлением хешей) — `none` 3, sums-tampered / custom-axiom /
+engine-bug-golden-edited / go-missing — 1.
+
 ## TEST
 
 | ID | суть | где | P | уверенность | статус |
