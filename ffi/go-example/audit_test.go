@@ -511,6 +511,9 @@ func TestAuditSIGPIPE(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
+	if mode := os.Getenv("FIGRAM_CHILD"); mode != "" {
+		os.Exit(runChild(mode))
+	}
 	if mode := os.Getenv("FIGRAM_SIGPIPE_CHILD"); mode != "" {
 		if mode == "init" && initFigram() != 0 {
 			os.Exit(3)
