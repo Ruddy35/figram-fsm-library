@@ -190,8 +190,9 @@ func (h *Host) Barrier(timeout time.Duration) error {
 
 // ---------------------------------------------------------------- reset / upgrade
 
-// ResetUser: "delete my data, keep the account" — restart from the stored snapshot
-// (or {"at":"-","seq":hw}), never start (ET-01); cancel every scheduled timer.
+// ResetUser: "delete my data, keep the account" — start with seq = the persistent
+// high-water seq (HOST.md §4), never start without seq (ET-01/P-01); cancel every
+// scheduled timer of the user.
 func (h *Host) ResetUser(user, ctlID string) (string, error) {
 	l := h.lockOf(h.ulocks, user)
 	l.Lock()

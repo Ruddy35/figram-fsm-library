@@ -400,7 +400,7 @@ def check(work, items, runner, main_res, refs, family):
               (u not in users or u not in pu or comparable(users[u]) != comparable(pu[u])
                or users[u]["snapshot"] != pu[u]["snapshot"])]
         put("other_users_unaffected", not du, {"users": sorted(du)[:10], "targets": sorted(targets)})
-        # targeted users: repaired (restart from high-water seq), seq continued, nothing reused
+        # targeted users: repaired (start with seq = high-water seq), seq continued, nothing reused
         rep = Counter(t["user"] for t in changed if t["kind"] == "repair" or t["recovered"])
         put("corrupted_users_repaired", all(rep[u] >= 1 or not users.get(u) for u in targets),
             {u: rep[u] for u in targets})

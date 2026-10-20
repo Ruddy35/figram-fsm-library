@@ -271,7 +271,7 @@ func (h *Host) checkSeq(c *stepCtx) error {
 		}
 	case "repair":
 		if r.Snap.Seq != c.hw+1 {
-			return &EngineFailure{fmt.Sprintf("restart returned seq %d, want %d", r.Snap.Seq, c.hw+1)}
+			return &EngineFailure{fmt.Sprintf("repair (start with seq) returned seq %d, want %d", r.Snap.Seq, c.hw+1)}
 		}
 	case "step":
 		if c.snap == nil {
@@ -496,7 +496,7 @@ func boolInt(b bool) int {
 
 // Key scheme: "<user>:<seq>:<index>". seq is the snapshot seq after the transition
 // and is monotone over the whole lifetime of the user: `start` only for a user
-// without a row, every reset/repair is `restart` from the persistent high-water seq
+// without a row, every reset/repair is `start` with seq = the persistent high-water seq
 // (users.hw_seq, only ever raised with MAX), user rows are never deleted. The UNIQUE
 // constraint on outbox.key is a tripwire: a collision aborts the transaction.
 func outboxKey(user string, seq int64, i int) string { return fmt.Sprintf("%s:%d:%d", user, seq, i) }
