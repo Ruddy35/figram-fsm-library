@@ -28,6 +28,26 @@ namespace Figram
 abbrev NodeId := String
 abbrev EventId := String
 
+/-! ## Принадлежность имени списку
+
+Разрешимость `n ∈ l` для списков строк — прямой цикл со сравнением строк
+(обобщённый `List.elem` вызывает сравнение через замыкание; шаг движка
+проверяет принадлежность сообщения автомату несколько раз). -/
+
+def memStr (n : String) : List String → Bool
+  | [] => false
+  | x :: xs => x == n || memStr n xs
+
+theorem memStr_iff (n : String) (l : List String) : memStr n l = true ↔ n ∈ l := by
+  induction l with
+  | nil => simp [memStr]
+  | cons x xs ih =>
+    rw [memStr, Bool.or_eq_true, ih, List.mem_cons, beq_iff_eq]
+    exact ⟨fun h => h.elim (fun e => Or.inl e.symm) Or.inr, fun h => h.elim (fun e => Or.inl e.symm) Or.inr⟩
+
+instance (priority := high) decMemStr (n : String) (l : List String) : Decidable (n ∈ l) :=
+  decidable_of_iff _ (memStr_iff n l)
+
 /-! ## Таблицы «ключ → значение» -/
 
 /-- Значение по ключу (первая запись). -/
