@@ -311,12 +311,18 @@ Figram/Chart.lean                    схема дизайнера, эталон
 Figram/Compile.lean, Correct.lean    компилятор и главная теорема
 Figram/Run.lean                      сценарии
 Figram/Format*.lean                  формат документа, доказательства, текст JSON
-Figram/Lint.lean                     проверки схемы
+Figram/Lint.lean, LintProofs.lean    проверки схемы, `lint = [] → wf`
+Figram/Warnings.lean                 предупреждения `figram check` (stderr, код 0)
 Figram/Engine.lean, Api.lean         протокол движка, API для встраивания
 Figram/Trace.lean, RandomDoc.lean    эталонные сценарии, случайные документы
 Figram/Mutate.lean                   мутации
 Figram/Examples.lean                 примеры и проверки при сборке
-ffi/                                 Go, C-прослойка, Python-клиент и тесты
+ffi/                                 Go, C-прослойка (контракт — ffi/figram.h), Python-клиент и тесты
+HOST.md                              контракт хоста
+tests/formats/                       граничные и дифференциальные тесты форматов и протокола
+audit/                               наборы независимого аудита и волны исправлений
+                                     (ядро и компилятор, таймеры, форматы, доказательства,
+                                     документация, хосты host-go и host-python)
 REVIEW.md                            ответ на ревью F01–F13 и N01–N07
 AUDIT.md                             что доказано, что проверено, доверенная база
 Figram/EngineProofs.lean             доказательства протокола движка
