@@ -1,3 +1,4 @@
+# Действия закреплены по SHA коммита (T-15); тег в комментарии — для обновления.
 name: Lean Action CI
 
 on:
@@ -10,5 +11,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v7
-      - uses: leanprover/lean-action@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7.0.1
+      - uses: leanprover/lean-action@24581d74d674803a25a81b10b059c5c0cdd344c6   # v1.6.2

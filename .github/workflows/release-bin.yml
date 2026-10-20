@@ -24,8 +24,6 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
       - name: Lean из lean-toolchain (архив релиза, sha256 из ci/lean-toolchain.sha256)
-        env:
-          FIGRAM_LEAN_TOFU: "1"   # только до появления ci/lean-toolchain.sha256; затем убрать
         run: ci/install-lean.sh "$HOME/.lean-toolchain"
       - name: Сборка и strip
         run: |
