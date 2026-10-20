@@ -1,7 +1,13 @@
+# Build outputs
 /.lake
 /ffi/out
-/ffi/go-example/gofig
-/ffi/go-example/gofig-race
-/ffi/go-example/zz_figram_ldflags.go
-__pycache__
+/clients/go/gofig
+/clients/go/gofig-race
+/clients/go/zz_figram_ldflags.go
+__pycache__/
+# Logs and outputs of verify.sh, verify-prebuilt.sh, verify-faults.sh and the test suites
 /verify-logs
+/tests/capi/out
+/tests/formats/logs
+/tests/compiler/logs
+/tests/compiler/mutant_survivors.json

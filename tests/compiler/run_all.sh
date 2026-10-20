@@ -1,7 +1,8 @@
 #!/bin/sh
-# Audit agent core-compiler: full oracle/differential suite.
-#   ./run_all.sh [ENGINE] [FIGRAM] [LOGDIR]
-# Every step is recorded with run.sh (command, exit code, stdout/stderr).
+# Compiler oracle/differential suite.
+#   tests/compiler/run_all.sh [ENGINE] [FIGRAM] [LOGDIR]
+# Defaults: .lake/build/bin/figram-engine, .lake/build/bin/figram, tests/compiler/logs (git-ignored).
+# Every step is recorded with tests/lib/run_logged.sh (command, exit code, stdout/stderr).
 # Green steps must exit 0; "red" steps are red-proofs (a broken oracle or a
 # mutated engine) and must ALSO exit 0 (they run with --expect-red);
 # "findings" steps are regression tests of the reported findings and are
@@ -19,11 +20,15 @@ CC01=${CC01:-fixed}; export CC01
 D=""; UPW=1
 if [ "$CC01" = fixed ]; then D="--oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot"; UPW=0; fi
 HERE=$(cd "$(dirname "$0")" && pwd)
-ENGINE=${1:-$HERE/../../bin/figram-engine}
-FIGRAM=${2:-$HERE/../../bin/figram}
-LOG=${3:-$HERE/logs}
-RUN=/home/user/figram-audit/run.sh
-[ -x "$RUN" ] || RUN="$HERE/run_log.sh"
+ROOT=$(cd "$HERE/../.." && pwd)
+abs() { case $1 in /*) echo "$1";; *) echo "$PWD/$1";; esac; }
+ENGINE=$(abs "${1:-$ROOT/.lake/build/bin/figram-engine}")
+FIGRAM=$(abs "${2:-$ROOT/.lake/build/bin/figram}")
+LOG=$(abs "${3:-$HERE/logs}")
+RUN="$ROOT/tests/lib/run_logged.sh"
+for b in "$ENGINE" "$FIGRAM"; do
+  [ -x "$b" ] || { echo "not an executable: $b (run lake build or pass ENGINE FIGRAM)"; exit 2; }
+done
 cd "$HERE"
 fail=0
 step() { want=$1; name=$2; shift 2

@@ -22,8 +22,8 @@ import subprocess
 from fractions import Fraction
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FIGRAM = os.environ.get("FIGRAM", os.path.join(ROOT, "bin", "figram"))
-ENGINE = os.environ.get("FIGRAM_ENGINE", os.path.join(ROOT, "bin", "figram-engine"))
+FIGRAM = os.environ.get("FIGRAM", os.path.join(ROOT, ".lake", "build", "bin", "figram"))
+ENGINE = os.environ.get("FIGRAM_ENGINE", os.path.join(ROOT, ".lake", "build", "bin", "figram-engine"))
 MAX_INT = 2 ** 53 - 1
 MAX_EXP = 1000
 MAX_DEPTH = 256
