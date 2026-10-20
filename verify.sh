@@ -190,7 +190,8 @@ expect "$LOGS/random_docs.log" '^документов (\d+), запросов (\
   'g[0] == 100 and g[1] > 0 and g[2] == 0' "случайные документы"
 
 step "Мутационное тестирование"
-SHOW=3 logged mutation python3 $P/mutation.py $E --golden examples/golden.jsonl \
+# --mutants/--mutate — тестовый режим движка, только при FIGRAM_ALLOW_MUTANTS=1 (mutation.py ставит и сам).
+SHOW=3 logged mutation env FIGRAM_ALLOW_MUTANTS=1 python3 $P/mutation.py $E --golden examples/golden.jsonl \
   examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl"
 expect "$LOGS/mutation.log" '^обнаружено (\d+) из (\d+) мутаций' "g[1] >= $MIN_MUTANTS and g[0] == g[1]" "мутации"
 
@@ -227,7 +228,7 @@ expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), ра�
 expect "$LOGS/snapshots.log" '^граница seq: ok$' 'True' "граница seq"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^граничных случаев протокола (\d+), ответов (\d+), расхождений (\d+)$' \
-  'g[0] >= 11 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
+  'g[0] >= 105 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
 
 step "Текстовый слой JSON: дифференциально против Python json"
 logged json_fuzz python3 $P/json_fuzz.py $F 30000 1

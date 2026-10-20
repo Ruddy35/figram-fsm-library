@@ -45,6 +45,29 @@ import threading
 import time
 
 MAXINT = 2 ** 53 - 1
+# machine codes of an error reply (FORMAT.md §7, "Ошибки"; fix wave PROTOCOL_CHANGES 1)
+ERROR_CODES = {"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow"}
+
+
+def protocol_rejects(ev, tok):
+    """Why the strict protocol (fix wave, PROTOCOL_CHANGES 3) rejects this step with
+    bad_request, or None if the request is accepted."""
+    if type(ev) is not str or not ev:
+        return "event must be a non-empty string"
+    if ev.startswith("timer:"):
+        if ev == "timer:":
+            return "empty timer name"
+        if tok is None:
+            return "timer event without token"
+        if type(tok) is not int or not 0 <= tok <= MAXINT:
+            return "token outside 0..2^53-1"
+        return None
+    return "token on a named event" if tok is not None else None
+
+
+def mutant_env():
+    """--mutants / --mutate are a test mode enabled only by FIGRAM_ALLOW_MUTANTS=1."""
+    return dict(os.environ, FIGRAM_ALLOW_MUTANTS="1")
 
 
 # ----------------------------------------------------------------------------
@@ -62,7 +85,8 @@ class Engine:
         def limits():
             resource.setrlimit(resource.RLIMIT_AS, (as_limit, as_limit))
         self.p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE, preexec_fn=limits)
+                                  stderr=subprocess.PIPE, preexec_fn=limits,
+                                  env=mutant_env() if mutate else None)
         self.q = queue.Queue()
         self.timeout = timeout
         self.next_id = 1
@@ -352,6 +376,9 @@ def parse_reply(ck, raw, rid, where):
         return r if isinstance(r, dict) else None
     kinds = [k for k in ("snapshot", "need", "error", "protocol") if k in r]
     ck.ok(len(kinds) == 1, "I2", f"{where}: reply kinds {kinds}: {raw[:200]!r}")
+    if "error" in r:
+        ck.ok(set(r) == {"id", "error", "code"} and isinstance(r["error"], str) and r.get("code") in ERROR_CODES,
+              "I2", f"{where}: bad error shape {raw[:200]!r}")
     if "snapshot" in r:
         ck.ok(set(r) <= {"id", "snapshot", "actions", "recovered"} and "actions" in r
               and r.get("recovered", True) is True, "I2", f"{where}: bad result shape {raw[:200]!r}")
@@ -479,6 +506,13 @@ class Session:
         base = {"op": "step", "snapshot": snap_to_json(u.snap), "event": ev}
         if tok is not None:
             base["token"] = tok
+        why = protocol_rejects(ev, tok)
+        if why:
+            # I12 + strict protocol: rejected with bad_request, no snapshot; the old snapshot keeps working
+            _, _, r = self.call(base, where + " strict")
+            ck.ok(r is not None and r.get("code") == "bad_request" and "snapshot" not in r, "I12",
+                  f"{where}: {base} -> {r}, expected bad_request ({why})")
+            return None
         req_g = ref.required(u.snap, ev, tok)
         if full is None:
             full = {g: rnd.random() < 0.5 for g in req_g}
@@ -714,7 +748,8 @@ def main(argv):
             print(f"  {inv}: {d}")
         return 1 if ck.violations or n == 0 or ck.checks == 0 else 0
     if a.mode == "mutants":
-        ms = subprocess.run([a.engine, "--mutants", a.doc], capture_output=True, text=True, timeout=30)
+        ms = subprocess.run([a.engine, "--mutants", a.doc], capture_output=True, text=True, timeout=30,
+                            env=mutant_env())
         names = ms.stdout.split()
         survived, equivalents = [], []
         sess = Session(a.engine, a.doc)
