@@ -116,18 +116,24 @@ theorem decEvent_named {kvs : Obj} {n : String} (h : decEvent kvs = .ok (.named 
   | some j =>
     cases j with
     | str e =>
-      simp only [hg, bind, Except.bind, pure, Except.pure] at h
-      by_cases hs : e.startsWith "timer:" = true
-      · simp only [hs, ite_true] at h
-        split at h
-        · split at h
-          · simp at h
+      -- fix wave (PROTOCOL_CHANGES 3): `decEvent` also rejects an empty event, an empty
+      -- timer name and a token on a named event; the statement is unchanged
+      by_cases he : e.isEmpty = true
+      · simp [hg, he, bind, Except.bind, throw, throwThe, MonadExceptOf.throw] at h
+      · simp only [hg, he, Bool.false_eq_true, ite_false, bind, Except.bind, pure, Except.pure] at h
+        by_cases hs : e.startsWith "timer:" = true
+        · simp only [hs, ite_true] at h
+          split at h
           · simp [throw, throwThe, MonadExceptOf.throw] at h
-        · simp [throw, throwThe, MonadExceptOf.throw] at h
-      · simp only [hs] at h
-        simp only [Bool.false_eq_true, ite_false, Except.ok.injEq, Event.named.injEq] at h
-        subst h
-        simpa using hs
+          · split at h
+            · split at h <;> simp at h
+            · simp [throw, throwThe, MonadExceptOf.throw] at h
+        · simp only [hs, Bool.false_eq_true, ite_false] at h
+          split at h
+          · simp [throw, throwThe, MonadExceptOf.throw] at h
+          · simp only [Except.ok.injEq, Event.named.injEq] at h
+            subst h
+            simpa using hs
     | _ => simp [hg, bind, Except.bind, throw, throwThe, MonadExceptOf.throw] at h
 
 /-- Any step that fires on an event whose key starts with `timer:` and that was decoded by

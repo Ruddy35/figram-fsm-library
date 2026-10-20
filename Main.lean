@@ -12,7 +12,8 @@ import Figram.RandomDoc
 * `figram trace <bot.json> <count> <length> <seed>` — случайные эталонные
   сценарии (JSONL); покрытие вариантов стрелок — в stderr;
 * `figram random <seed> <messages>` — случайный корректный документ;
-* `figram golden <dir>` — фиксированные сценарии и их документы.
+* `figram golden <dir>` — фиксированные сценарии и их документы;
+* `figram json` — разбор строк stdin текстовым слоем (для тестов).
 
 Любая ошибка — ненулевой код выхода.
 -/
@@ -46,6 +47,21 @@ def natArg (name val : String) : IO Nat :=
   match val.toNat? with
   | some n => pure n
   | none => throw <| IO.userError s!"{name}: ожидалось целое число, получено «{val}»"
+
+/-- `figram json`, для дифференциального тестирования текстового слоя: строка
+на вход, «OK <компактная запись>» или «ERR <причина>» на выход. Ввод читается
+целиком, байтами; строка не в кодировке UTF-8 — «ERR», как у движка. -/
+partial def jsonLines (data : ByteArray) (out : IO.FS.Stream) (start : Nat) : IO Unit := do
+  if start ≥ data.size then return
+  let stop := (data.findIdx? (· == 10) start).getD data.size
+  let reply := match String.fromUTF8? (data.extract start stop) with
+    | none => "ERR " ++ renderCompact (.str "текст не в кодировке UTF-8")
+    | some text =>
+      match parse text with
+      | .ok j => "OK " ++ renderCompact j
+      | .error e => "ERR " ++ renderCompact (.str e)
+  out.putStr (reply ++ "\n")
+  jsonLines data out (stop + 1)
 
 def run (args : List String) : IO Unit := do
   match args with
@@ -98,18 +114,7 @@ def run (args : List String) : IO Unit := do
       lines := lines.push (renderCompact j)
     IO.FS.writeFile s!"{dir}/golden.jsonl" ("\n".intercalate lines.toList ++ "\n")
     IO.println s!"сценариев: {lines.size}"
-  | ["json"] =>
-    -- Для дифференциального тестирования текстового слоя: строка на вход,
-    -- «OK <компактная запись>» или «ERR <причина>» на выход.
-    let inp ← IO.getStdin
-    let out ← IO.getStdout
-    repeat
-      let line ← inp.getLine
-      if line.isEmpty then break
-      let text := String.ofList (line.toList.filter (· != (Char.ofNat 10)))
-      match parse text with
-      | .ok j => out.putStrLn ("OK " ++ renderCompact j)
-      | .error e => out.putStrLn ("ERR " ++ renderCompact (.str e))
+  | ["json"] => jsonLines (← (← IO.getStdin).readBinToEnd) (← IO.getStdout) 0
   | _ => throw <| IO.userError usage
 
 def main (args : List String) : IO UInt32 := do

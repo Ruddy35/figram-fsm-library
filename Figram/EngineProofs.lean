@@ -13,6 +13,10 @@ import Figram.FormatProofs
    Вместе с (1): движок никогда не выдаёт снимок, который сам не прочитает.
 3. `handle_step` — запрос `step` с полным набором условий исполняет ровно
    доказанный `Machine.step`.
+4. `startAt_snapOK` — `start` с `seq` тоже выдаёт допустимый снимок.
+
+Проверки вне `handleObj` (строгий набор полей, размер строки, UTF-8) только
+отвергают запросы; принятый запрос обрабатывает `handleObj`.
 -/
 
 namespace Figram.Engine
@@ -233,8 +237,8 @@ theorem handle_step (m : Machine) (kvs : Obj) (j : J) (s : Snapshot) (ev : Event
     handleObj m kvs = .ok (result ((get kvs "id").getD .null) (m.step s ev (envOf gs)).1
       (m.step s ev (envOf gs)).2 (decide (s.state ∉ m.states))) := by
   have hle : ¬ (m.step s ev (envOf gs)).1.seq > maxInt := by omega
-  simp only [handleObj, hop, hsn, hj, hev, hgs, stepReply, hmiss, List.isEmpty_nil,
-    Bool.not_true, bind, Except.bind, pure, Except.pure]
+  simp only [handleObj, hop, hsn, hj, hev, hgs, withCode, Except.mapError, stepReply, hmiss,
+    List.isEmpty_nil, Bool.not_true, bind, Except.bind, pure, Except.pure]
   simp [hle]
 
 /-- **Лишние условия не влияют**: если переданные значения совпадают с любыми
@@ -253,5 +257,28 @@ theorem reply_readable (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
     (hseq : (m.step s ev env).1.seq ≤ maxInt) :
     decSnapshot (encSnapshot (m.step s ev env).1) = .ok (m.step s ev env).1 :=
   decSnapshot_encSnapshot _ (step_snapOK m hwf hn s ev env hs hseq)
+
+/-! ## `start` с продолженным счётчиком -/
+
+/-- `start` без `seq` — частный случай `startAt` с `seq` 0. -/
+theorem startAt_zero (m : Machine) : startAt m 0 = m.start := rfl
+
+/-- **`start` с `seq` выдаёт допустимый снимок**, если следующий `seq` не
+переполнен (иначе движок отвечает `seq_overflow`). -/
+theorem startAt_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) (n : Nat)
+    (hseq : n + 1 ≤ maxInt) : SnapOK (startAt m n).1 := by
+  simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
+  obtain ⟨⟨⟨⟨hstates, hinit⟩, _⟩, _⟩, _⟩ := hn
+  have hi := (Machine.wf_parts hwf).1
+  have hinv := foldl_inv (n + 1) hseq m.initActions hinit
+    ({ Snapshot.fresh with state := m.initial, seq := n + 1 }, [])
+    ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp⟩
+  refine ⟨?_, hinv.1, hinv.2, ?_⟩
+  · show (realize _ m.initial m.initActions).1.state ≠ ""
+    rw [realize_state]
+    exact ne_of_not_isEmpty (hstates _ hi)
+  · show (realize _ m.initial m.initActions).1.seq ≤ maxInt
+    rw [realize_seq]
+    exact hseq
 
 end Figram.Engine
