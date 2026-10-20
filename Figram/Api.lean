@@ -38,7 +38,10 @@ def loadEx (doc : String) : Except String Machine :=
   | .ok m => .ok m
   | .error es => .error ("\n".intercalate es)
 
-/-- Запрос протокола движка к загруженному автомату (см. `Figram.Engine`). -/
+/-- Запрос протокола движка к загруженному автомату (`Engine.handle`, FORMAT.md §7): та же
+строгая проверка полей, ответ-ошибка `{id, error, code}` и эхо `id` при ошибке разбора, что у
+процесса `figram-engine`. Пустой запрос, предел размера и UTF-8 проверяет прослойка до вызова
+(её ответ — с `id: null`). -/
 @[export figram_request]
 def request (m : Machine) (line : String) : String := Engine.handle m line
 
