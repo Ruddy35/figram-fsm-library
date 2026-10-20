@@ -108,8 +108,8 @@ fi
 step "Память движка (P-09)"
 logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
 expect "$LOGS/engine_memory.log" '^память движка: резерв адресов (\d+) МБ, занято (\d+) МБ$' \
-  'g[0] <= 512 and g[1] <= 64' "память движка"
-expect "$LOGS/engine_memory.log" '^ok  ulimit -v 64 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 64 МБ"
+  'g[0] <= 64 and g[1] <= 16' "память движка"
+expect "$LOGS/engine_memory.log" '^ok  ulimit -v 32 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 32 МБ"
 
 step "Снимок и текстовый JSON"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json snapshot.schema.json

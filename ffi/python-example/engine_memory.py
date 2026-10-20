@@ -4,7 +4,8 @@
 
 Рантайм Lean по умолчанию резервирует по 1 ГиБ под стек каждого своего потока и 1 ГиБ под арену
 mimalloc (≈3,2 ГБ адресов при ≈10 МБ занятой памяти), и под `ulimit -v` 3 ГБ движок не запускался.
-Теперь стеки системного размера, арена заранее не резервируется (ffi/figram_rt.c). Код 0 — всё в норме.
+Теперь стеки системного размера, арена заранее не резервируется (ffi/figram_rt.c), main работает на основном
+потоке процесса, а служебные потоки делят одну арену glibc malloc (ffi/figram_exe.c). Код 0 — всё в норме.
 """
 
 import resource
@@ -13,8 +14,8 @@ import sys
 import time
 
 ENGINE, DOC = sys.argv[1], sys.argv[2]
-MAX_VMSIZE_KB = 512 * 1024      # резерв адресов после старта
-MAX_RSS_KB = 64 * 1024          # занятая память после старта и 2000 запросов
+MAX_VMSIZE_KB = 64 * 1024       # резерв адресов после старта
+MAX_RSS_KB = 16 * 1024          # занятая память после старта и 2000 запросов
 bad = 0
 
 
@@ -25,7 +26,7 @@ def report(ok, text):
 
 
 REQS = b'{"id":1,"op":"hello"}\n{"id":2,"op":"start"}\n'
-for mb in (64, 256):
+for mb in (32, 64, 256):
     def limit(mb=mb):
         resource.setrlimit(resource.RLIMIT_AS, (mb << 20, resource.RLIM_INFINITY))
     p = subprocess.run([ENGINE, DOC], input=REQS, capture_output=True, timeout=30, preexec_fn=limit)

@@ -224,11 +224,11 @@ if [ "$rc" -ne 1 ] || ! grep -q "показатель степени" "$T/big.er
 fi
 echo "ok (код 1, $(head -1 "$T/big.err"))"
 
-step "Память движка: запуск под ulimit -v 64 и 256 МБ, резерв адресов ≤ 512 МБ, занято ≤ 64 МБ"
+step "Память движка: запуск под ulimit -v 32, 64 и 256 МБ, резерв адресов ≤ 64 МБ, занято ≤ 16 МБ"
 logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
 expect "$LOGS/engine_memory.log" '^память движка: резерв адресов (\d+) МБ, занято (\d+) МБ$' \
-  'g[0] <= 512 and g[1] <= 64' "память движка"
-expect "$LOGS/engine_memory.log" '^ok  ulimit -v 64 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 64 МБ"
+  'g[0] <= 64 and g[1] <= 16' "память движка"
+expect "$LOGS/engine_memory.log" '^ok  ulimit -v 32 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 32 МБ"
 
 step "Снимок: схема и движок согласованы, граница seq; restart, условия, жетоны, hello"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json snapshot.schema.json
