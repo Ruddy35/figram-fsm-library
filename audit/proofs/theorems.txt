@@ -18,7 +18,7 @@ Figram.Chart.row_none	Correct.lean:88
 Figram.Chart.resolve_eq	Correct.lean:95
 Figram.Chart.fire_eq	Correct.lean:111
 Figram.Chart.compile_correct	Correct.lean:129
-Figram.Chart.start_correct	Correct.lean:155
+Figram.Chart.start_correct	Correct.lean:159
 Figram.Engine.isEmpty_false	EngineProofs.lean:28
 Figram.Engine.nonEmpty_str	EngineProofs.lean:31
 Figram.Engine.boundedNat_num	EngineProofs.lean:34
@@ -37,9 +37,9 @@ Figram.Engine.realize_snapOK	EngineProofs.lean:148
 Figram.Engine.lookup_mem	EngineProofs.lean:155
 Figram.Engine.table_ok	EngineProofs.lean:164
 Figram.Engine.step_snapOK	EngineProofs.lean:175
-Figram.Engine.handle_step	EngineProofs.lean:223
-Figram.Engine.guards_irrelevant	EngineProofs.lean:239
-Figram.Engine.reply_readable	EngineProofs.lean:247
+Figram.Engine.handle_step	EngineProofs.lean:227
+Figram.Engine.guards_irrelevant	EngineProofs.lean:243
+Figram.Engine.reply_readable	EngineProofs.lean:251
 Figram.Format.find?_ext_none	FormatProofs.lean:45
 Figram.Format.get_append_ext	FormatProofs.lean:53
 Figram.Format.unknown_append_ext	FormatProofs.lean:57

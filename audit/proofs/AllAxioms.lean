@@ -20,7 +20,7 @@ import Figram
 #print axioms Figram.Chart.resolve_eq  -- Correct.lean:95
 #print axioms Figram.Chart.fire_eq  -- Correct.lean:111
 #print axioms Figram.Chart.compile_correct  -- Correct.lean:129
-#print axioms Figram.Chart.start_correct  -- Correct.lean:155
+#print axioms Figram.Chart.start_correct  -- Correct.lean:159
 #print axioms Figram.Engine.isEmpty_false  -- EngineProofs.lean:28
 #print axioms Figram.Engine.nonEmpty_str  -- EngineProofs.lean:31
 #print axioms Figram.Engine.boundedNat_num  -- EngineProofs.lean:34
@@ -39,9 +39,9 @@ import Figram
 #print axioms Figram.Engine.lookup_mem  -- EngineProofs.lean:155
 #print axioms Figram.Engine.table_ok  -- EngineProofs.lean:164
 #print axioms Figram.Engine.step_snapOK  -- EngineProofs.lean:175
-#print axioms Figram.Engine.handle_step  -- EngineProofs.lean:223
-#print axioms Figram.Engine.guards_irrelevant  -- EngineProofs.lean:239
-#print axioms Figram.Engine.reply_readable  -- EngineProofs.lean:247
+#print axioms Figram.Engine.handle_step  -- EngineProofs.lean:227
+#print axioms Figram.Engine.guards_irrelevant  -- EngineProofs.lean:243
+#print axioms Figram.Engine.reply_readable  -- EngineProofs.lean:251
 #print axioms Figram.Format.find?_ext_none  -- FormatProofs.lean:45
 #print axioms Figram.Format.get_append_ext  -- FormatProofs.lean:53
 #print axioms Figram.Format.unknown_append_ext  -- FormatProofs.lean:57
