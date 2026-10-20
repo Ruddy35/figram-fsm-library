@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Сборка встраиваемой статической библиотеки Figram из доказанного кода Lean.
-#   out/libfigram.a      — для Go (cgo), C, C++
+#   out/libfigram.a      — для Go (cgo), C, C++; заголовок с контрактом — ffi/figram.h
 #   out/lean/            — статические части рантайма Lean для линковки
 #   out/LDFLAGS          — флаги компоновщика хоста (абсолютные пути), например
 #                            cc host.c $(cat ffi/out/LDFLAGS)
@@ -19,9 +19,12 @@ O=.lake/build/ir/Figram
 OBJS=""
 for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
 mkdir -p ffi/out/lean
-leanc -c -o ffi/out/figram_ffi.o ffi/figram_ffi.c
+# figram_guard.cpp — перехват исключений C++ рантайма при инициализации (P-09); оба файла
+# собираются без системных заголовков (так их компилирует leanc официального релиза).
+leanc -c -fexceptions -o ffi/out/figram_ffi.o ffi/figram_ffi.c
+leanc -c -o ffi/out/figram_guard.o ffi/figram_guard.cpp
 rm -f ffi/out/libfigram.a
-ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o $OBJS
+ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o ffi/out/figram_guard.o $OBJS
 cp "$P/lib/lean/libInit.a" "$P/lib/lean/libleanrt.a" ffi/out/lean/
 if [ -f "$P/lib/libc++.a" ]; then
   # Официальный релиз Lean: архивы из префикса (как и до B-01).

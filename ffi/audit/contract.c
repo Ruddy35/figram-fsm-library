@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/resource.h>
 
 int figram_init(void);
 char* figram_check_json(const char*);
@@ -284,6 +285,16 @@ static const char* err_or(const char* d) {
 
 /* P-09: figram_init под RLIMIT_AS не роняет процесс, а возвращает код ≠ 0 с причиной. */
 static int t_rlimit_init(void) {
+  /* FIGRAM_TEST_AS_HEADROOM=N: сам задать RLIMIT_AS = занято сейчас + N байт (как хост, который
+     ставит лимит после старта). N = 1073741824 — окно, где арена mimalloc занимает весь запас. */
+  const char* h = getenv("FIGRAM_TEST_AS_HEADROOM");
+  if (h) {
+    long vm = status_kb("VmSize");
+    struct rlimit rl; getrlimit(RLIMIT_AS, &rl);
+    rl.rlim_cur = (rlim_t)vm * 1024 + strtoull(h, NULL, 10);
+    if (setrlimit(RLIMIT_AS, &rl)) { perror("setrlimit"); return 2; }
+    printf("RLIMIT_AS set to %llu (VmSize %ld KB + %s)\n", (unsigned long long)rl.rlim_cur, vm, h);
+  }
   int rc = figram_init();
   const char* e = figram_last_error ? figram_last_error() : NULL;
   printf("figram_init=%d last_error=%s\n", rc, e ? e : "(none)");
@@ -548,7 +559,14 @@ static int t_signals(const char* mode) {
   char d[256];
   snprintf(d, sizeof d, "before %p flags %d, after %p flags %d", (void*)p0.sa_handler, p0.sa_flags,
            (void*)p1.sa_handler, p1.sa_flags);
-  ok_if(p0.sa_handler == p1.sa_handler && p0.sa_flags == p1.sa_flags, "SIGPIPE disposition preserved", d);
+  /* SA_RESTORER glibc добавляет при каждой установке обработчика — это не изменение диспозиции. */
+#ifndef SA_RESTORER
+#define SA_RESTORER 0x04000000
+#endif
+  int same_mask = 1;
+  for (int sig = 1; sig < 32; sig++) same_mask &= sigismember(&p0.sa_mask, sig) == sigismember(&p1.sa_mask, sig);
+  ok_if(p0.sa_handler == p1.sa_handler && (p0.sa_flags & ~SA_RESTORER) == (p1.sa_flags & ~SA_RESTORER) && same_mask,
+        "SIGPIPE disposition preserved", d);
   snprintf(d, sizeof d, "before sp=%p size=%zu flags=%d, after sp=%p size=%zu flags=%d",
            s0.ss_sp, s0.ss_size, s0.ss_flags, s1.ss_sp, s1.ss_size, s1.ss_flags);
   ok_if(s0.ss_flags == s1.ss_flags && ((s0.ss_flags & SS_DISABLE) || (s0.ss_sp == s1.ss_sp && s0.ss_size == s1.ss_size)),

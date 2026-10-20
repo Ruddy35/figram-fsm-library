@@ -32,8 +32,15 @@ check "FFI-05 malloc failure in dup" 0 "$B/oom"
 check "FFI-06 figram_unload(NULL)" 0 "$B/contract" null unload $D
 check "FFI-06 unload(failed load)" 0 "$B/contract" null unload_failed_load $D
 # P-09 (FFI-10/NP-01): figram_init под RLIMIT_AS — код ошибки с причиной, а не SIGABRT хоста.
-check_out "P-09 init under RLIMIT_AS=1.5GB → rc 2 + reason" '^figram_init=2 last_error=.*thread' \
+# 1,5 ГБ: запас < 2·10⁹ — рантайм не запускается (предварительная проверка RLIMIT_AS).
+check_out "P-09 init under RLIMIT_AS=1.5GB → rc 2 + reason" '^figram_init=2 last_error=.*RLIMIT_AS' \
   prlimit --as=1500000000 -- "$B/contract" rlimit_init
+# Запас ровно 1 ГиБ: арена mimalloc заняла бы всё, «INTERNAL PANIC: out of memory» + exit(1).
+check_out "P-09 init with 1 GiB headroom (mimalloc OOM window) → rc 2" '^figram_init=2 last_error=.*RLIMIT_AS' \
+  env FIGRAM_TEST_AS_HEADROOM=1073741824 "$B/contract" rlimit_init
+# 2,1 ГБ: проверку запас проходит, но поток libuv не создаётся — исключение C++ перехвачено.
+check_out "P-09 init under RLIMIT_AS=2.1GB → caught C++ exception" '^figram_init=2 last_error=.*failed to create thread' \
+  prlimit --as=2100000000 -- "$B/contract" rlimit_init
 check_out "P-09 init under RLIMIT_AS=3GB (C host: fits)" '^figram_init=0 ' \
   prlimit --as=3000000000 -- "$B/contract" rlimit_init
 # P-21 (FFI-03, I-17): вызовы до figram_init — ленивая потокобезопасная инициализация.

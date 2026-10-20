@@ -262,9 +262,9 @@ OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$
 # Флаги компоновки для этого тулчейна Lean пишет ffi/build.sh (B-01): официальный релиз — libc++ из
 # префикса Lean, сборка из исходников — системные статические libuv/libgmp и libstdc++.
 LIBS=$(cat ffi/out/LDFLAGS.runtime)
-ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
+ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -fexceptions -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
 ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" ffi/c_harness_io.c
-ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" $OBJS $LIBS
+ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o $OBJS $LIBS
 SHOW=2 logged c_asan env ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 "$T/harness" examples/pizza.bot.json
 expect "$LOGS/c_asan.log" '^16 потоков × (\d+) вызовов к одному автомату: расхождений (\d+)$' 'g[0] > 0 and g[1] == 0' "C, 16 потоков"
 # Память при загрузке и выгрузке — на обычной сборке (у ASan карантин памяти).
