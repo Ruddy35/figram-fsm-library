@@ -159,14 +159,17 @@ for name, body in INSTANT.items():
            f"R1 {name}: ошибок {res.count('ошибка')} из 8, самый долгий {max(times):.2f} с (срок 6 с)")
 
 # R2: ресурсы после многих циклов «сбой → замена» (пауза перезапуска отключена,
-# иначе замен было бы несколько, а не 300; сама пауза — R13).
-eng = Engine(fake(HELLO + 'read l; kill -SEGV $$'), pizza, timeout=5.0, restart_backoff=(0, 0))
+# иначе замен было бы несколько, а не 300; сама пауза — R13). Двойник умирает от SIGKILL:
+# при SIGSEGV время цикла зависело бы от обработчика дампов ОС (см. R9); падение по SIGSEGV — R1.
+eng = Engine(fake(HELLO + 'read l; kill -KILL $$'), pizza, timeout=5.0, restart_backoff=(0, 0))
 base = resources()
 done = 0
+slowest = 0.0
 for _ in range(300):
     t0 = time.monotonic()
     parallel(lambda i: eng.start("u"), 4)
     done += 1
+    slowest = max(slowest, time.monotonic() - t0)
     if time.monotonic() - t0 > 2.5:   # сбой обнаруживается сразу; не ждать 300 × срок
         break
 eng.close()
@@ -174,7 +177,7 @@ left = wait_children(0)
 time.sleep(0.2)
 end = resources()
 report(done == 300 and end[0] <= base[0] + 1 and end[1] <= base[1] + 1 and end[2] <= base[2] + 2 and not left,
-       f"R2 {done} из 300 циклов сбоя (цикл < 2.5 с): потоки Python {base[0]}→{end[0]}, потоки ОС {base[1]}→{end[1]}, "
+       f"R2 {done} из 300 циклов сбоя (цикл < 2.5 с, самый долгий {slowest:.2f} с): потоки Python {base[0]}→{end[0]}, потоки ОС {base[1]}→{end[1]}, "
        f"fd {base[2]}→{end[2]}, потомков после close {len(left)}")
 eng = Engine(engine_bin, pizza, processes=2, timeout=5.0)
 eng.start("a"), eng.start("b")

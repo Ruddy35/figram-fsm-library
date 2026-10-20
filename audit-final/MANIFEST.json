@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-10-20T15:44:58+00:00",
+ "generated_utc": "2026-10-20T15:56:41+00:00",
  "archive": {
   "name": "figram-lean_4.zip",
   "sha256": "7769c0030bb2c516060015039263764d778ead91a92d8b2213f4fa1d9f8d1329"
@@ -123,12 +123,12 @@
   "0039-audit-TEST-ONLY-adaptation-of-ffi-build.sh-and-verif.patch",
   "0040-audit-TEST-ONLY-ffi-audit-build_audit.sh-uses-the-si.patch"
  ],
- "file_count": 5903,
+ "file_count": 5912,
  "files_sha256": {
   "ARCHITECTURE.md": "7a541ba49e157dd1179eccc7a1602945e53f5a06b7e991a112c907b178aebed9",
   "BUILD_AND_PROOFS.md": "65a7b2b1206fa329ad7481b566bdc029927d5413da0e154ea50192dd3735437c",
   "EXECUTIVE.md": "00134a8cf3466524b72065f34d764d9ec0f0e932cdd710fdb79b38a871cf4d96",
-  "FIXES.md": "2e837e6542e815ddd81a90c5495de8dcf3d39b4c5703051a130aabeb12cc9caa",
+  "FIXES.md": "5112a35c68bde4e4425572334b4a830025a48cdaefed2c4e692d4381546fb380",
   "ISSUES_INTEGRATION.md": "3c5755b2af8edc46efa8fb52830b8f7c63f9d6a430259ef2b472a309d57397a1",
   "ISSUES_PRODUCT.md": "42533c64f9ef7a2431ba4e766be2f5bc65f1fd0c6ece42a1a6978775b0c30dc8",
   "ISSUES_TESTS.md": "9b6fe69219132fb3609b8293560b0b624a75b5424db9a41e47ca6e8f388ed97e",
@@ -5186,6 +5186,15 @@
   "fixes/memory/LOGS/55-GREEN-regress-relaxed.log": "4a448f5996ff8befdd64a5f6d8a9877fea2f0f627814da7523247d19717e91b1",
   "fixes/memory/LOGS/55-GREEN-regress-relaxed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "fixes/memory/LOGS/55-GREEN-regress-relaxed.stdout": "eb4c87d418257ab34cbc12417953a0ac242fbaf4a57b09f979b52405ff71b033",
+  "fixes/memory/LOGS/60-check_docs-final.log": "d64993c9ddba16d7321f20557ab0294ca4b8e0055d39822fc3fc0713b998c9df",
+  "fixes/memory/LOGS/60-check_docs-final.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/60-check_docs-final.stdout": "7745bc2019640393285ba4ebb403f6dc3e069bf164ac8e62b4e9debedd02b0e6",
+  "fixes/memory/LOGS/61-client_robustness-R2-fix.log": "49722e2c02cacfc8f86a8412d22a7b879e982f1d70914429b817c26a595f8635",
+  "fixes/memory/LOGS/61-client_robustness-R2-fix.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/61-client_robustness-R2-fix.stdout": "0ab084eda9ba323ee52adacc1e64d1ae95d52fd18346c4174f3e0dbca66a2a1e",
+  "fixes/memory/LOGS/62-client-mutants-R2.log": "7ff032353575dfa52ddfc4662985eb12000e7899c0fd994f19de39e25c5dcde5",
+  "fixes/memory/LOGS/62-client-mutants-R2.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fixes/memory/LOGS/62-client-mutants-R2.stdout": "eaafeb160e45238dabd1c248b717dc7770b93c2ce7e84672432d7828d019b7e5",
   "fixes/memory/LOGS/cc/check-diff.log": "9826ab2df2f0af870552c4aa50ce182d20946b846ec131362814ff90eab02f60",
   "fixes/memory/LOGS/cc/check-diff.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "fixes/memory/LOGS/cc/check-diff.stdout": "37798afb545b445507d2fee7604e8901d9923f818809bc37b2ca2a1ef1fb0a79",
