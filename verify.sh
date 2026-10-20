@@ -89,7 +89,10 @@ if command -v go >/dev/null; then echo "go: $(go version)"; else echo "go: не 
 step "Сборка без предупреждений"
 lake build 2>&1 | tee "$T/build.log" | tail -1
 grep -q "^Build completed successfully" "$T/build.log" || fail "lake build не сообщил об успешной сборке"
-if grep -qi "warning" "$T/build.log"; then grep -i -A3 warning "$T/build.log"; fail "предупреждения сборки"; fi
+# Предупреждение Lean/Lake — строка «warning: файл:…» (или «файл:…: warning:») и задача «⚠ [i/n]».
+# Не просто слово «warning»: модуль Figram.Warnings печатается как «✔ [i/n] Built Figram.Warnings».
+WARN_RX='(^|[[:space:]:])warning:|^⚠'
+if grep -qiE "$WARN_RX" "$T/build.log"; then grep -iE -A3 "$WARN_RX" "$T/build.log"; fail "предупреждения сборки"; fi
 
 step "Приложенные бинарники bin/ собраны ровно из этих исходников"
 SUMS=${FIGRAM_SHA256SUMS:-bin/SHA256SUMS}

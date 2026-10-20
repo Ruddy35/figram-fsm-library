@@ -25,7 +25,7 @@ case $MODE in
   prebuilt) SCRIPT=./verify-prebuilt.sh
             ALL="none golden-truncated selftest-shrunk fixtures-shrunk random-docs-shrunk json-fuzz-shrunk mutants-shrunk bin-swapped";;
   full)     SCRIPT=./verify.sh
-            ALL="none golden-truncated sums-tampered bin-swapped custom-axiom native-decide theorem-weakened go-missing race-test-not-run coverage-drop coverage-drop-regen engine-bug-golden-edited";;
+            ALL="none golden-truncated sums-tampered bin-swapped build-warning custom-axiom native-decide theorem-weakened go-missing race-test-not-run coverage-drop coverage-drop-regen engine-bug-golden-edited";;
   *) echo "неизвестный режим $MODE"; exit 2;;
 esac
 FAULTS=${*:-$ALL}
@@ -55,7 +55,7 @@ inject() {  # inject НЕИСПРАВНОСТЬ — в текущем катал
       if [ -n "${FIGRAM_SHA256SUMS:-}" ]; then export FIGRAM_SHA256SUMS=$PWD/sums.tampered; else cp sums.tampered bin/SHA256SUMS; fi;;
     bin-swapped)          # bin/figram-engine подменён, bin/SHA256SUMS не тронут
       cp bin/figram bin/figram-engine;;
-    selftest-shrunk)      # самопроверка обвязки проверяет 1 вид порчи вместо 11
+    selftest-shrunk)      # самопроверка обвязки проверяет 1 вид порчи вместо 13
       sub $P/harness_selftest.py '    for name, code in CORRUPT.items():' '    for name, code in list(CORRUPT.items())[:1]:';;
     fixtures-shrunk)      # 2 граничных снимка вместо 24
       sub $P/snapshot_fixtures.py 'engine, doc, schema_path = sys.argv[1:4]' 'FIXTURES = FIXTURES[:2]
@@ -70,6 +70,8 @@ engine, doc, schema_path = sys.argv[1:4]';;
     custom-axiom)         # теорема из списка опирается на собственную аксиому
       sub Figram/CoreProofs.lean 'theorem step_guard_local (m' 'theorem step_guard_local_orig (m'
       sub Figram/CoreProofs.lean $'end Machine\nend Figram' $'axiom figram_cheat (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)\n    (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :\n    m.step s ev env₁ = m.step s ev env₂\n\ntheorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)\n    (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :\n    m.step s ev env₁ = m.step s ev env₂ := figram_cheat m s ev env₁ env₂ h\n\nend Machine\nend Figram';;
+    build-warning)        # сборка с предупреждением Lean (неиспользуемая переменная)
+      printf '\ndef figramFaultUnused (x : Nat) : Nat := let y := 3; x\n' >> Figram/Examples.lean;;
     native-decide)        # доказательство вычислением в компилированном коде (аксиома ofReduceBool)
       printf '\nexample : (20 : Nat) + 22 = 42 := by native_decide\n' >> Figram/Examples.lean;;
     theorem-weakened)     # формулировка ослаблена: недостижимая посылка, доказательство то же
