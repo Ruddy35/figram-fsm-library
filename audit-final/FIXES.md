@@ -11,7 +11,7 @@
 | `dc24c52` | слияние `fix/final` (81 коммит над `audit/integration` 8be73ac: 7 слияний, 17 коммитов интеграции) |
 | `179b246` | CI: Lean из архива релиза со сверкой sha256 вместо `curl \| sh` elan из master (T-15) |
 | `f780b2f` | `bin/` пересобран официальным Lean 4.35.0 в GitHub Actions; закреплён sha256 архива Lean; actions в `lean_action_ci.yml` закреплены по SHA |
-| (этот коммит) | `VERIFY.log` из CI, этот отчёт, журналы волны исправлений |
+| следующие | этот отчёт и журналы волны исправлений; `VERIFY.log` = журнал CI-прогона 39382129240; проверка его происхождения в `check_docs.py` |
 
 ## 1. Как исправляли
 
@@ -90,7 +90,7 @@ FIXED — исправлено в коде, есть регрессионный 
 | T-15 | FIXED | Lean ставится из архива релиза со сверкой `ci/lean-toolchain.sha256` (`ci/install-lean.sh`, проверен на 6 ветвях — `fixes/release/LOGS/01-*`); все `uses:` закреплены по SHA. Оговорка: сумма архива получена «первым доверием» из прогона 39381510381 (собственных сумм Lean не публикует); `leanprover/lean-action` внутри себя ставит elan сам |
 | B-01 | FIXED | `ffi/build.sh` собирает на обеих раскладках тулчейна, флаги в `ffi/out/LDFLAGS`; TEST-ONLY адаптации удалены; официальная раскладка проверена в CI (§4) |
 | B-02 | FIXED | `bin/` пересобран официальным тулчейном из исправленных исходников (§4) |
-| D-01 | FIXED | `VERIFY.log` заменён журналом прогона CI с указанием коммита и прогона |
+| D-01 | FIXED | `VERIFY.log` — дословный журнал CI-прогона 39382129240 (коммит f780b2f, официальный Lean, код 0); `check_docs.py` [D-01] проверяет, что коммит журнала — предок HEAD и что с тех пор менялись только документы (контроли: старый журнал и более ранний коммит — FAIL, `fixes/release/LOGS/21-*`, `22-*`) |
 | D-02…D-08 | FIXED-DOC | числа заменены измеренными, формулировки теорем и решений исправлены, FORMAT/HOST согласованы; `check_docs.py` зелёный |
 
 ## 3. Дефекты, найденные при интеграции
@@ -114,7 +114,7 @@ FIXED — исправлено в коде, есть регрессионный 
 | сборка `bin/` официальным Lean 4.35.0 (commit eb6cafb7, Release) | GitHub Actions, release-bin, прогон 39381510381 | `figram` 49d66510…, `figram-engine` 151a3b30…; артефакт 12245249173 (zip sha256 7596e5f1…, совпадает с digest GitHub) | `fixes/release/LOGS/02-*` |
 | `verify-prebuilt.sh` с новым `bin/` | локально | код 0 | `fixes/release/LOGS/03-verify-prebuilt-new-bin.log` |
 | `lake build` + полный `verify.sh` на `179b246` | локально, тулчейн из исходников (gcc) | 0 / 3 — единственное отступление: хеши сверены с локальной сборкой (другой тулчейн) | `fixes/release/LOGS/10-*`, `11-*` |
-| полный `verify.sh` на `f780b2f` | GitHub Actions, verify.yml, официальный тулчейн | выполняется: прогон 39382129240 (результат и журнал — следующим коммитом) | `VERIFY.log` |
+| полный `verify.sh` на `f780b2f` | GitHub Actions, verify.yml, официальный тулчейн, прогон 39382129240 | **код 0, «ВСЁ В ПОРЯДКЕ»**: `bin/` побайтно совпадает с пересборкой; строгий шлюз PASS; `ffi/build.sh` на официальной раскладке (B-01); C-ABI 24/0; клиент; Go `-race`; плюс длительный Go-прогон на всех ядрах — success | `VERIFY.log` (дословно), `fixes/release/LOGS/ci-verify-39382129240/` |
 | чистая сборка, 0 предупреждений; strict_gate (141 теорема, только `propext`, `Quot.sound`, `Classical.choice`, leanchecker) | локально, `fix/final` | PASS | `fixes/final/LOGS/gate/`, `suites/05` |
 | `verify-faults.sh` full (12 неисправностей) и prebuilt (7) | локально | каждая неисправность → код 1; без неисправностей 3 / 0 | `fixes/final/LOGS/faults/` |
 | core-compiler, engine_timers, tests/formats, C-ABI (regress, sanitizers, mutants), `go test -race`, клиент Python (robustness 54, faults 20, contract 10, protocol_edges 106, мутации 47/49), check_docs | локально | все зелёные, контроли красные | `fixes/final/LOGS/suites/` |

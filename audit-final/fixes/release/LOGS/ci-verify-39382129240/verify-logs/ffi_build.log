@@ -1,0 +1,5 @@
+✔ [22/24] Built Figram.Api (180ms)
+✔ [23/24] Built Figram.Api:c.o (55ms)
+✔ [24/24] Built FigramApi:static (6ms)
+Build completed successfully (24 jobs).
+готово: ffi/out/libfigram.a, флаги компоновки: ffi/out/LDFLAGS

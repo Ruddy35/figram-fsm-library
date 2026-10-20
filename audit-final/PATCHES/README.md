@@ -5,10 +5,11 @@
 * **TEST-ONLY** (адаптация под тулчейн Lean из исходников; в выпуск НЕ переносить):
   * `integration/0039-audit-TEST-ONLY-adaptation-of-ffi-build.sh-and-verif.patch`
   * `integration/0040-audit-TEST-ONLY-ffi-audit-build_audit.sh-uses-the-si.patch`
-* `audit-branches.bundle` — все ветки `audit/*` (тесты, инструменты, хосты, исправления каждого агента):
+* `audit-branches.bundle` — все ветки `audit/*` (тесты, инструменты, хосты, исправления каждого агента)
+  и ветки волны исправлений `fix/*` (`fix/final` влит в опубликованную ветку, см. FIXES.md):
 
   ```
-  git fetch PATCHES/audit-branches.bundle 'refs/heads/audit/*:refs/heads/audit/*'
+  git fetch PATCHES/audit-branches.bundle 'refs/heads/audit/*:refs/heads/audit/*' 'refs/heads/fix/*:refs/heads/fix/*'
   ```
 
 | ветка | HEAD |
@@ -35,6 +36,13 @@
 | `audit/python-client` | `d8f658bd27eed701857c33a0f927271370729184` |
 | `audit/ref` | `d69bbaf7881a0ae1c11b75a35cf5193ad604b925` |
 | `audit/ref-adapted` | `d8a548b2f027314d185b1e09f477215936c894e6` |
+| `fix/base` | `8be73ac2a9f76ba7dae0e3e6ec503b312d79a18f` |
+| `fix/client` | `031a6e51dff1e644fd7671f351599adbde67f149` |
+| `fix/core` | `42af993e29fb51b0a94d4247216ea69775c04dd5` |
+| `fix/docs` | `f4531cab100902e31414f9fb8b42c1713b4135da` |
+| `fix/ffi` | `9ba1932c78ee28966863baae2377465fb2614dcd` |
+| `fix/final` | `8e580aa969f9bf72f170df11737b8bacfeaf5338` |
+| `fix/protocol` | `db974ec2330219fa6ea7fe1fb06bd4400b5203f7` |
 
 Применение исправлений к baseline без TEST-ONLY:
 

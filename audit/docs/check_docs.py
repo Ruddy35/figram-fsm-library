@@ -145,8 +145,22 @@ check("FC-05", "double" in num_txt and "jsonschema" in num_txt, "FORMAT «Чис
 check("FC-02", re.search(r"-0\.0.{0,40}0\.0", num_txt), "FORMAT «Числа»: −0 is written as 0")
 
 # ---------------------------------------------------------------- D-01 / D-02 numbers
-check("D-01", all(re.search(r"VERIFY\.log.{0,400}?будет заменён журналом CI", flat(t)) for t in (AUDIT, REVIEW)),
-      "AUDIT/REVIEW: VERIFY.log will be replaced by the CI log at release")
+check("D-01", all(re.search(r"VERIFY\.log.{0,400}?журнал\w* CI-прогона", flat(t)) for t in (AUDIT, REVIEW)),
+      "AUDIT/REVIEW: VERIFY.log is the log of a CI run")
+VLOG = read("VERIFY.log")
+vcommit = re.search(r"^коммит: ([0-9a-f]{40}); изменённых отслеживаемых файлов: 0$", VLOG, re.M)
+check("D-01", vcommit and re.search(r"^lean: Lean \(version 4\.35\.0, .*Release\)$", VLOG, re.M)
+      and VLOG.rstrip().endswith("ВСЁ В ПОРЯДКЕ"),
+      "VERIFY.log: clean tree, commit, official Lean 4.35.0, verdict «ВСЁ В ПОРЯДКЕ»")
+if vcommit and os.path.isdir(os.path.join(REPO, ".git")):
+    git = lambda *a: subprocess.run(["git", "-C", REPO, *a], capture_output=True, text=True)
+    anc = git("merge-base", "--is-ancestor", vcommit.group(1), "HEAD").returncode == 0
+    changed = git("diff", "--name-only", vcommit.group(1), "HEAD").stdout.split() if anc else []
+    other = [f for f in changed if not (f.endswith(".md") or f == "VERIFY.log" or f.startswith(("audit-final/", "audit/docs/")))]
+    check("D-01", anc and not other,
+          f"VERIFY.log commit is an ancestor of HEAD and only docs changed since {other if other else ''}")
+else:
+    info("D-01", False, "VERIFY.log provenance vs HEAD not checked (no git checkout)")
 for name, txt in (("README", README), ("AUDIT", AUDIT), ("REVIEW", REVIEW)):
     t = flat(txt)
     bad = [s for s in ("~90 000", "~11 мкс", "120 000", "~23 000", "1000 горутин", "Замеры на машине с одним ядром",

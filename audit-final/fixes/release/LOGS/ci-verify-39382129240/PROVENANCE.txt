@@ -1,0 +1,3 @@
+artifact 12245852836 verify-logs-f780b2fb000c4e29318a7ad48078365e0b384626, zip sha256 (local) d5dfe45b7c041f79d839a14ca4559eb8b1323107c2fae8ac40b798c2a75a226f, GitHub digest sha256:d5dfe45b7c041f79d839a14ca4559eb8b1323107c2fae8ac40b798c2a75a226f
+run 39382129240 job 118493394540: conclusion success; verify.sh step 06:44:52Z-06:48:04Z (192 s) success; Go long parallel step 06:48:04Z-06:48:53Z success
+release-bin run 39381510381 job 118491440719: success; Lean archive TOFU sha256 7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d; build 06:38:13Z-06:38:26Z

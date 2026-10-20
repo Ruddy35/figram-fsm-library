@@ -30,7 +30,8 @@ for agent in sorted(os.listdir(os.path.join(SRC, "fixes"))):
             q = os.path.join(out, rel)
             os.makedirs(os.path.dirname(q), exist_ok=True)
             if os.path.getsize(p) > (1 << 20):
-                with open(p, "rb") as fi, gzip.open(q + ".gz", "wb", 9) as fo:
+                with open(p, "rb") as fi, open(q + ".gz", "wb") as raw, \
+                        gzip.GzipFile(filename="", mode="wb", compresslevel=9, fileobj=raw, mtime=0) as fo:
                     shutil.copyfileobj(fi, fo)
                 gz += 1
             else:

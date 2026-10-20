@@ -11,7 +11,7 @@ def git(*args):
 
 branches = sorted(b.strip() for b in git("for-each-ref", "--format=%(refname:short)", "refs/heads/audit/").split())
 fix_branches = sorted(b.strip() for b in git("for-each-ref", "--format=%(refname:short)", "refs/heads/fix/").split())
-heads = {b: git("rev-parse", b).strip() for b in branches + fix_branches}
+heads = {b: git("rev-parse", "refs/heads/" + b).strip() for b in branches + fix_branches}
 
 patches = os.path.join(D, "PATCHES")
 os.makedirs(patches, exist_ok=True)
@@ -19,7 +19,7 @@ series = os.path.join(patches, "integration")
 if os.path.isdir(series):
     for f in os.listdir(series):
         os.remove(os.path.join(series, f))
-git("format-patch", "--quiet", "-o", series, "audit/baseline..audit/integration")
+git("format-patch", "--quiet", "-o", series, "refs/heads/audit/baseline..refs/heads/audit/integration", "--")
 test_only = []
 for f in sorted(os.listdir(series)):
     with open(os.path.join(series, f), encoding="utf-8", errors="replace") as fh:
@@ -45,7 +45,7 @@ with open(os.path.join(patches, "README.md"), "w", encoding="utf-8") as fh:
 bundle = os.path.join(patches, "audit-branches.bundle")
 if os.path.exists(bundle):
     os.remove(bundle)
-git("bundle", "create", bundle, *branches, *fix_branches)
+git("bundle", "create", bundle, *("refs/heads/" + b for b in branches + fix_branches))
 
 files = {}
 for root, _, names in os.walk(D):

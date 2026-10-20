@@ -1,0 +1,15 @@
+{
+ "published_commit_of_fixes": "dc24c52 (merge of fix/final 8e580aa)",
+ "official_toolchain": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release) from lean-4.35.0-linux.tar.zst sha256 7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d (ci/lean-toolchain.sha256, first trust in run 39381510381)",
+ "bin_build": {"workflow": "release-bin.yml", "run": 39381510381, "source_commit": "179b246d03a6fa2fc490701f457b0309271d14ae",
+               "artifact": 12245249173, "artifact_zip_sha256": "7596e5f1a4ebfe97128cc70263349cf0441c73030a86fc19caff64f975dc4708"},
+ "bin_sha256": {"bin/figram": "49d6651035ce5946a747f02932b324ab65ab4dbbd4542e829e7a9044ed97cc32",
+                "bin/figram-engine": "151a3b303d3a0ad22cccd91bae0ee373b36522ba1473ebacd1770ad12f61fc9c"},
+ "bin_commit": "f780b2fb000c4e29318a7ad48078365e0b384626",
+ "ci_verify": {"workflow": "verify.yml", "run": 39382129240, "commit": "f780b2fb000c4e29318a7ad48078365e0b384626",
+               "conclusion": "success", "verdict": "ВСЁ В ПОРЯДКЕ", "artifact": 12245852836,
+               "artifact_zip_sha256": "d5dfe45b7c041f79d839a14ca4559eb8b1323107c2fae8ac40b798c2a75a226f",
+               "verify_log": "VERIFY.log (verbatim verify-full.log)"},
+ "local_gate": {"commit": "179b246", "toolchain": "from source (gcc)", "lake_build_exit": 0, "verify_exit": 3,
+                "waiver": "hash sums of the local toolchain", "logs": "audit-final/fixes/release/LOGS/10-*, 11-*"}
+}
