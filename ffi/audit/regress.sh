@@ -36,8 +36,14 @@ check "FFI-06 unload(failed load)" 0 "$B/contract" null unload_failed_load $D
 # P-09 (FFI-10/NP-01): рантайм Lean запускается под RLIMIT_AS — стеки его потоков системного
 # размера (`ulimit -s`), арена mimalloc заранее не резервируется (ffi/figram_rt.c). Раньше нужно
 # было ≈2,2 ГБ адресов сверх занятого, а при запасе ≈ размера арены — «INTERNAL PANIC» и exit(1).
-for h in 16 32 48 64 96 128 256 1024; do
+for h in 32 48 64 96 128 256 1024; do
   check_out "P-09 init with $h MiB address-space headroom → rc 0" '^figram_init=0 ' \
+    env FIGRAM_TEST_AS_HEADROOM=$((h << 20)) "$B/contract" rlimit_init
+done
+# Граница запуска зависит от тулчейна (сборка из исходников — от 16 МиБ, официальный релиз — от 32):
+# ниже — запуск либо отказ с причиной, но не аварийное завершение хоста.
+for h in 8 16; do
+  check_out "P-09 init with $h MiB headroom → rc 0 or caught error, host alive" '^figram_init=(0 |2 last_error=.+)' \
     env FIGRAM_TEST_AS_HEADROOM=$((h << 20)) "$B/contract" rlimit_init
 done
 check_out "P-09 init under RLIMIT_AS=512MB → rc 0" '^figram_init=0 ' prlimit --as=512000000 -- "$B/contract" rlimit_init

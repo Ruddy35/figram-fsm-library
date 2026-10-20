@@ -16,7 +16,7 @@ for agent in sorted(os.listdir(os.path.join(SRC, "fixes"))):
     os.makedirs(out, exist_ok=True)
     for name in os.listdir(a):                       # top-level: report and scripts
         p = os.path.join(a, name)
-        if os.path.isfile(p) and (name.endswith((".md", ".py", ".sh")) or name in ("COMMIT",)):
+        if os.path.isfile(p) and (name.endswith((".md", ".py", ".sh", ".go", ".c")) or name in ("COMMIT",)):
             shutil.copy2(p, os.path.join(out, name)); n += 1
     logs = os.path.join(a, "LOGS")
     for root, _, names in os.walk(logs):

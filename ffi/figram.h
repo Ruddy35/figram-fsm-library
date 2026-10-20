@@ -44,7 +44,7 @@
  *   своего потока и 1 ГиБ под арену mimalloc. figram_init до запуска рантайма задаёт системные
  *   размеры (ffi/figram_rt.c): стек потоков рантайма — RLIMIT_STACK (`ulimit -s`), арена mimalloc
  *   заранее не резервируется; явные LEAN_STACK_SIZE_KB и MIMALLOC_ARENA_RESERVE главнее. Рантайм
- *   запускается под RLIMIT_AS (ulimit -v, systemd LimitAS=) при запасе от 16 МиБ адресов сверх
+ *   запускается под RLIMIT_AS (ulimit -v, systemd LimitAS=) при запасе от 32 МиБ адресов сверх
  *   занятого; при меньшем figram_init возвращает 2 (исключение C++ «failed to create thread»
  *   перехвачено), процесс хоста жив. Глубина рекурсии кода Lean ограничена стеком вызывающего
  *   потока (у потоков Go — системный размер).
