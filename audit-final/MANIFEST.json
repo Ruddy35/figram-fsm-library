@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-10-20T16:30:31+00:00",
+ "generated_utc": "2026-10-20T16:30:58+00:00",
  "archive": {
   "name": "figram-lean_4.zip",
   "sha256": "7769c0030bb2c516060015039263764d778ead91a92d8b2213f4fa1d9f8d1329"
@@ -131,8 +131,8 @@
  "files_sha256": {
   "ARCHITECTURE.md": "7a541ba49e157dd1179eccc7a1602945e53f5a06b7e991a112c907b178aebed9",
   "BUILD_AND_PROOFS.md": "65a7b2b1206fa329ad7481b566bdc029927d5413da0e154ea50192dd3735437c",
-  "EXECUTIVE.md": "208829b7fe3115ce501992da196adcd9e70e57d3be5561cb1cc0feaa91957670",
-  "FIXES.md": "68d98e255e9dc801d64dc90ac50116d28b637354365b0f72be7bf3a312e50f20",
+  "EXECUTIVE.md": "ca7d7203fb54c77fce09a68705d2acee6321caa816855ddda65fcb142ed12f2f",
+  "FIXES.md": "2b76cdbe31c47ce5fe88f976a94b8bd08f3128865a72d16535d9681609d38406",
   "ISSUES_INTEGRATION.md": "3c5755b2af8edc46efa8fb52830b8f7c63f9d6a430259ef2b472a309d57397a1",
   "ISSUES_PRODUCT.md": "42533c64f9ef7a2431ba4e766be2f5bc65f1fd0c6ece42a1a6978775b0c30dc8",
   "ISSUES_TESTS.md": "9b6fe69219132fb3609b8293560b0b624a75b5424db9a41e47ca6e8f388ed97e",
@@ -196,7 +196,7 @@
   "LOGS/orchestrator/38-verify-sh-adapted-fresh.stdout": "3a4626ecd4520812b45b40994c9912d0fe9018f7c1badf5c809b1cecd5d65a1d",
   "LOGS/orchestrator/fresh-README.txt": "a7e79a1cd52a2515ce76936b6049edcabce171535c9a57108c20be4c3fc6a1d4",
   "PATCHES/README.md": "308372fc6ea6efdc95a8887c4bb69bf7c4c29c714517fdbfaca6a46fb924930b",
-  "PATCHES/audit-branches.bundle": "ccb80e8f90159e4a938a447cae84d96bb433847a9507758a215ade4f706dd525",
+  "PATCHES/audit-branches.bundle": "61f44cd686bd71a0a4287bc56cbd99a9d9cc773598c9cbdf9bd7970c3740d6e2",
   "PATCHES/integration/0001-audit-formats-correctness-text-layer-schema-and-requ.patch": "5ae269fc522f70f1095209058ea869a7fc42f629de49da4f0a25bec1a86a1943",
   "PATCHES/integration/0002-audit-formats-correctness-regression-tests-for-FC-01.patch": "32b8ba3d177b9e02b4e7a6f687a055d575d07870d42d19012a574467ed5992d4",
   "PATCHES/integration/0003-audit-proofs-strict-axiom-gate-pinned-statements-cou.patch": "5619d3559109c07d222ed3744393bfd2ae934912b5ccacdec758afbdc58cc81a",
