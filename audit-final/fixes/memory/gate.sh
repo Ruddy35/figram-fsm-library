@@ -3,7 +3,7 @@
 set -u
 source /home/user/figram-audit/env.sh
 export LEAN_CC=/home/user/figram-audit/fixes/memory/cc-quiet.sh
-W=/home/user/figram-audit-worktrees/fix-memory; L=/home/user/figram-audit/fixes/memory/LOGS; T=/home/user/figram-audit/fixes/memory/sums
+W=/home/user/figram-audit-worktrees/fix-memory; L=/home/user/figram-audit/fixes/memory/LOGS/round2; T=/home/user/figram-audit/fixes/memory/sums
 cd "$W" || exit 1
 /home/user/figram-audit/run.sh $L/40-lake-build nice -n 10 lake build || exit 1
 rm -rf "$T"; mkdir -p "$T"; cp .lake/build/bin/figram .lake/build/bin/figram-engine "$T"/; strip "$T"/figram "$T"/figram-engine

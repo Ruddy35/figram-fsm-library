@@ -1,0 +1,9 @@
+command: python3 -I /home/user/figram-audit/fixes/memory/bench_env.py /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine examples/pizza.bot.json 200000 - LEAN_MAIN_USE_THREAD=1\,MALLOC_ARENA_MAX=8 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T16:08:32.184Z
+end: 2026-10-20T16:08:54.641Z
+exit_code: 0
+--- stdout (234 bytes, last 200 lines)
+-                                                       лучшее из 3: 3.61 с, 55 тыс. запросов/с
+LEAN_MAIN_USE_THREAD=1,MALLOC_ARENA_MAX=8               лучшее из 3: 3.59 с, 56 тыс. запросов/с
+--- stderr (0 bytes, last 100 lines)

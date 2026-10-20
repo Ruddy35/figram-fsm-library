@@ -3,16 +3,16 @@
  "official_toolchain": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release) from lean-4.35.0-linux.tar.zst sha256 7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d (ci/lean-toolchain.sha256, first trust in run 39381510381)",
  "bin_build": {
   "workflow": "release-bin.yml",
-  "run": 39448541379,
-  "source_commit": "773793388a18c27df1d25b965acf5a991f5d98ae",
-  "artifact": 12276483563,
-  "artifact_zip_sha256": "f33de20259cba0d14593709893bf3602915c7db6349e97afc334d441e7c50564"
+  "run": 39455870675,
+  "source_commit": "778516d1d123d26e323afb92f6effc1992dee4bd",
+  "artifact": 12279892797,
+  "artifact_zip_sha256": "ccbc30ae503b99f9b13ee008203b6b8a92a5a0bd5c3f91c13ebb714eddb242fe"
  },
  "bin_sha256": {
-  "bin/figram": "7a86a928d0b09601166eb53d29097d71e5ec7135b5ead7142c27b938bd62bdf5",
-  "bin/figram-engine": "0d0242d29bac07155ed0e11f3a35c1219ff27ee8d77b53bfc0bee9615e7b72df"
+  "bin/figram": "90a86af3675df42cee71adab78dc16576b986b5da9b2338d4ee89368d214fe5c",
+  "bin/figram-engine": "7f28e3a7d340a796baf14d27f52a1f522fbf6cfbaec8e7c86cac53e349b19b37"
  },
- "bin_commit": "a7c2495",
+ "bin_commit": "4adce87",
  "local_gate": {
   "commit": "179b246",
   "toolchain": "from source (gcc)",
@@ -37,27 +37,10 @@
   "39448541171": "7737933: expected, bin/ stale before the bin commit",
   "39449543737": "a7c2495: C-ABI 16 MiB headroom bound too tight for the official toolchain (clean rc 2), fixed in 2119c8b",
   "39451303193": "d95a063: flaky R2 (N-11), fixed in 494bfc6",
-  "39451303189": "d95a063: Lean Action CI could not download Lean (SSL connect error), passed on the next commit"
+  "39451303189": "d95a063: Lean Action CI could not download Lean (SSL connect error), passed on the next commit",
+  "39455870858": "778516d: expected, bin/ stale before the bin commit"
  },
  "ci_verify_previous": {
-  "workflow": "verify.yml",
-  "run": 39450097996,
-  "commit": "2119c8b6cbf3067b6a92e49a16bf3d10e87d9059",
-  "conclusion": "success",
-  "verdict": "ВСЁ В ПОРЯДКЕ",
-  "artifact": 12278226634,
-  "artifact_zip_sha256": "985296bf0a47c76fc55e3031ea9ade136ed784879ee15375e03d107928391d82",
-  "verify_log": "VERIFY.log (verbatim verify-full.log)"
- },
- "memory": {
-  "engine_vmsize_mb": "3209 -> 155..171",
-  "engine_rss_mb": "8 -> 5..7",
-  "engine_min_ulimit_v": "3.2 GB -> <= 64 MB",
-  "go_runtime_reserve": "+2.16 GB -> +76 MB",
-  "go_runtime_rss": "+11 MB -> +7 MB",
-  "per_machine_kb": "~9"
- },
- "ci_verify": {
   "workflow": "verify.yml",
   "run": 39453038163,
   "commit": "494bfc6bc45dad6ed1281bc221dbe09f6b5aa6a1",
@@ -65,6 +48,25 @@
   "verdict": "ВСЁ В ПОРЯДКЕ",
   "artifact": 12280095163,
   "artifact_zip_sha256": "86b75658e484e9f0fb0823eec63de16cec8acaab60d0d0f884a84c62d15c8736",
+  "verify_log": "VERIFY.log (verbatim verify-full.log)"
+ },
+ "memory": {
+  "engine_vmsize_mb": "3209 -> 155..171 -> 18",
+  "engine_rss_mb": "8 -> 5..7",
+  "engine_min_ulimit_v": "3.2 GB -> <= 32 MB",
+  "go_runtime_reserve": "+2.16 GB -> +76 MB",
+  "go_runtime_rss": "+11 MB -> +7 MB",
+  "per_machine_kb": "~9",
+  "arena_tradeoff": "shared glibc arena ~5% slower; MALLOC_ARENA_MAX=2 restores speed at +64 MB reserve"
+ },
+ "ci_verify": {
+  "workflow": "verify.yml",
+  "run": 39457015771,
+  "commit": "4adce875b780cedfdb0ead2ac8238ce45aac5f9f",
+  "conclusion": "success",
+  "verdict": "ВСЁ В ПОРЯДКЕ",
+  "artifact": 12280119412,
+  "artifact_zip_sha256": "8bcf423e1c6ccea20b93842b50d4dd85d274760bcfaa934c8c1d963c8cc2c7b1",
   "verify_log": "VERIFY.log (verbatim verify-full.log)"
  }
 }

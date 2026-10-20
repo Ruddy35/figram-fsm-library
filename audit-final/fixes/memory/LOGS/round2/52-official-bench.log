@@ -1,0 +1,9 @@
+command: python3 -I /home/user/figram-audit/fixes/memory/bench_env.py /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/artifact-778516d/x/figram-engine examples/pizza.bot.json 200000 - LEAN_MAIN_USE_THREAD=1\,MALLOC_ARENA_MAX=8 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T16:17:03.268Z
+end: 2026-10-20T16:17:26.293Z
+exit_code: 0
+--- stdout (234 bytes, last 200 lines)
+-                                                       лучшее из 3: 3.66 с, 55 тыс. запросов/с
+LEAN_MAIN_USE_THREAD=1,MALLOC_ARENA_MAX=8               лучшее из 3: 3.51 с, 57 тыс. запросов/с
+--- stderr (0 bytes, last 100 lines)
