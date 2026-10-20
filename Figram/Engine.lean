@@ -134,7 +134,7 @@ def envOf (gs : List (String × Bool)) : HostEnv :=
 
 /-- Условия, которые нужны шагу, но не переданы в запросе. -/
 def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : List String :=
-  if decide (s.state ∈ m.states) && s.accepts ev then
+  if decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev then
     (dedup (m.requiredGuards s.state ev.key)).filter fun n => !(gs.any (·.1 == n))
   else []
 

@@ -131,7 +131,11 @@ theorem compile_correct (hwf : c.compile.wf = true) (s : Snapshot) (ev : Event) 
   unfold Machine.step Chart.step
   by_cases hs : s.state ∈ c.leafIds
   · have hs' : s.state ∈ c.compile.states := hs
-    simp only [hs, hs', not_true_eq_false, ite_false]
+    -- Условие приёма события читает действия выхода (`ownsTimer`): у
+    -- скомпилированного автомата и у схемы они совпадают.
+    have hex : c.compile.exitOf s.state = c.exitActs s.state := by
+      simp only [Machine.exitOf, compile, lookup_map _ _ _ hs, Option.getD_some]
+    simp only [hs, hs', not_true_eq_false, ite_false, hex]
     split
     · rfl
     · cases hr : c.compile.row s.state ev.key with

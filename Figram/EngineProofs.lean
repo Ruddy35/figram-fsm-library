@@ -208,9 +208,13 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
           refine realize_snapOK _ _ _ hs h3 ?_ h1
           intro a ha
           simp only [List.mem_append] at ha
-          rcases ha with (ha | ha) | ha
+          rcases ha with ((ha | ha) | ha) | ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hexit e he)) _ a ha
+          · -- отмена таймеров, оставшихся от прежней версии документа
+            simp only [staleCancels, List.mem_map] at ha
+            obtain ⟨_, _, rfl⟩ := ha
+            rfl
           · exact hrows r (List.mem_of_find?_eq_some hr) b (List.mem_of_find?_eq_some hb) a ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hentry e he)) _ a ha

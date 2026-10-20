@@ -25,13 +25,13 @@ def lcg (s : Nat) : Nat := (s * 6364136223846793005 + 1442695040888963407) % 2 ^
 
 /-- Имена условий, которые нужны для шага, по эталонной семантике. -/
 def guardNames (c : Chart) (s : Snapshot) (ev : Event) : List String :=
-  if s.state ∈ c.leafIds && s.accepts ev then
+  if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     dedup ((c.cands s.state ev.key).filterMap (·.guard))
   else []
 
 /-- Индекс сработавшего варианта среди кандидатов (для покрытия). -/
 def firedIndex (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Option Nat :=
-  if s.state ∈ c.leafIds && s.accepts ev then
+  if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     (c.cands s.state ev.key).findIdx? (fun b => guardOK env b.guard)
   else none
 
