@@ -113,6 +113,8 @@ FIXED — исправлено в коде, есть регрессионный 
 |---|---|---|---|
 | сборка `bin/` официальным Lean 4.35.0 (commit eb6cafb7, Release) | GitHub Actions, release-bin, прогон 39381510381 | `figram` 49d66510…, `figram-engine` 151a3b30…; артефакт 12245249173 (zip sha256 7596e5f1…, совпадает с digest GitHub) | `fixes/release/LOGS/02-*` |
 | `verify-prebuilt.sh` с новым `bin/` | локально | код 0 | `fixes/release/LOGS/03-verify-prebuilt-new-bin.log` |
+| контрольные прогоны `verify.yml` на коммитах, менявших только документы | GitHub Actions: `e151220` (39382499924), `d01e2e1` (39383040992) | success; `Lean Action CI` и (пропущенный без метки) `release-bin` — тоже | история Actions |
+| ожидаемо красный прогон | `verify.yml` на `179b246` (39381510380) | failure на шаге установки Lean: «нет ci/lean-toolchain.sha256» — сумма ещё не была закреплена, и `bin/` ещё был старым; исправлено следующим коммитом `f780b2f` | история Actions |
 | `lake build` + полный `verify.sh` на `179b246` | локально, тулчейн из исходников (gcc) | 0 / 3 — единственное отступление: хеши сверены с локальной сборкой (другой тулчейн) | `fixes/release/LOGS/10-*`, `11-*` |
 | полный `verify.sh` на `f780b2f` | GitHub Actions, verify.yml, официальный тулчейн, прогон 39382129240 | **код 0, «ВСЁ В ПОРЯДКЕ»**: `bin/` побайтно совпадает с пересборкой; строгий шлюз PASS; `ffi/build.sh` на официальной раскладке (B-01); C-ABI 24/0; клиент; Go `-race`; плюс длительный Go-прогон на всех ядрах — success | `VERIFY.log` (дословно), `fixes/release/LOGS/ci-verify-39382129240/` |
 | чистая сборка, 0 предупреждений; strict_gate (141 теорема, только `propext`, `Quot.sound`, `Classical.choice`, leanchecker) | локально, `fix/final` | PASS | `fixes/final/LOGS/gate/`, `suites/05` |
