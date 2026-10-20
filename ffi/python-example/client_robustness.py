@@ -604,13 +604,18 @@ def r10_options():
     eng = Engine(slow, pizza, timeout=0.5, wait_ready=False)
     created = time.monotonic() - t0
     try:
+        got = {}
+        th = threading.Thread(target=lambda: got.update(
+            step=attempt(lambda: eng.step("v", {"at": "a"}, "btn:x")["snapshot"]["at"])))
+        th.start()
         r = attempt(lambda: eng.start("u")["snapshot"]["at"])
         took = time.monotonic() - t0
+        th.join(10)
     finally:
         eng.close()
-    report(created < 0.5 and r == "loaded" and took > 1.5,
-           f"R10 wait_ready=False: конструктор {created:.2f} с, вызов во время загрузки — {r} "
-           f"через {took:.1f} с (timeout 0.5 с считается от готовности)")
+    report(created < 0.5 and r == "loaded" and got.get("step") == "loaded" and took > 1.5,
+           f"R10 wait_ready=False: конструктор {created:.2f} с, вызовы во время загрузки — start {r}, "
+           f"step {got.get('step')} через {took:.1f} с (timeout 0.5 с и срок шага — от готовности)")
 
     for what, hello_args, expect_ok in (("протокол 2", "protocol=2", False),
                                         ("поле mutant (тестовый движок)", "mutant='x'", True)):
@@ -706,7 +711,8 @@ def r11_real():
 def r11_hang():
     """I-04: процесс, который молчит при неотвеченных запросах, заменяется по hang_timeout."""
     cnt, line = counter("r11h.count")
-    fake = pyfake(line + "for r in requests():\n    pass\n")
+    # Отвечает только на hello при запуске, дальше читает и молчит.
+    fake = pyfake(line + "hello(json.loads(sys.stdin.readline())['id'])\nfor l in sys.stdin:\n    pass\n")
     eng = Engine(fake, pizza, timeout=0.5, hang_timeout=1.5)
     try:
         p = eng._procs[0]
@@ -728,6 +734,21 @@ def r11_hang():
     report(r1 == "ошибка" and "завис" in why and 1.2 < detected < 4.0 and gone and n == 2 and r2 == "ошибка",
            f"R11 зависший процесс (hang_timeout 1.5 с, timeout 0.5 с): вызов — {r1}, замечен через {detected:.1f} с "
            f"«{why[:60]}», собран {gone}, следующий вызов в новом процессе (запусков {n})")
+    # Пропущенный ответ: движок ответил на проверку живости (hello после
+    # таймаута), но не на запрос перед ней — порядок ответов нарушен, сбой сразу.
+    fake = pyfake("for r in requests():\n    pass\n")
+    eng = Engine(fake, pizza, timeout=0.5, hang_timeout=30.0)
+    try:
+        p = eng._procs[0]
+        r1 = attempt(lambda: eng.start("u"))
+        t0 = time.monotonic()
+        while p.alive and time.monotonic() - t0 < 3:
+            time.sleep(0.02)
+        why = p.failure or ""
+    finally:
+        eng.close()
+    report(r1 == "ошибка" and "порядок" in why and time.monotonic() - t0 < 3,
+           f"R11 движок пропустил ответ на запрос, но ответил на следующий: «{why[:70]}»")
 
 
 def r12_id_null():
@@ -941,6 +962,17 @@ def r16_close():
     report(took < 1.9 and not left,
            f"R16 close() пула из 4 процессов, которые не выходят по EOF: {took:.2f} с (timeout 1 с), "
            f"потомков после {len(left)}")
+    # Процесс ещё загружается: вход он прочтёт только после загрузки — close()
+    # убивает его сразу, а не ждёт срок.
+    slow = pyfake("time.sleep(30)\nfor r in requests():\n    result(r['id'])\n")
+    eng = Engine(slow, pizza, processes=2, timeout=2.0, wait_ready=False)
+    time.sleep(0.2)
+    t0 = time.monotonic()
+    eng.close()
+    took = time.monotonic() - t0
+    left = wait_children(0, 2.0)
+    report(took < 0.5 and not left,
+           f"R16 close() пула, процессы которого ещё загружаются: {took:.2f} с (timeout 2 с), потомков {len(left)}")
 
 
 def r17_step():
