@@ -4,7 +4,7 @@
 set -u
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 OUT=${1:-/home/user/figram-audit/hosts/out/go}
-LOGS=/home/user/figram-audit/agents/host-go/LOGS/ok
+LOGS=${HOSTGO_LOGS:-/home/user/figram-audit/agents/host-go/LOGS}/ok   # HOSTGO_LOGS: do not overwrite the audit evidence on a re-run
 SCR=${HOSTGO_SCRATCH:-/tmp/hostgo}
 export HOSTGO_WORK=$SCR/work
 REF=$SCR/ref

@@ -3,9 +3,10 @@
 //
 // Ownership, lifetime and threading decisions (audit host-go):
 //
-//   - Runtime init. figram_init() is not safe to call concurrently (plain static
-//     flag in figram_ffi.c), so Init() wraps it in sync.Once and caches the result.
-//     Every exported entry point calls Init() first. The Lean runtime init
+//   - Runtime init. The audited baseline figram_init() was not safe to call
+//     concurrently (P-08); the hardened C ABI (ffi/figram.h) is lazy and thread-safe,
+//     but Init() still wraps it in sync.Once and caches the result (and the
+//     sigaltstack restore below). Every exported entry point calls Init() first. The Lean runtime init
 //     (initialize_stack_overflow -> stack_guard) installs a malloc'ed SIGSTKSZ
 //     (14.5 KiB on glibc 2.39) sigaltstack on the *calling OS thread*, which is a Go
 //     M. Go would then run its signal handlers for that M on Lean's small stack.
@@ -19,7 +20,8 @@
 //   - Strings. The C ABI takes NUL-terminated strings without a length: a raw NUL
 //     byte would silently truncate the request on the C side. Request/Load/Check
 //     therefore REJECT inputs that contain a NUL byte (ErrNUL). Invalid UTF-8 is
-//     passed through (the Lean side replaces it with U+FFFD, see tests).
+//     rejected by the C ABI with {"id":null,"error":…,"code":"parse_error"} (P-18;
+//     the audited baseline silently replaced it with U+FFFD, see tests).
 //     Inputs are copied into C memory (malloc) and freed after the call; replies are
 //     malloc'ed by the C shim, copied into Go memory and released with figram_free
 //     on every path (defer).
@@ -35,7 +37,10 @@
 package figram
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../../ffi/out -l:libfigram.a -L${SRCDIR}/../../../ffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -luv -lgmp -lstdc++ -lm -ldl -lpthread -lrt
+// Link flags are NOT hard-coded: they depend on the Lean toolchain layout (official
+// release: libc++ from the Lean prefix; from-source build: system libstdc++). ffi/build.sh
+// writes them to ffi/out/LDFLAGS (B-01); build with scripts/build.sh, i.e.
+//   CGO_LDFLAGS="$(cat ../../ffi/out/LDFLAGS)" go build ./...
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>

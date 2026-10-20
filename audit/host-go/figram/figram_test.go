@@ -110,27 +110,34 @@ func TestNULIsRejectedNotTruncated(t *testing.T) {
 	}
 }
 
-// Invalid UTF-8 passes the C boundary and is replaced by U+FFFD inside Lean
-// (lean_mk_string -> lean_mk_string_lossy_recover): the snapshot the host gets back
-// is not the one it sent. Documented behaviour of the native path (cf. FC-03).
-func TestInvalidUTF8IsSilentlyReplaced(t *testing.T) {
+// Invalid UTF-8 is rejected at the C boundary (P-18, FORMAT.md §7): parse_error with
+// id null, no silent U+FFFD replacement (the audited baseline replaced it inside Lean via
+// lean_mk_string_lossy_recover, so the snapshot the host got back was not the one it sent).
+func TestInvalidUTF8IsRejected(t *testing.T) {
 	m, err := Load("pizza", doc(t, "pizza"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer m.Close()
-	out, err := m.Request([]byte("{\"id\":5,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\",\"resume\":{\"k\xff\":\"v\"}},\"event\":\"btn:none\"}"))
-	if err != nil {
-		t.Fatal(err)
+	for _, line := range [][]byte{
+		[]byte("{\"id\":5,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\",\"resume\":{\"k\xff\":\"v\"}},\"event\":\"btn:none\"}"),
+		[]byte("{\"id\":\"\xff\",\"op\":\"hello\"}"),
+	} {
+		out, err := m.Request(line)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var r map[string]any
+		if err := json.Unmarshal(out, &r); err != nil {
+			t.Fatalf("reply is not JSON: %q", out)
+		}
+		if len(r) != 3 || r["id"] != nil || r["code"] != "parse_error" || r["error"] != "запрос не в кодировке UTF-8" {
+			t.Fatalf("invalid UTF-8: want {id:null,error,code:parse_error}, got %q", out)
+		}
+		if bytes.Contains(out, []byte("�")) {
+			t.Fatalf("U+FFFD in the reply: %q", out)
+		}
 	}
-	if !bytes.Contains(out, []byte("k�")) {
-		t.Fatalf("expected U+FFFD replacement, got %q", out)
-	}
-	out, _ = m.Request([]byte("{\"id\":\"\xff\",\"op\":\"hello\"}"))
-	if !bytes.Contains(out, []byte(`"id":"`+"�"+`"`)) {
-		t.Fatalf("id echo: %q", out)
-	}
-	t.Logf("reply id after invalid UTF-8 id: %q", out)
 }
 
 type walker struct {

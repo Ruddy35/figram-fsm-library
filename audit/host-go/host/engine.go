@@ -94,6 +94,12 @@ type Reply struct {
 	Recovered bool
 	Need      []string
 	Err       string
+	Code      string // machine error code (FORMAT.md §7), set when Kind == "error"
+}
+
+// errorCodes: every error reply is exactly {id, error, code} with one of these codes.
+var errorCodes = map[string]bool{
+	"parse_error": true, "too_large": true, "bad_request": true, "bad_snapshot": true, "seq_overflow": true,
 }
 
 // EngineFailure is a transport/protocol failure: safe to retry (engine is pure).
@@ -418,13 +424,18 @@ func (e *Engines) parseReply(b []byte, id int64, di *DocInfo) (*Reply, error) {
 	if !e.Validate {
 		return e.parseLoose(obj)
 	}
-	gotID, ok := AsUint53(obj["id"])
-	if !ok || gotID != id {
-		return nil, fmt.Errorf("reply id %v != request id %d", obj["id"], id)
+	_, hasErr := obj["error"]
+	// id null only on an error the engine raised before reading the request
+	// (parse_error / too_large; C-level errors of the FFI path); otherwise it echoes the request.
+	code, _ := obj["code"].(string)
+	if idv, has := obj["id"]; !(hasErr && has && idv == nil && (code == "parse_error" || code == "too_large")) {
+		gotID, ok := AsUint53(obj["id"])
+		if !ok || gotID != id {
+			return nil, fmt.Errorf("reply id %v != request id %d", obj["id"], id)
+		}
 	}
 	_, hasSnap := obj["snapshot"]
 	_, hasNeed := obj["need"]
-	_, hasErr := obj["error"]
 	n := 0
 	for _, h := range []bool{hasSnap, hasNeed, hasErr} {
 		if h {
@@ -439,7 +450,7 @@ func (e *Engines) parseReply(b []byte, id int64, di *DocInfo) (*Reply, error) {
 	if hasNeed {
 		allowed = map[string]bool{"id": true, "need": true}
 	} else if hasErr {
-		allowed = map[string]bool{"id": true, "error": true}
+		allowed = map[string]bool{"id": true, "error": true, "code": true}
 	}
 	for k := range obj {
 		if !allowed[k] { // e.g. "actions" next to "need" is a corrupted reply, not a need
@@ -452,7 +463,10 @@ func (e *Engines) parseReply(b []byte, id int64, di *DocInfo) (*Reply, error) {
 		if !ok {
 			return nil, errors.New("error is not a string")
 		}
-		r.Kind, r.Err = "error", s
+		if !errorCodes[code] {
+			return nil, fmt.Errorf("error reply without a known code: %v", obj["code"])
+		}
+		r.Kind, r.Err, r.Code = "error", s, code
 		return r, nil
 	case hasNeed:
 		arr, ok := obj["need"].([]any)

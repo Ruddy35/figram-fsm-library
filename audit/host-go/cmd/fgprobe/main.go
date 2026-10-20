@@ -63,7 +63,9 @@ func main() {
 	_, err = figram.Load("nul", []byte("{\"figram\":1}\x00"))
 	fmt.Println("load-nul:", err)
 	for _, depth := range []int{200, 256, 257, 100000} {
-		line := `{"id":10,"op":"hello","x":` + strings.Repeat("[", depth) + strings.Repeat("]", depth) + `}`
+		// nested arrays in an allowed field (strict requests reject unknown keys): depth ≤ 256
+		// reaches decSnapshot (bad_snapshot), deeper is a parse_error
+		line := `{"id":10,"op":"step","snapshot":` + strings.Repeat("[", depth) + strings.Repeat("]", depth) + `,"event":"btn:x"}`
 		r, err := m.Request([]byte(line))
 		fmt.Printf("nesting %-6d err=%v reply=%.120q\n", depth, err, r)
 	}

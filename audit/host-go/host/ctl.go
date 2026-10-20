@@ -228,11 +228,11 @@ func (h *Host) ResetUser(user, ctlID string) (string, error) {
 	seqKeysStart := h.broken["seq-keys-start"]
 	for attempt := 0; attempt < 8; attempt++ {
 		if seqKeysStart {
-			r, err = h.eng.Call(doc, map[string]any{"op": "start"}, -1)
-		} else if bad == "" {
-			r, err = h.eng.Call(doc, map[string]any{"op": "restart", "snapshot": json.RawMessage(snapTxt)}, hw)
+			r, err = h.eng.Call(doc, map[string]any{"op": "start"}, -1) // BROKEN: seq starts over
 		} else {
-			r, err = h.eng.Call(doc, map[string]any{"op": "restart", "snapshot": map[string]any{"at": "-", "seq": hw}}, hw)
+			// reset from the persistent high-water seq (start with seq, HOST.md §4);
+			// the user's scheduled timers are cancelled in the same transaction below
+			r, err = h.eng.Call(doc, map[string]any{"op": "start", "seq": hw}, hw)
 		}
 		if err == nil {
 			break

@@ -149,8 +149,9 @@ func (h *Host) stepOnce(u Update, early func(string)) (string, error) {
 			bad = h.checkStored(c)
 		}
 		if bad != "" {
-			r, err := h.eng.Call(c.doc, map[string]any{"op": "restart",
-				"snapshot": map[string]any{"at": "-", "seq": c.hw}}, c.hw)
+			// repair: start again from the persistent high-water seq (start with seq,
+			// FORMAT.md §7 / HOST.md §4) — seq and tokens never repeat (ET-01/P-01)
+			r, err := h.eng.Call(c.doc, map[string]any{"op": "start", "seq": c.hw}, c.hw)
 			if err != nil {
 				return "", err
 			}

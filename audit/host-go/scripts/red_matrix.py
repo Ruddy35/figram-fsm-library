@@ -14,7 +14,9 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FGRUN = os.path.join(HERE, "bin", "fgrun")
 CORPUS = "/home/user/figram-audit/hosts/shared/corpus"
 RUNSH = "/home/user/figram-audit/run.sh"
-LOGS = "/home/user/figram-audit/agents/host-go/LOGS/red"
+# HOSTGO_LOGS / HOSTGO_OUT: a re-run (e.g. on a new engine) does not overwrite the audit's evidence
+LOGS = os.path.join(os.environ.get("HOSTGO_LOGS", "/home/user/figram-audit/agents/host-go/LOGS"), "red")
+OKDIR = os.environ.get("HOSTGO_OUT", "/home/user/figram-audit/hosts/out/go")   # outputs of the correct runs
 REPRO = "/home/user/figram-audit/agents/host-go/REPRODUCTIONS"
 
 # (label, broken variant(s), corpus, extra fgrun args, invariants expected to FAIL)
@@ -89,10 +91,10 @@ def main():
         print(f"{label:34s} {corpus:14s} rc={r.get('rc')} red={r.get('fails')} missing={missing}", flush=True)
     # every invariant of the correct runs must have been red at least once
     all_inv = set()
-    for f in os.listdir("/home/user/figram-audit/hosts/out/go"):
+    for f in os.listdir(OKDIR):
         if f.endswith(".json") and f[0].isalpha() and not f.startswith(("red_", "compare", "soak")):
             try:
-                all_inv |= set(json.load(open(os.path.join("/home/user/figram-audit/hosts/out/go", f)))["invariants"])
+                all_inv |= set(json.load(open(os.path.join(OKDIR, f)))["invariants"])
             except Exception:  # noqa: BLE001
                 pass
     never = sorted(all_inv - set(red_by))
