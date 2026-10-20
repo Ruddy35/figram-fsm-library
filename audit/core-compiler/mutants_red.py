@@ -112,6 +112,8 @@ def main():
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--max-mutants", type=int, default=100000)
     ap.add_argument("--out")
+    ap.add_argument("--oracle-opt", action="append", default=[],
+                    help="k=v ambiguity switch of oracle.Options, passed to diff_random")
     args = ap.parse_args()
     killed = total = 0
     survivors = []
@@ -124,7 +126,7 @@ def main():
         muts = subprocess.run([args.engine, "--mutants", f.name], capture_output=True, text=True,
                               check=True, timeout=60).stdout.split()
         base = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=None,
-                                  oracle_bug=None, no_upgrade=True)
+                                  oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
         st, divs = {}, []
         diff_random.one_doc(base, seed, st, set(), divs)
         if divs:
@@ -132,7 +134,7 @@ def main():
             sys.exit(1)
         for m in muts[: args.max_mutants]:
             a = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=m,
-                                   oracle_bug=None, no_upgrade=True)
+                                   oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
             st2, d2 = {}, []
             diff_random.one_doc(a, seed, st2, set(), d2)
             total += 1

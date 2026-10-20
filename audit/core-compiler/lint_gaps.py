@@ -11,6 +11,7 @@ case behaves as documented in REPORT.md (accepted by check, defect observable)."
 
 import argparse
 import json
+import os
 import subprocess
 import tempfile
 
@@ -101,7 +102,10 @@ def evidence(engine, name, doc):
 
 
 EXPECT = {
-    "timer_arrow_on_non_owner": lambda ev: ev["fire_on_a"] == [] and ev["fire_with_foreign_entry"] == "z",
+    # CC-01 fixed: a foreign snapshot entry no longer fires the arrow on a non-owner (stays on a);
+    # CC01=baseline: the original observation (the arrow fires, user moves to z).
+    "timer_arrow_on_non_owner": lambda ev: ev["fire_on_a"] == [] and ev["fire_with_foreign_entry"] == (
+        "z" if os.environ.get("CC01") == "baseline" else "a"),
     "same_timer_two_messages": lambda ev: ev["old_token"] == [] and ev["new_token_at"] == "a",
     "resume_only_from_inside": lambda ev: ev["back_goes_to"] == ev["at_before"],
     "variant_after_unconditional": lambda ev: ev["targets_reached_for_all_c1"] == ["b"],
