@@ -85,7 +85,7 @@ check("P-05", "`пользователь:update_id:действие:вхожде
       "HOST §1.4 recommends keys from the delivery id (`пользователь:update_id:действие:вхождение`)")
 check("P-05", re.search(r"эпох", H[1]) and re.search(r"вне откатываем", H[1]),
       "HOST §1.4 offers a per-user epoch stored outside the store that can be rolled back")
-check("P-05", re.search(r"`пользователь:seq:номер`[^.]*безопас\w* только", H[1]),
+check("P-05", re.search(r"`пользователь:seq:номер`[^.]*безопас\w*,? только", H[1]),
       "HOST §1.4 says when `пользователь:seq:номер` is still safe")
 check("P-05", re.search(r'"op": "start", "seq": N', section(HOST, 4)) and "верхн" in H[4],
       "HOST §4: reset via `start` with `seq` = persistent high-water mark (PROTOCOL_CHANGES §4)")
@@ -132,7 +132,7 @@ check("FC-05", "double" in num_txt and "jsonschema" in num_txt, "FORMAT «Чис
 check("FC-02", re.search(r"-0\.0.{0,40}0\.0", num_txt), "FORMAT «Числа»: −0 is written as 0")
 
 # ---------------------------------------------------------------- D-01 / D-02 numbers
-check("D-01", re.search(r"VERIFY\.log[^.]*(замен|перезапи)", flat(AUDIT)) and re.search(r"VERIFY\.log[^.]*(замен|перезапи)", flat(REVIEW)),
+check("D-01", all(re.search(r"VERIFY\.log.{0,400}?будет заменён журналом CI", flat(t)) for t in (AUDIT, REVIEW)),
       "AUDIT/REVIEW: VERIFY.log will be replaced by the CI log at release")
 for name, txt in (("README", README), ("AUDIT", AUDIT), ("REVIEW", REVIEW)):
     t = flat(txt)
@@ -165,6 +165,11 @@ check("D-05", "lean_mark_persistent" not in flat(REVIEW) or re.search(r"lean_mar
       "REVIEW: `lean_mark_persistent` marked as outdated (now `lean_mark_mt` + `figram_unload`)")
 check("D-05/T-12", re.search(r"ASan и UBSan[^|]*\|[^|]*кучу Lean", R_CHECK),
       "README check table: ASan/UBSan row says the sanitizers do not see the Lean heap")
+a1 = flat(section(AUDIT, 1))
+check("D-03", re.search(r"`Engine.reply_readable` \|[^|]*модели JSON `J`", a1) and re.search(r"`Engine.handle_step` \|[^|]*`handleObj`", a1),
+      "AUDIT §1: reply_readable / handle_step are statements about the J model / handleObj, not the text protocol")
+check("D-04", re.search(r"Решение 7[^.]*`Engine.decEvent`", a1),
+      "AUDIT §1: decision 7 (timer token) is a property of Engine.decEvent, not of the core model")
 check("P-18", "рантайм Lean заменяет символом U+FFFD, поэтому инварианты строк не нарушаются" not in flat(AUDIT),
       "AUDIT §4: the «U+FFFD is safe» claim is replaced (invalid UTF-8 → parse_error, PROTOCOL_CHANGES §6)")
 info("D-06/INT-08", "по той же версии снимка" not in flat(F7),
