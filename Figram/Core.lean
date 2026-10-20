@@ -1,3 +1,5 @@
+import Figram.Index
+
 /-!
 # Ядро: плоский автомат
 
@@ -17,6 +19,10 @@
 разделов, активные таймеры с жетонами и счётчик шагов.
 
 Шаг — чистая функция `Machine.step`. Эффекты только возвращаются хосту.
+
+Стрелки хранятся сгруппированными по сообщению (`Machine.table`): шаг ищет
+сначала сообщение, затем событие среди его стрелок, поэтому стоимость шага —
+O(число сообщений + число событий сообщения), а не O(число всех стрелок).
 -/
 
 namespace Figram
@@ -147,7 +153,8 @@ structure Machine where
   states : List NodeId
   initial : NodeId
   initActions : List Action
-  rows : List Row
+  /-- Стрелки по сообщениям: сообщение → его стрелки, по одной на событие. -/
+  table : List (NodeId × List Row)
   resumes : List ResumeSpec
   /-- Действия входа в сообщение: запомнить место, запустить таймеры, отправить. -/
   entry : List (NodeId × List Action)
@@ -157,8 +164,12 @@ structure Machine where
 
 namespace Machine
 
+/-- Все стрелки автомата подряд (по сообщениям). -/
+def rows (m : Machine) : List Row := m.table.flatMap (·.2)
+
+/-- Стрелка сообщения `s` по событию `e`: поиск сообщения, затем события. -/
 def row (m : Machine) (s : NodeId) (e : EventId) : Option Row :=
-  m.rows.find? (fun r => decide (r.src = s ∧ r.event = e))
+  ((lookup m.table s).getD []).find? (fun r => decide (r.event = e))
 
 def resolve (m : Machine) (s : Snapshot) : Target → NodeId
   | .node n => n
@@ -203,6 +214,11 @@ def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
   | none => []
   | some r => r.branches.filterMap (·.guard)
 
+/-- `targetOK` по готовым множествам сообщений и разделов. -/
+def targetIn (st secs : Std.HashSet NodeId) : Target → Bool
+  | .node n => st.contains n
+  | .resume sec => secs.contains sec
+
 def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)
   | .resume sec => m.resumes.any (fun r => decide (r.sec = sec))
@@ -212,6 +228,15 @@ def wf (m : Machine) : Bool :=
   decide (m.initial ∈ m.states) &&
   m.rows.all (fun r => r.branches.all (fun b => m.targetOK b.target)) &&
   m.resumes.all (fun r => decide (r.default ∈ m.states) && r.members.all (fun v => decide (v ∈ m.states)))
+
+/-- `wf` за линейное время: принадлежность — через хеш-множества
+(`wfFast_eq : m.wfFast = m.wf`). -/
+def wfFast (m : Machine) : Bool :=
+  let st := keySet m.states
+  let secs := keySet (m.resumes.map (·.sec))
+  st.contains m.initial &&
+  m.table.all (fun g => g.2.all (fun r => r.branches.all (fun b => targetIn st secs b.target))) &&
+  m.resumes.all (fun r => st.contains r.default && r.members.all (fun v => st.contains v))
 
 end Machine
 end Figram

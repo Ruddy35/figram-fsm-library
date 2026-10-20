@@ -24,15 +24,18 @@ def badChart : Chart where
 
 def s0 : Snapshot := ⟨"a", [], [], 0⟩
 
-example : badChart.compile.wf = false := by decide
+-- `compile` runs with hash indexes (opaque `String.hash` for the kernel); the kernel facts are
+-- evaluated on the list specification, which is the same machine (`Chart.compile_eq_spec`).
+example : badChart.compile.wf = false := by rw [Chart.compile_eq_spec]; decide
 -- compiled step ≠ reference step (the reference sends "ghost", compiled sends nothing)
 example : badChart.compile.step s0 (.named "go") noEnv ≠ badChart.step s0 (.named "go") noEnv := by
-  decide
+  rw [Chart.compile_eq_spec]; decide
 example : badChart.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1⟩, [.send "ghost"]) := by decide
-example : badChart.compile.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1⟩, []) := by decide
+example : badChart.compile.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1⟩, []) := by
+  rw [Chart.compile_eq_spec]; decide
 -- user lands on a state that does not exist
 example : (badChart.compile.step s0 (.named "go") noEnv).1.state ∉ badChart.compile.states := by
-  decide
+  rw [Chart.compile_eq_spec]; decide
 -- the production path is protected dynamically: lint (part of `check`) rejects it
 #guard !badChart.lint.isEmpty
 
@@ -51,20 +54,21 @@ def timerDoc : Doc where
   ext := []
 
 def tm : Machine := timerDoc.toChart.compile
+theorem tm_eq : tm = timerDoc.toChart.compileSpec := Chart.compile_eq_spec _
 
 -- hypotheses of the theorems are satisfiable (non-vacuity)
-example : tm.wf = true := by decide
-example : namesOK tm = true := by decide
+example : tm.wf = true := by rw [tm_eq]; decide
+example : namesOK tm = true := by rw [tm_eq]; decide
 #guard timerDoc.check.isEmpty
 
 def sA : Snapshot := ⟨"a", [], [("t", 1)], 1⟩   -- timer t active, token 1
 def sA0 : Snapshot := ⟨"a", [], [], 1⟩          -- no active timer at all
 
-example : tm.step sA (.timer "t" 7) noEnv = (sA, []) := by decide            -- stale token ignored
-example : (tm.step sA (.timer "t" 1) noEnv).1.state = "b" := by decide       -- current token fires
-example : (tm.step sA0 (.timer "t" 1) noEnv) = (sA0, []) := by decide        -- no timer → ignored
+example : tm.step sA (.timer "t" 7) noEnv = (sA, []) := by rw [tm_eq]; decide      -- stale token ignored
+example : (tm.step sA (.timer "t" 1) noEnv).1.state = "b" := by rw [tm_eq]; decide -- current token fires
+example : (tm.step sA0 (.timer "t" 1) noEnv) = (sA0, []) := by rw [tm_eq]; decide  -- no timer → ignored
 -- …but a NAMED event with the same key fires without any token, even with no active timer:
-example : (tm.step sA0 (.named "timer:t") noEnv).1.state = "b" := by decide
+example : (tm.step sA0 (.named "timer:t") noEnv).1.state = "b" := by rw [tm_eq]; decide
 example : (timerDoc.toChart.step sA0 (.named "timer:t") noEnv).1.state = "b" := by decide
 -- Engine.decEvent refuses a `timer:` event without a token (runtime check)
 #guard (decEvent [("event", .str "timer:t")]).toBool == false
@@ -135,7 +139,7 @@ example : True := by
 `check` rejects it (so `check = []` is what carries `wf`). -/
 
 def ghostDoc : Doc := ⟨[], [], [], [], .sec "a" [("a", .message [("go", [⟨none, "ghost", false, [], []⟩])] [] [])] [] [], []⟩
-example : ghostDoc.toChart.compile.wf = false := by decide
+example : ghostDoc.toChart.compile.wf = false := by rw [Chart.compile_eq_spec]; decide
 #guard !ghostDoc.check.isEmpty
 #guard !ghostDoc.toChart.lint.isEmpty
 

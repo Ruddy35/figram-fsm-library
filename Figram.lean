@@ -1,3 +1,4 @@
+import Figram.Index
 import Figram.Core
 import Figram.CoreProofs
 import Figram.Chart

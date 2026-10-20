@@ -201,7 +201,9 @@ def namesOK (m : Machine) : Bool :=
   && m.entry.all (fun e => e.2.all actionOK) && m.exit.all (fun e => e.2.all actionOK)
 
 /-- Загрузка документа для движка: разбор, проверка, компиляция и проверка
-условий теорем о протоколе (`wf`, `namesOK`). -/
+условий теорем о протоколе (`wf`, `namesOK`). Документ компилируется один раз:
+`check` автомат не строит (`Chart.wfDirect`), `wf` проверяется на построенном
+автомате за линейное время (`wfFast = wf`). -/
 def load (txt : String) : Except (List String) Machine :=
   match parse txt >>= decode with
   | .error e => .error [e]
@@ -210,7 +212,7 @@ def load (txt : String) : Except (List String) Machine :=
     if !errs.isEmpty then .error errs
     else
       let m := d.toChart.compile
-      if m.wf && namesOK m then .ok m
+      if m.wfFast && namesOK m then .ok m
       else .error ["скомпилированный автомат не прошёл проверку wf/namesOK"]
 
 end Figram.Engine

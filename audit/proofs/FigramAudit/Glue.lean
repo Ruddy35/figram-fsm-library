@@ -8,62 +8,15 @@ open Figram Figram.Format Figram.Engine
 
 namespace Figram.Chart
 
-/-- Verbatim copy of `Chart.lint` without its final `wf` check (used only to state `lint_eq`;
-`lint_eq` is proved by `rfl`, so the copy cannot drift silently). -/
-def lintPrefix (c : Chart) : List String := Id.run do
-  let mut errs : List String := []
-  let ids := c.nodes.map (·.id)
-  for n in c.nodes do
-    if (ids.filter (· = n.id)).length > 1 then
-      errs := errs ++ [s!"Узел «{n.id}» объявлен несколько раз"]
-    match n.parent with
-    | some p =>
-      if !c.exists_ p then errs := errs ++ [s!"У «{n.id}» несуществующий раздел-родитель «{p}»"]
-      else if !c.isSec p then errs := errs ++ [s!"Родитель «{p}» узла «{n.id}» — не раздел"]
-    | none => pure ()
-    -- цикл: подъём по родителям упирается в лимит
-    if (c.anc n.id).length > c.nodes.length then
-      errs := errs ++ [s!"Цикл во вложенности разделов через «{n.id}»"]
-    match n.kind with
-    | .sec i =>
-      if (c.find i).bind (·.parent) != some n.id then
-        errs := errs ++ [s!"Начальный экран «{i}» раздела «{n.id}» должен лежать внутри него"]
-    | .message => pure ()
-  if !c.exists_ c.root then errs := errs ++ [s!"Стартовый узел «{c.root}» не существует"]
-  for t in c.transitions do
-    if !c.exists_ t.src then
-      errs := errs ++ [s!"Стрелка по «{t.event}» начинается в несуществующем «{t.src}»"]
-    for b in t.branches do
-      match b.target with
-      | .node n =>
-        if !c.exists_ n then errs := errs ++ [s!"Стрелка «{t.src}» → «{n}»: цели не существует"]
-      | .history s =>
-        if !c.isSec s then
-          errs := errs ++ [s!"Стрелка «{t.src}» → «вернуться туда, где был» в «{s}»: это не раздел"]
-  for tm in c.timers do
-    if !c.leafIds.contains tm.node then
-      errs := errs ++ [s!"Таймер «{tm.id}» висит не на сообщении"]
-  return errs
-
-def lintMsg : String := "Схема не проходит итоговую проверку: какая-то стрелка ведёт не в сообщение"
-
+/-- G1 (after P-06): `lint` is exactly `lintCore` plus the final `wf` check of the compiled
+machine — computed without building the machine (`wfDirect`, equal to `compile.wf` by
+`wfDirect_eq`), so `check` no longer compiles the document. -/
 theorem lint_eq (c : Chart) : c.lint =
-    (if (c.lintPrefix.isEmpty && !c.compile.wf) = true then c.lintPrefix ++ [lintMsg] else c.lintPrefix) := by
-  unfold lint lintPrefix
-  cases c.exists_ c.root <;> rfl
+    (if (c.lintCore.isEmpty && !c.compile.wf) = true then c.lintCore ++ [lintMsg] else c.lintCore) := by
+  unfold lint
+  rw [wfDirect_eq]
 
-theorem lint_nil_wf (c : Chart) (h : c.lint = []) : c.compile.wf = true := by
-  rw [lint_eq] at h
-  cases hw : c.compile.wf with
-  | true => rfl
-  | false =>
-    exfalso
-    simp only [hw, Bool.not_false, Bool.and_true] at h
-    split at h
-    · simp at h
-    · rename_i hc
-      rw [h] at hc
-      simp at hc
+-- `lint_nil_wf : c.lint = [] → c.compile.wf = true` is now a product theorem (Figram/Lint.lean).
 end Figram.Chart
 
 namespace Figram.Audit
@@ -96,9 +49,9 @@ theorem load_sound {txt : String} {m : Machine} (h : Engine.load txt = .ok m) :
     simp only at h
     by_cases hc : d.check.isEmpty = true
     · simp only [hc, Bool.not_true, Bool.false_eq_true, ite_false] at h
-      by_cases hw : (d.toChart.compile.wf && namesOK d.toChart.compile) = true
+      by_cases hw : (d.toChart.compile.wfFast && namesOK d.toChart.compile) = true
       · simp only [hw, ite_true, Except.ok.injEq] at h
-        simp only [Bool.and_eq_true] at hw
+        simp only [Bool.and_eq_true, Machine.wfFast_eq] at hw
         exact ⟨d, List.isEmpty_iff.mp hc, h.symm, h ▸ hw.1, h ▸ hw.2⟩
       · simp only [hw] at h
         cases h

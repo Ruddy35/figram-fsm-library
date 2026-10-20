@@ -14,16 +14,33 @@ namespace Figram.Mutate
 /-- Все варианты всех стрелок по порядку. -/
 def branches (m : Machine) : List FBranch := m.rows.flatMap (·.branches)
 
+/-- Изменить стрелки, сохранив группировку по сообщениям; `f` получает
+сквозной номер стрелки (в порядке `Machine.rows`). -/
+def mapRows (m : Machine) (f : Nat → Row → Row) : Machine := Id.run do
+  let mut k := 0
+  let mut table : Array (NodeId × List Row) := #[]
+  for (s, rs) in m.table do
+    let mut out : Array Row := #[]
+    for r in rs do
+      out := out.push (f k r)
+      k := k + 1
+    table := table.push (s, out.toList)
+  return { m with table := table.toList }
+
+/-- Изменить варианты; `f` получает сквозной номер варианта (в порядке `branches`). -/
 def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.run do
   let mut k := 0
-  let mut rows : List Row := []
-  for r in m.rows do
-    let mut bs : List FBranch := []
-    for b in r.branches do
-      bs := bs ++ [f k b]
-      k := k + 1
-    rows := rows ++ [{ r with branches := bs }]
-  return { m with rows := rows }
+  let mut table : Array (NodeId × List Row) := #[]
+  for (s, rs) in m.table do
+    let mut out : Array Row := #[]
+    for r in rs do
+      let mut bs : Array FBranch := #[]
+      for b in r.branches do
+        bs := bs.push (f k b)
+        k := k + 1
+      out := out.push { r with branches := bs.toList }
+    table := table.push (s, out.toList)
+  return { m with table := table.toList }
 
 def callNames (m : Machine) : List String :=
   let names := ((branches m).flatMap (·.actions)).filterMap fun
@@ -66,9 +83,8 @@ def apply (m : Machine) (spec : String) : Option Machine :=
       if i == k then { b with actions := b.actions.reverse } else b
   | ["drop-guard", k] => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with guard := none } else b
-  | ["swap-branches", k] => k.toNat?.map fun k =>
-      { m with rows := m.rows.zipIdx.map fun (r, i) =>
-          if i == k then { r with branches := r.branches.reverse } else r }
+  | ["swap-branches", k] => k.toNat?.map fun k => mapRows m fun i r =>
+      if i == k then { r with branches := r.branches.reverse } else r
   | ["reverse-entry", k] => k.toNat?.map fun k =>
       { m with entry := m.entry.zipIdx.map fun (e, i) => if i == k then (e.1, e.2.reverse) else e }
   | ["drop-exit"] => some { m with exit := m.exit.map fun e => (e.1, []) }

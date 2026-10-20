@@ -26,7 +26,28 @@ theorem realize_state (s : Snapshot) (T : NodeId) (acts : List Action) :
     (realize s T acts).1.state = T := by
   simp only [realize, foldl_realize_state]
 
+theorem lookup_some_mem {α β} [DecidableEq α] {t : List (α × β)} {k : α} {v : β}
+    (h : lookup t k = some v) : (k, v) ∈ t := by
+  simp only [lookup, Option.map_eq_some_iff] at h
+  obtain ⟨p, hp, rfl⟩ := h
+  have hk := List.find?_some hp
+  simp only [decide_eq_true_eq] at hk
+  rw [← hk]
+  exact List.mem_of_find?_eq_some hp
+
 namespace Machine
+
+/-- Найденная стрелка — одна из стрелок автомата. -/
+theorem row_mem {m : Machine} {s : NodeId} {e : EventId} {r : Row} (h : m.row s e = some r) :
+    r ∈ m.rows := by
+  unfold row at h
+  have hr := List.mem_of_find?_eq_some h
+  cases hl : lookup m.table s with
+  | none => simp [hl] at hr
+  | some rs =>
+    rw [hl] at hr
+    simp only [rows, List.mem_flatMap]
+    exact ⟨(s, rs), lookup_some_mem hl, hr⟩
 
 theorem wf_parts {m : Machine} (h : m.wf = true) :
     m.initial ∈ m.states ∧
@@ -79,7 +100,7 @@ theorem step_state_valid (m : Machine) (hwf : m.wf = true)
         · exact hs
         · rename_i b hb
           simp only [fire, realize_state]
-          exact resolve_mem hwf s _ (hrows r (List.mem_of_find?_eq_some hr) b
+          exact resolve_mem hwf s _ (hrows r (row_mem hr) b
             (List.mem_of_find?_eq_some hb))
 
 theorem find?_congr {α} (l : List α) (p q : α → Bool)
@@ -114,6 +135,21 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
             simp only [guardOK]
             exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
         rw [hfind]
+
+/-- Быстрая проверка `wf` (хеш-множества) равна спецификации. -/
+theorem wfFast_eq (m : Machine) : m.wfFast = m.wf := by
+  have hst : ∀ n, (keySet m.states).contains n = decide (n ∈ m.states) := keySet_contains _
+  have htgt : ∀ t : Target, targetIn (keySet m.states) (keySet (m.resumes.map (·.sec))) t =
+      m.targetOK t := by
+    intro t
+    cases t with
+    | node n => simp only [targetIn, targetOK, hst]
+    | resume sec =>
+      simp only [targetIn, targetOK, keySet_contains]
+      apply Bool.eq_iff_iff.mpr
+      simp only [decide_eq_true_eq, List.mem_map, List.any_eq_true]
+  unfold wfFast wf rows
+  simp only [List.all_flatMap, htgt, hst]
 
 end Machine
 end Figram

@@ -215,7 +215,7 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
             simp only [staleCancels, List.mem_map] at ha
             obtain ⟨_, _, rfl⟩ := ha
             rfl
-          · exact hrows r (List.mem_of_find?_eq_some hr) b (List.mem_of_find?_eq_some hb) a ha
+          · exact hrows r (Machine.row_mem hr) b (List.mem_of_find?_eq_some hb) a ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hentry e he)) _ a ha
 
