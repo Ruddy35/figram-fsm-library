@@ -1,0 +1,50 @@
+# Пересборка bin/ официальным Lean (версия из lean-toolchain, через elan).
+# Запуск вручную (workflow_dispatch). commit=true — закоммитить стрипнутые бинарники и
+# SHA256SUMS обратно в ветку запуска; иначе только артефакт с бинарниками и суммами.
+name: release-bin
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "commit rebuilt bin/ back to the branch (true/false)"
+        required: false
+        default: "false"
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
+      - name: Lean из lean-toolchain
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Сборка и strip
+        run: |
+          lake build figram figram-engine
+          lean --version | tee lean-version.txt
+          mkdir -p out
+          cp .lake/build/bin/figram .lake/build/bin/figram-engine out/
+          strip out/figram out/figram-engine
+          (cd out && sha256sum figram figram-engine | tee SHA256SUMS)
+          cp lean-version.txt out/
+          echo "source commit: $GITHUB_SHA" | tee -a out/lean-version.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: bin-${{ github.sha }}
+          path: out/
+      - name: Коммит bin/
+        if: ${{ inputs.commit == 'true' }}
+        run: |
+          cp out/figram out/figram-engine out/SHA256SUMS bin/
+          if git diff --quiet -- bin; then echo "bin/ не изменился"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bin
+          git commit -m "release: rebuild bin/ with official $(head -1 lean-version.txt | cut -d' ' -f1-3) from $GITHUB_SHA (run $GITHUB_RUN_ID)"
+          git push
