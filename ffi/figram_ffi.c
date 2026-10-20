@@ -25,16 +25,6 @@ int sigaction(int sig, const void* act, void* old);
 int sigaltstack(const void* ss, void* old);
 #define SIGPIPE 13
 #endif
-#if defined(__linux__) && (defined(__x86_64__) || defined(__aarch64__) || defined(__i386__) || \
-                           defined(__arm__) || defined(__riscv) || defined(__powerpc__))
-#define FIGRAM_AS_CHECK 1
-int getrlimit(int resource, void* rlim);
-int open(const char* path, int flags, ...);
-long read(int fd, void* buf, size_t n);
-int close(int fd);
-int getpagesize(void);
-#define FG_RLIMIT_AS 9
-#endif
 
 extern lean_object* initialize_figram_Figram_Api(uint8_t builtin);
 extern lean_object* figram_check(lean_object* doc);
@@ -43,6 +33,8 @@ extern lean_object* figram_load_ex(lean_object* doc);
 extern lean_object* figram_request(lean_object* m, lean_object* line);
 /* ffi/figram_guard.cpp: вызов с перехватом исключений C++ (0 — без исключения). */
 int figram_guard_call(void (*fn)(void*), void* arg, char* err, unsigned long cap);
+/* ffi/figram_rt.c: системные размеры рантайма Lean (стек потоков, арена mimalloc). */
+void figram_rt_defaults(void);
 
 /* ---------- текст ошибки: figram_last_error ---------- */
 
@@ -102,50 +94,10 @@ static void enter_thread(void) {
   if (!thread_ready) { lean_initialize_thread(); thread_ready = 1; }
 }
 
-#ifndef FIGRAM_INIT_AS_HEADROOM
-/* Сколько адресного пространства сверх занятого нужно рантайму Lean при запуске: арена
-   mimalloc (1 ГиБ, MAP_NORESERVE) и стек потока цикла libuv (1 ГиБ + 128 КиБ); замер —
-   запуск удаётся при запасе ≥ 2,15·10⁹ байт (C и Go). При меньшем запасе под RLIMIT_AS
-   запуск не удался бы в любом случае: обычно исключением C++ «failed to create thread»
-   (его ловит figram_guard_call), но при запасе чуть больше 1 ГиБ арена mimalloc занимает
-   всё место, следующий mmap служебных данных mimalloc получает ENOMEM, и рантайм вызывает
-   «INTERNAL PANIC: out of memory» с exit(1) — это перехватить нельзя. Поэтому при запасе
-   меньше этой величины рантайм не запускается вовсе. */
-#define FIGRAM_INIT_AS_HEADROOM 2000000000ULL
-#endif
-
-#ifdef FIGRAM_AS_CHECK
-/* 0 — запаса хватает или лимита нет (или его не узнать); иначе 1 и причина в init_err. */
-static int as_headroom_short(void) {
-  unsigned long lim[8];                                     /* struct rlimit: cur, max */
-  if (getrlimit(FG_RLIMIT_AS, lim) != 0) return 0;
-  unsigned long long cur = lim[0];
-  if (lim[0] == (unsigned long)-1) return 0;                /* RLIM_INFINITY */
-  int fd = open("/proc/self/statm", 0);
-  if (fd < 0) return 0;
-  char buf[128];
-  long k = read(fd, buf, sizeof buf - 1);
-  close(fd);
-  if (k <= 0) return 0;
-  unsigned long long pages = 0;
-  for (long i = 0; i < k && buf[i] >= '0' && buf[i] <= '9'; i++) pages = pages * 10 + (unsigned)(buf[i] - '0');
-  unsigned long long used = pages * (unsigned long long)getpagesize();
-  if (cur > used && cur - used >= FIGRAM_INIT_AS_HEADROOM) return 0;
-  sbuf s = {init_err, 0, ERR_CAP};
-  sb_str(&s, "figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = ");
-  sb_u64(&s, cur);
-  sb_str(&s, " байт, занято ");
-  sb_u64(&s, used);
-  sb_str(&s, ", нужно ещё не меньше ");
-  sb_u64(&s, FIGRAM_INIT_AS_HEADROOM);
-  sb_str(&s, " (арена mimalloc 1 ГиБ и стек потока цикла событий libuv 1 ГиБ; см. ffi/figram.h)");
-  return 1;
-}
-#endif
-
 typedef struct { int ok; } init_result;
 static void do_init(void* arg) {
   init_result* r = (init_result*)arg;
+  figram_rt_defaults();
   lean_initialize_runtime_module();
   lean_object* res = initialize_figram_Figram_Api(1);
   r->ok = lean_io_result_is_ok(res);
@@ -158,15 +110,12 @@ typedef union { unsigned char b[512]; long double ld; void* p; long l; } sigbuf;
 
 /* Инициализация ровно один раз; одновременные вызовы ждут первый и возвращают его результат:
    0 — готово; 1 — инициализация модуля Lean вернула ошибку; 2 — рантайм Lean не запустился
-   (исключение C++, например «failed to create thread», или нехватка адресного пространства). */
+   (исключение C++, например «failed to create thread»). */
 FIGRAM_API int figram_init(void) {
   int s = 0;
   if (__atomic_compare_exchange_n(&init_state, &s, 1, 0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
     int rc = 0;
-#ifdef FIGRAM_AS_CHECK
-    if (as_headroom_short()) rc = 2;
-#endif
-    if (rc == 0) {
+    {
       /* P-22: рантайм Lean ставит SIGPIPE в SIG_IGN для всего процесса и заменяет sigaltstack
          вызывающего потока своим буфером. Хосту возвращается его прежнее состояние. */
       sigbuf pipe_old, stack_old;
@@ -179,8 +128,6 @@ FIGRAM_API int figram_init(void) {
         sbuf b = {init_err, 0, ERR_CAP};
         sb_str(&b, "figram_init: рантайм Lean не запустился: ");
         sb_str(&b, what);
-        sb_str(&b, " (частая причина — RLIMIT_AS: рантайму нужно ≈ 2,2 ГБ адресного пространства"
-                   " сверх занятого; см. ffi/figram.h)");
         rc = 2;
       } else if (!r.ok) {
         sbuf b = {init_err, 0, ERR_CAP};

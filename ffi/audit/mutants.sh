@@ -11,7 +11,7 @@ OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$
 D=examples/pizza.bot.json; D2=examples/features.bot.json
 ok=1
 # mutant ИМЯ "СТАРОЕ" "НОВОЕ" ПОДТЕСТ… — ПОДТЕСТ на мутанте обязан дать код ≠ 0
-# (или, для rlimit_init, не напечатать «figram_init=2»).
+# (или, для rlimit_init, не напечатать строку по регвыру GOOD_RX, по умолчанию «figram_init=2»).
 mutant() {
   local name=$1 old=$2 new=$3; shift 3
   python3 - "$old" "$new" "$T/m.c" <<'PY' || { echo "НЕТ $name: замена не применилась"; ok=0; return; }
@@ -23,13 +23,13 @@ open(out, "w", encoding="utf-8").write(s.replace(old, new))
 PY
   cp ffi/figram.h "$T/figram.h"
   if ! leanc -c -fexceptions -o "$T/m.o" "$T/m.c" 2> "$T/cc.log" || \
-     ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" ffi/audit/contract.c "$T/m.o" ffi/out/figram_guard.o $OBJS \
+     ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" ffi/audit/contract.c "$T/m.o" ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS \
          $(cat ffi/out/LDFLAGS.runtime) 2>> "$T/cc.log"; then
     echo "НЕТ $name: мутант не собирается"; grep -m3 error "$T/cc.log"; ok=0; return
   fi
   out=$(timeout 120 "$@" 2>&1); rc=$?
-  if [ "$1" = prlimit ] || [ "$1" = env ]; then
-    printf '%s' "$out" | grep -q '^figram_init=2 ' && rc=0 || rc=1
+  if [ "${!#}" = rlimit_init ]; then
+    printf '%s' "$out" | grep -qE "${GOOD_RX:-^figram_init=2 }" && rc=0 || rc=1
   fi
   if [ $rc -ne 0 ]; then echo "ok   $name пойман: $(printf '%s\n' "$out" | grep -m1 -E '^FAIL|PANIC|terminate|figram_init=|Segmentation' | cut -c1-120)"
   else echo "НЕТ $name НЕ пойман"; ok=0; fi
@@ -37,10 +37,11 @@ PY
 C="$T/contract"
 mutant "P-09 без перехвата исключения C++" \
   'if (figram_guard_call(do_init, &r, what, sizeof what) != 0) {' 'do_init(&r); if (0) {' \
-  prlimit --as=2100000000 -- "$C" rlimit_init
-mutant "P-09 без проверки запаса RLIMIT_AS" \
-  'if (as_headroom_short()) rc = 2;' 'if (0) rc = 2;' \
-  env FIGRAM_TEST_AS_HEADROOM=1073741824 "$C" rlimit_init
+  env FIGRAM_TEST_AS_HEADROOM=4194304 "$C" rlimit_init
+GOOD_RX='^figram_init=0 ' mutant "P-09 без системных размеров рантайма (стек 1 ГиБ, арена 1 ГиБ)" \
+  'figram_rt_defaults();
+  lean_initialize_runtime_module();' 'lean_initialize_runtime_module();' \
+  env FIGRAM_TEST_AS_HEADROOM=268435456 "$C" rlimit_init
 mutant "P-21 без ленивой инициализации" \
   'if (__atomic_load_n(&init_state, __ATOMIC_ACQUIRE) == 2) return 0;
   return figram_init();' 'return 0;' \
