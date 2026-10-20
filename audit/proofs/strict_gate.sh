@@ -10,6 +10,12 @@
 #  4. Statements.lean: statements of the README/AUDIT theorems are pinned;
 #  5. leanchecker: every declaration of every Figram.* module is re-added through the kernel
 #     (catches environment hacking that #print axioms cannot see, e.g. addDeclCore doCheck:=false).
+# The gate never writes tracked files: the list and AllAxioms.lean are generated into a temporary
+# directory. The tracked audit/proofs/theorems.txt and AllAxioms.lean are a pin: their set of theorem
+# NAMES must equal the generated one (adding, removing or renaming a theorem is a deliberate commit:
+#   python3 -I audit/proofs/gen_axioms.py . audit/proofs/AllAxioms.lean audit/proofs/theorems.txt).
+# File:line locations in them are informational and may lag behind the sources.
+# Regression test: audit/proofs/test_strict_gate_clean.sh.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
@@ -18,9 +24,32 @@ if grep -nE '\bsorry\b|\badmit\b|^[[:space:]]*(private |protected )?axiom\b|nati
      Figram/*.lean Figram.lean Main.lean EngineMain.lean; then
   echo "STRICT GATE: forbidden construct in sources (see lines above)"; exit 1
 fi
-python3 -I audit/proofs/gen_axioms.py . audit/proofs/AllAxioms.lean audit/proofs/theorems.txt
-n=$(wc -l < audit/proofs/theorems.txt)
-lake env lean audit/proofs/AllAxioms.lean > "$T/ax.log" 2>&1
+python3 -I audit/proofs/gen_axioms.py . "$T/AllAxioms.lean" "$T/theorems.txt"
+python3 -I - audit/proofs/theorems.txt audit/proofs/AllAxioms.lean "$T/theorems.txt" <<'PY'
+import collections, re, sys
+read = lambda p: open(p, encoding="utf-8").read()
+names_txt = lambda p: [l.split("\t")[0] for l in read(p).splitlines() if l.strip()]
+names_ax = lambda p: re.findall(r"^#print axioms (\S+)", read(p), re.M)
+tracked, tracked_ax, gen = (collections.Counter(names_txt(sys.argv[1])),
+                            collections.Counter(names_ax(sys.argv[2])),
+                            collections.Counter(names_txt(sys.argv[3])))
+bad = []
+if tracked_ax != tracked:
+    bad.append("tracked AllAxioms.lean and theorems.txt disagree: "
+               f"{sorted((tracked_ax - tracked) + (tracked - tracked_ax))}")
+if tracked != gen:
+    bad.append("theorem list differs from the tracked audit/proofs/theorems.txt: "
+               f"new {sorted(gen - tracked)}, gone {sorted(tracked - gen)}")
+if bad:
+    print("\n".join(f"STRICT GATE: {b}" for b in bad))
+    sys.exit("STRICT GATE: review the change and update the tracked list deliberately:\n"
+             "  python3 -I audit/proofs/gen_axioms.py . audit/proofs/AllAxioms.lean audit/proofs/theorems.txt")
+moved = len(set(read(sys.argv[1]).splitlines()) - set(read(sys.argv[3]).splitlines()))
+print(f"theorem list = tracked list ({sum(gen.values())} names)"
+      + (f"; {moved} locations differ (informational, tracked files are not rewritten)" if moved else ""))
+PY
+n=$(wc -l < "$T/theorems.txt")
+lake env lean "$T/AllAxioms.lean" > "$T/ax.log" 2>&1
 python3 -I - "$T/ax.log" "$n" <<'PY'
 import re, sys
 log, n = open(sys.argv[1], encoding="utf-8").read(), int(sys.argv[2])
