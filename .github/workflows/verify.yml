@@ -14,10 +14,8 @@ jobs:
         shell: bash                 # bash --noprofile --norc -eo pipefail
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
-      - name: Lean 4.35.0
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Lean из lean-toolchain (архив релиза, sha256 из ci/lean-toolchain.sha256)
+        run: ci/install-lean.sh
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff   # v5
         with: { go-version: "1.23", cache: false }
       - run: python3 -c "import jsonschema" || pip install jsonschema

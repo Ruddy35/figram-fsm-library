@@ -1,4 +1,4 @@
-# Пересборка bin/ официальным Lean (версия из lean-toolchain, через elan).
+# Пересборка bin/ официальным Lean (версия из lean-toolchain, архив релиза через ci/install-lean.sh).
 # Запуск: вручную (workflow_dispatch) или push, в сообщении коммита которого есть метка
 # «[release-bin]» (только артефакт) либо «[release-bin commit]» (закоммитить стрипнутые
 # бинарники и SHA256SUMS обратно в ветку). Пуши от GITHUB_TOKEN новых запусков не вызывают.
@@ -23,10 +23,10 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
-      - name: Lean из lean-toolchain
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Lean из lean-toolchain (архив релиза, sha256 из ci/lean-toolchain.sha256)
+        env:
+          FIGRAM_LEAN_TOFU: "1"   # только до появления ci/lean-toolchain.sha256; затем убрать
+        run: ci/install-lean.sh "$HOME/.lean-toolchain"
       - name: Сборка и strip
         run: |
           lake build figram figram-engine
@@ -36,6 +36,7 @@ jobs:
           strip out/figram out/figram-engine
           (cd out && sha256sum figram figram-engine | tee SHA256SUMS)
           cp lean-version.txt out/
+          cp "$HOME"/.lean-toolchain/*.tar.zst.sha256 out/lean-toolchain.sha256
           echo "source commit: $GITHUB_SHA" | tee -a out/lean-version.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
         with:
