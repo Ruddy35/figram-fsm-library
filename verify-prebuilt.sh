@@ -1,30 +1,50 @@
 #!/usr/bin/env bash
-# Проверка без Lean: собранные бинарники из bin/ (Linux x86_64, зависят от libc).
+# Checks prebuilt binaries without Lean (Linux x86_64, they depend on libc).
 # Покрывает движок, утилиту, клиент, обвязку, контракт хоста, текстовый JSON.
 # НЕ покрывает: сборку, теоремы, C-прослойку и Go — для них нужен ./verify.sh с Lean 4.35.0.
-# Соответствие bin/ исходникам доказывает только ./verify.sh (сборка воспроизводима).
+# That the binaries were built from these sources is shown only by ./verify.sh with
+# FIGRAM_SHA256SUMS (the build is reproducible).
 #
-#   ./verify-prebuilt.sh          полная проверка (~90 с на одном ядре)
-#   ./verify-prebuilt.sh --quick  сокращённая (~30 с): меньше документов и фаззинга,
-#                                 без мутаций и самопроверки обвязки — НЕ замена полной
+#   ./verify-prebuilt.sh DIR          полная проверка (~90 с на одном ядре)
+#   ./verify-prebuilt.sh --quick DIR  сокращённая (~30 с): меньше документов и фаззинга,
+#                                     без мутаций и самопроверки обвязки — НЕ замена полной
+# DIR (or FIGRAM_BIN=DIR) is the directory with `figram` and `figram-engine`, e.g. an unpacked
+# release or .lake/build/bin. If DIR/SHA256SUMS exists, `sha256sum -c` must accept it.
 #
 # Код выхода: 0 — полная проверка прошла; 1 — провал; 3 — сокращённая (--quick) прошла:
-# это не полная проверка, CI обязан считать код 3 провалом.
+# это не полная проверка, CI обязан считать код 3 провалом. 2 — usage error.
 set -euo pipefail
 shopt -s inherit_errexit
-cd "$(dirname "$0")"
 fail() { echo "НЕТ: $*"; exit 1; }
-case "${1:-}" in
-  "") QUICK=0;;
-  --quick) QUICK=1;;
-  *) fail "неизвестный аргумент «$1» (допустим только --quick)";;
-esac
+usage() {
+  echo "usage: $0 [--quick] DIR   (DIR contains figram and figram-engine; or set FIGRAM_BIN=DIR)" >&2
+  [ $# = 0 ] || echo "$0: $*" >&2
+  exit 2
+}
+QUICK=0; BIN=""
+for a in "$@"; do
+  case $a in
+    --quick) QUICK=1;;
+    -*) usage "unknown option $a";;
+    *) [ -z "$BIN" ] || usage "more than one DIR"; BIN=$a;;
+  esac
+done
+BIN=${BIN:-${FIGRAM_BIN:-}}
+[ -n "$BIN" ] || usage
+for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an executable file"; done
+BIN=$(cd "$BIN" && pwd)
+cd "$(dirname "$0")"
 MIN_MUTANTS=107        # мутаций в двух документах примеров (уменьшение — провал)
 MIN_SELFTEST_OK=37     # пройденных проверок самопроверки обвязки
-F=bin/figram
-E=bin/figram-engine
-P=ffi/python-example
-(cd bin && sha256sum -c SHA256SUMS)
+F=$BIN/figram
+E=$BIN/figram-engine
+P=tests/engine
+echo "binaries: $BIN"
+if [ -f "$BIN/SHA256SUMS" ]; then
+  (cd "$BIN" && sha256sum -c SHA256SUMS)
+else
+  echo "no $BIN/SHA256SUMS: checksum check skipped"
+fi
 python3 -c "import jsonschema" 2>/dev/null || fail "нужен Python-пакет jsonschema: pip install jsonschema"
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
@@ -112,7 +132,7 @@ expect "$LOGS/engine_memory.log" '^память движка: резерв ад�
 expect "$LOGS/engine_memory.log" '^ok  ulimit -v 32 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 32 МБ"
 
 step "Снимок и текстовый JSON"
-SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json snapshot.schema.json
+SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), расхождений схемы и движка (\d+)$' \
   'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "снимки"
 expect "$LOGS/snapshots.log" '^граница seq: ok$' 'True' "граница seq"

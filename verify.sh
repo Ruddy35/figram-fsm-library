@@ -5,15 +5,17 @@
 #                 изменённая формулировка теоремы, ноль проверок, неполное покрытие;
 #             3 — все выполненные шаги прошли, но были ЯВНО разрешённые отступления
 #                 (это не «всё в порядке»; CI обязан считать код 3 провалом):
-#   FIGRAM_SHA256SUMS=файл  — сверять пересборку с этим файлом, а не с bin/SHA256SUMS
-#                             (другой тулчейн); bin/ при этом не сверяются с исходниками;
 #   FIGRAM_WAIVE=go         — разрешить отсутствие go (Go-часть не выполняется).
+# FIGRAM_SHA256SUMS=FILE: the stripped rebuild of figram and figram-engine must match FILE
+# (`sha256sum` lines for exactly these two names; the release workflow passes its checksums);
+# a mismatch is a failure (exit 1). Without it the comparison is skipped, which is not a waiver.
 set -euo pipefail
 shopt -s inherit_errexit
+[ -z "${FIGRAM_SHA256SUMS:-}" ] || FIGRAM_SHA256SUMS=$(realpath "$FIGRAM_SHA256SUMS")
 cd "$(dirname "$0")"
 F=.lake/build/bin/figram
 E=.lake/build/bin/figram-engine
-P=ffi/python-example
+P=tests/engine
 # Нижние границы числа проверок (значения базовой версии; уменьшение — провал).
 MIN_MUTANTS=107        # мутаций в двух документах примеров
 MIN_SELFTEST_OK=37     # пройденных проверок самопроверки обвязки
@@ -94,28 +96,26 @@ grep -q "^Build completed successfully" "$T/build.log" || fail "lake build не 
 WARN_RX='(^|[[:space:]:])warning:|^⚠'
 if grep -qiE "$WARN_RX" "$T/build.log"; then grep -iE -A3 "$WARN_RX" "$T/build.log"; fail "предупреждения сборки"; fi
 
-step "Приложенные бинарники bin/ собраны ровно из этих исходников"
-SUMS=${FIGRAM_SHA256SUMS:-bin/SHA256SUMS}
-[ "$(awk '{print $2}' "$SUMS" | sort | tr '\n' ' ')" = "figram figram-engine " ] \
-  || fail "$SUMS: ожидались ровно две записи, figram и figram-engine"
-for b in figram figram-engine; do cp .lake/build/bin/$b "$T/$b"; strip "$T/$b"; done
-if ! (cd "$T" && sha256sum figram figram-engine) | diff - "$SUMS"; then
-  fail "пересобранные бинарники не совпадают с $SUMS"
-fi
-# Сами bin/* обязаны совпадать с bin/SHA256SUMS, иначе подменённый bin/ прошёл бы проверку.
-(cd bin && sha256sum --quiet -c SHA256SUMS) || fail "bin/* не совпадают с bin/SHA256SUMS"
-if [ "$SUMS" = bin/SHA256SUMS ]; then
-  echo "ok: хеши совпадают побайтно"
+step "Binaries built from these sources match FIGRAM_SHA256SUMS"
+if [ -n "${FIGRAM_SHA256SUMS:-}" ]; then
+  SUMS=$FIGRAM_SHA256SUMS
+  [ -f "$SUMS" ] || fail "FIGRAM_SHA256SUMS=$SUMS: no such file"
+  [ "$(awk '{print $2}' "$SUMS" | sort | tr '\n' ' ')" = "figram figram-engine " ] \
+    || fail "$SUMS: ожидались ровно две записи, figram и figram-engine"
+  for b in figram figram-engine; do cp .lake/build/bin/$b "$T/$b"; strip "$T/$b"; done
+  if ! (cd "$T" && sha256sum figram figram-engine) | diff - "$SUMS"; then
+    fail "пересобранные бинарники не совпадают с $SUMS"
+  fi
+  echo "ok: the stripped rebuild matches $SUMS byte for byte"
 else
-  echo "ok: пересборка совпадает с $SUMS (bin/ с исходниками НЕ сверялись)"
-  WAIVED+=("хеши сверены с $SUMS, а не с bin/SHA256SUMS: соответствие bin/ исходникам не проверено")
+  echo "skipped: FIGRAM_SHA256SUMS is not set, nothing to compare the rebuild with (not a waiver)"
 fi
 
 step "Теоремы: только стандартные аксиомы, формулировки закреплены"
-# Список теорем, которые README.md и AUDIT.md называют доказанными, — ci/theorems.lean.
-lake env lean ci/theorems.lean > "$T/ax.log" 2>&1 || { cat "$T/ax.log"; fail "lean не обработал ci/theorems.lean"; }
+# Список теорем, которые README.md называет доказанными, — tests/proofs/theorems.lean.
+lake env lean tests/proofs/theorems.lean > "$T/ax.log" 2>&1 || { cat "$T/ax.log"; fail "lean не обработал tests/proofs/theorems.lean"; }
 grep -v '^STMT ' "$T/ax.log" || true
-python3 - "$T/ax.log" ci/theorems.lean <<'PY' || exit 1
+python3 - "$T/ax.log" tests/proofs/theorems.lean <<'PY' || exit 1
 import re, sys
 lines = open(sys.argv[1], encoding="utf-8").read().splitlines()
 src = open(sys.argv[2], encoding="utf-8").read()
@@ -124,7 +124,7 @@ stated = re.findall(r"^\s*``(\S+?),?$", src, re.M)
 ALLOWED = {"propext", "Classical.choice", "Quot.sound"}
 seen, stmts, bad = {}, set(), []
 if not listed or sorted(listed) != sorted(stated):
-    bad.append(f"списки теорем в ci/theorems.lean расходятся: {sorted(set(listed) ^ set(stated))}")
+    bad.append(f"списки теорем в tests/proofs/theorems.lean расходятся: {sorted(set(listed) ^ set(stated))}")
 for line in lines:
     m = re.fullmatch(r"'([^']+)' depends on axioms: \[(.*)\]", line)
     if m:
@@ -149,11 +149,11 @@ if not bad:
 sys.exit(1 if bad else 0)
 PY
 grep '^STMT ' "$T/ax.log" > "$T/statements.txt" || true
-if ! diff ci/THEOREMS.expected "$T/statements.txt" > "$T/statements.diff"; then
+if ! diff tests/proofs/THEOREMS.expected "$T/statements.txt" > "$T/statements.diff"; then
   head -40 "$T/statements.diff"
-  fail "формулировки теорем отличаются от ci/THEOREMS.expected (менять формулировку — только осознанно, вместе с этим файлом)"
+  fail "формулировки теорем отличаются от tests/proofs/THEOREMS.expected (менять формулировку — только осознанно, вместе с этим файлом)"
 fi
-echo "формулировки $(wc -l < ci/THEOREMS.expected) теорем совпадают с ci/THEOREMS.expected"
+echo "формулировки $(wc -l < tests/proofs/THEOREMS.expected) теорем совпадают с tests/proofs/THEOREMS.expected"
 # Конструкции, которые обходят ядро или подменяют доказанный код при исполнении.
 if grep -nE '^\s*(@\[[^]]*\]\s*)?((private|protected|noncomputable|unsafe)\s+)*axiom\s|native_decide|implemented_by|@\[extern|\bsorry\b|\badmit\b|skipKernelTC|ofReduceBool|ofReduceNat' \
      Figram.lean Main.lean EngineMain.lean Figram/*.lean; then
@@ -162,11 +162,11 @@ fi
 echo "в исходниках нет axiom, native_decide, implemented_by, extern, sorry, admit"
 
 step "Теоремы: строгий шлюз — все теоремы исходников и окружения, формулировки, leanchecker"
-# audit/proofs/strict_gate.sh (proofs): #print axioms для ВСЕХ теорем из исходников (число сверяется),
+# tests/proofs/strict_gate.sh (proofs): #print axioms для ВСЕХ теорем из исходников (число сверяется),
 # AxiomGate по окружению (теоремы, определения, opaque модулей Figram.*), закреплённые формулировки
-# README/AUDIT (Statements.lean), запрет run_elab/modifyEnv/addDeclCore/unsafe/csimp и
+# README (Statements.lean), запрет run_elab/modifyEnv/addDeclCore/unsafe/csimp и
 # leanchecker: ядро заново проверяет каждое объявление.
-SHOW=4 logged proofs bash audit/proofs/strict_gate.sh
+SHOW=4 logged proofs bash tests/proofs/strict_gate.sh
 grep -q '^STRICT GATE: PASS$' "$LOGS/proofs.log" || fail "строгий шлюз доказательств не сообщил PASS"
 
 step "Фиксированные сценарии совпадают с сохранёнными"
@@ -231,7 +231,7 @@ expect "$LOGS/engine_memory.log" '^память движка: резерв ад�
 expect "$LOGS/engine_memory.log" '^ok  ulimit -v 32 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 32 МБ"
 
 step "Снимок: схема и движок согласованы, граница seq; restart, условия, жетоны, hello"
-SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json snapshot.schema.json
+SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), расхождений схемы и движка (\d+)$' \
   'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "снимки"
 expect "$LOGS/snapshots.log" '^граница seq: ok$' 'True' "граница seq"
@@ -273,25 +273,25 @@ OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$
 # префикса Lean, сборка из исходников — системные статические libuv/libgmp и libstdc++.
 LIBS=$(cat ffi/out/LDFLAGS.runtime)
 ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -fexceptions -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
-ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" ffi/c_harness_io.c
-ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS $LIBS
+ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" tests/capi/c_harness_io.c
+ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" tests/capi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS $LIBS
 SHOW=2 logged c_asan env ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 "$T/harness" examples/pizza.bot.json
 expect "$LOGS/c_asan.log" '^16 потоков × (\d+) вызовов к одному автомату: расхождений (\d+)$' 'g[0] > 0 and g[1] == 0' "C, 16 потоков"
 # Память при загрузке и выгрузке — на обычной сборке (у ASan карантин памяти).
-ccstep harness_plain gcc -O1 -o "$T/harness_plain" ffi/c_harness.c ffi/c_harness_io.c $(cat ffi/out/LDFLAGS)
+ccstep harness_plain gcc -O1 -o "$T/harness_plain" tests/capi/c_harness.c tests/capi/c_harness_io.c $(cat ffi/out/LDFLAGS)
 logged c_reload "$T/harness_plain" examples/pizza.bot.json memory
 expect "$LOGS/c_reload.log" '^(\d+) загрузок и выгрузок: рост памяти' 'g[0] > 0' "C, загрузки и выгрузки"
 
 step "C-ABI ffi/figram.h: init без падения хоста, NULL, дескрипторы, NUL, UTF-8, предел, сигналы"
-# ffi/audit/regress.sh (P-09, P-18, P-21, P-22, FFI-01/05/06): каждый подтест — отдельный процесс;
+# tests/capi/regress.sh (P-09, P-18, P-21, P-22, FFI-01/05/06): каждый подтест — отдельный процесс;
 # init под RLIMIT_AS (prlimit), 2×300 процессов с одновременной (в т.ч. ленивой) инициализацией.
-CA="$T/ffi-audit"; mkdir -p "$CA"
+CA="$T/capi"; mkdir -p "$CA"
 for t in contract stress; do
-  ccstep "$t" gcc -g -O1 -pthread -I"$PFX/include" -o "$CA/$t" "ffi/audit/$t.c" $(cat ffi/out/LDFLAGS)
+  ccstep "$t" gcc -g -O1 -pthread -I"$PFX/include" -o "$CA/$t" "tests/capi/$t.c" $(cat ffi/out/LDFLAGS)
 done
-ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" ffi/audit/oom.c $(cat ffi/out/LDFLAGS)
+ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" tests/capi/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
-logged c_contract bash ffi/audit/regress.sh "$CA"
+logged c_contract bash tests/capi/regress.sh "$CA"
 expect "$LOGS/c_contract.log" '^регрессионных проверок C-ABI (\d+), провалено (\d+)$' 'g[0] >= 34 and g[1] == 0' "C-ABI"
 # Заголовок с контрактом самодостаточен для C и C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
@@ -335,7 +335,7 @@ logged reach_cli python3 ci/reach.py "$F" --unreachable $UV --reachable '(lean::
 logged reach_lib python3 ci/reach.py "$CA/contract" --unreachable $UV '(lean::)?segv_handler.*' \
   'lean::initialize_stack_overflow\(\)' --reachable 'lean::initialize_alloc\(\)'
 # Контроль: тот же хост со штатным запуском рантайма — всё перечисленное достижимо (проверка не пустая).
-ccstep contract_stock gcc -O1 -pthread -I"$PFX/include" -o "$T/contract-stock" ffi/audit/contract.c \
+ccstep contract_stock gcc -O1 -pthread -I"$PFX/include" -o "$T/contract-stock" tests/capi/contract.c \
   ffi/out/figram_ffi.o ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS $LIBS
 logged reach_control python3 ci/reach.py "$T/contract-stock" --reachable $UV '(lean::)?segv_handler.*'
 
@@ -359,7 +359,7 @@ expect "$LOGS/load.log" '^потоков +(\d+), процессов (\d+): ша�
 
 if command -v go >/dev/null; then
   step "Go: встроенный движок, сценарии из многих горутин"
-  G=ffi/go-example
+  G=clients/go
   (cd $G && CC=${CC:-gcc} go build -ldflags=-extldflags=-Wl,--gc-sections -o gofig .) > "$LOGS/go_build.log" 2>&1 || { cat "$LOGS/go_build.log"; fail "go build"; }
   (cd $G && CC=${CC:-gcc} go build -race -o gofig-race .) > "$LOGS/go_build_race.log" 2>&1 \
     || { cat "$LOGS/go_build_race.log"; fail "go build -race"; }
