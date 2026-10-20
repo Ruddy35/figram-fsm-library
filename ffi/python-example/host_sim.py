@@ -320,8 +320,13 @@ if __name__ == "__main__":
     ok1 = scenario_orders(engine_path, doc, barrier=barrier)
     ok2 = scenario_stale_timer(engine_path, doc)
     print("--- контроль: хост без отсева дублей и без ключей идемпотентности")
-    control = scenario_orders(engine_path, doc, naive=True)
-    print("  тест ловит нарушение:", "да" if not control else "НЕТ")
+    # Контроль вероятностный (дубль заказа возникает только при сбое в нужном месте):
+    # до трёх попыток, достаточно одной красной. Основной сценарий не повторяется.
+    for attempt in range(3):
+        control = scenario_orders(engine_path, doc, naive=True)
+        if not control:
+            break
+    print("  тест ловит нарушение:", "да" if not control else "НЕТ", f"(попыток контроля: {attempt + 1})")
     ok2 = ok2 and not control
     print("контракт выполнен" if ok1 and ok2 else "НАРУШЕНИЕ КОНТРАКТА")
     sys.exit(0 if ok1 and ok2 else 1)
