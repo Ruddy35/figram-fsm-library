@@ -25,7 +25,7 @@ case $MODE in
   prebuilt) SCRIPT=./verify-prebuilt.sh
             ALL="none golden-truncated selftest-shrunk fixtures-shrunk random-docs-shrunk json-fuzz-shrunk mutants-shrunk bin-swapped";;
   full)     SCRIPT=./verify.sh
-            ALL="none golden-truncated sums-tampered bin-swapped custom-axiom native-decide theorem-weakened go-missing race-test-not-run coverage-drop";;
+            ALL="none golden-truncated sums-tampered bin-swapped custom-axiom native-decide theorem-weakened go-missing race-test-not-run coverage-drop coverage-drop-regen engine-bug-golden-edited";;
   *) echo "неизвестный режим $MODE"; exit 2;;
 esac
 FAULTS=${*:-$ALL}
@@ -81,6 +81,21 @@ engine, doc, schema_path = sys.argv[1:4]';;
       sub ffi/go-example/race_test.go 'func TestSharedRequestMap(' 'func testSharedRequestMap(';;
     coverage-drop)        # генератор сценариев почти не выбирает события сообщений
       sub Figram/Trace.lean '  if roll < 23 then return (.named "unknown:event", g)' '  if roll < 97 then return (.named "unknown:event", g)';;
+    coverage-drop-regen)  # то же, но bin/ и bin/SHA256SUMS пересобраны из изменённых исходников
+                          # (так выглядит обычный коммит с изменением генератора)
+      inject coverage-drop
+      lake build >/dev/null 2>&1 || { echo "внедрение: lake build"; exit 2; }
+      for b in figram figram-engine; do cp .lake/build/bin/$b bin/$b; strip bin/$b; done
+      (cd bin && sha256sum figram figram-engine > SHA256SUMS)
+      unset FIGRAM_SHA256SUMS;;
+    engine-bug-golden-edited)  # движок перестал выставлять recovered; golden «поправлен» под движок,
+                               # bin/ пересобран (обычный коммит: исходники + bin/ + сценарии)
+      sub Figram/Engine.lean '    ++ field "recovered" recovered (.bool true))' '    ++ field "recovered" (recovered && as.isEmpty) (.bool true))'
+      sed -i 's/,"recovered":true//' examples/golden.jsonl
+      lake build >/dev/null 2>&1 || { echo "внедрение: lake build"; exit 2; }
+      for b in figram figram-engine; do cp .lake/build/bin/$b bin/$b; strip bin/$b; done
+      (cd bin && sha256sum figram figram-engine > SHA256SUMS)
+      unset FIGRAM_SHA256SUMS;;
     *) echo "неизвестная неисправность $1"; exit 2;;
   esac
 }
