@@ -122,7 +122,8 @@ def main (args : List String) : IO UInt32 := do
       IO.eprintln s!"мутация «{Format.sanitize spec}» не относится к этому автомату (список — --mutants)"
       return 2
     -- условия теорем о протоколе проверяются и у испорченного автомата
-    unless m'.wf && Engine.namesOK m' do
+    -- (`wfFast` — та же проверка `wf` за линейное время, теорема `Machine.wfFast_eq`)
+    unless m'.wfFast && Engine.namesOK m' do
       IO.eprintln s!"мутант «{Format.sanitize spec}» не прошёл проверку wf/namesOK"
       return 1
     IO.eprintln s!"figram-engine: ВНИМАНИЕ: испорченный движок (мутация «{Format.sanitize spec}») — \
