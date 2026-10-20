@@ -6,7 +6,9 @@ host; it does NOT use ffi/python-example/figram_client.py.
   action forms); any violation, EOF, EPIPE or timeout marks the process broken, kills it and
   raises EngineFailure — the caller retries (a step is a pure function, retry is safe until the
   host transaction commits);
-* `{"error": ...}` replies are deterministic engine answers -> EngineReplyError (not retried).
+* `{"id", "error", "code"}` replies are deterministic engine answers -> EngineReplyError with the
+  machine code (not retried; the host distinguishes errors by `code`, never by the text —
+  FORMAT.md §7, HOST.md §5). An error reply without a known `code` is a protocol violation.
 """
 from __future__ import annotations
 
@@ -26,8 +28,16 @@ class EngineFailure(Exception):
     """Transport / protocol failure: retry with a fresh process."""
 
 
+# FORMAT.md §7: every error reply is exactly {id, error, code}.
+ERROR_CODES = {"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow"}
+
+
 class EngineReplyError(Exception):
-    """The engine answered {"error": ...}."""
+    """The engine answered {"id", "error", "code"}; `code` is the machine code."""
+
+    def __init__(self, text: str, code: str):
+        super().__init__(text)
+        self.code = code
 
 
 def _nat(x) -> bool:
@@ -70,13 +80,25 @@ ACTION_KEYS = {"send": {"send"}, "call": {"call"}, "start_timer": {"start_timer"
 def check_reply(r, rid: int, op: str) -> str:
     if type(r) is not dict:
         raise EngineFailure(f"reply is not an object: {r!r:.200}")
-    if not (type(r.get("id")) is int and r["id"] == rid):
-        raise EngineFailure(f"reply id {r.get('id')!r} != {rid}")
+    if "id" not in r:
+        raise EngineFailure("reply without id")
     keys = set(r) - {"id"}
-    if keys == {"error"}:
+    if "error" in keys:
+        if keys != {"error", "code"}:
+            raise EngineFailure(f"bad error reply fields {sorted(keys)} (expected id, error, code)")
         if type(r["error"]) is not str:
             raise EngineFailure("error is not a string")
+        if r["code"] not in ERROR_CODES:
+            raise EngineFailure(f"unknown error code {r['code']!r}")
+        # id null only when the engine could not read the request (one request in flight per
+        # process, so the reply is still ours); otherwise the id must echo the request.
+        if r["id"] is None and r["code"] in ("parse_error", "too_large"):
+            return "error"
+        if not (type(r["id"]) is int and r["id"] == rid):
+            raise EngineFailure(f"reply id {r.get('id')!r} != {rid}")
         return "error"
+    if not (type(r.get("id")) is int and r["id"] == rid):
+        raise EngineFailure(f"reply id {r.get('id')!r} != {rid}")
     if op == "hello":
         if keys != {"protocol", "states"} or not _nat(r["protocol"]) or not _nat(r["states"]):
             raise EngineFailure(f"bad hello reply {r!r:.200}")
@@ -217,7 +239,7 @@ class EngineProc:
             except EngineFailure as e:
                 self._break(str(e))
             if kind == "error":
-                raise EngineReplyError(r["error"])
+                raise EngineReplyError(r["error"], r["code"])
             return r
 
     def close(self):

@@ -14,8 +14,9 @@ Design (see /home/user/figram-audit/hosts/shared/README.md and domain.md):
   locks (G2), compute guards from the domain DB -> retry -> ONE transaction (snapshot, processed
   update id, transition log, outbox rows, timer table) -> ack;
 * idempotency key = "<user>:<seq>:<index>"; seq is strictly monotone over the user's lifetime:
-  `start` only for a user with no row; every reset/repair uses `restart` with the persistent
-  high-water seq (immune to ET-01); outbox.key is UNIQUE (a collision aborts, never dedups);
+  `start` without `seq` only for a user with no row; every reset/repair uses `start` with
+  `seq` = the persistent high-water seq (FORMAT.md §7, HOST.md §4; immune to ET-01/P-01);
+  outbox.key is UNIQUE (a collision aborts, never dedups);
 * outbox executor threads; local calls are applied in the same transaction that marks the row
   done (exactly-once); external calls carry the key to the CRM (effectively-once); `send` is
   at-least-once (Telegram has no idempotency key);
@@ -390,7 +391,7 @@ class Host:
                     try:
                         r = self.engine(doc).call(user, req)
                     except EngineReplyError as e:
-                        if "снимок" in str(e) and "trust-snapshot" not in self.broken:
+                        if e.code == "bad_snapshot" and "trust-snapshot" not in self.broken:
                             r, kind, note = self._repair(user, doc, hw, f"engine: {e}")
                         else:
                             return self._commit_error(c, user, uid, str(e))
@@ -421,11 +422,11 @@ class Host:
                 lk.release()
 
     def _repair(self, user, doc, hw, why):
-        """Unreadable / inconsistent snapshot: restart the user from the persistent high-water seq
-        (never `start`: that would reuse seq values -> ET-01)."""
+        """Unreadable / inconsistent snapshot: start the user again from the persistent high-water
+        seq (`start` with `seq`; never `start` without it: that would reuse seq values -> ET-01)."""
         self.stat("repair")
         self.log("repair", user, {"why": why, "hw": hw})
-        r = self.engine(doc).call(user, {"op": "restart", "snapshot": {"at": "-", "seq": hw}})
+        r = self.engine(doc).call(user, {"op": "start", "seq": hw})
         return r, "repair", why
 
     def compute_guards(self, need, c, user, upd):
@@ -859,8 +860,9 @@ class Host:
         return {"users": n_users, "orphaned_timers": n_orphan}
 
     def reset_user(self, user, d):
-        """'Delete my data, keep the account'. Correct: `restart` from the high-water seq + cancel
-        every scheduled timer of the user. BROKEN seq-keys-start: `start` + delete outbox history."""
+        """'Delete my data, keep the account'. Correct: `start` with `seq` = the high-water seq +
+        cancel every scheduled timer of the user (HOST.md §4).
+        BROKEN seq-keys-start: `start` without `seq` + delete outbox history."""
         with self.lock_of(self.ulocks, user):
             c = self.conn()
             row = c.execute("SELECT family, doc, snapshot, version, hw_seq FROM users WHERE user=?", (user,)).fetchone()
@@ -871,7 +873,7 @@ class Host:
             if "seq-keys-start" in self.broken:
                 r = self.engine(doc).call(user, {"op": "start"})
             else:
-                r = self.engine(doc).call(user, {"op": "restart", "snapshot": snap if snap else {"at": "-", "seq": hw}})
+                r = self.engine(doc).call(user, {"op": "start", "seq": hw})
             uid = f"reset:{d}"
             new = r["snapshot"]
             c.execute("BEGIN IMMEDIATE")

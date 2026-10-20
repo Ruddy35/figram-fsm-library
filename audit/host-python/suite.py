@@ -15,11 +15,16 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHARED = "/home/user/figram-audit/hosts/shared"
-OUT = "/home/user/figram-audit/hosts/out/python"
-AG = "/home/user/figram-audit/agents/host-python"
+# Overridable so that a re-run (e.g. on a new engine) does not overwrite the audit's own evidence:
+#   HOST_OUT   outputs for the Go-vs-Python comparison and red_matrix.json
+#   HOST_LOGS  run.sh logs (ok/, red/)
+#   FIGRAM_ENGINE  engine binary (default: bin/figram-engine of this repository)
+OUT = os.environ.get("HOST_OUT", "/home/user/figram-audit/hosts/out/python")
+AG = "/home/user/figram-audit/agents/host-python"        # REPRODUCTIONS (targeted corpora), read-only
+LOGS = os.environ.get("HOST_LOGS", os.path.join(AG, "LOGS"))
 WORK = os.environ.get("HOST_WORK", "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/work")
 RUN = "/home/user/figram-audit/run.sh"
-ENGINE = os.path.abspath(os.path.join(HERE, "..", "..", "bin", "figram-engine"))
+ENGINE = os.path.abspath(os.environ.get("FIGRAM_ENGINE", os.path.join(HERE, "..", "..", "bin", "figram-engine")))
 
 OK = ["order-1", "order-2", "booking-1", "booking-2", "support-1", "reminders-1", "reminders-2", "migration-1",
       "failures-1", "failures-2", "adversarial-1", "load_u1-7", "load_u10-7", "load_u100-7", "load_u1000-7"]
@@ -65,18 +70,24 @@ def corpus_path(sc):
 
 def run_ok(names):
     env = dict(os.environ, HOST_WORK=WORK)
+    os.makedirs(OUT, exist_ok=True)
+    failed = []
     for sc in names:
         extra = []
         if sc.startswith("load_"):
             extra = ["--no-ref", "--window", "64", "--engines", "3"]
         cmd = runner_cmd(corpus_path(sc), os.path.join(OUT, sc + ".json"), "", extra)
-        rc = subprocess.call([RUN, os.path.join(AG, "LOGS", "ok", sc)] + cmd, env=env)
+        rc = subprocess.call([RUN, os.path.join(LOGS, "ok", sc)] + cmd, env=env)
         print(sc, "rc", rc, flush=True)
+        if rc != 0:
+            failed.append(sc)
+    print("ok runs failed:", failed)
+    return 1 if failed else 0
 
 
 def run_red(items):
     env = dict(os.environ, HOST_WORK=WORK)
-    os.makedirs(os.path.join(AG, "LOGS", "red"), exist_ok=True)
+    os.makedirs(os.path.join(LOGS, "red"), exist_ok=True)
     for variant, sc, extra in items:
         tag = (variant or "correct") + "__" + sc + ("__" + "_".join(x.strip("-") for x in extra if x.startswith("--busy"))
                                                     if any(x.startswith("--busy") for x in extra) else "")
@@ -84,15 +95,15 @@ def run_red(items):
         ex = list(extra)
         if "--no-ref" not in ex and os.path.isdir(ref):
             ex += ["--ref", ref]
-        cmd = runner_cmd(corpus_path(sc), os.path.join(AG, "LOGS", "red", tag + ".json"), variant, ex)
-        rc = subprocess.call([RUN, os.path.join(AG, "LOGS", "red", tag)] + cmd, env=env)
+        cmd = runner_cmd(corpus_path(sc), os.path.join(LOGS, "red", tag + ".json"), variant, ex)
+        rc = subprocess.call([RUN, os.path.join(LOGS, "red", tag)] + cmd, env=env)
         print(tag, "rc", rc, flush=True)
 
 
 def matrix():
     rows = []
     turned = {}
-    for f in sorted(glob.glob(os.path.join(AG, "LOGS", "red", "*.json"))):
+    for f in sorted(glob.glob(os.path.join(LOGS, "red", "*.json"))):
         d = json.load(open(f))
         fails = sorted(k for k, v in d["invariants"].items() if v != "PASS")
         tag = os.path.basename(f)[:-5]
@@ -110,15 +121,16 @@ def matrix():
     for r in rows:
         print(f"{r['run']:<55} RED: {', '.join(r['red']) or '-- (nothing failed)'}")
     print("invariants never shown red:", never)
+    return 1 if never or not rows else 0
 
 
 if __name__ == "__main__":
     what = sys.argv[1]
     args = sys.argv[2:]
     if what == "ok":
-        run_ok(args or OK)
+        sys.exit(run_ok(args or OK))
     elif what == "red":
         sel = RED if not args else [x for x in RED if f"{x[0]}:{x[1]}" in args]
         run_red(sel)
     elif what == "matrix":
-        matrix()
+        sys.exit(matrix())
