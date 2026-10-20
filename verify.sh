@@ -298,6 +298,47 @@ ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c 
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h
 echo "ffi/figram.h компилируется как C99 и C++ без предупреждений"
 
+step "Рантайм Lean без цикла событий libuv (P-22): шаги запуска и недостижимость"
+# Самопроверка ci/reach.py: код, до которого доходят только через таблицу указателей, конструктор или
+# деструктор, — достижим; код без ссылок — нет.
+cat > "$T/reach_self.c" <<'SRC'
+#define K __attribute__((used, noinline))
+volatile int sink, pick;
+K static void via_table(void) { sink = 1; }
+K static void via_ctor(void) { sink = 2; }
+K static void dead(void) { sink = 3; }
+static void (*const table[])(void) = {via_table};
+__attribute__((constructor)) static void ctor(void) { via_ctor(); }
+__attribute__((destructor)) K static void dtor(void) { sink = 4; }
+int main(void) { table[pick](); return 0; }
+SRC
+ccstep reach_self gcc -O1 -fPIE -pie -o "$T/reach_self" "$T/reach_self.c"
+logged reach_self python3 ci/reach.py "$T/reach_self" --reachable via_table via_ctor dtor --unreachable dead
+# lean_initialize_runtime_module из ffi/figram_init.cpp — штатный из libleanrt.a этого тулчейна без
+# initialize_libuv (исполняемые файлы) и без initialize_stack_overflow (библиотека); сверка вызовов
+# по дизассемблеру: новый шаг запуска в другой версии Lean остановит проверку.
+ar p "$PFX/lib/lean/libleanrt.a" init_module.cpp.o > "$T/init_module.o"
+python3 ci/reach.py --calls "$T/init_module.o" lean_initialize_runtime_module > "$T/init.stock"
+grep -qx initialize_libuv "$T/init.stock" || fail "штатный запуск рантайма без initialize_libuv: $(tr '\n' ' ' < "$T/init.stock")"
+for b in "$F" "$E" "$CA/contract"; do
+  skip=initialize_libuv; [ "$b" = "$CA/contract" ] && skip='initialize_libuv|lean::initialize_stack_overflow\(\)'
+  python3 ci/reach.py --calls "$b" lean_initialize_runtime_module > "$T/init.got"
+  grep -Evx "$skip" "$T/init.stock" | diff - "$T/init.got" > "$T/init.diff" || fail "$b: шаги запуска рантайма — не штатные без пропущенных: $(cat "$T/init.diff")"
+done
+echo "шаги запуска рантайма: штатные $(wc -l < "$T/init.stock") без initialize_libuv; у библиотеки ещё без initialize_stack_overflow"
+# Достижимость по готовым файлам (ci/reach.py: граф вызовов и указателей от main и конструкторов). Цикл
+# событий используют только функции lean_uv_* и event_loop_* (src/runtime/uv/*.cpp Lean 4.35);
+# статический инициализатор global_ev лишь обнуляет поле и libuv не вызывает.
+UV='(lean::)?lean_uv_.* (lean::)?event_loop_.* initialize_libuv (lean::)?initialize_libuv_.* (lean::)?g_uv_.*_external_class'
+logged reach_engine python3 ci/reach.py "$E" --unreachable $UV --reachable '(lean::)?segv_handler.*'
+logged reach_cli python3 ci/reach.py "$F" --unreachable $UV --reachable '(lean::)?segv_handler.*'
+logged reach_lib python3 ci/reach.py "$CA/contract" --unreachable $UV '(lean::)?segv_handler.*' \
+  'lean::initialize_stack_overflow\(\)' --reachable 'lean::initialize_alloc\(\)'
+# Контроль: тот же хост со штатным запуском рантайма — всё перечисленное достижимо (проверка не пустая).
+ccstep contract_stock gcc -O1 -pthread -I"$PFX/include" -o "$T/contract-stock" ffi/audit/contract.c \
+  ffi/out/figram_ffi.o ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS $LIBS
+logged reach_control python3 ci/reach.py "$T/contract-stock" --reachable $UV '(lean::)?segv_handler.*'
+
 step "Клиент Python: сбои движка, контракт методов, чистый stderr"
 clean client_faults python3 $P/client_faults.py $E examples/pizza.bot.json
 clean client_contract python3 $P/client_contract.py $E examples/features.bot.json
