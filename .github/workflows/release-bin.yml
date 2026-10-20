@@ -1,8 +1,10 @@
 # Пересборка bin/ официальным Lean (версия из lean-toolchain, через elan).
-# Запуск вручную (workflow_dispatch). commit=true — закоммитить стрипнутые бинарники и
-# SHA256SUMS обратно в ветку запуска; иначе только артефакт с бинарниками и суммами.
+# Запуск: вручную (workflow_dispatch) или push, в сообщении коммита которого есть метка
+# «[release-bin]» (только артефакт) либо «[release-bin commit]» (закоммитить стрипнутые
+# бинарники и SHA256SUMS обратно в ветку). Пуши от GITHUB_TOKEN новых запусков не вызывают.
 name: release-bin
 on:
+  push:
   workflow_dispatch:
     inputs:
       commit:
@@ -13,6 +15,7 @@ permissions:
   contents: write
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release-bin')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -39,7 +42,7 @@ jobs:
           name: bin-${{ github.sha }}
           path: out/
       - name: Коммит bin/
-        if: ${{ inputs.commit == 'true' }}
+        if: ${{ inputs.commit == 'true' || contains(github.event.head_commit.message, '[release-bin commit]') }}
         run: |
           cp out/figram out/figram-engine out/SHA256SUMS bin/
           if git diff --quiet -- bin; then echo "bin/ не изменился"; exit 0; fi
