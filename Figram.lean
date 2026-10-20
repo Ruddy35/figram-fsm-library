@@ -8,6 +8,7 @@ import Figram.Run
 import Figram.Lint
 import Figram.Examples
 import Figram.Format
+import Figram.Warnings
 import Figram.FormatProofs
 import Figram.FormatIO
 import Figram.Engine

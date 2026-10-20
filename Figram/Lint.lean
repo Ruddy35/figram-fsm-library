@@ -8,6 +8,9 @@ import Figram.Correct
 `Figram.Run`; отсюда `lint_nil_wf`. Остальные проверки ловят ошибки раньше
 и объясняют их понятным языком. Проверка не строит автомат: документ
 компилируется один раз — при загрузке.
+
+Предупреждения (`lintWarnings`) — то, что корректно, но никогда не сработает
+или ведёт себя неожиданно. На результат проверки они не влияют.
 -/
 
 namespace Figram
@@ -19,6 +22,9 @@ def isSec (c : Chart) (n : NodeId) : Bool :=
   match c.find n with
   | some ⟨_, _, .sec _⟩ => true
   | _ => false
+
+/-- Имя узла в сообщениях: корень документа (пустое имя) называется «bot». -/
+def shown (n : NodeId) : String := if n.isEmpty then "bot" else n
 
 def lintMsg : String := "Схема не проходит итоговую проверку: какая-то стрелка ведёт не в сообщение"
 
@@ -33,35 +39,37 @@ def lintCore (c : Chart) : List String := Id.run do
   let count : Std.HashMap NodeId Nat :=
     c.nodes.foldl (fun m n => m.insert n.id (m.getD n.id 0 + 1)) {}
   let mut errs : Array String := #[]
+  let mut reported : Std.HashSet NodeId := {}
   for n in c.nodes do
-    if count.getD n.id 0 > 1 then
-      errs := errs.push s!"Узел «{n.id}» объявлен несколько раз"
+    if count.getD n.id 0 > 1 && !reported.contains n.id then
+      reported := reported.insert n.id
+      errs := errs.push s!"Узел «{shown n.id}» объявлен несколько раз"
     match n.parent with
     | some p =>
-      if !found p then errs := errs.push s!"У «{n.id}» несуществующий раздел-родитель «{p}»"
-      else if !sec p then errs := errs.push s!"Родитель «{p}» узла «{n.id}» — не раздел"
+      if !found p then errs := errs.push s!"У «{shown n.id}» несуществующий раздел-родитель «{shown p}»"
+      else if !sec p then errs := errs.push s!"Родитель «{shown p}» узла «{shown n.id}» — не раздел"
     | none => pure ()
     -- цикл: подъём по родителям упирается в лимит
     if (ix.anc n.id).length > c.nodes.length then
-      errs := errs.push s!"Цикл во вложенности разделов через «{n.id}»"
+      errs := errs.push s!"Цикл во вложенности разделов через «{shown n.id}»"
     match n.kind with
     | .sec i =>
       if (ix.node[i]?).bind (·.parent) != some n.id then
         errs := errs.push
-          s!"Начальный экран «{i}» раздела «{n.id}» должен лежать внутри него"
+          s!"Начальный экран «{shown i}» раздела «{shown n.id}» должен лежать внутри него"
     | .message => pure ()
-  if !found c.root then errs := errs.push s!"Стартовый узел «{c.root}» не существует"
+  if !found c.root then errs := errs.push s!"Стартовый узел «{shown c.root}» не существует"
   for t in c.transitions do
     if !found t.src then
-      errs := errs.push s!"Стрелка по «{t.event}» начинается в несуществующем «{t.src}»"
+      errs := errs.push s!"Стрелка по «{t.event}» начинается в несуществующем «{shown t.src}»"
     for b in t.branches do
       match b.target with
       | .node n =>
-        if !found n then errs := errs.push s!"Стрелка «{t.src}» → «{n}»: цели не существует"
+        if !found n then errs := errs.push s!"Стрелка «{shown t.src}» → «{shown n}»: цели не существует"
       | .history s =>
         if !sec s then
           errs := errs.push
-            s!"Стрелка «{t.src}» → «вернуться туда, где был» в «{s}»: это не раздел"
+            s!"Стрелка «{shown t.src}» → «вернуться туда, где был» в «{shown s}»: это не раздел"
   let leaves := keySet c.leafIds
   for tm in c.timers do
     if !leaves.contains tm.node then
@@ -87,6 +95,101 @@ theorem lint_nil_wf (c : Chart) (h : c.lint = []) : c.compile.wf = true := by
     · rename_i hc
       rw [h] at hc
       simp at hc
+
+/-! ## Предупреждения -/
+
+/-- Таймер `X` события `timer:X`. -/
+def timerOfEvent (e : EventId) : Option String :=
+  if e.startsWith "timer:" then some (e.drop 6).toString else none
+
+/-- Предупреждения о схеме, которая прошла проверку: мёртвые варианты,
+недостижимые сообщения, стрелки, которые никогда не сработают, и петли
+таймеров, которые не дают сработать соседним таймерам. -/
+def lintWarnings (c : Chart) : List String := Id.run do
+  let ix := c.index
+  let m := c.compile
+  let mut ws : Array String := #[]
+  -- 1. Варианты одной стрелки после варианта без условия и повтор условия.
+  for t in c.transitions do
+    let mut uncond : Option Nat := none
+    let mut seen : Std.HashSet String := {}
+    let mut k := 0
+    for b in t.branches do
+      k := k + 1
+      match uncond with
+      | some u =>
+        ws := ws.push (s!"Стрелка «{shown t.src}» по «{t.event}»: вариант {k} никогда не сработает — " ++
+          s!"перед ним вариант {u} без условия")
+      | none =>
+        match b.guard with
+        | none => uncond := some k
+        | some g =>
+          if seen.contains g then
+            ws := ws.push (s!"Стрелка «{shown t.src}» по «{t.event}»: условие «{g}» повторяется, " ++
+              s!"вариант {k} никогда не сработает")
+          else seen := seen.insert g
+  -- 2. Стрелки `timer:X` там, где таймер X не запускается: сообщение без X
+  --    или раздел, внутри которого нет сообщения с X.
+  let owners := concatIndex (c.timers.map fun tm => (tm.id, [tm.node]))
+  for t in c.transitions do
+    match timerOfEvent t.event with
+    | none => pure ()
+    | some x =>
+      let os := (owners[x]?).getD []
+      unless os.any (fun o => (ix.anc o).contains t.src) do
+        ws := ws.push (s!"Стрелка «{t.event}» на «{shown t.src}» никогда не сработает: таймер «{x}» " ++
+          "запускают только другие сообщения, а срабатывание принимает лишь сообщение, которое его запустило")
+  -- 3. «Вернуться туда, где был», нарисованное только изнутри раздела.
+  for s in dedupFast c.histSecs do
+    let srcs := c.transitions.filter fun t => t.branches.any fun b => b.target == .history s
+    if srcs.all (fun t => (ix.anc t.src).contains s) then
+      ws := ws.push (s!"«Вернуться туда, где был» в «{shown s}» нарисовано только изнутри раздела: " ++
+        "такая стрелка всегда оставляет пользователя на текущем сообщении")
+  -- 4. Достижимость сообщений от начала бота по стрелкам, которые могут сработать.
+  let tab := firstIndex m.table
+  let owns (L : NodeId) (e : EventId) : Bool := match timerOfEvent e with
+    | none => true
+    | some x => (m.exitOf L).contains (.cancelTimer x)
+  let target (b : FBranch) : NodeId := match b.target with
+    | .node n => n
+    | .resume sec => ((m.resumes.find? (·.sec == sec)).map (·.default)).getD sec
+  let mut seen : Std.HashSet NodeId := keySet [m.initial]
+  let mut queue : Array NodeId := #[m.initial]
+  let mut i := 0
+  for _ in [0:m.states.length + 1] do
+    if h : i < queue.size then
+      let L := queue[i]
+      i := i + 1
+      for r in (tab[L]?).getD [] do
+        if owns L r.event then
+          -- варианты после безусловного и с уже встреченным условием не сработают
+          let mut gs : Std.HashSet String := {}
+          for b in untilUnguarded (·.guard) r.branches do
+            let dead := match b.guard with
+              | some g => gs.contains g
+              | none => false
+            if let some g := b.guard then gs := gs.insert g
+            let T := target b
+            unless dead || seen.contains T do
+              seen := seen.insert T
+              queue := queue.push T
+  for L in m.states do
+    unless seen.contains L do
+      ws := ws.push s!"Сообщение «{shown L}» недостижимо: от начала бота к нему не ведёт ни одна стрелка"
+  -- 5. Петля по таймеру на своё сообщение перезапускает и соседние таймеры.
+  for L in m.states do
+    let mine := ix.timersOf L
+    for tm in mine do
+      match m.row L (timerEvent tm.id) with
+      | none => pure ()
+      | some r =>
+        if (untilUnguarded (·.guard) r.branches).any (fun b => b.target == .node L) then
+          let starved := mine.filter fun o => o.id != tm.id && o.delayMs ≥ tm.delayMs
+          unless starved.isEmpty do
+            ws := ws.push (s!"Петля «{timerEvent tm.id}» на «{shown L}» перезапускает таймеры сообщения " ++
+              s!"({", ".intercalate (starved.map fun o => s!"«{o.id}»")}): пока срабатывает «{tm.id}», " ++
+              "они не сработают")
+  return ws.toList
 
 end Chart
 end Figram
