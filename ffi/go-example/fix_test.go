@@ -200,6 +200,8 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"error":1,"code":"bad_request"}`, "ERR"},
 		{"step", `{"id":null,"error":"x","code":"bad_request"}`, "ERR"},
 		{"step", `{"id":6,"error":"x","code":"bad_request"}`, "ERR"},
+		{"step", `{"id":5,"error":"x"}`, "ERR"}, // code обязателен (движок с fix/protocol)
+		{"step", `{"id":null,"error":"x"}`, "ERR"},
 		{"hello", `{"id":5,"protocol":1,"states":11}`, "hello"},
 		{"hello", `{"id":5,"protocol":1,"states":11,"mutant":"drop-call:create_order"}`, "hello"},
 		{"hello", `{"id":5,"protocol":1,"states":11,"mutant":""}`, "ERR"},

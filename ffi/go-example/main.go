@@ -290,11 +290,10 @@ var errorCodes = map[string]bool{
 	"parse_error": true, "too_large": true, "bad_request": true, "bad_snapshot": true, "seq_overflow": true,
 }
 
-// legacyErrorWithoutCode: движок до изменения протокола (ветка без fix/protocol) отвечает
-// на ошибку {id, error} без code. Пока он в сборке, такая форма принимается — только она:
-// лишние поля и неизвестные коды отвергаются всегда. После слияния с fix/protocol
-// поставить false: тогда code обязателен.
-const legacyErrorWithoutCode = true
+// legacyErrorWithoutCode: движок до изменения протокола отвечал на ошибку {id, error} без
+// code. Движок этой версии всегда добавляет code (FORMAT.md §7), поэтому форма без code —
+// нарушение протокола. Лишние поля и неизвестные коды отвергаются всегда.
+const legacyErrorWithoutCode = false
 
 // checkReply — ровно один вариант ответа: результат, hello, need или error.
 func checkReply(r map[string]any, id int64, op string) (string, error) {
