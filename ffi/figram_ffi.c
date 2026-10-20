@@ -18,11 +18,10 @@ void* memcpy(void* dst, const void* src, size_t n);
 void* memchr(const void* s, int c, size_t n);
 size_t strlen(const char* s);
 int sched_yield(void);
-/* Сигналы: структуры ядра/glibc не нужны — их состояние сохраняется в непрозрачный буфер
-   (struct sigaction и stack_t на Linux и macOS заведомо меньше 512 байт). */
+/* Сигналы: структура ядра/glibc не нужна — диспозиция сохраняется в непрозрачный буфер
+   (struct sigaction на Linux и macOS заведомо меньше 512 байт). */
 #ifndef SIGPIPE
 int sigaction(int sig, const void* act, void* old);
-int sigaltstack(const void* ss, void* old);
 #define SIGPIPE 13
 #endif
 
@@ -105,22 +104,22 @@ static void do_init(void* arg) {
   if (r->ok) lean_io_mark_end_initialization();
 }
 
-/* Буферы под struct sigaction / stack_t (выравнивание как у long double и указателей). */
+/* Буфер под struct sigaction (выравнивание как у long double и указателей). */
 typedef union { unsigned char b[512]; long double ld; void* p; long l; } sigbuf;
 
 /* Инициализация ровно один раз; одновременные вызовы ждут первый и возвращают его результат:
    0 — готово; 1 — инициализация модуля Lean вернула ошибку; 2 — рантайм Lean не запустился
-   (исключение C++, например «failed to create thread»). */
+   (исключение C++ при запуске). */
 FIGRAM_API int figram_init(void) {
   int s = 0;
   if (__atomic_compare_exchange_n(&init_state, &s, 1, 0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
     int rc = 0;
     {
-      /* P-22: рантайм Lean ставит SIGPIPE в SIG_IGN для всего процесса и заменяет sigaltstack
-         вызывающего потока своим буфером. Хосту возвращается его прежнее состояние. */
-      sigbuf pipe_old, stack_old;
+      /* P-22: рантайм Lean ставит SIGPIPE в SIG_IGN для всего процесса; хосту возвращается его
+         прежняя диспозиция. Обработчик SIGSEGV/SIGBUS и sigaltstack рантайм во встроенном режиме
+         не трогает, потоков и дескрипторов не создаёт (ffi/figram_init.cpp). */
+      sigbuf pipe_old;
       int have_pipe = sigaction(SIGPIPE, (void*)0, pipe_old.b) == 0;
-      int have_stack = sigaltstack((void*)0, stack_old.b) == 0;
       init_result r = {0};
       char what[ERR_CAP - 64];
       what[0] = 0;
@@ -134,7 +133,6 @@ FIGRAM_API int figram_init(void) {
         sb_str(&b, "figram_init: инициализация модуля Figram.Api вернула ошибку");
         rc = 1;
       }
-      if (have_stack) sigaltstack(stack_old.b, (void*)0);
       if (have_pipe) sigaction(SIGPIPE, pipe_old.b, (void*)0);
     }
     if (rc == 0) thread_ready = 1;

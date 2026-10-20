@@ -20,13 +20,16 @@ OBJS=""
 for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
 mkdir -p ffi/out/lean
 # figram_guard.cpp — перехват исключений C++ рантайма при инициализации (P-09); figram_rt.c —
-# системные размеры рантайма (стек потоков `ulimit -s`, без заранее зарезервированной арены mimalloc). Файлы
+# системные размеры рантайма (стек потоков `ulimit -s`, без заранее зарезервированной арены mimalloc);
+# figram_init.cpp — запуск рантайма без цикла событий libuv и без обработчика SIGSEGV/SIGBUS (P-22):
+# его lean_initialize_runtime_module компоновщик берёт из libfigram.a раньше, чем из libleanrt.a. Файлы
 # собираются без системных заголовков (так их компилирует leanc официального релиза).
 leanc -c -fexceptions -o ffi/out/figram_ffi.o ffi/figram_ffi.c
 leanc -c -o ffi/out/figram_guard.o ffi/figram_guard.cpp
 leanc -c -o ffi/out/figram_rt.o ffi/figram_rt.c
+leanc -c -o ffi/out/figram_init.o ffi/figram_init.cpp
 rm -f ffi/out/libfigram.a
-ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS
+ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS
 cp "$P/lib/lean/libInit.a" "$P/lib/lean/libleanrt.a" ffi/out/lean/
 if [ -f "$P/lib/libc++.a" ]; then
   # Официальный релиз Lean: архивы из префикса (как и до B-01).

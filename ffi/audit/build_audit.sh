@@ -25,7 +25,7 @@ gcc -O1 -o "$OUT/harness_plain" ffi/c_harness.c ffi/c_harness_io.c $LIBS
 # ASan+UBSan, как verify.sh: прослойка и тесты инструментированы, модули Lean — нет.
 SAN="-fsanitize=address,undefined -fno-omit-frame-pointer"
 gcc -c -g $SAN -fexceptions -I"$P/include" -o "$OUT/ffi_asan.o" ffi/figram_ffi.c
-LIBS_NOFFI="ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS $RTLIBS"
+LIBS_NOFFI="ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS $RTLIBS"
 for t in contract stress; do gcc $CF $SAN -o "$OUT/${t}_asan" $A/$t.c "$OUT/ffi_asan.o" $LIBS_NOFFI; done
 gcc -g $SAN -o "$OUT/harness_asan" ffi/c_harness.c ffi/c_harness_io.c "$OUT/ffi_asan.o" $LIBS_NOFFI
 # TSan: прослойка, тесты И сгенерированный C модулей Figram инструментированы
@@ -36,7 +36,8 @@ for m in $MODS; do gcc -c $TS -I"$P/include" -fwrapv -DNDEBUG -o "$OUT/tsan/$m.o
 gcc -c $TS -fexceptions -I"$P/include" -o "$OUT/tsan/ffi.o" ffi/figram_ffi.c
 g++ -c $TS -I"$P/include" -o "$OUT/tsan/guard.o" ffi/figram_guard.cpp
 gcc -c $TS -I"$P/include" -o "$OUT/tsan/rt.o" ffi/figram_rt.c
+g++ -c $TS -I"$P/include" -o "$OUT/tsan/init.o" ffi/figram_init.cpp
 TSOBJS=""; for m in $MODS; do TSOBJS="$TSOBJS $OUT/tsan/$m.o"; done
-TLIBS="$OUT/tsan/ffi.o $OUT/tsan/guard.o $OUT/tsan/rt.o $TSOBJS $RTLIBS"
+TLIBS="$OUT/tsan/ffi.o $OUT/tsan/guard.o $OUT/tsan/rt.o $OUT/tsan/init.o $TSOBJS $RTLIBS"
 for t in contract stress; do gcc $CF $TS -o "$OUT/${t}_tsan" $A/$t.c $TLIBS; done
 echo "готово: $OUT"

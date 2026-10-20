@@ -26,6 +26,17 @@ check_out() {
     printf '%s\n' "$out" | grep -E "^FAIL|terminate|what\(\)|figram_init=" | head -12 | sed 's/^/    /'; fail=1
   fi
 }
+# check_rc_out имя код регвыр команда… — заданный код выхода И строка по регулярному выражению.
+check_rc_out() {
+  local name=$1 want=$2 rx=$3; shift 3
+  out=$(timeout 120 "$@" 2>&1); rc=$?; n=$((n+1))
+  if [ "$rc" -eq "$want" ] && printf '%s\n' "$out" | grep -qE "$rx"; then echo "PASS $name (rc=$rc, «$rx»)"
+  else
+    nfail=$((nfail+1))
+    echo "FAIL $name: rc=$rc, want $want and «$rx»"
+    printf '%s\n' "$out" | tail -3 | sed 's/^/    /'; fail=1
+  fi
+}
 # FFI-01: одновременный figram_init из двух потоков (300 свежих процессов).
 check "FFI-01 concurrent figram_init" 0 ffi/audit/init_race.sh "$B/contract" 300
 # FFI-05: отказ malloc в dup() — NULL вместо SIGSEGV.
@@ -33,23 +44,18 @@ check "FFI-05 malloc failure in dup" 0 "$B/oom"
 # FFI-06: figram_unload(NULL) — как free(NULL); в т.ч. после неудачной загрузки.
 check "FFI-06 figram_unload(NULL)" 0 "$B/contract" null unload $D
 check "FFI-06 unload(failed load)" 0 "$B/contract" null unload_failed_load $D
-# P-09 (FFI-10/NP-01): рантайм Lean запускается под RLIMIT_AS — стеки его потоков системного
-# размера (`ulimit -s`), арена mimalloc заранее не резервируется (ffi/figram_rt.c). Раньше нужно
-# было ≈2,2 ГБ адресов сверх занятого, а при запасе ≈ размера арены — «INTERNAL PANIC» и exit(1).
-for h in 32 48 64 96 128 256 1024; do
+# P-09 (FFI-10/NP-01): рантайм Lean запускается под RLIMIT_AS — арена mimalloc заранее не резервируется
+# (ffi/figram_rt.c), потоков рантайм не создаёт (ffi/figram_init.cpp, P-22). Раньше нужно было ≈2,2 ГБ
+# адресов сверх занятого, а при запасе ≈ размера арены — «INTERNAL PANIC» и exit(1).
+for h in 2 4 8 16 32 48 64 96 128 256 1024; do
   check_out "P-09 init with $h MiB address-space headroom → rc 0" '^figram_init=0 ' \
     env FIGRAM_TEST_AS_HEADROOM=$((h << 20)) "$B/contract" rlimit_init
 done
-# Граница запуска зависит от тулчейна (сборка из исходников — от 16 МиБ, официальный релиз — от 32):
-# ниже — запуск либо отказ с причиной, но не аварийное завершение хоста.
-for h in 8 16; do
-  check_out "P-09 init with $h MiB headroom → rc 0 or caught error, host alive" '^figram_init=(0 |2 last_error=.+)' \
-    env FIGRAM_TEST_AS_HEADROOM=$((h << 20)) "$B/contract" rlimit_init
-done
 check_out "P-09 init under RLIMIT_AS=512MB → rc 0" '^figram_init=0 ' prlimit --as=512000000 -- "$B/contract" rlimit_init
-# Запаса не хватает даже на стек потока libuv — исключение C++ перехвачено, хост жив.
-check_out "P-09 init with 4 MiB headroom → caught C++ exception" '^figram_init=2 last_error=.*failed to create thread' \
-  env FIGRAM_TEST_AS_HEADROOM=4194304 "$B/contract" rlimit_init
+# Граница: без ≈1 МиБ свободных адресов распределитель Lean завершает процесс своим сообщением о
+# нехватке памяти (код 1), как при нехватке памяти во время работы, — без сигнала и без зависания.
+check_rc_out "P-09 init with 256 KiB headroom → Lean out-of-memory exit 1, no signal" 1 'INTERNAL PANIC: out of memory' \
+  env FIGRAM_TEST_AS_HEADROOM=262144 "$B/contract" rlimit_init
 # P-21 (FFI-03, I-17): вызовы до figram_init — ленивая потокобезопасная инициализация.
 check "P-21 lazy init (load/request before figram_init)" 0 "$B/contract" lazy $D
 check "P-21 lazy init race, 8 threads x 300 processes" 0 ffi/audit/init_race.sh "$B/contract" 300 lazy_race

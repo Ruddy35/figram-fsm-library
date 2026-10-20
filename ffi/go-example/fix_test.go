@@ -121,8 +121,8 @@ func TestFixLazyLoadWithoutInit(t *testing.T) {
 	}
 }
 
-// P-09: под RLIMIT_AS рантайм Lean запускается и работает: стеки его потоков — системного
-// размера (`ulimit -s`), арена mimalloc заранее не резервируется (ffi/figram_rt.c). Раньше ему
+// P-09: под RLIMIT_AS рантайм Lean запускается и работает: арена mimalloc заранее не
+// резервируется (ffi/figram_rt.c), потоков рантайм не создаёт (ffi/figram_init.cpp). Раньше ему
 // нужно было ≈2,2 ГБ адресов сверх занятого, и под таким лимитом figram_init отказывал.
 func TestFixInitUnderRlimitAS(t *testing.T) {
 	if raceEnabled {

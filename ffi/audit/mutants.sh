@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Контроль чувствительности регрессионных тестов fix-ffi: каждое исправление по очереди
-# «откатывается» в копии figram_ffi.c, и соответствующий подтест обязан покраснеть.
+# «откатывается» в копии figram_ffi.c (или подменой ffi/figram_init.cpp), и соответствующий подтест
+# обязан покраснеть.
 #   ffi/audit/mutants.sh   (после ffi/build.sh)   — код 0, если каждый мутант пойман.
 set -u
 cd "$(dirname "$0")/../.."
@@ -10,8 +11,8 @@ O=.lake/build/ir/Figram
 OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
 D=examples/pizza.bot.json; D2=examples/features.bot.json
 ok=1
-# mutant ИМЯ "СТАРОЕ" "НОВОЕ" ПОДТЕСТ… — ПОДТЕСТ на мутанте обязан дать код ≠ 0
-# (или, для rlimit_init, не напечатать строку по регвыру GOOD_RX, по умолчанию «figram_init=2»).
+# mutant ИМЯ "СТАРОЕ" "НОВОЕ" ПОДТЕСТ… — ПОДТЕСТ на мутанте обязан дать код ≠ 0. INIT_O — объект
+# с lean_initialize_runtime_module (по умолчанию ffi/out/figram_init.o; пусто — штатный из libleanrt.a).
 mutant() {
   local name=$1 old=$2 new=$3; shift 3
   python3 - "$old" "$new" "$T/m.c" <<'PY' || { echo "НЕТ $name: замена не применилась"; ok=0; return; }
@@ -23,25 +24,26 @@ open(out, "w", encoding="utf-8").write(s.replace(old, new))
 PY
   cp ffi/figram.h "$T/figram.h"
   if ! leanc -c -fexceptions -o "$T/m.o" "$T/m.c" 2> "$T/cc.log" || \
-     ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" ffi/audit/contract.c "$T/m.o" ffi/out/figram_guard.o ffi/out/figram_rt.o $OBJS \
+     ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" ffi/audit/contract.c "$T/m.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ${INIT_O-ffi/out/figram_init.o} $OBJS \
          $(cat ffi/out/LDFLAGS.runtime) 2>> "$T/cc.log"; then
     echo "НЕТ $name: мутант не собирается"; grep -m3 error "$T/cc.log"; ok=0; return
   fi
   out=$(timeout 120 "$@" 2>&1); rc=$?
-  if [ "${!#}" = rlimit_init ]; then
-    printf '%s' "$out" | grep -qE "${GOOD_RX:-^figram_init=2 }" && rc=0 || rc=1
-  fi
   if [ $rc -ne 0 ]; then echo "ok   $name пойман: $(printf '%s\n' "$out" | grep -m1 -E '^FAIL|PANIC|terminate|figram_init=|Segmentation' | cut -c1-120)"
   else echo "НЕТ $name НЕ пойман"; ok=0; fi
 }
 C="$T/contract"
-mutant "P-09 без перехвата исключения C++" \
-  'if (figram_guard_call(do_init, &r, what, sizeof what) != 0) {' 'do_init(&r); if (0) {' \
-  env FIGRAM_TEST_AS_HEADROOM=4194304 "$C" rlimit_init
-GOOD_RX='^figram_init=0 ' mutant "P-09 без системных размеров рантайма (стек 1 ГиБ, арена 1 ГиБ)" \
+mutant "P-09 без системных размеров рантайма (арена mimalloc 1 ГиБ)" \
   'figram_rt_defaults();
   lean_initialize_runtime_module();' 'lean_initialize_runtime_module();' \
-  env FIGRAM_TEST_AS_HEADROOM=268435456 "$C" rlimit_init
+  "$C" host_state $D
+INIT_O= mutant "P-22 штатный запуск рантайма (поток libuv, io_uring, дескрипторы)" \
+  'figram_rt_defaults();' 'figram_rt_defaults();' \
+  "$C" host_state $D
+leanc -c -DFIGRAM_STACK_GUARD -o "$T/init_guard.o" ffi/figram_init.cpp
+INIT_O="$T/init_guard.o" mutant "P-22 обработчик SIGSEGV/SIGBUS во встроенном режиме" \
+  'figram_rt_defaults();' 'figram_rt_defaults();' \
+  "$C" signals default
 mutant "P-21 без ленивой инициализации" \
   'if (__atomic_load_n(&init_state, __ATOMIC_ACQUIRE) == 2) return 0;
   return figram_init();' 'return 0;' \
@@ -66,8 +68,5 @@ mutant "P-18 без предела размера" \
   "$C" limit $D
 mutant "P-22 без восстановления SIGPIPE" \
   'if (have_pipe) sigaction(SIGPIPE, pipe_old.b, (void*)0);' '' \
-  "$C" signals custom
-mutant "P-22 без восстановления sigaltstack" \
-  'if (have_stack) sigaltstack(stack_old.b, (void*)0);' '' \
   "$C" signals custom
 [ $ok = 1 ] && echo "все мутанты пойманы" || { echo "НЕТ: есть непойманные мутанты"; exit 1; }
