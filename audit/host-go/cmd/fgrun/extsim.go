@@ -37,6 +37,8 @@ type extMode struct {
 }
 
 type extReq struct {
+	TIn     int64  `json:"t_in_us"` // arrival of the request at the simulator
+	TUs     int64  `json:"t_us"`
 	Target  string `json:"target"`
 	Key     string `json:"key"`
 	User    string `json:"user"`
@@ -197,7 +199,7 @@ type permanentErr struct{ msg string }
 
 func (p *permanentErr) Error() string { return p.msg }
 
-func (x *ExtSim) crmApply(op, key, user string, payload map[string]any, mode string) (map[string]any, error) {
+func (x *ExtSim) crmApply(op, key, user string, payload map[string]any, mode string, tin int64) (map[string]any, error) {
 	fp := fingerprint(user, op, payload)
 	x.mu.Lock()
 	defer x.mu.Unlock()
@@ -205,7 +207,7 @@ func (x *ExtSim) crmApply(op, key, user string, payload map[string]any, mode str
 		if e.FP != fp {
 			x.Conflicts = append(x.Conflicts, map[string]string{"key": key, "user": user, "op": op, "fp_old": e.FP, "fp_new": fp})
 		}
-		x.Requests = append(x.Requests, extReq{"crm", key, user, op, mode, "dedup"})
+		x.Requests = append(x.Requests, extReq{tin, time.Since(epoch).Microseconds(), "crm", key, user, op, mode, "dedup"})
 		return e.Result, nil
 	}
 	var res map[string]any
@@ -225,7 +227,7 @@ func (x *ExtSim) crmApply(op, key, user string, payload map[string]any, mode str
 		}
 		t := x.tickets[tid]
 		if t == nil || t.User != user {
-			x.Requests = append(x.Requests, extReq{"crm", key, user, op, mode, "permanent"})
+			x.Requests = append(x.Requests, extReq{tin, time.Since(epoch).Microseconds(), "crm", key, user, op, mode, "permanent"})
 			return nil, &permanentErr{fmt.Sprintf("no ticket %v for %s", payload["ticket_id"], user)}
 		}
 		switch op {
@@ -247,16 +249,16 @@ func (x *ExtSim) crmApply(op, key, user string, payload map[string]any, mode str
 	}
 	x.effSeq++
 	x.Effects[key] = &crmEffect{Key: key, User: user, Op: op, FP: fp, Result: res, Seq: x.effSeq, Payload: payload}
-	x.Requests = append(x.Requests, extReq{"crm", key, user, op, mode, "applied"})
+	x.Requests = append(x.Requests, extReq{tin, time.Since(epoch).Microseconds(), "crm", key, user, op, mode, "applied"})
 	return res, nil
 }
 
-func (x *ExtSim) tgApply(key, user, text, mode string) map[string]any {
+func (x *ExtSim) tgApply(key, user, text, mode string, tin int64) map[string]any {
 	x.mu.Lock()
 	defer x.mu.Unlock()
 	id := len(x.TG) + 1
 	x.TG = append(x.TG, tgDelivery{MessageID: id, Key: key, User: user, Text: text, TUs: time.Since(epoch).Microseconds()})
-	x.Requests = append(x.Requests, extReq{"tg", key, user, "send", mode, "delivered"})
+	x.Requests = append(x.Requests, extReq{tin, time.Since(epoch).Microseconds(), "tg", key, user, "send", mode, "delivered"})
 	return map[string]any{"message_id": id}
 }
 
@@ -270,23 +272,23 @@ func dropConn(w http.ResponseWriter) {
 	panic(http.ErrAbortHandler)
 }
 
-func (x *ExtSim) handle(target string, w http.ResponseWriter, r *http.Request, apply func(mode string) (map[string]any, error), key, user, op string) {
+func (x *ExtSim) handle(target string, w http.ResponseWriter, r *http.Request, apply func(mode string) (map[string]any, error), key, user, op string, tin int64) {
 	mode, ms := x.take(target)
 	switch mode {
 	case "500":
-		x.logReq(extReq{target, key, user, op, mode, "500"})
+		x.logReq(extReq{tin, time.Since(epoch).Microseconds(), target, key, user, op, mode, "500"})
 		w.WriteHeader(500)
 		return
 	case "429":
 		if ms == 0 {
 			ms = 20
 		}
-		x.logReq(extReq{target, key, user, op, mode, "429"})
+		x.logReq(extReq{tin, time.Since(epoch).Microseconds(), target, key, user, op, mode, "429"})
 		w.Header().Set("Retry-After-Ms", strconv.Itoa(ms))
 		w.WriteHeader(429)
 		return
 	case "timeout_before":
-		x.logReq(extReq{target, key, user, op, mode, "timeout_before"})
+		x.logReq(extReq{tin, time.Since(epoch).Microseconds(), target, key, user, op, mode, "timeout_before"})
 		dropConn(w)
 		return
 	case "delay":
@@ -332,9 +334,10 @@ func (x *ExtSim) Serve(sock string) error {
 			Payload map[string]any `json:"payload"`
 		}
 		json.NewDecoder(r.Body).Decode(&body)
+		tin := time.Since(epoch).Microseconds()
 		x.handle("crm", w, r, func(mode string) (map[string]any, error) {
-			return x.crmApply(op, key, body.User, body.Payload, mode)
-		}, key, body.User, op)
+			return x.crmApply(op, key, body.User, body.Payload, mode, tin)
+		}, key, body.User, op, tin)
 	})
 	mux.HandleFunc("/tg/send", func(w http.ResponseWriter, r *http.Request) {
 		key := r.Header.Get("X-Outbox-Key")
@@ -343,9 +346,10 @@ func (x *ExtSim) Serve(sock string) error {
 			Text string `json:"text"`
 		}
 		json.NewDecoder(r.Body).Decode(&body)
+		tin := time.Since(epoch).Microseconds()
 		x.handle("tg", w, r, func(mode string) (map[string]any, error) {
-			return x.tgApply(key, body.User, body.Text, mode), nil
-		}, key, body.User, "send")
+			return x.tgApply(key, body.User, body.Text, mode, tin), nil
+		}, key, body.User, "send", tin)
 	})
 	x.ln = ln
 	x.srv = &http.Server{Handler: mux}

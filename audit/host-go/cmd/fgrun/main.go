@@ -110,6 +110,10 @@ func cmdRun(args []string) int {
 		fmt.Fprintln(os.Stderr, "run failed:", err)
 		return 3
 	}
+	if b, err := json.Marshal(map[string]any{"requests": r.ext.Requests, "tg": r.ext.TG, "effects": r.ext.Effects,
+		"conflicts": r.ext.Conflicts, "reorders": r.ext.Reorders, "exits": r.Exits, "fired": r.Fired, "lock_spans": r.LockSpans}); err == nil {
+		os.WriteFile(filepath.Join(r.work, "ext.json"), b, 0o644) // audit trail of the simulated services
+	}
 	before := dumpForRestart(r.db, r.ext)
 	if err := r.RestartCheck(); err != nil {
 		fmt.Fprintln(os.Stderr, "restart check failed:", err)

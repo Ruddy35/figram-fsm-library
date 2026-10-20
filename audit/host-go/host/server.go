@@ -101,6 +101,8 @@ func (r *responder) send(code int, body map[string]any) {
 	body["lat_us"] = time.Since(r.t0).Microseconds()
 	b, _ := json.Marshal(body)
 	r.w.Header().Set("Content-Type", "application/json")
+	// complete response (no chunking): an early ack is a real ack for the client
+	r.w.Header().Set("Content-Length", strconv.Itoa(len(b)))
 	r.w.WriteHeader(code)
 	r.w.Write(b)
 	if f, ok := r.w.(http.Flusher); ok {

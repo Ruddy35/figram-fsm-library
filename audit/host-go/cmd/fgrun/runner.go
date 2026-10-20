@@ -142,6 +142,8 @@ type ackRec struct {
 	Nacks   int    `json:"nacks"`
 	Retries int    `json:"retries"`
 	Early   bool   `json:"early,omitempty"`
+	T0Us    int64  `json:"t0_us"`
+	T1Us    int64  `json:"t1_us"`
 }
 
 type exitRec struct {
@@ -205,6 +207,7 @@ type Runner struct {
 	lockNacks atomic.Int64
 	lockOn    atomic.Bool
 	Corrupted map[string]string
+	LockSpans [][2]int64
 	RawLines  []map[string]any
 	StopStats []map[string]any
 	Elapsed   time.Duration
@@ -515,7 +518,7 @@ func (r *Runner) deliver(d *delivery, wg *sync.WaitGroup) {
 			r.mu.Lock()
 			r.Acks = append(r.Acks, ackRec{Line: d.line, User: d.user, UID: d.uid, Status: st, Raw: d.raw,
 				E2EUs: time.Since(d.start).Microseconds(), StepUs: int64(stepUs), LatUs: int64(latUs), Nacks: nacks,
-				Retries: retries, Early: early})
+				Retries: retries, Early: early, T0Us: d.start.Sub(epoch).Microseconds(), T1Us: time.Since(epoch).Microseconds()})
 			if d.user != "" {
 				r.busy[d.user]--
 				r.cond.Broadcast()
@@ -580,10 +583,17 @@ func (r *Runner) dbLock(ms int64) {
 			return
 		}
 		r.lockOn.Store(true)
+		t1 := time.Since(epoch).Microseconds()
 		close(ready)
 		time.Sleep(time.Duration(ms) * time.Millisecond)
 		r.lockOn.Store(false)
-		conn.ExecContext(context.Background(), "COMMIT")
+		_, cerr := conn.ExecContext(context.Background(), "COMMIT")
+		r.mu.Lock()
+		r.LockSpans = append(r.LockSpans, [2]int64{t1, time.Since(epoch).Microseconds()})
+		r.mu.Unlock()
+		if cerr != nil {
+			r.logf("db_lock commit: %v", cerr)
+		}
 	}()
 	<-ready
 }

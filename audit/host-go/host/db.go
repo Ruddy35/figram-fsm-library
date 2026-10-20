@@ -37,8 +37,8 @@ CREATE INDEX IF NOT EXISTS outbox_pending ON outbox(state, user, id);
 CREATE TABLE IF NOT EXISTS timers(
   id INTEGER PRIMARY KEY AUTOINCREMENT, user TEXT NOT NULL, name TEXT NOT NULL,
   token INTEGER NOT NULL, ms INTEGER NOT NULL, due_ms INTEGER NOT NULL, state TEXT NOT NULL,
-  delivered INTEGER NOT NULL DEFAULT 0, created_ms INTEGER, fired_ms INTEGER,
-  UNIQUE(user, name, token));
+  delivered INTEGER NOT NULL DEFAULT 0, created_ms INTEGER, fired_ms INTEGER);
+CREATE INDEX IF NOT EXISTS timers_user ON timers(user, name, token);
 CREATE INDEX IF NOT EXISTS timers_due ON timers(delivered, due_ms);
 CREATE TABLE IF NOT EXISTS rejected(n INTEGER PRIMARY KEY AUTOINCREMENT, body TEXT, reason TEXT, t_ms INTEGER);
 CREATE TABLE IF NOT EXISTS host_log(n INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT, user TEXT, detail TEXT);

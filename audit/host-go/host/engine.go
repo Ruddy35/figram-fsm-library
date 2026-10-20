@@ -383,9 +383,7 @@ func (e *Engines) corrupt(mode string, b []byte) []byte {
 	case "bad_snapshot":
 		var m map[string]json.RawMessage
 		if json.Unmarshal(b, &m) == nil {
-			if _, ok := m["snapshot"]; ok {
-				m["snapshot"] = json.RawMessage(`{"at":"","seq":-1}`)
-			}
+			m["snapshot"] = json.RawMessage(`{"at":"","seq":-1}`) // also on a need/error reply
 			out, _ := json.Marshal(m)
 			return out
 		}
@@ -393,12 +391,12 @@ func (e *Engines) corrupt(mode string, b []byte) []byte {
 	case "bad_action":
 		var m map[string]json.RawMessage
 		if json.Unmarshal(b, &m) == nil {
+			var arr []json.RawMessage
 			if a, ok := m["actions"]; ok {
-				var arr []json.RawMessage
 				json.Unmarshal(a, &arr)
-				arr = append(arr, json.RawMessage(`{"launch":"rocket"}`))
-				m["actions"], _ = json.Marshal(arr)
 			}
+			arr = append(arr, json.RawMessage(`{"launch":"rocket"}`)) // also on a need/error reply
+			m["actions"], _ = json.Marshal(arr)
 			out, _ := json.Marshal(m)
 			return out
 		}
@@ -436,11 +434,15 @@ func (e *Engines) parseReply(b []byte, id int64, di *DocInfo) (*Reply, error) {
 		return nil, errors.New("reply must have exactly one of snapshot/need/error")
 	}
 	r := &Reply{}
+	allowed := map[string]bool{"id": true, "snapshot": true, "actions": true, "recovered": true}
+	if hasNeed {
+		allowed = map[string]bool{"id": true, "need": true}
+	} else if hasErr {
+		allowed = map[string]bool{"id": true, "error": true}
+	}
 	for k := range obj {
-		switch k {
-		case "id", "snapshot", "actions", "recovered", "need", "error":
-		default:
-			return nil, fmt.Errorf("unknown reply field %q", k)
+		if !allowed[k] { // e.g. "actions" next to "need" is a corrupted reply, not a need
+			return nil, fmt.Errorf("unexpected reply field %q", k)
 		}
 	}
 	switch {

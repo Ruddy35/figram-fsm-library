@@ -573,8 +573,12 @@ func (c *checkCtx) run() {
 		tgBy[d.Key]++
 	}
 	reqModes := map[string][]string{}
+	firstIn := map[string]int64{}
 	for _, rq := range ext.Requests {
 		reqModes[rq.Key] = append(reqModes[rq.Key], rq.Mode)
+		if t, ok := firstIn[rq.Key]; !ok || rq.TIn < t {
+			firstIn[rq.Key] = rq.TIn
+		}
 	}
 	ext.mu.Unlock()
 	sort.Strings(bad)
@@ -715,7 +719,8 @@ func (c *checkCtx) run() {
 		}
 		ts := tgTimes[k]
 		for _, d := range deaths {
-			if d > ts[0] && d <= ts[len(ts)-1] {
+			// the host died while an effect of this key was outstanding (sent, not yet marked)
+			if d > firstIn[k] && d <= ts[len(ts)-1] {
 				explained = true
 			}
 		}
@@ -948,14 +953,20 @@ func (c *checkCtx) run() {
 	}
 	c.set("engine_faults_effective", bad)
 
-	// db_lock_effective: the injected lock really made the host NACK
+	// db_lock_effective: the injected lock really made the host NACK updates that
+	// were in flight while it was held (N/A if no update overlapped the lock)
 	bad = nil
-	for _, f := range c.r.Faults {
-		if f["fault"] == "db_lock" {
-			if c.r.lockNacks.Load() == 0 {
-				bad = append(bad, "db_lock held but no update was NACKed while it was held")
+	if len(c.r.LockSpans) > 0 {
+		overlap := 0
+		for _, a := range c.r.Acks {
+			for _, sp := range c.r.LockSpans {
+				if a.T0Us < sp[1] && a.T1Us > sp[0] {
+					overlap++
+				}
 			}
-			break
+		}
+		if overlap > 0 && c.r.lockNacks.Load() == 0 {
+			bad = append(bad, fmt.Sprintf("db_lock held while %d updates were in flight, none was NACKed", overlap))
 		}
 	}
 	c.set("db_lock_effective", bad)

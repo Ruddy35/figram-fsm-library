@@ -2,6 +2,9 @@ package host
 
 import (
 	"bytes"
+	"os"
+	"runtime"
+	"strings"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -193,6 +196,9 @@ func (h *Host) execRow(r outRow) (bool, int64) {
 		tag = "call:" + r.name
 	}
 	h.crashPoint("before_effect", tag)
+	if traceExec {
+		fmt.Fprintf(os.Stderr, "TRACE exec %s paused=%v clock=%d\n%s\n", r.key, h.exec.paused.Load(), h.now(), callers())
+	}
 	if r.kind == "call" {
 		spec, ok := Calls[r.name]
 		if !ok {
@@ -448,3 +454,20 @@ func (e *Executor) loop() {
 }
 
 func (e *Executor) stop() { e.stopped.Store(true) }
+
+var traceExec = os.Getenv("FGHOST_TRACE_EXEC") == "1"
+
+func callers() string {
+	pc := make([]uintptr, 12)
+	n := runtime.Callers(3, pc)
+	fr := runtime.CallersFrames(pc[:n])
+	var out []string
+	for {
+		f, more := fr.Next()
+		out = append(out, f.Function)
+		if !more {
+			break
+		}
+	}
+	return strings.Join(out, " <- ")
+}
