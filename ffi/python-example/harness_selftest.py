@@ -46,6 +46,8 @@ CORRUPT = {
     "need + error": f'if "need" in r: r["error"] = "contradictory"\n    {EMIT}',
     "need + snapshot": f'if "need" in r: r["snapshot"] = {{"at": "a"}}\n    {EMIT}',
     "результат + error": f'if "snapshot" in r and n % 5 == 2: r["error"] = "x"\n    {EMIT}',
+    "error без code": f'if "error" in r: r.pop("code", None)\n    {EMIT}',
+    "неизвестный code": f'if "error" in r: r["code"] = "oops"\n    {EMIT}',
     "пропуск ответа": f'if n != 3: {EMIT}',
     "дубль ответа": f'{EMIT}\n    if n == 3: {EMIT}',
 }
@@ -56,9 +58,13 @@ TOOLS = {
 }
 # Порчи, которые к инструменту не относятся: в snapshot_fixtures нет need и
 # таймеров; loadtest через клиент ловит пропуск таймаутом (проверено в client_faults).
+# Ошибок (и поля code) в ответах conformance и loadtest нет: порча кода ошибки проверяется
+# на snapshot_fixtures, где снимки отвергаются.
 SKIP = {("loadtest", "пропуск ответа"), ("loadtest", "дубль ответа"),
         ("snapshot_fixtures", "need + error"), ("snapshot_fixtures", "need + snapshot"),
-        ("snapshot_fixtures", "жетон = true")}
+        ("snapshot_fixtures", "жетон = true"),
+        ("conformance", "error без code"), ("conformance", "неизвестный code"),
+        ("loadtest", "error без code"), ("loadtest", "неизвестный code")}
 
 ok = True
 
@@ -83,7 +89,9 @@ def run_tool(tool, args, env=None, timeout=600):
     return r.returncode, time.monotonic() - t0
 
 
-DETECTED = re.compile(r"нарушени|расхожд|РАСХОЖД|ответ|id |протокол|не JSON|ответов|ошибка потока|выполнено шагов")
+# Только сообщения о НАРУШЕНИИ: строки успешного итога («расхождений 0», «ответов 24») не подходят.
+DETECTED = re.compile(r"расхождений [1-9]|расходятся|РАСХОЖДЕНИЕ|нарушает протокол|ответов \d+ из \d+|"
+                      r"ответ \d+:|ошибка потока|выполнено шагов \d+ из|граница seq: НЕТ|шаг \d+:|: start$")
 
 
 def caught():

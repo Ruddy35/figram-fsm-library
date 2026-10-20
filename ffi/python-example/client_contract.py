@@ -59,16 +59,19 @@ eng.close()
 # Повторный need → ошибка; аварийный процесс собран без следующих запросов (V4-04).
 def state(pid):
     try:
-        return open(f"/proc/{pid}/stat").read().rsplit(")", 1)[1].split()[0]
-    except FileNotFoundError:
+        with open(f"/proc/{pid}/stat") as f:
+            return f.read().rsplit(")", 1)[1].split()[0]
+    except (FileNotFoundError, ProcessLookupError):
+        # ProcessLookupError (ESRCH): процесс собран между open() и read().
         return "собран"
 
 
 with tempfile.TemporaryDirectory() as d:
     def fake(body):
+        """Тестовый двойник (sh): отвечает на hello при запуске, затем body."""
         path = os.path.join(d, "fake.sh")
         with open(path, "w") as f:
-            f.write("#!/bin/sh\n" + body + "\n")
+            f.write("#!/bin/sh\nread l; echo '{\"id\":0,\"protocol\":1,\"states\":1}'\n" + body + "\n")
         os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
         return path
 

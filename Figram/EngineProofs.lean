@@ -13,6 +13,10 @@ import Figram.FormatProofs
    Вместе с (1): движок никогда не выдаёт снимок, который сам не прочитает.
 3. `handle_step` — запрос `step` с полным набором условий исполняет ровно
    доказанный `Machine.step`.
+4. `startAt_snapOK` — `start` с `seq` тоже выдаёт допустимый снимок.
+
+Проверки вне `handleObj` (строгий набор полей, размер строки, UTF-8) только
+отвергают запросы; принятый запрос обрабатывает `handleObj`.
 -/
 
 namespace Figram.Engine
@@ -208,10 +212,14 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
           refine realize_snapOK _ _ _ hs h3 ?_ h1
           intro a ha
           simp only [List.mem_append] at ha
-          rcases ha with (ha | ha) | ha
+          rcases ha with ((ha | ha) | ha) | ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hexit e he)) _ a ha
-          · exact hrows r (List.mem_of_find?_eq_some hr) b (List.mem_of_find?_eq_some hb) a ha
+          · -- отмена таймеров, оставшихся от прежней версии документа
+            simp only [staleCancels, List.mem_map] at ha
+            obtain ⟨_, _, rfl⟩ := ha
+            rfl
+          · exact hrows r (Machine.row_mem hr) b (List.mem_of_find?_eq_some hb) a ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hentry e he)) _ a ha
 
@@ -229,8 +237,8 @@ theorem handle_step (m : Machine) (kvs : Obj) (j : J) (s : Snapshot) (ev : Event
     handleObj m kvs = .ok (result ((get kvs "id").getD .null) (m.step s ev (envOf gs)).1
       (m.step s ev (envOf gs)).2 (decide (s.state ∉ m.states))) := by
   have hle : ¬ (m.step s ev (envOf gs)).1.seq > maxInt := by omega
-  simp only [handleObj, hop, hsn, hj, hev, hgs, stepReply, hmiss, List.isEmpty_nil,
-    Bool.not_true, bind, Except.bind, pure, Except.pure]
+  simp only [handleObj, hop, hsn, hj, hev, hgs, withCode, Except.mapError, stepReply, hmiss,
+    List.isEmpty_nil, Bool.not_true, bind, Except.bind, pure, Except.pure]
   simp [hle]
 
 /-- **Лишние условия не влияют**: если переданные значения совпадают с любыми
@@ -242,6 +250,49 @@ theorem guards_irrelevant (m : Machine) (s : Snapshot) (ev : Event) (gs : List (
     m.step s ev (envOf gs) = m.step s ev env :=
   m.step_guard_local s ev _ _ hagree
 
+/-- **Запрос `need` достаточен**: если движок не просит ни одного условия,
+результат шага одинаков для любых значений условий, согласных с переданными
+в запросе (непереданные условия на шаг не влияют). -/
+theorem missing_nil_step (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool))
+    (env : HostEnv) (h : missing m s ev gs = [])
+    (hagree : ∀ n v, givenOf gs n = some v → env n = v) :
+    m.step s ev (envOf gs) = m.step s ev env := by
+  have hgiven : ∀ n v, givenOf gs n = some v → envOf gs n = v := by
+    intro n v hv
+    simp only [givenOf] at hv
+    simp [envOf, hv]
+  unfold missing at h
+  unfold Machine.step
+  split
+  · rfl
+  · split
+    · rfl
+    · rename_i hs hacc
+      have hc : (decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev) = true := by
+        simp only [Bool.not_eq_true', Bool.not_eq_false] at hacc
+        simp only [Bool.and_assoc, hacc, Bool.and_true]
+        simpa using hs
+      simp only [hc, ite_true] at h
+      split
+      · rfl
+      · rename_i r hr
+        have hn : m.neededGuards s.state ev.key (givenOf gs) = [] := by
+          apply List.eq_nil_iff_forall_not_mem.mpr
+          intro n hn
+          have hnone : givenOf gs n = none := by
+            simp only [Machine.neededGuards, hr] at hn
+            exact neededIn_given hn
+          have hmem : n ∈ (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter
+              (fun n => !(gs.any (·.1 == n))) := by
+            refine List.mem_filter.mpr ⟨(mem_dedup _ _).mpr hn, ?_⟩
+            simp only [givenOf, Option.map_eq_none_iff, List.find?_eq_none] at hnone
+            simp only [Bool.not_eq_true', List.any_eq_false]
+            exact hnone
+          rw [h] at hmem
+          simp at hmem
+        simp only [Machine.neededGuards, hr] at hn
+        rw [find?_neededIn (envOf gs) env hn hgiven hagree]
+
 /-- **Замкнутость протокола**: для автомата, прошедшего загрузку, ответ на шаг
 из допустимого снимка содержит снимок, который движок читает обратно тем же. -/
 theorem reply_readable (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
@@ -249,5 +300,28 @@ theorem reply_readable (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
     (hseq : (m.step s ev env).1.seq ≤ maxInt) :
     decSnapshot (encSnapshot (m.step s ev env).1) = .ok (m.step s ev env).1 :=
   decSnapshot_encSnapshot _ (step_snapOK m hwf hn s ev env hs hseq)
+
+/-! ## `start` с продолженным счётчиком -/
+
+/-- `start` без `seq` — частный случай `startAt` с `seq` 0. -/
+theorem startAt_zero (m : Machine) : startAt m 0 = m.start := rfl
+
+/-- **`start` с `seq` выдаёт допустимый снимок**, если следующий `seq` не
+переполнен (иначе движок отвечает `seq_overflow`). -/
+theorem startAt_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) (n : Nat)
+    (hseq : n + 1 ≤ maxInt) : SnapOK (startAt m n).1 := by
+  simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
+  obtain ⟨⟨⟨⟨hstates, hinit⟩, _⟩, _⟩, _⟩ := hn
+  have hi := (Machine.wf_parts hwf).1
+  have hinv := foldl_inv (n + 1) hseq m.initActions hinit
+    ({ Snapshot.fresh with state := m.initial, seq := n + 1 }, [])
+    ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp⟩
+  refine ⟨?_, hinv.1, hinv.2, ?_⟩
+  · show (realize _ m.initial m.initActions).1.state ≠ ""
+    rw [realize_state]
+    exact ne_of_not_isEmpty (hstates _ hi)
+  · show (realize _ m.initial m.initActions).1.seq ≤ maxInt
+    rw [realize_seq]
+    exact hseq
 
 end Figram.Engine

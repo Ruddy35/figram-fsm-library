@@ -1,0 +1,22 @@
+import FigramAudit.Glue
+#print axioms Figram.Chart.lint_eq
+#print axioms Figram.Chart.lint_nil_wf
+#print axioms Figram.Audit.check_lint_nil
+#print axioms Figram.Audit.check_compile_wf
+#print axioms Figram.Audit.check_compile_correct
+#print axioms Figram.Audit.load_sound
+#print axioms Figram.Audit.decEvent_named
+#print axioms Figram.Audit.timer_key_needs_token
+#print axioms Figram.Audit.engine_step_is_reference
+#print axioms Figram.Audit.start_snapOK
+#print axioms Figram.Audit.restart_snapOK
+#print axioms Figram.Audit.except_throw_ne
+#print axioms Figram.Audit.nonEmpty_ok
+#print axioms Figram.Audit.except_bind_ok
+#print axioms Figram.Audit.except_pure_ok
+#print axioms Figram.Audit.boundedNat_ok
+#print axioms Figram.Audit.mapM_except_mem
+#print axioms Figram.Audit.decResumeEntry_ok
+#print axioms Figram.Audit.decTimerEntry_ok
+#print axioms Figram.Audit.decSnapshot_sound
+#print axioms Figram.Audit.step_reply_readable

@@ -170,7 +170,7 @@ def cands (c : Chart) (L : NodeId) (e : EventId) : List Branch :=
 
 def fire (c : Chart) (s : Snapshot) (b : Branch) : Snapshot × List Action :=
   let T := c.resolve s b.target
-  realize s T (c.exitActs s.state ++ b.actions ++ c.entryActs T)
+  realize s T (c.exitActs s.state ++ staleCancels (c.exitActs s.state) s ++ b.actions ++ c.entryActs T)
 
 def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
 
@@ -180,7 +180,7 @@ def recover (c : Chart) (s : Snapshot) : Snapshot × List Action :=
 /-- **Эталонная семантика схемы дизайнера.** -/
 def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   if s.state ∉ c.leafIds then c.recover s
-  else if !s.accepts ev then (s, [])
+  else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
   else
     match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
     | none => (s, [])

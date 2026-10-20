@@ -1,6 +1,10 @@
 // Проверка C-прослойки: невалидный UTF-8, пустые и огромные входы,
 // параллельные вызовы из потоков POSIX к одному неизменяемому автомату.
+// Ожидания по FORMAT.md §7 / PROTOCOL_CHANGES: ошибки C-прослойки — {"id":null,"error":…,"code":…}
+// (пустой запрос и невалидный UTF-8 — parse_error, длиннее предела 1 МиБ — too_large).
 int printf(const char*, ...);
+char* strstr(const char*, const char*);
+int strncmp(const char*, const char*, unsigned long);
 void* malloc(unsigned long);
 void free(void*);
 void* memset(void*, int, unsigned long);
@@ -52,6 +56,21 @@ static long reload_growth(const char* doc, int n, int unload) {
 static void* bot;
 static char* expected;
 
+/* Ответ — ошибка (code "" — любая; иначе с этим кодом и id null); code NULL — не ошибка. */
+static int expect_error(const char* r, const char* code) {
+  if (!r) return 0;
+  int is_err = strstr(r, "\"error\":") != 0;
+  if (!code) return !is_err;
+  if (!is_err) return 0;
+  if (!*code) return 1;
+  char want[64]; int k = 0;
+  const char* pre = "\"code\":\"";
+  for (const char* p = pre; *p; p++) want[k++] = *p;
+  for (const char* p = code; *p && k < 60; p++) want[k++] = *p;
+  want[k++] = '"'; want[k] = 0;
+  return strstr(r, want) != 0 && strncmp(r, "{\"id\":null,", 11) == 0;
+}
+
 static void* worker(void* arg) {
   long bad = 0;
   for (int i = 0; i < 20000; i++) {
@@ -71,22 +90,29 @@ int main(int argc, char** argv) {
   void* bad_doc = figram_load_doc("{\"figram\": 1}");
   printf("некорректный документ: %s\n", bad_doc ? "ЗАГРУЖЕН" : "отвергнут");
 
-  const char* nasty[] = {
-    "", "{", "\xff\xfe\xfd", "{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"\xff\"},\"event\":\"x\"}",
-    "{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\"},\"event\":\"\xc3\"}",
-    "{\"id\":\"\xed\xa0\x80\",\"op\":\"hello\"}", "null", "[]", "{\"op\":\"start\"}",
+  /* code: ожидаемый код ошибки C-прослойки; "" — ошибка движка (код не проверяется);
+     NULL — не ошибка. */
+  struct { const char* in; const char* code; } nasty[] = {
+    {"", "parse_error"}, {"{", ""}, {"\xff\xfe\xfd", "parse_error"},
+    {"{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"\xff\"},\"event\":\"x\"}", "parse_error"},
+    {"{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\"},\"event\":\"\xc3\"}", "parse_error"},
+    {"{\"id\":\"\xed\xa0\x80\",\"op\":\"hello\"}", "parse_error"}, {"null", ""}, {"[]", ""},
+    {"{\"op\":\"start\"}", 0},
   };
+  int bad_inputs = 0;
   for (unsigned i = 0; i < sizeof(nasty) / sizeof(nasty[0]); i++) {
-    char* r = figram_request_json(bot, nasty[i]);
+    char* r = figram_request_json(bot, nasty[i].in);
     printf("вход %u → %.110s\n", i, r);
+    if (!expect_error(r, nasty[i].code)) { printf("НЕТ: вход %u: ожидалось %s\n", i, nasty[i].code ? nasty[i].code : "не ошибка"); bad_inputs++; }
     figram_free(r);
   }
-  unsigned long n = 5u << 20;                    // строка 5 МБ
+  unsigned long n = 5u << 20;                    // строка 5 МБ: длиннее предела 1 МиБ
   char* big = malloc(n + 64);
   memset(big, 'a', n + 64);
   big[0] = '"'; big[n] = '"'; big[n + 1] = 0;
   char* r = figram_request_json(bot, big);
   printf("строка 5 МБ → %.80s\n", r);
+  if (!expect_error(r, "too_large")) { printf("НЕТ: строка 5 МБ: ожидалось too_large\n"); bad_inputs++; }
   figram_free(r); free(big);
 
   expected = figram_request_json(bot, REQ);
@@ -108,5 +134,6 @@ int main(int argc, char** argv) {
   }
   if (!reload_ok) printf("НЕТ: выгрузка не освобождает память или контроль нечувствителен\n");
   figram_unload(bot);
-  return bad != 0 || !reload_ok;
+  if (bad_inputs) printf("НЕТ: %d граничных входов дали не тот ответ\n", bad_inputs);
+  return bad != 0 || !reload_ok || bad_inputs != 0;
 }

@@ -1,0 +1,28 @@
+{
+  "figram": 1,
+  "conditions": {"ok": "Можно уходить"},
+  "calls": {"ping": "Пинг"},
+  "bot": {
+    "initial": "wait",
+    "on": {"cmd:start": [{"to": "wait"}], "btn:home": [{"to": "wait"}]},
+    "children": {
+      "wait": {
+        "on": {
+          "timer:tick": [{"to": "wait", "do": ["ping"]}],
+          "timer:timeout": [{"to": "gone"}],
+          "btn:idle": [{"to": "idle"}],
+          "btn:guarded": [{"to": "guarded"}],
+          "btn:twin": [{"to": "twin1"}],
+          "btn:colon": [{"to": "colon"}]
+        },
+        "timers": {"tick": 1000, "timeout": 10000}
+      },
+      "gone": {},
+      "idle": {"timers": {"t": 5000}},
+      "guarded": {"on": {"timer:gt": [{"if": "ok", "to": "gone"}]}, "timers": {"gt": 3000}},
+      "twin1": {"on": {"timer:same": [{"to": "twin2"}]}, "timers": {"same": 1000}},
+      "twin2": {"on": {"timer:same": [{"to": "gone"}]}, "timers": {"same": 2000}},
+      "colon": {"on": {"timer:a:b": [{"to": "gone"}]}, "timers": {"a:b": 100}}
+    }
+  }
+}

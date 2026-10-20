@@ -1,0 +1,11 @@
+# TSan suppressions for ffi/audit/sanitizers.sh (T-12: TSan only partly sees the Lean runtime).
+#
+# Closed terms of the generated C are initialised lazily (Lean 4.35: lean_obj_once in lean.h).
+# The cold path lean_obj_once_cold (libleanrt, src/runtime/object.cpp) runs the initialiser
+# _init_lp_figram_…___closed__N under a lock and publishes the object with a seq_cst store of
+# tok->state; the fast path reads tok->state atomically before *loc. libleanrt is not built with
+# TSan, so TSan does not see that store and reports a race between the initialiser's writes and
+# the first readers in other threads (seen in `init_race`: two threads making their first request
+# at once). The synchronisation is correct; only reports with such an initialiser on a stack are
+# suppressed — every other race in the Figram modules, the shim and the tests is still reported.
+race:_init_lp_figram_

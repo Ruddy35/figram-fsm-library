@@ -1,7 +1,8 @@
 """Мутационное тестирование набора сценариев (F04).
 
 Для каждого документа берёт все мутации движка (`figram-engine --mutants`)
-и проверяет, что набор сценариев обнаруживает каждую.
+и проверяет, что набор сценариев обнаруживает каждую. Тестовый режим движка
+включается переменной окружения FIGRAM_ALLOW_MUTANTS=1 (её ставит сам тест).
 
     python3 mutation.py ENGINE --golden examples/golden.jsonl DOC=TRACES.jsonl ...
 """
@@ -10,7 +11,7 @@ import subprocess
 import sys
 
 from conformance import corpus, run
-from protocol import default_timeout
+from protocol import default_timeout, mutant_env
 
 MIN_MUTANTS = 1   # на документ; пустой список мутаций — провал, а не 100%
 
@@ -25,7 +26,7 @@ def main():
     survivors = []
     for doc, traces in merged.items():
         mutants = subprocess.run([engine, "--mutants", doc], capture_output=True, text=True,
-                                 check=True, timeout=default_timeout()).stdout.split()
+                                 check=True, timeout=default_timeout(), env=mutant_env()).stdout.split()
         if len(mutants) < MIN_MUTANTS:
             print(f"{doc}: мутаций {len(mutants)} — меньше минимума {MIN_MUTANTS}")
             sys.exit(1)

@@ -17,12 +17,36 @@
 разделов, активные таймеры с жетонами и счётчик шагов.
 
 Шаг — чистая функция `Machine.step`. Эффекты только возвращаются хосту.
+
+Стрелки хранятся сгруппированными по сообщению (`Machine.table`): шаг ищет
+сначала сообщение, затем событие среди его стрелок, поэтому стоимость шага —
+O(число сообщений + число событий сообщения), а не O(число всех стрелок).
 -/
 
 namespace Figram
 
 abbrev NodeId := String
 abbrev EventId := String
+
+/-! ## Принадлежность имени списку
+
+Разрешимость `n ∈ l` для списков строк — прямой цикл со сравнением строк
+(обобщённый `List.elem` вызывает сравнение через замыкание; шаг движка
+проверяет принадлежность сообщения автомату несколько раз). -/
+
+def memStr (n : String) : List String → Bool
+  | [] => false
+  | x :: xs => x == n || memStr n xs
+
+theorem memStr_iff (n : String) (l : List String) : memStr n l = true ↔ n ∈ l := by
+  induction l with
+  | nil => simp [memStr]
+  | cons x xs ih =>
+    rw [memStr, Bool.or_eq_true, ih, List.mem_cons, beq_iff_eq]
+    exact ⟨fun h => h.elim (fun e => Or.inl e.symm) Or.inr, fun h => h.elim (fun e => Or.inl e.symm) Or.inr⟩
+
+instance (priority := high) decMemStr (n : String) (l : List String) : Decidable (n ∈ l) :=
+  decidable_of_iff _ (memStr_iff n l)
 
 /-! ## Таблицы «ключ → значение» -/
 
@@ -94,6 +118,16 @@ def realizeOne (tok : Nat) (acc : Snapshot × List Action) : Action → Snapshot
   | .cancelTimer id => ({ acc.1 with timers := erase acc.1.timers id }, acc.2 ++ [.cancelTimer id])
   | a => (acc.1, acc.2 ++ [a])
 
+/-- Отмена таймеров снимка, которых не отменяет `exit` (остались от прежней
+версии документа: HOST.md §6). В пределах одной версии список пуст. -/
+def staleCancels (exit : List Action) (s : Snapshot) : List Action :=
+  (s.timers.filter (fun p => !exit.contains (.cancelTimer p.1))).map (fun p => .cancelTimer p.1)
+
+/-- Срабатывание таймера `id` относится к сообщению, выход из которого его отменяет. -/
+def ownsTimer (exit : List Action) : Event → Bool
+  | .named _ => true
+  | .timer id _ => exit.contains (.cancelTimer id)
+
 /-- Переход в `T` с действиями `acts`: новый снимок и действия для хоста. -/
 def realize (s : Snapshot) (T : NodeId) (acts : List Action) : Snapshot × List Action :=
   acts.foldl (realizeOne (s.seq + 1)) ({ s with state := T, seq := s.seq + 1 }, [])
@@ -106,6 +140,14 @@ abbrev HostEnv := String → Bool
 def guardOK (env : HostEnv) : Option String → Bool
   | none => true
   | some n => env n
+
+/-- Начало списка вариантов до первого безусловного включительно: только эти
+варианты могут быть выбраны, остальные затенены. -/
+def untilUnguarded {α} (g : α → Option String) : List α → List α
+  | [] => []
+  | b :: bs => match g b with
+    | none => [b]
+    | some _ => b :: untilUnguarded g bs
 
 inductive Target where
   | node (n : NodeId)
@@ -137,7 +179,8 @@ structure Machine where
   states : List NodeId
   initial : NodeId
   initActions : List Action
-  rows : List Row
+  /-- Стрелки по сообщениям: сообщение → его стрелки, по одной на событие. -/
+  table : List (NodeId × List Row)
   resumes : List ResumeSpec
   /-- Действия входа в сообщение: запомнить место, запустить таймеры, отправить. -/
   entry : List (NodeId × List Action)
@@ -147,8 +190,12 @@ structure Machine where
 
 namespace Machine
 
+/-- Все стрелки автомата подряд (по сообщениям). -/
+def rows (m : Machine) : List Row := m.table.flatMap (·.2)
+
+/-- Стрелка сообщения `s` по событию `e`: поиск сообщения, затем события. -/
 def row (m : Machine) (s : NodeId) (e : EventId) : Option Row :=
-  m.rows.find? (fun r => decide (r.src = s ∧ r.event = e))
+  ((lookup m.table s).getD []).find? (fun r => decide (r.event = e))
 
 def resolve (m : Machine) (s : Snapshot) : Target → NodeId
   | .node n => n
@@ -165,7 +212,7 @@ def exitOf (m : Machine) (n : NodeId) : List Action := (lookup m.exit n).getD []
 
 def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
   let T := m.resolve s b.target
-  realize s T (m.exitOf s.state ++ b.actions ++ m.entryOf T)
+  realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
 
 /-- Снимок указывает на сообщение, которого больше нет: начать бота заново,
 отменив таймеры старого места. Запомненные места сохраняются. -/
@@ -175,7 +222,7 @@ def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
 /-- **Шаг автомата.** -/
 def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   if s.state ∉ m.states then m.recover s
-  else if !s.accepts ev then (s, [])
+  else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
   else
     match m.row s.state ev.key with
     | none => (s, [])
@@ -187,11 +234,33 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
 /-- Первый вход пользователя. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
 
-/-- Условия разработчика, которые нужны для шага из `st` по событию с ключом `e`. -/
+/-- Условия разработчика, которые нужны для шага из `st` по событию с ключом `e`:
+условия вариантов до первого безусловного включительно. Варианты после него
+выбраны быть не могут, их условия на шаг не влияют (`step_guard_local`). -/
 def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
   match m.row st e with
   | none => []
-  | some r => r.branches.filterMap (·.guard)
+  | some r => (untilUnguarded (·.guard) r.branches).filterMap (·.guard)
+
+/-- Условия, значения которых нужны, чтобы выбрать вариант, когда значения
+части условий уже известны (`known`): варианты перебираются по порядку до
+безусловного или до условия, про которое известно, что оно истинно. -/
+def neededIn (known : String → Option Bool) : List FBranch → List String
+  | [] => []
+  | b :: bs => match b.guard with
+    | none => []
+    | some g => match known g with
+      | some true => []
+      | some false => neededIn known bs
+      | none => g :: neededIn known bs
+
+/-- Недостающие условия для шага из `st` по событию `e` при известных `known`
+(всегда часть `requiredGuards`). -/
+def neededGuards (m : Machine) (st : NodeId) (e : EventId) (known : String → Option Bool) :
+    List String :=
+  match m.row st e with
+  | none => []
+  | some r => neededIn known r.branches
 
 def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)

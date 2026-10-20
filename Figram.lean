@@ -5,8 +5,10 @@ import Figram.Compile
 import Figram.Correct
 import Figram.Run
 import Figram.Lint
+import Figram.LintProofs
 import Figram.Examples
 import Figram.Format
+import Figram.Warnings
 import Figram.FormatProofs
 import Figram.FormatIO
 import Figram.Engine

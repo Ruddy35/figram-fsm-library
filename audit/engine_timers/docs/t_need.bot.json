@@ -1,0 +1,23 @@
+{
+  "figram": 1,
+  "conditions": {
+    "expensive": "Дорогая проверка во внешнем API (раздел)",
+    "g1": "Условие 1",
+    "g2": "Условие 2 (после безусловного варианта)"
+  },
+  "calls": {"charge": "Списать деньги"},
+  "bot": {
+    "initial": "a",
+    "on": {
+      "cmd:start": [{"to": "a"}],
+      "btn:go": [{"if": "expensive", "to": "b"}]
+    },
+    "children": {
+      "a": {"on": {"btn:go": [{"to": "c"}], "btn:m2": [{"to": "m2"}], "btn:m3": [{"to": "m3"}]}},
+      "m2": {"on": {"btn:pick": [{"if": "g1", "to": "b", "do": ["charge"]}, {"to": "c"}, {"if": "g2", "to": "b"}]}},
+      "m3": {"on": {"btn:go": [{"if": "g1", "to": "b"}]}},
+      "b": {},
+      "c": {}
+    }
+  }
+}

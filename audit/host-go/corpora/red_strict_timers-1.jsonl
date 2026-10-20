@@ -1,0 +1,10 @@
+{"ctl":"init","bot":"pizza","scenario":"red_strict_timers","seed":1}
+{"user":"s01","update_id":1001,"event":"cmd:start"}
+{"user":"s01","update_id":1002,"event":"btn:order"}
+{"user":"s01","update_id":1003,"event":"btn:cart"}
+{"user":"s02","update_id":1004,"event":"cmd:start"}
+{"ctl":"upgrade","bot":"pizza.v2"}
+{"user":"s01","update_id":1005,"event":"btn:pizza"}
+{"user":"s02","update_id":1006,"event":"btn:order"}
+{"user":"s01","update_id":1007,"event":"btn:checkout"}
+{"user":"s02","update_id":1008,"event":"btn:cart"}
