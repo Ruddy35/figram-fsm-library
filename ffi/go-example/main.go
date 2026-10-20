@@ -8,12 +8,24 @@ package main
 // Флаги компоновки libfigram.a зависят от тулчейна Lean: ffi/build.sh пишет их в
 // zz_figram_ldflags.go (рядом, генерируется) и в ffi/out/LDFLAGS. Обёртку Bot в своём
 // модуле подключайте так: CGO_LDFLAGS="$(cat путь/к/ffi/out/LDFLAGS)" go build.
+#cgo CFLAGS: -I${SRCDIR}/..
 #include <stdlib.h>
-int figram_init(void);
-void* figram_load_doc(const char*);
-char* figram_request_json(void*, const char*);
-void figram_free(char*);
-void figram_unload(void*);
+#include <string.h>
+#include "figram.h"
+// figram_last_error() — текст в памяти потока: копируется в том же вызове C, потому что
+// горутина между двумя вызовами cgo может перейти на другой поток ОС.
+static int fg_init(char* buf, size_t cap) {
+	int rc = figram_init();
+	buf[0] = 0;
+	if (rc != 0) {
+		const char* e = figram_last_error();
+		size_t n = e ? strlen(e) : 0;
+		if (n >= cap) n = cap - 1;
+		if (n) memcpy(buf, e, n);
+		buf[n] = 0;
+	}
+	return rc;
+}
 */
 import "C"
 
@@ -34,6 +46,35 @@ import (
 	"unsafe"
 )
 
+var (
+	initOnce sync.Once
+	initErr  error
+)
+
+// Init инициализирует рантайм Lean один раз на процесс (I-17: sync.Once; Load вызывает
+// его сам). Ошибка окончательна и повторяется при каждом вызове, например если
+// RLIMIT_AS не оставляет рантайму ≈ 2,2 ГБ адресного пространства (см. ffi/figram.h).
+func Init() error {
+	initOnce.Do(func() {
+		buf := (*C.char)(C.malloc(1024))
+		defer C.free(unsafe.Pointer(buf))
+		if rc := C.fg_init(buf, 1024); rc != 0 {
+			initErr = fmt.Errorf("figram_init = %d: %s", int(rc), C.GoString(buf))
+		}
+	})
+	return initErr
+}
+
+// SetMaxRequest задаёт предел длины запроса в байтах для всего процесса (0 — без предела;
+// по умолчанию 1 МиБ, как figram-engine --max-request) и возвращает прежний. Запрос
+// длиннее предела получает ответ {"id":null,"error":…,"code":"too_large"}.
+func SetMaxRequest(n int) int {
+	if n < 0 {
+		n = 0
+	}
+	return int(C.figram_set_max_request(C.size_t(n)))
+}
+
 // Bot — загруженный документ. Безопасен для одновременных вызовов Request;
 // Close освобождает автомат и ждёт завершения текущих вызовов.
 type Bot struct {
@@ -42,17 +83,36 @@ type Bot struct {
 	nextID atomic.Int64
 }
 
+// cBytes — указатель на байты строки Go для вызова C с явной длиной: память без указателей
+// Go, библиотека её только читает и не сохраняет (правила cgo это допускают).
+func cBytes(s string) (*C.char, C.size_t) {
+	if len(s) == 0 {
+		return nil, 0
+	}
+	return (*C.char)(unsafe.Pointer(unsafe.StringData(s))), C.size_t(len(s))
+}
+
+// Load загружает документ (инициализируя рантайм при первом вызове). Ошибка содержит
+// причину отказа (figram_load_doc_ex_n): ошибки check, разбора, UTF-8 или отказ init.
 func Load(doc string) (*Bot, error) {
-	// C-строка оканчивается на NUL: всё после первого NUL библиотека не увидела бы,
-	// и документ с мусором в хвосте молча загрузился бы. CLI такой текст отвергает.
+	if err := Init(); err != nil {
+		return nil, err
+	}
+	// Встроенный NUL библиотека отвергает и сама (вариант _n); здесь — понятное сообщение.
 	if strings.IndexByte(doc, 0) >= 0 {
 		return nil, fmt.Errorf("документ содержит байт NUL")
 	}
-	cs := C.CString(doc)
-	defer C.free(unsafe.Pointer(cs))
-	m := C.figram_load_doc(cs)
+	p, n := cBytes(doc)
+	var cerr *C.char
+	m := C.figram_load_doc_ex_n(p, n, &cerr)
+	runtime.KeepAlive(doc)
 	if m == nil {
-		return nil, fmt.Errorf("документ не прошёл проверку")
+		reason := "нет памяти"
+		if cerr != nil {
+			reason = C.GoString(cerr)
+			C.figram_free(cerr)
+		}
+		return nil, fmt.Errorf("документ не загружен: %s", reason)
 	}
 	return &Bot{m: m}, nil
 }
@@ -88,9 +148,9 @@ func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("запрос не сериализуется: %w", err)
 	}
-	cs := C.CString(string(line))
-	defer C.free(unsafe.Pointer(cs))
-	out := C.figram_request_json(b.m, cs)
+	// Запрос передаётся с длиной (без копии и без обрезки по NUL; json.Marshal NUL экранирует).
+	out := C.figram_request_json_n(b.m, (*C.char)(unsafe.Pointer(&line[0])), C.size_t(len(line)))
+	runtime.KeepAlive(line)
 	defer C.figram_free(out)
 	var resp map[string]any
 	dec := json.NewDecoder(strings.NewReader(C.GoString(out)))
@@ -225,26 +285,61 @@ func checkActions(v any) error {
 	return nil
 }
 
-// checkReply — ровно один вариант ответа: результат, need или error.
+// Коды ошибок протокола (FORMAT.md §7, PROTOCOL_CHANGES 1).
+var errorCodes = map[string]bool{
+	"parse_error": true, "too_large": true, "bad_request": true, "bad_snapshot": true, "seq_overflow": true,
+}
+
+// legacyErrorWithoutCode: движок до изменения протокола (ветка без fix/protocol) отвечает
+// на ошибку {id, error} без code. Пока он в сборке, такая форма принимается — только она:
+// лишние поля и неизвестные коды отвергаются всегда. После слияния с fix/protocol
+// поставить false: тогда code обязателен.
+const legacyErrorWithoutCode = true
+
+// checkReply — ровно один вариант ответа: результат, hello, need или error.
 func checkReply(r map[string]any, id int64, op string) (string, error) {
-	if !natOK(r["id"]) || r["id"].(json.Number) != json.Number(strconv.FormatInt(id, 10)) {
-		return "", fmt.Errorf("id ответа %v вместо %d", r["id"], id)
-	}
 	rest := map[string]any{}
 	for k, v := range r {
 		if k != "id" {
 			rest[k] = v
 		}
 	}
-	if keysAre(rest, "error") {
+	if _, isErr := rest["error"]; isErr {
 		if _, ok := rest["error"].(string); !ok {
 			return "", fmt.Errorf("error не строка")
 		}
+		code := ""
+		switch {
+		case keysAre(rest, "error", "code"):
+			c, ok := rest["code"].(string)
+			if !ok || !errorCodes[c] {
+				return "", fmt.Errorf("неизвестный code ошибки: %v", rest["code"])
+			}
+			code = c
+		case legacyErrorWithoutCode && keysAre(rest, "error"):
+		default:
+			return "", fmt.Errorf("ответ-ошибка: поля %v (ожидались id, error, code)", rest)
+		}
+		// id null — только у отказов разбора и предела размера (запрос не прочитан);
+		// иначе id обязан совпасть с запросом.
+		if idv, has := r["id"]; has && idv == nil && (code == "parse_error" || code == "too_large") {
+			return "error", nil
+		}
+		if !natOK(r["id"]) || r["id"].(json.Number) != json.Number(strconv.FormatInt(id, 10)) {
+			return "", fmt.Errorf("id ответа %v вместо %d", r["id"], id)
+		}
 		return "error", nil
 	}
-	if op == "hello" && keysAre(rest, "protocol", "states") {
+	if !natOK(r["id"]) || r["id"].(json.Number) != json.Number(strconv.FormatInt(id, 10)) {
+		return "", fmt.Errorf("id ответа %v вместо %d", r["id"], id)
+	}
+	// hello: {protocol, states} и, в режиме мутантов движка (только для тестов), mutant.
+	if op == "hello" && (keysAre(rest, "protocol", "states") || keysAre(rest, "protocol", "states", "mutant")) {
 		if !natOK(rest["protocol"]) || !natOK(rest["states"]) {
 			return "", fmt.Errorf("hello: %v", rest)
+		}
+		if mu, ok := rest["mutant"]; ok && !nameOK(mu) {
+			return "", fmt.Errorf("hello: mutant %v", mu)
 		}
 		return "hello", nil
 	}
@@ -406,8 +501,8 @@ func main() {
 	if flag.NArg() != 2 {
 		fail("использование: gofig [-rounds N] [-bots K] bot.json traces.jsonl")
 	}
-	if C.figram_init() != 0 {
-		panic("init")
+	if err := Init(); err != nil {
+		fail("%v", err)
 	}
 	doc, err := os.ReadFile(flag.Arg(0))
 	if err != nil {

@@ -72,7 +72,15 @@ func runChild(mode string) int {
 			fmt.Println("setrlimit:", err)
 			return 3
 		}
+		// Явный figram_init (как в main.go), затем Load: оба обязаны вернуть ошибку, а не
+		// уронить процесс (раньше: lean::exception → std::terminate → SIGABRT).
+		rc := initFigram()
+		fmt.Printf("RLIMIT_AS=%d: figram_init=%d\n", as, rc)
 		b, err := Load(string(doc))
+		if (rc != 0) != (err != nil) {
+			fmt.Println("figram_init and Load disagree:", rc, err)
+			return 1
+		}
 		if err != nil {
 			fmt.Printf("RLIMIT_AS=%d: Load error: %v\n", as, err)
 			if !strings.Contains(err.Error(), "figram_init") {
@@ -151,6 +159,16 @@ func TestFixRequestTooLarge(t *testing.T) {
 	t.Logf("2 MiB event → variant %q err %v code %v", v, err, resp["code"])
 	if err != nil || v != "error" || resp["code"] != "too_large" || resp["id"] != nil {
 		t.Errorf("want error variant with code too_large and id null, got %v %v %v", v, err, resp)
+	}
+	// Без предела тот же запрос обрабатывает движок.
+	if prev := SetMaxRequest(0); prev != 1<<20 {
+		t.Errorf("default limit %d, want %d", prev, 1<<20)
+	}
+	defer SetMaxRequest(1 << 20)
+	_, v, err = bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": "menu"},
+		"event": "btn:" + strings.Repeat("x", 2<<20)})
+	if err != nil || v != "result" {
+		t.Errorf("limit 0: want result, got %v %v", v, err)
 	}
 }
 
