@@ -1,0 +1,92 @@
+[
+ {
+  "input": "json: object 16k keys",
+  "bytes": 217782,
+  "seconds": 0.038,
+  "rss_mb": 22.8,
+  "rss_per_input_byte": 109.9,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ },
+ {
+  "input": "json: object 32k keys",
+  "bytes": 457782,
+  "seconds": 0.062,
+  "rss_mb": 25.5,
+  "rss_per_input_byte": 58.4,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ },
+ {
+  "input": "json: integer 160k digits",
+  "bytes": 160001,
+  "seconds": 0.06,
+  "rss_mb": 17.2,
+  "rss_per_input_byte": 113.0,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ },
+ {
+  "input": "json: fraction 160k digits",
+  "bytes": 160003,
+  "seconds": 0.064,
+  "rss_mb": 19.3,
+  "rss_per_input_byte": 126.6,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ },
+ {
+  "input": "json: string 5 MB",
+  "bytes": 5000003,
+  "seconds": 0.338,
+  "rss_mb": 156.1,
+  "rss_per_input_byte": 32.7,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": false
+ },
+ {
+  "input": "json: string 20 MB",
+  "bytes": 20000003,
+  "seconds": 1.547,
+  "rss_mb": 595.6,
+  "rss_per_input_byte": 31.2,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": false
+ },
+ {
+  "input": "engine: guards 32k keys",
+  "bytes": 436966,
+  "seconds": 0.071,
+  "rss_mb": 20.6,
+  "rss_per_input_byte": 49.5,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ },
+ {
+  "input": "engine: id 160k digits (echo)",
+  "bytes": 160021,
+  "seconds": 0.058,
+  "rss_mb": 20.9,
+  "rss_per_input_byte": 137.2,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ },
+ {
+  "input": "engine: event 20 MB",
+  "bytes": 20000057,
+  "seconds": 0.287,
+  "rss_mb": 70.5,
+  "rss_per_input_byte": 3.7,
+  "rc": 0,
+  "reply_ok": true,
+  "within_budget": true
+ }
+]

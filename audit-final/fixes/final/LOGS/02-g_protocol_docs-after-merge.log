@@ -1,0 +1,8 @@
+command: python3 -I tests/formats/g_protocol_docs.py 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T03:57:04.940Z
+end: 2026-10-20T03:57:04.981Z
+exit_code: 0
+--- stdout (42 bytes, last 200 lines)
+protocol docs: codes 5, ops 4, failures 0
+--- stderr (0 bytes, last 100 lines)

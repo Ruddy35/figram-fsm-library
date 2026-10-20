@@ -1,0 +1,20 @@
+=== RUN   TestFixLazyLoadWithoutInit
+    fix_test.go:106: child: <nil>
+        lazy: ok
+--- PASS: TestFixLazyLoadWithoutInit (0.02s)
+=== RUN   TestFixInitUnderRlimitAS
+    fix_test.go:119: RLIMIT_AS="": child <nil>
+        RLIMIT_AS=2802696192: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 2802696192 байт, занято 1728954368, нужно ещё не меньше 2000000000 (стек потока цикла событий libuv 1 ГиБ и арена mimalloc 1 ГиБ; см. figram.h)
+    fix_test.go:119: RLIMIT_AS="3000000000": child <nil>
+        RLIMIT_AS=3000000000: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 3000000000 байт, занято 1653452800, нужно ещё не меньше 2000000000 (стек потока цикла событий libuv 1 ГиБ и арена mimalloc 1 ГиБ; см. figram.h)
+--- PASS: TestFixInitUnderRlimitAS (0.01s)
+=== RUN   TestFixLoadReason
+    fix_test.go:132: Load(bad) → документ не загружен: нужно поле «bot»
+--- PASS: TestFixLoadReason (0.00s)
+=== RUN   TestFixRequestTooLarge
+    fix_test.go:151: 2 MiB event → variant "error" err <nil> code too_large
+--- PASS: TestFixRequestTooLarge (0.65s)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+PASS
+ok  	gofig	0.698s

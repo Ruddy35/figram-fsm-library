@@ -1,0 +1,74 @@
+command: python3 directed.py --engine /home/user/figram-audit/fixes/core/final-bin/figram-engine --group conformance 
+cwd: /home/user/figram-audit-worktrees/fix-core/audit/core-compiler
+start: 2026-10-20T03:39:05.095Z
+end: 2026-10-20T03:39:05.437Z
+exit_code: 0
+--- stdout (5692 bytes, last 200 lines)
+PASS [engine] conformance/start_nested_initials -- section whose initial is a section; entry order
+PASS [engine] conformance/bubble_all_false_to_root -- decision 1
+PASS [engine] conformance/bubble_false_then_section_true -- decision 1
+PASS [engine] conformance/message_true_wins -- decision 1
+PASS [engine] conformance/need_lists_chain_guards -- FORMAT §7.3
+PASS [engine] conformance/section_arrow_message_lacks -- section arrow works on any message inside
+PASS [engine] conformance/root_guarded_false_ignored -- decision 6
+PASS [engine] conformance/unknown_event_ignored -- decision 6, seq not bumped
+PASS [engine] conformance/unconditional_message_shadows_section -- decision 1
+PASS [engine] conformance/irrelevant_guard_ignored -- guards outside the chain
+PASS [engine] conformance/partial_guards_need_rest -- FORMAT §7.3
+PASS [engine] conformance/action_order_exit_arrow_entry -- decision 2
+PASS [engine] conformance/self_loop_restarts_timers -- decisions 3, 7
+PASS [engine] conformance/resume_no_memory_goes_initial -- decision 5 / resume without memory
+PASS [engine] conformance/remember_on_entry_nested -- decision 4, deep history
+PASS [engine] conformance/nested_outer_and_inner_memory -- decision 4: entering y re-remembers S
+PASS [engine] conformance/resume_from_inside_is_current -- Chart doc: from inside the section resume = current message
+PASS [engine] conformance/resume_section_initial_is_section -- resume, no memory, initial chain P->Q->q1
+PASS [engine] conformance/arrow_to_section_enters_initial -- arrow into section leads to its initial message (not history)
+PASS [engine] conformance/resume_memory_deleted -- decision 5
+PASS [engine] conformance/resume_memory_is_section_now -- decision 5 (message became section)
+PASS [engine] conformance/resume_memory_moved_outside -- AMBIGUITY A1: remembered message exists but outside S -> Lean: initial
+PASS [engine] conformance/resume_memory_inner_valid -- decision 4/5
+PASS [engine] conformance/recover_deleted_current -- decision 8; AMBIGUITY A4: entry of initial re-remembers H (overwrites 'kept' place)
+PASS [engine] conformance/recover_at_is_section -- snapshot points at a section, not a message
+PASS [engine] conformance/recover_ignores_token -- recovery happens before token check
+PASS [engine] conformance/stale_forged_tokens -- decision 7, shared timer id on two messages
+PASS [engine] conformance/valid_timer_no_handler_ignored -- decision 6 for timers
+PASS [engine] conformance/section_level_timer_handler -- section arrow on timer:<id>
+PASS [engine] conformance/root_level_timer_handler -- root arrow on timer:<id>
+PASS [engine] conformance/seq_overflow_transition -- FORMAT §7.5
+PASS [engine] conformance/seq_max_ignored_ok -- ignored event does not bump seq
+PASS [engine] conformance/restart_clears_places -- FORMAT §7 restart
+PASS [oracle] conformance/start_nested_initials -- section whose initial is a section; entry order
+PASS [oracle] conformance/bubble_all_false_to_root -- decision 1
+PASS [oracle] conformance/bubble_false_then_section_true -- decision 1
+PASS [oracle] conformance/message_true_wins -- decision 1
+PASS [oracle] conformance/need_lists_chain_guards -- FORMAT §7.3
+PASS [oracle] conformance/section_arrow_message_lacks -- section arrow works on any message inside
+PASS [oracle] conformance/root_guarded_false_ignored -- decision 6
+PASS [oracle] conformance/unknown_event_ignored -- decision 6, seq not bumped
+PASS [oracle] conformance/unconditional_message_shadows_section -- decision 1
+PASS [oracle] conformance/irrelevant_guard_ignored -- guards outside the chain
+PASS [oracle] conformance/partial_guards_need_rest -- FORMAT §7.3
+PASS [oracle] conformance/action_order_exit_arrow_entry -- decision 2
+PASS [oracle] conformance/self_loop_restarts_timers -- decisions 3, 7
+PASS [oracle] conformance/resume_no_memory_goes_initial -- decision 5 / resume without memory
+PASS [oracle] conformance/remember_on_entry_nested -- decision 4, deep history
+PASS [oracle] conformance/nested_outer_and_inner_memory -- decision 4: entering y re-remembers S
+PASS [oracle] conformance/resume_from_inside_is_current -- Chart doc: from inside the section resume = current message
+PASS [oracle] conformance/resume_section_initial_is_section -- resume, no memory, initial chain P->Q->q1
+PASS [oracle] conformance/arrow_to_section_enters_initial -- arrow into section leads to its initial message (not history)
+PASS [oracle] conformance/resume_memory_deleted -- decision 5
+PASS [oracle] conformance/resume_memory_is_section_now -- decision 5 (message became section)
+PASS [oracle] conformance/resume_memory_moved_outside -- AMBIGUITY A1: remembered message exists but outside S -> Lean: initial
+PASS [oracle] conformance/resume_memory_inner_valid -- decision 4/5
+PASS [oracle] conformance/recover_deleted_current -- decision 8; AMBIGUITY A4: entry of initial re-remembers H (overwrites 'kept' place)
+PASS [oracle] conformance/recover_at_is_section -- snapshot points at a section, not a message
+PASS [oracle] conformance/recover_ignores_token -- recovery happens before token check
+PASS [oracle] conformance/stale_forged_tokens -- decision 7, shared timer id on two messages
+PASS [oracle] conformance/valid_timer_no_handler_ignored -- decision 6 for timers
+PASS [oracle] conformance/section_level_timer_handler -- section arrow on timer:<id>
+PASS [oracle] conformance/root_level_timer_handler -- root arrow on timer:<id>
+PASS [oracle] conformance/seq_overflow_transition -- FORMAT §7.5
+PASS [oracle] conformance/seq_max_ignored_ok -- ignored event does not bump seq
+PASS [oracle] conformance/restart_clears_places -- FORMAT §7 restart
+cases run: 66 (targets: ['engine', 'oracle']), requests: 152, failed: 0
+--- stderr (0 bytes, last 100 lines)

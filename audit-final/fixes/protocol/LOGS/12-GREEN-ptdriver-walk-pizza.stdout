@@ -1,0 +1,1 @@
+{"doc": "examples/pizza.bot.json", "mutate": null, "seed": 3, "replies": 2822, "coverage_targets": 42, "checks": 23724, "per_invariant": {"I1": 4191, "I10": 258, "I11": 469, "I12": 165, "I2": 4122, "I3": 1862, "I4": 2916, "I5": 1126, "I6": 1328, "I7": 1790, "I8": 67, "I9": 5419, "T1": 11}, "violations": 0}

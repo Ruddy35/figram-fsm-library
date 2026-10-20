@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 1800 python3 audit/engine_timers/ptdriver.py .lake/build/bin/figram-engine walk examples/features.bot.json --seed 3 --users 30 --steps 60 
+cwd: /home/user/figram-audit-worktrees/fix-protocol
+start: 2026-10-20T02:31:35.139Z
+end: 2026-10-20T02:31:35.669Z
+exit_code: 0
+--- stdout (312 bytes, last 200 lines)
+{"doc": "examples/features.bot.json", "mutate": null, "seed": 3, "replies": 2763, "coverage_targets": 36, "checks": 23447, "per_invariant": {"I1": 4205, "I10": 249, "I11": 412, "I12": 139, "I2": 4084, "I3": 1843, "I4": 2806, "I5": 1029, "I6": 1395, "I7": 1777, "I8": 119, "I9": 5362, "T1": 27}, "violations": 0}
+--- stderr (0 bytes, last 100 lines)

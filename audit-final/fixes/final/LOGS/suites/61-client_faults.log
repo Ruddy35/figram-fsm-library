@@ -1,0 +1,28 @@
+command: timeout 900 python3 ffi/python-example/client_faults.py /home/user/figram-audit-worktrees/fix-final/.lake/build/bin/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T04:49:58.183Z
+end: 2026-10-20T04:50:05.147Z
+exit_code: 0
+--- stdout (1936 bytes, last 200 lines)
+ok  невалидный JSON: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  неизвестный id: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  ответ без id: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  id = true: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  пустой результат: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  result + error: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  seq = true: ошибок 8 из 8, зависло 0, 0.1 с, close 0.0 с
+ok  неизвестное действие: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  нет ответа: ошибок 8 из 8, зависло 0, 1.0 с, close 0.0 с
+ok  обрыв вывода: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  падение: ошибок 8 из 8, зависло 0, 0.0 с, close 0.0 с
+ok  не читает вход: ошибок 8 из 8, зависло 0, 1.0 с, close 1.0 с
+ok  мусор и не читает вход: ошибок 8 из 8, зависло 0, 0.3 с, close 0.0 с
+ok  300 одновременных запросов (~300 КБ) при заблокированном входе: ошибок 300, зависло 0, самый долгий вызов 1.00 с, всего 2.1 с
+ok  запуск, мусор вместо hello: ошибка, 0.0 с (start_timeout 1 с)
+ok  запуск, выход до hello: ошибка, 0.0 с (start_timeout 1 с)
+ok  запуск, падение до hello: ошибка, 0.0 с (start_timeout 1 с)
+ok  запуск, не отвечает на hello: ошибка, 1.0 с (start_timeout 1 с)
+ok  запуск, hello неверной формы: ошибка, 0.0 с (start_timeout 1 с)
+ok  замена неисправного процесса: menu
+клиент устойчив
+--- stderr (0 bytes, last 100 lines)

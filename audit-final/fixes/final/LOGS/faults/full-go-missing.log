@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh full go-missing 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:14:48.505Z
+end: 2026-10-20T05:19:32.976Z
+exit_code: 0
+--- stdout (387 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+go-missing           1      1        ok НЕТ: go не установлен: Go-часть проверки обязательна (явный пропуск — FIGRAM_WAIVE=go, код выхода 3)
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

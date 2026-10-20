@@ -1,0 +1,6 @@
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/40-ffi-build_audit.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/41-ffi-regress.log
+exit_code=1 log=/home/user/figram-audit/fixes/final/LOGS/suites/42-ffi-sanitizers.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/43-ffi-mutants.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/44-ffi-b01_build.log
+SUITES-DONE

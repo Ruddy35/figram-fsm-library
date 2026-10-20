@@ -1,0 +1,21 @@
+== nopin
+stub curl https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+нет ci/lean-toolchain.sha256: sha256 архива Lean не закреплён
+== tofu
+/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/lean-install-test/out-tofu/lean-4.35.0-linux/bin
+stub curl https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+ПЕРВОЕ ДОВЕРИЕ: ci/lean-toolchain.sha256 нет; sha256 55acc0867061d5e1aa3eea46f86acc4945a5fdeed02ff8b28978d7afc4ebcd7b записан в /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/lean-install-test/out-tofu/lean-4.35.0-linux.tar.zst.sha256
+== pinned
+/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/lean-install-test/out-pinned/lean-4.35.0-linux/bin
+stub curl https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+sha256 lean-4.35.0-linux.tar.zst совпадает с ci/lean-toolchain.sha256
+== badpin
+stub curl https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+sha256 lean-4.35.0-linux.tar.zst = 55acc0867061d5e1aa3eea46f86acc4945a5fdeed02ff8b28978d7afc4ebcd7b, а закреплено 05acc0867061d5e1aa3eea46f86acc4945a5fdeed02ff8b28978d7afc4ebcd7b
+== noline
+stub curl https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+в ci/lean-toolchain.sha256 нет строки для lean-4.35.0-linux.tar.zst
+== ghpath
+/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/lean-install-test/out-ghpath/lean-4.35.0-linux/bin
+stub curl https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+sha256 lean-4.35.0-linux.tar.zst совпадает с ci/lean-toolchain.sha256

@@ -1,0 +1,8 @@
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/python/00-suite-ok.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/python/01-suite-red.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/python/02-suite-matrix.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/00-build.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/01-run_all.log
+exit_code=1 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/02-red_matrix.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/03-compare.log
+HOSTS-DONE

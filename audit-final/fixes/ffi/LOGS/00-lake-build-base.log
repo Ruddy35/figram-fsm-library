@@ -1,0 +1,8 @@
+command: lake build Figram FigramApi:static 
+cwd: /home/user/figram-audit-worktrees/fix-ffi
+start: 2026-10-20T02:02:02.984Z
+end: 2026-10-20T02:02:03.175Z
+exit_code: 0
+--- stdout (40 bytes, last 200 lines)
+Build completed successfully (22 jobs).
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,59 @@
+command: bash ffi/audit/regress.sh ffi/audit/out 
+cwd: /home/user/figram-audit-worktrees/fix-ffi
+start: 2026-10-20T02:08:49.424Z
+end: 2026-10-20T02:09:07.583Z
+exit_code: 1
+--- stdout (3461 bytes, last 200 lines)
+PASS FFI-01 concurrent figram_init (rc=0)
+PASS FFI-05 malloc failure in dup (rc=0)
+PASS FFI-06 figram_unload(NULL) (rc=0)
+PASS FFI-06 unload(failed load) (rc=0)
+FAIL P-09 init under RLIMIT_AS=1.5GB → rc 2 + reason: rc=134, want 0 and «^figram_init=2 last_error=.*thread»
+    terminate called after throwing an instance of 'lean::exception'
+      what():  failed to create thread: Resource temporarily unavailable
+PASS P-09 init under RLIMIT_AS=3GB (C host: fits) (rc=0, «^figram_init=0 »)
+FAIL P-21 lazy init (load/request before figram_init): rc=139, want 0
+    ok   load_doc without figram_init
+FAIL P-21 lazy init race, 8 threads x 300 processes: rc=1, want 0
+    ffi/audit/init_race.sh: line 9: 31383 Segmentation fault      timeout 20 "$BIN" "$SUB" examples/pizza.bot.json > /dev/null 2>&1
+    lazy_race: 300 runs, failed 300; exit codes: 139×300
+FAIL P-21 NULL arguments and foreign handle: rc=139, want 0
+    
+FAIL P-21 null check: no SIGSEGV: rc=139, want 0
+    NULL case check
+FAIL P-21 null fmt: no SIGSEGV: rc=139, want 0
+    NULL case fmt
+FAIL P-21 null load: no SIGSEGV: rc=139, want 0
+    NULL case load
+FAIL P-21 null line: no SIGSEGV: rc=139, want 0
+    NULL case line
+FAIL P-21 null handle: no SIGSEGV: rc=139, want 0
+    NULL case handle
+FAIL P-21 use-after-unload / double unload detected: rc=139, want 0
+    
+FAIL P-21 length variants, load_doc_ex, NUL in output: rc=1, want 0
+    FAIL figram_load_doc_n: MISSING (функции нет в библиотеке)
+    FAIL figram_check_json_n: MISSING (функции нет в библиотеке)
+    FAIL figram_fmt_json_n: MISSING (функции нет в библиотеке)
+    FAIL figram_load_doc_ex: MISSING (функции нет в библиотеке)
+    FAIL check text: NUL in a key is escaped, not raw: error: повторяющийся ключ «a
+    FAIL figram_load_doc_ex: MISSING (функции нет в библиотеке)
+    FAIL check text: NUL in a key is escaped, not raw: error: повторяющийся ключ «a
+FAIL P-18 strict UTF-8 on the FFI path: rc=139, want 0
+    
+FAIL P-18 request size limit and empty request: rc=139, want 0
+    FAIL empty request → parse_error: {"id":null,"error":"неожиданный конец текста"}
+    FAIL empty request → parse_error: {"id":null,"error":"неожиданный конец текста"}
+FAIL P-22 signals preserved (defaults): rc=1, want 0
+    FAIL SIGPIPE disposition preserved: before (nil) flags 0, after 0x1 flags 335544320
+    FAIL sigaltstack of the calling thread preserved: before sp=(nil) size=0 flags=2, after sp=0x5568b63b9460 size=14528 flags=0
+    FAIL sigaltstack of the calling thread preserved: before sp=(nil) size=0 flags=2, after sp=0x5568b63b9460 size=14528 flags=0
+    ok   library works after init: error: нужно поле «figram»: 1
+FAIL P-22 signals preserved (custom handler + altstack): rc=1, want 0
+    FAIL SIGPIPE disposition preserved: before 0x562f04c5b779 flags 335544320, after 0x1 flags 335544320
+    FAIL sigaltstack of the calling thread preserved: before sp=0x562f40fa52b0 size=65536 flags=0, after sp=0x562f40fb5470 size=14528 flags=0
+    FAIL sigaltstack of the calling thread preserved: before sp=0x562f40fa52b0 size=65536 flags=0, after sp=0x562f40fb5470 size=14528 flags=0
+    ok   library works after init: error: нужно поле «figram»: 1
+PASS harness 16x20000 + reload (rc=0)
+PASS stress 16x20000 + 4 loaders (rc=0)
+--- stderr (0 bytes, last 100 lines)

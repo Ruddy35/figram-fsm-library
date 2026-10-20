@@ -1,0 +1,6 @@
+PASS FFI-01 concurrent figram_init (rc=0)
+PASS FFI-05 malloc failure in dup (rc=0)
+PASS FFI-06 figram_unload(NULL) (rc=0)
+PASS FFI-06 unload(failed load) (rc=0)
+PASS harness 16x20000 + reload (rc=0)
+PASS stress 16x20000 + 4 loaders (rc=0)

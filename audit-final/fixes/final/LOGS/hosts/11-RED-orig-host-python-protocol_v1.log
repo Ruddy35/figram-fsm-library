@@ -1,0 +1,37 @@
+command: timeout 120 python3 -I /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/test_protocol_v1.py /home/user/figram-audit/fixes/final/bin-wip/figram-engine /home/user/figram-audit/hosts/shared/bots/pizza.bot.json 
+cwd: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad
+start: 2026-10-20T04:12:44.360Z
+end: 2026-10-20T04:12:44.495Z
+exit_code: 1
+--- stdout (406 bytes, last 200 lines)
+FAIL {id,error,code} with a known code is an error reply
+FAIL {id,error} without code is a protocol violation
+ok   unknown code is a protocol violation
+ok   extra key in an error reply
+FAIL id null with parse_error (request not read)
+ok   id null with bad_request
+ok   error reply with a foreign id
+FAIL invalid snapshot → transport failure instead of an engine error: bad reply fields ['code', 'error']
+--- stderr (1696 bytes, last 100 lines)
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/engine_transport.py", line 216, in call
+    kind = check_reply(r, rid, req["op"])
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/engine_transport.py", line 90, in check_reply
+    raise EngineFailure(f"bad reply fields {sorted(keys)}")
+engine_transport.EngineFailure: bad reply fields ['code', 'error']
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/test_protocol_v1.py", line 51, in <module>
+    pool.call("u", {"op": "step", "snapshot": {"at": "menu"}, "event": "btn:x", "gaurds": {}})
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/engine_transport.py", line 259, in call
+    return p.call(req)
+           ~~~~~~^^^^^
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/engine_transport.py", line 218, in call
+    self._break(str(e))
+    ~~~~~~~~~~~^^^^^^^^
+  File "/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/hp-orig/audit/host-python/engine_transport.py", line 163, in _break
+    raise EngineFailure(why)
+engine_transport.EngineFailure: bad reply fields ['code', 'error']

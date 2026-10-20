@@ -1,0 +1,10 @@
+command: timeout 300 python3 metamorphic.py --engine /home/user/figram-audit-worktrees/fix-final/.lake/build/bin/figram-engine --docs 3 --steps 20 --only rename_nodes --break-transform rename_nodes --expect-red 
+cwd: /home/user/figram-audit-worktrees/fix-final/audit/core-compiler
+start: 2026-10-20T04:40:30.593Z
+end: 2026-10-20T04:40:30.770Z
+exit_code: 0
+--- stdout (314 bytes, last 200 lines)
+rename_nodes         MUST                 docs=3 steps=63 violations=63
+   example: {"doc_seed": 0, "step": 1, "expected": {"snapshot": {"at": "m0", "seq": 1}, "actions": [{"send": "m0"}]}, "actual": {"snapshot": {"at": "узел-3·m0", "seq": 1}, "actions": [{"send": "узел-3·m0"}]}}
+EXPECT-RED: RED (good)
+--- stderr (0 bytes, last 100 lines)

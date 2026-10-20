@@ -1,0 +1,15 @@
+command: python3 /home/user/figram-audit/fixes/client/mutate_client_v2.py ffi/python-example /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped examples/pizza.bot.json examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T06:00:39.570Z
+end: 2026-10-20T06:05:29.567Z
+exit_code: 0
+--- stdout (2524 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/fix-final/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped
+M13 неизвестный id игнорируется: убит: client_robustness.py  client_faults.py=0 9.0с []; client_contract.py=0 2.1с []; client_robustness.py=1 55.2с ['НЕТ R1 неизвестный id: ошибок 8 из 8, самый долгий 6.00 с (срок 6 с)']
+M14 нет проверки failure перед регистрацией: убит: client_robustness.py  client_faults.py=0 7.1с []; client_contract.py=0 2.1с []; client_robustness.py=1 46.5с ['НЕТ R3 сбой между проверкой готовности и регистрацией: ошибка за 3.00 с (срок 3 с), ожидающих 0']
+M15 срок от записи, а не от начала вызова (+timeout): убит: client_faults.py  client_faults.py=1 10.1с ['НЕТ 300 одновременных запросов (~300 КБ) при заблокированном входе: ошибок 300, зависло 0, самый долгий вызов 2.00 с, всего 3.1 с']
+M16 нет _check_wire (id:null снова роняет процесс): убит: client_robustness.py  client_faults.py=0 6.9с []; client_contract.py=0 2.1с []; client_robustness.py=1 43.7с ['НЕТ R8 ключи 1 и "1": плохой вызов {\'EngineError от движка: повторяющийся ключ «1»\': 5}; соседи: ошибок 0, ответов 2039; процесс тот же True', 'НЕТ R8 ключи True и "true": плохой вызов {\'EngineError от движка: повторяющийся ключ «true»\': 5}; соседи: ошибок 0, ответов 2002; процесс тот же True']
+M17 кодирование после регистрации (утечка _pending): убит: client_robustness.py  client_faults.py=0 7.0с []; client_contract.py=0 2.1с []; client_robustness.py=1 43.2с ["НЕТ R5 200 запросов с одиночным суррогатом: {'UnicodeEncodeError': 200}, ожидающих 200, процесс жив True"]
+M18 закрытый пул воскрешает процессы: ВЫЖИЛ (все тесты зелёные)  client_faults.py=0 7.1с []; client_contract.py=0 2.1с []; client_robustness.py=0 43.6с []
+выживших мутантов: 1 из 6
+--- stderr (0 bytes, last 100 lines)

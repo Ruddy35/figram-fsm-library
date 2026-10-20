@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh full none 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:08:35.740Z
+end: 2026-10-20T05:13:54.631Z
+exit_code: 0
+--- stdout (363 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+none                 3      3        ok   - хеши сверены с /home/user/figram-audit/fixes/final/gate-sums/SUMS, а не с bin/SHA256SUMS: соответствие bin
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

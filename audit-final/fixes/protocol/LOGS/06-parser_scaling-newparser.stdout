@@ -1,0 +1,11 @@
+measurement floor (/bin/true): RSS 10.2 MiB
+     json: object 16k keys                0.22 MB     0.04 s  RSS     22.8 MiB ( 109.9×)  rc=0 reply=b'OK {"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"'
+     json: object 32k keys                0.46 MB     0.06 s  RSS     25.5 MiB (  58.4×)  rc=0 reply=b'OK {"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"'
+     json: integer 160k digits            0.16 MB     0.06 s  RSS     17.2 MiB ( 113.0×)  rc=0 reply=b'OK 1123456789012345678901234567890123456'
+     json: fraction 160k digits           0.16 MB     0.06 s  RSS     19.3 MiB ( 126.6×)  rc=0 reply=b'OK 0.12345678901234567890123456789012345'
+OVER json: string 5 MB                    5.00 MB     0.34 s  RSS    156.1 MiB (  32.7×)  rc=0 reply=b'OK "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+OVER json: string 20 MB                  20.00 MB     1.55 s  RSS    595.6 MiB (  31.2×)  rc=0 reply=b'OK "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+     engine: guards 32k keys              0.44 MB     0.07 s  RSS     20.6 MiB (  49.5×)  rc=0 reply=b'{"id":1,"snapshot":{"at":"home","timers"'
+     engine: id 160k digits (echo)        0.16 MB     0.06 s  RSS     20.9 MiB ( 137.2×)  rc=0 reply=b'{"id":1123456789012345678901234567890123'
+     engine: event 20 MB                 20.00 MB     0.29 s  RSS     70.5 MiB (   3.7×)  rc=0 reply=b'{"id":1,"snapshot":{"at":"home"},"action'
+inputs=9 over-budget=2 engine-options=[]

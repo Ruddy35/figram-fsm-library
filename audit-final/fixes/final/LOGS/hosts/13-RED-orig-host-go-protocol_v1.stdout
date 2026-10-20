@@ -1,0 +1,15 @@
+--- FAIL: TestParseReplyErrorCode (0.00s)
+    protocol_v1_test.go:34: {"id":5,"error":"x","code":"bad_snapshot"}: err=unexpected reply field "code", want ok=true
+    protocol_v1_test.go:34: {"id":5,"error":"seq_overflow","code":"seq_overflow"}: err=unexpected reply field "code", want ok=true
+    protocol_v1_test.go:34: {"id":null,"error":"x","code":"parse_error"}: err=reply id <nil> != request id 5, want ok=true
+    protocol_v1_test.go:34: {"id":null,"error":"x","code":"too_large"}: err=reply id <nil> != request id 5, want ok=true
+    protocol_v1_test.go:34: {"id":5,"error":"x"}: err=<nil>, want ok=false
+--- FAIL: TestEngineCodesAndStartSeq (0.00s)
+    protocol_v1_test.go:50: invalid snapshot: <nil> engine failure: bad reply: unexpected reply field "code" (want error code bad_snapshot)
+FAIL
+FAIL	figramhost/host	0.041s
+--- FAIL: TestInvalidUTF8IsSilentlyReplaced (0.02s)
+    figram_test.go:127: expected U+FFFD replacement, got "{\"id\":null,\"error\":\"запрос не в кодировке UTF-8\",\"code\":\"parse_error\"}"
+FAIL
+FAIL	figramhost/figram	0.033s
+FAIL

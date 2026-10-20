@@ -1,0 +1,9 @@
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B1.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B2.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B3.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B4.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B5.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B6.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B7.log
+exit_code=0 log=/home/user/figram-audit/fixes/client/LOGS/42-mutants-B8.log
+ALL-BATCHES-DONE

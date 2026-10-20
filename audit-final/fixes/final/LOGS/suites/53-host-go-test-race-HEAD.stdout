@@ -1,0 +1,7 @@
+?   	figramhost/cmd/fghost	[no test files]
+?   	figramhost/cmd/fgmem	[no test files]
+?   	figramhost/cmd/fgprobe	[no test files]
+?   	figramhost/cmd/fgrun	[no test files]
+?   	figramhost/cmd/fgsigprobe	[no test files]
+ok  	figramhost/figram	2.070s
+ok  	figramhost/host	4.256s

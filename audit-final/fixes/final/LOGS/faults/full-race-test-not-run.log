@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh full race-test-not-run 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:19:33.000Z
+end: 2026-10-20T05:24:34.287Z
+exit_code: 0
+--- stdout (313 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+race-test-not-run    1      1        ok НЕТ: тест TestSharedRequestMap не выполнялся или не прошёл
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

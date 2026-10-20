@@ -1,0 +1,15 @@
+command: python3 /home/user/figram-audit/fixes/client/mutate_client_v2.py ffi/python-example /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped examples/pizza.bot.json examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T06:05:29.590Z
+end: 2026-10-20T06:10:08.818Z
+exit_code: 0
+--- stdout (2637 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/fix-final/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped
+M18b нет проверки _closed под замком замены: убит: client_robustness.py  client_faults.py=0 7.1с []; client_contract.py=0 2.1с []; client_robustness.py=1 44.5с ["НЕТ R6 вызов, ждавший замка во время close(): ['ответ'], живых процессов 1"]
+M19 OSError при запуске не оборачивается: убит: client_robustness.py  client_faults.py=0 7.0с []; client_contract.py=0 2.1с []; client_robustness.py=1 43.1с ["НЕТ R7 замена процесса без бинарника: {'FileNotFoundError': 3}"]
+M20 killpg при каждом _fail: убит: client_robustness.py  client_faults.py=0 7.1с []; client_contract.py=0 2.1с []; client_robustness.py=1 43.1с ['НЕТ R9 killpg: вызовов 263, из них по уже собранному (свободному) pid 13']
+M21 I-01 вызов не ждёт готовности (срок от вызова): убит: client_robustness.py  client_faults.py=0 6.9с []; client_contract.py=0 2.1с []; client_robustness.py=1 45.9с ['НЕТ R3 сбой между проверкой готовности и регистрацией: ошибка за 3.00 с (срок 3 с), ожидающих 0', "НЕТ R10 после сбоя прогретого процесса замена ждёт загрузки: ответы ['ошибка', 'ошибка', 'loaded'], запусков 2, 2.5 с"]
+M22 I-01 нет срока запуска: убит: client_robustness.py  client_faults.py=0 8.0с []; client_contract.py=0 2.1с []; client_robustness.py=1 50.0с ['НЕТ R10 start_timeout 1 с, движок не отвечает на hello: «EngineError: движок не запустился: процесс движка неисправен: движок не ответил », 2.0 с, потомков 0', 'НЕТ R10 start_timeout 1 с без ожидающих вызовов: процесс помечен неисправным через 5.0 с и убит False']
+M23 I-01 конструктор не ждёт загрузки: убит: client_faults.py  client_faults.py=1 6.1с ['НЕТ запуск, мусор вместо hello: пул создан, 0.0 с (start_timeout 1 с)', 'НЕТ запуск, выход до hello: пул создан, 0.0 с (start_timeout 1 с)']
+выживших мутантов: 0 из 6
+--- stderr (0 bytes, last 100 lines)

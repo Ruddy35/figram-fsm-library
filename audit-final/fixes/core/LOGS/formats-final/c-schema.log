@@ -1,0 +1,116 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/fix-core/tests/formats/c_schema_table.py --tmp /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad 
+cwd: /home/user/figram-audit-worktrees/fix-core
+start: 2026-10-20T03:20:17.706Z
+end: 2026-10-20T03:20:19.201Z
+exit_code: 0
+--- stdout (16411 bytes, last 200 lines)
+id                           schema decode check | expected | class    note
+base                              1      1     1 | 111      | agree    
+figram-1.0                        1      1     1 | 111      | agree    decision 12: by value
+figram-1e0                        1      1     1 | 111      | agree    
+figram-10e-1                      1      1     1 | 111      | agree    
+figram-1+1e-16                    1      0     0 | 100      | prec     float(…)=1.0 == const 1  [figram: не удалось прочитать документ: нужно поле «figram»: 1]
+figram-true                       0      0     0 | 000      | agree      [figram: не удалось прочитать документ: нужно поле «figram»: 1]
+figram-str                        0      0     0 | 000      | agree      [figram: не удалось прочитать документ: нужно поле «figram»: 1]
+figram-2                          0      0     0 | 000      | agree      [figram: не удалось прочитать документ: нужно поле «figram»: 1]
+children-empty                    0      1     0 | 010      | struct   minProperties 1 vs V2 (initial not a child)  [Начальный экран «a» раздела «bot» должен лежать внутри него]
+initial-not-child                 1      1     0 | 110      | V        V2  [Начальный экран «b» раздела «bot» должен лежать внутри него]
+initial-grandchild                1      1     0 | 110      | V        V2: direct child only  [Начальный экран «a» раздела «bot» должен лежать внутри него]
+initial-empty                     0      1     0 | 010      | struct     [Начальный экран «bot» раздела «bot» должен лежать внутри него]
+child-name-empty                  0      1     0 | 010      | struct     [вложенные узлы раздела «bot»: пустое имя | Узел «bot» объявлен несколько раз]
+event-name-empty                  0      1     0 | 010      | struct     [события узла «a»: пустое имя]
+timer-name-empty                  0      1     0 | 010      | struct     [таймеры сообщения «a»: пустое имя]
+cond-name-empty                   0      1     0 | 010      | struct     [conditions: пустое имя]
+to-empty                          0      1     0 | 010      | struct     [«a» → «btn:x»: пустая цель «to»]
+if-empty                          0      1     0 | 010      | struct     [«a» → «btn:x»: пустое имя условия]
+do-empty-name                     0      1     0 | 010      | struct     [«a» → «btn:x»: пустое имя действия]
+x-keys-everywhere                 1      1     1 | 111      | agree    
+non-x-unknown-keys                1      1     1 | 111      | agree    К5а: any unknown key kept; x- is only a convention
+future-key-unless                 1      1     1 | 111      | footgun  looks like a guard, silently ignored unless declared in requires (К5б)
+x-ui-in-children                  1      1     1 | 111      | footgun  annotation key inside children = a new message node «x-ui» (FORMAT §5 says so)
+    stats: {"states":2,"rows":0,"branches":0,"resumes":0,"actions":2} (base has states=1)
+timer-7.2e6                       1      1     1 | 111      | agree    decision 12
+timer-7200000.0                   1      1     1 | 111      | agree    
+timer-72e5                        1      1     1 | 111      | agree    
+timer-720000000e-2                1      1     1 | 111      | agree    
+timer-neg-zero                    1      1     1 | 111      | agree    
+timer-neg-zero-frac               1      1     1 | 111      | agree    
+timer-0.5                         0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое не больше 9007]
+timer-neg                         0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое не больше 9007]
+timer-max                         1      1     1 | 111      | agree    
+timer-max.0                       1      1     1 | 111      | agree    
+timer-max+1                       0      1     0 | 010      | struct   fmt accepts/prints it, check rejects  [таймер «t» в «a»: задержка больше 9007199254740991 мс]
+timer-9e18                        0      1     0 | 010      | struct     [таймер «t» в «a»: задержка больше 9007199254740991 мс]
+timer-1e19                        0      0     0 | 000      | agree    decoder shortcut e>18  [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое не больше 9007]
+timer-max-1-half                  1      0     0 | 100      | prec     float rounds to …990  [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое не больше 9007]
+timer-1e-400                      1      0     0 | 100      | prec     float underflow to 0.0  [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое не больше 9007]
+timer-1e400                       0      0     0 | 000      | agree    Python: inf, not integer  [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое не больше 9007]
+timer-str                         0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое]
+timer-bool                        0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое]
+timer-null                        0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «t»: ожидалось неотрицательное целое]
+timers-empty-on-msg               1      1     1 | 111      | agree    explicit default
+timers-on-section                 0      0     0 | 000      | agree      [figram: не удалось прочитать документ: у раздела не бывает «timers»]
+initial-on-message                0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «initial» без «children»]
+resume-false                      1      1     1 | 111      | agree    explicit default
+resume-str                        0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «resume»: ожидалось true или false]
+resume-null                       0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «resume»: ожидалось true или false]
+resume-to-message                 1      1     0 | 110      | V        V3  [Стрелка «a» → «вернуться туда, где был» в «a»: это не раздел]
+do-empty                          1      1     1 | 111      | agree    explicit default
+do-str                            0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «do»: ожидался список]
+requires-empty                    1      1     1 | 111      | agree    
+requires-unknown                  0      0     0 | 000      | agree    К5б  [figram: не удалось прочитать документ: документ требует возможностей, которых этот читател]
+requires-dup                      0      0     0 | 000      | agree      [figram: не удалось прочитать документ: документ требует возможностей, которых этот читател]
+requires-str                      0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «requires»: ожидался список]
+dup-node-across-sections          1      1     0 | 110      | V        V1  [Узел «a» объявлен несколько раз | Начальный экран «a» раздела «s» должен лежать внутри нег]
+undeclared-cond                   1      1     0 | 110      | V        V4  [Условие «c» не описано в «conditions»]
+undeclared-call                   1      1     0 | 110      | V        V4  [Действие «k» не описано в «calls»]
+timer-event-no-timer              1      1     0 | 110      | V        V5  [Событие «timer:t»: такого таймера нет (префикс «timer:» зарезервирован)]
+timer-event-empty                 1      1     0 | 110      | V        V5  [Событие «timer:»: такого таймера нет (префикс «timer:» зарезервирован)]
+timer-event-other-msg             1      1     1 | 111      | footgun  V5 is global: handler for another message's timer is accepted
+to-missing                        1      1     0 | 110      | V        V3  [Стрелка «a» → «nope»: цели не существует]
+bot-is-message                    0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «bot» должен быть разделом]
+node-array                        0      0     0 | 000      | agree      [figram: не удалось прочитать документ: узел должен быть объектом]
+variant-no-to                     0      0     0 | 000      | agree      [figram: не удалось прочитать документ: у варианта нужно поле «to»]
+on-value-obj                      0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «btn:x»: ожидался список вариантов]
+on-array                          0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «on» должен быть объектом]
+on-null                           0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «on» должен быть объектом]
+children-null                     0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «children» должен быть объектом]
+variables                         1      1     1 | 111      | agree    
+cond-desc-num                     0      0     0 | 000      | agree      [figram: не удалось прочитать документ: «c»: ожидалась строка]
+dup-bot-key                       1      0     0 | 100      | dev      Python: last wins  [figram: не удалось прочитать документ: повторяющийся ключ «bot»]
+dup-key-in-annotation             1      0     0 | 100      | dev        [figram: не удалось прочитать документ: повторяющийся ключ «k»]
+lone-surrogate-name               1      0     0 | 100      | dev        [figram: не удалось прочитать документ: непарный суррогат в \u]
+annotation-exp-1001               1      0     0 | 100      | dev      Python: inf  [figram: не удалось прочитать документ: показатель степени по модулю больше 1000]
+annotation-depth-300              1      0     0 | 100      | dev        [figram: не удалось прочитать документ: вложенность больше 256]
+
+snapshot id                  schema engine | expected | class   reply
+at                                1      1 | 11       | agree   {"id":0,"snapshot":{"at":"home"},"actions":[]}  
+seq-1.0                           1      1 | 11       | agree   {"id":1,"snapshot":{"at":"home","seq":1},"actions":[]}  
+seq-1e0                           1      1 | 11       | agree   {"id":2,"snapshot":{"at":"home","seq":1},"actions":[]}  
+seq-10e-1                         1      1 | 11       | agree   {"id":3,"snapshot":{"at":"home","seq":1},"actions":[]}  
+seq-neg-zero                      1      1 | 11       | agree   {"id":4,"snapshot":{"at":"home"},"actions":[]}  
+seq-neg-zero-frac                 1      1 | 11       | agree   {"id":5,"snapshot":{"at":"home"},"actions":[]}  
+seq-1.5                           0      0 | 00       | agree   {"id":6,"error":"снимок: «seq» должно быть неотрицательным целым"}  
+seq-max.0                         1      1 | 11       | agree   {"id":7,"snapshot":{"at":"home","seq":9007199254740991},"actions":[]}  
+seq-max-1-half                    1      0 | 10       | prec    {"id":8,"error":"снимок: «seq» должно быть неотрицательным целым"}  
+seq-1e-400                        1      0 | 10       | prec    {"id":9,"error":"снимок: «seq» должно быть неотрицательным целым"}  
+seq-bool                          0      0 | 00       | agree   {"id":10,"error":"снимок: «seq» должно быть числом"}  
+seq-null                          0      0 | 00       | agree   {"id":11,"error":"снимок: «seq» должно быть числом"}  
+v-1                               1      1 | 11       | agree   {"id":12,"snapshot":{"at":"home"},"actions":[]}  
+v-1.0                             1      1 | 11       | agree   {"id":13,"snapshot":{"at":"home"},"actions":[]}  
+v-1e0                             1      1 | 11       | agree   {"id":14,"snapshot":{"at":"home"},"actions":[]}  
+v-true                            0      0 | 00       | agree   {"id":15,"error":"снимок: «v» должно быть числом"}  
+v-0                               0      0 | 00       | agree   {"id":16,"error":"снимок: неизвестная версия"}  
+v-neg-zero                        0      0 | 00       | agree   {"id":17,"error":"снимок: неизвестная версия"}  
+v-null                            0      0 | 00       | agree   {"id":18,"error":"снимок: «v» должно быть числом"}  
+v-str                             0      0 | 00       | agree   {"id":19,"error":"снимок: «v» должно быть числом"}  
+v-1+1e-16                         1      0 | 10       | prec    {"id":20,"error":"снимок: «v» должно быть неотрицательным целым"}  
+token-1.0                         1      1 | 11       | agree   {"id":21,"snapshot":{"at":"home","timers":{"idle":1}},"actions":[]}  
+resume-unknown-sec                1      1 | 11       | agree   {"id":22,"snapshot":{"at":"home","resume":{"nope":"nope"}},"actions":[]}  kept as is
+at-unknown                        1      1 | 11       | agree   {"id":23,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"tok  recovered
+dup-at                            1      0 | 10       | dev     {"id":null,"error":"повторяющийся ключ «at»"}  Python last wins; engine: parse error id:null (ET-07)
+at-lone-surrogate                 1      0 | 10       | dev     {"id":null,"error":"непарный суррогат в \\u"}  
+unknown-field                     0      0 | 00       | agree   {"id":26,"error":"снимок: неизвестное поле «x-ui» (снимок более новой версии?)"}  strict snapshot
+
+rows=103 (docs 76, snapshots 27) classes={'agree': 45, 'prec': 3, 'struct': 11, 'V': 9, 'footgun': 3, 'dev': 5, 'snap-agree': 22, 'snap-prec': 3, 'snap-dev': 2} mismatches-vs-expected=0 break=None
+--- stderr (0 bytes, last 100 lines)

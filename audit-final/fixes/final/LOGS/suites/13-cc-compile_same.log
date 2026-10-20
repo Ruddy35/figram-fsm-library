@@ -1,0 +1,8 @@
+command: python3 -B compile_same.py --old-figram /home/user/figram-audit/fixes/core/base-bin/figram --old-engine /home/user/figram-audit/fixes/core/base-bin/figram-engine --new-figram /home/user/figram-audit-worktrees/fix-final/.lake/build/bin/figram --new-engine /home/user/figram-audit-worktrees/fix-final/.lake/build/bin/figram-engine --docs 60 
+cwd: /home/user/figram-audit-worktrees/fix-final/audit/core-compiler
+start: 2026-10-20T04:40:48.455Z
+end: 2026-10-20T04:40:53.023Z
+exit_code: 0
+--- stdout (52 bytes, last 200 lines)
+documents 62, mutants compared 34374, differences 0
+--- stderr (0 bytes, last 100 lines)

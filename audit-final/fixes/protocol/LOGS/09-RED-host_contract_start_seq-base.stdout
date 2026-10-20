@@ -1,0 +1,6 @@
+§4 lost-snapshot procedure: restart with placeholder snapshot {"at": "-", "seq": 0}
+   life1 keys 10, life2 keys 10, colliding 0; irreversible calls deduplicated away: []
+§4 lost-snapshot procedure: start with the high-water seq
+   life1 keys 10, life2 keys 10, colliding 10; irreversible calls deduplicated away: [('u:5:0', {'call': 'save_address'}), ('u:6:0', {'call': 'create_order'})]
+FAIL: §4 procedure 'start with the high-water seq' reuses 10 idempotency keys (incl. ['u:5:0', 'u:6:0'])
+1 failure(s)

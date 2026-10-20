@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh full build-warning 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:14:20.186Z
+end: 2026-10-20T05:14:25.220Z
+exit_code: 0
+--- stdout (274 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+build-warning        1      1        ok НЕТ: предупреждения сборки
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

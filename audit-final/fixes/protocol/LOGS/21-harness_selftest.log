@@ -1,0 +1,45 @@
+command: nice -n 10 timeout 1800 python3 ffi/python-example/harness_selftest.py /home/user/figram-audit-worktrees/fix-protocol/.lake/build/bin/figram-engine examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza.jsonl /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/fix-protocol
+start: 2026-10-20T02:45:33.614Z
+end: 2026-10-20T02:46:54.410Z
+exit_code: 0
+--- stdout (3996 bytes, last 200 lines)
+ok  conformance, порча «снимок»: код выхода 1, распознана True (1.3 с)
+ok  loadtest, порча «снимок»: код выхода 1, распознана True (1.5 с)
+ok  snapshot_fixtures, порча «снимок»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «id»: код выхода 1, распознана True (1.2 с)
+ok  loadtest, порча «id»: код выхода 1, распознана True (0.2 с)
+ok  snapshot_fixtures, порча «id»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «id сдвинут»: код выхода 1, распознана True (0.9 с)
+ok  loadtest, порча «id сдвинут»: код выхода 1, распознана True (0.2 с)
+ok  snapshot_fixtures, порча «id сдвинут»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «не JSON»: код выхода 1, распознана True (0.9 с)
+ok  loadtest, порча «не JSON»: код выхода 1, распознана True (0.1 с)
+ok  snapshot_fixtures, порча «не JSON»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «seq = true»: код выхода 1, распознана True (1.0 с)
+ok  loadtest, порча «seq = true»: код выхода 1, распознана True (0.1 с)
+ok  snapshot_fixtures, порча «seq = true»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «жетон = true»: код выхода 1, распознана True (0.9 с)
+ok  loadtest, порча «жетон = true»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «need + error»: код выхода 1, распознана True (1.0 с)
+ok  loadtest, порча «need + error»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «need + snapshot»: код выхода 1, распознана True (1.0 с)
+ok  loadtest, порча «need + snapshot»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «результат + error»: код выхода 1, распознана True (1.0 с)
+ok  loadtest, порча «результат + error»: код выхода 1, распознана True (0.2 с)
+ok  snapshot_fixtures, порча «результат + error»: код выхода 1, распознана True (0.2 с)
+ok  snapshot_fixtures, порча «error без code»: код выхода 1, распознана True (0.2 с)
+ok  snapshot_fixtures, порча «неизвестный code»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «пропуск ответа»: код выхода 1, распознана True (1.1 с)
+ok  snapshot_fixtures, порча «пропуск ответа»: код выхода 1, распознана True (0.2 с)
+ok  conformance, порча «дубль ответа»: код выхода 1, распознана True (0.9 с)
+ok  snapshot_fixtures, порча «дубль ответа»: код выхода 1, распознана True (0.2 с)
+ok  mutation, движок без мутаций: код выхода 1
+ok  conformance, зависший движок: код 1, прерван по сроку True, 2.2 с, живых процессов 0
+ok  snapshot_fixtures, зависший движок: код 1, прерван по сроку True, 2.2 с, живых процессов 0
+ok  conformance, настоящий движок: код выхода 0 (0.6 с)
+ok  loadtest, настоящий движок: код выхода 0 (1.3 с)
+ok  snapshot_fixtures, настоящий движок: код выхода 0 (0.2 с)
+ok  mutation, настоящий движок на полном корпусе: код выхода 0 (57.9 с)
+обвязка ловит порчу
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 prlimit --as=8000000000 -- /usr/bin/python3 -I /home/user/figram-audit-worktrees/fix-final/audit/host-python/runner.py /home/user/figram-audit/hosts/shared/corpus/booking-1.jsonl --out /home/user/figram-audit/fixes/final/hosts/out/python/booking-1.json --engine /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped --bots /home/user/figram-audit/hosts/shared/bots 
+cwd: /home/user/figram-audit-worktrees/fix-final/audit/host-python
+start: 2026-10-20T04:50:25.808Z
+end: 2026-10-20T04:50:28.190Z
+exit_code: 0
+--- stdout (1067 bytes, last 200 lines)
+{"scenario": "booking-1", "broken": null, "elapsed_s": 1.32, "fails": [], "counts": {"users": 18, "transitions": 116, "steps_logged": 116, "updates_acked": 157, "updates_abandoned": 0, "acks_by_status": {"ok": 114, "dup": 21, "ignored": 22}, "nacks": 0, "crashes": 4, "host_restarts": 5, "recovered": 0, "repairs": 0, "resets": 0, "rejected": 0, "outbox_rows": 227, "outbox_retried": 2, "crm_effects": 16, "crm_requests_by_outcome": {"500": 2, "applied": 16, "dedup": 3}, "tg_deliveries": 116, "tg_duplicate_keys": 0, "ext_fault_modes_seen": {"500": 2, "timeout": 2}, "timers_by_state": {"canceled": 24, "fired": 1}, "engine_retries": 0, "upgrades": 0, "orphaned_timers": 0, "idempotency_key_conflicts_at_crm": 0, "ext_reordered_batches": 0}, "latency": {"host_update_ms": {"n": 157, "p50": 4.428, "p95": 35.633, "p99": 55.083, "max": 81.915}, "host_step_ms": {"n": 157, "p50": 3.436, "p95": 31.892, "p99": 55.057, "max": 81.893}, "e2e_ms": {"n": 157, "p50": 5.47, "p95": 36.776, "p99": 58.342, "max": 82.596}, "elapsed_s": 1.316, "throughput_updates_per_s": 119.3}}
+--- stderr (0 bytes, last 100 lines)

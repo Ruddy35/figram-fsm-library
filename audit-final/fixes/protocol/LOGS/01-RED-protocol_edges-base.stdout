@@ -1,0 +1,74 @@
+НЕТ restart на границе: seq_overflow без снимка, код seq_overflow: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":2,"error":"seq_overflow"}
+НЕТ step на границе: seq_overflow без снимка, код seq_overflow: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":3,"error":"seq_overflow"}
+НЕТ не-булево значение условия — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":7,"error":"условие «is_vip»: ожидалось true или false"}
+НЕТ «guards» не объект — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":8,"error":"«guards» должен быть объектом"}
+НЕТ событие таймера без жетона — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":9,"error":"для события таймера нужно поле «token»"}
+НЕТ жетон 2^53 — bad_request: {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'seq': 5}, 'actions': []} ≠ ожидалось ('error', 'bad_request')
+НЕТ жетон 2^64 — bad_request: {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'seq': 5}, 'actions': []} ≠ ожидалось ('error', 'bad_request')
+НЕТ жетон −1 — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":17,"error":"«token» должен быть неотрицательным целым"}
+НЕТ жетон 1.5 — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":18,"error":"«token» должен быть неотрицательным целым"}
+НЕТ жетон-строка — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":19,"error":"для события таймера нужно поле «token»"}
+НЕТ жетон true — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":20,"error":"для события таймера нужно поле «token»"}
+НЕТ жетон null — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":21,"error":"для события таймера нужно поле «token»"}
+НЕТ жетон у обычного события — bad_request: {'snapshot': {'at': 'item2', 'resume': {'shop': 'item2'}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'send': 'item2'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ пустое событие — bad_request: {'snapshot': {'at': 'home'}, 'actions': []} ≠ ожидалось ('error', 'bad_request')
+НЕТ «timer:» без имени таймера — bad_request: {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'seq': 5}, 'actions': []} ≠ ожидалось ('error', 'bad_request')
+НЕТ событие-число — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":25,"error":"нужно поле «event»"}
+НЕТ событие null — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":26,"error":"нужно поле «event»"}
+НЕТ нет события — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":27,"error":"нужно поле «event»"}
+НЕТ hello с лишним полем — bad_request: {'protocol': 1, 'states': 8} ≠ ожидалось ('error', 'bad_request')
+НЕТ start со снимком — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ start с условиями — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ restart с событием — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ опечатка «gaurds» — bad_request, а не вечный need: {'need': ['is_vip']} ≠ ожидалось ('error', 'bad_request')
+НЕТ поле «Token» (регистр) — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":34,"error":"для события таймера нужно поле «token»"}
+НЕТ неизвестная операция — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":35,"error":"неизвестная операция «op»"}
+НЕТ нет операции — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":36,"error":"неизвестная операция «op»"}
+НЕТ операция-число — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":37,"error":"неизвестная операция «op»"}
+НЕТ недопустимый снимок шага — bad_snapshot: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":38,"error":"снимок: «at» — пустая строка"}
+НЕТ снимок null — bad_snapshot: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":39,"error":"снимок должен быть объектом"}
+НЕТ снимок более новой версии в restart — bad_snapshot: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":40,"error":"снимок: неизвестная версия"}
+НЕТ нет снимка у шага — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":41,"error":"нужно поле «snapshot»"}
+НЕТ нет снимка у restart — bad_request: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":42,"error":"нужно поле «snapshot»"}
+НЕТ start с seq 41: первый переход получает seq 42: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось {'snapshot': {'at': 'home', 'timers': {'idle': 42}, 'seq': 42}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 42}, {'send': 'home'}]}
+НЕТ start с seq 2^53−2: seq 2^53−1: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось {'snapshot': {'at': 'home', 'timers': {'idle': 9007199254740991}, 'seq': 9007199254740991}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 9007199254740991}, {'send': 'home'}]}
+НЕТ start с seq 2^53−1 — seq_overflow: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось {'error': 'seq_overflow', 'code': 'seq_overflow'}
+НЕТ start с seq 2^53 — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ start с seq −1 — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ start с seq 1.5 — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ start с seq-строкой — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось ('error', 'bad_request')
+НЕТ start с seq 7.0 — то же целое 7: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ ожидалось {'snapshot': {'at': 'home', 'timers': {'idle': 8}, 'seq': 8}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 8}, {'send': 'home'}]}
+НЕТ ошибка разбора (текст после JSON): эхо id: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"лишний текст после JSON"}
+НЕТ повтор ключа в снимке: эхо id: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"повторяющийся ключ «at»"}
+НЕТ вложенность больше 256: эхо id: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"вложенность больше 256"}
+НЕТ показатель больше 1000: эхо id: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"показатель степени по модулю больше 1000"}
+НЕТ не JSON: id null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «h»"}
+НЕТ эхо строкового id после пробелов: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный конец текста"}
+НЕТ эхо id true: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «}»"}
+НЕТ эхо id null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «}»"}
+НЕТ эхо id по значению: -0 → 0: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «}»"}
+НЕТ эхо id по значению: 1.5e3: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «}»"}
+НЕТ id-объект при ошибке разбора: null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «}»"}
+НЕТ после id нет «,» или «}»: null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"ожидалась «,» или «}»"}
+НЕТ id не первым полем: null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"ожидалась «,» или «}»"}
+НЕТ невалидный UTF-8 в событии: parse_error, эхо id: ответ нарушает протокол: ответ-ошибка: поля ['actions', 'id', 'snapshot']: {"id":104,"snapshot":{"at":"home"},"actions":[]}
+НЕТ невалидный UTF-8 в самом id: null: ответ нарушает протокол: ответ-ошибка: поля ['id', 'protocol', 'states']: {"id":"�","protocol":1,"states":8}
+НЕТ CESU-суррогат: parse_error: ответ нарушает протокол: ответ-ошибка: поля ['id', 'protocol', 'states']: {"id":105,"protocol":1,"states":8}
+НЕТ overlong-запись «/»: parse_error: ответ нарушает протокол: ответ-ошибка: поля ['id', 'protocol', 'states']: {"id":106,"protocol":1,"states":8}
+НЕТ код больше U+10FFFF: parse_error: ответ нарушает протокол: ответ-ошибка: поля ['id', 'protocol', 'states']: {"id":107,"protocol":1,"states":8}
+НЕТ оборванная последовательность UTF-8: parse_error: ответ нарушает протокол: ответ-ошибка: поля ['id', 'protocol', 'states']: {"id":108,"protocol":1,"states":8}
+НЕТ BOM перед запросом: parse_error, id null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неожиданный символ «﻿»"}
+НЕТ запрос не объект: bad_request, id null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"запрос должен быть объектом"}
+НЕТ 1 МиБ + 1 байт — too_large, эхо id: ответ нарушает протокол: ответ-ошибка: поля ['id', 'protocol', 'states']: {"id":116,"protocol":1,"states":8}
+НЕТ слишком большой запрос без id в начале — too_large, null: ответ нарушает протокол: ответ-ошибка: поля ['error', 'id']: {"id":null,"error":"неизвестная операция «op»"}
+НЕТ --max-request 64: ответов 0, ожидалось 4, код 2: usage: figram-engine <bot.json> | --mutants <bot.json> | --mutate <мутация> <bot.json>
+
+НЕТ --max-request 0: ответов 0, ожидалось 1, код 2: usage: figram-engine <bot.json> | --mutants <bot.json> | --mutate <мутация> <bot.json>
+
+НЕТ --mutants без FIGRAM_ALLOW_MUTANTS — отказ: код 0, stdout b'drop-call:charge\ndrop-call:notify\nredirect:0\nredirect:1\nredirect:2\nredirect:3\nredirect:4\nredirect:5\nredirect:6\nredirect:', stderr b''
+НЕТ --mutants при FIGRAM_ALLOW_MUTANTS=0 — отказ: код 0, stdout b'drop-call:charge\ndrop-call:notify\nredirect:0\nredirect:1\nredirect:2\nredirect:3\nredirect:4\nredirect:5\nredirect:6\nredirect:', stderr b''
+НЕТ --mutate без FIGRAM_ALLOW_MUTANTS — отказ, ответа нет: код 0, stdout b'{"id":1,"protocol":1,"states":8}\n', stderr b''
+НЕТ --mutate: hello сообщает мутацию, предупреждение в stderr: код 0, stdout b'{"id":1,"protocol":1,"states":8}\n', stderr b''
+НЕТ --mutate redirect:999 (нет в списке мутаций) — отказ: код 0, stdout b'{"id":1,"protocol":1,"states":8}\n', stderr b''
+НЕТ --max-request 100 перед документом — работает: код 2, stdout b'', stderr b'usage: figram-engine <bot.json> | --mutants <bot.json> | --mutate <\xd0\xbc\xd1\x83\xd1\x82\xd0\xb0\xd1\x86\xd0\xb8\xd1\x8f> <bot.json>\n'
+граничных случаев протокола 105, ответов 100, расхождений 71

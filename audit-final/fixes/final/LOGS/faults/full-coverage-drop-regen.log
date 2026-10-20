@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh full coverage-drop-regen 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:24:39.784Z
+end: 2026-10-20T05:25:02.831Z
+exit_code: 0
+--- stdout (379 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+coverage-drop-regen  1      1        ok НЕТ: покрытие pizza: «покрыто вариантов стрелок: 19 из 42» не удовлетворяет g[1] > 0 and g[0] == g[1]
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

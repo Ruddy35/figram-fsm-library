@@ -1,0 +1,1558 @@
+{
+ "host": "python",
+ "scenario": "reminders",
+ "seed": 1,
+ "broken": "memory-timers",
+ "bot": "reminders",
+ "users": {
+  "r01": {
+   "snapshot": {
+    "at": "waiting",
+    "timers": {
+     "nag": 2,
+     "remind": 2
+    },
+    "seq": 2
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1012",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1019",
+     "event": "btn:set",
+     "arg": "call mom",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r02": {
+   "snapshot": {
+    "at": "idle",
+    "seq": 7
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1002",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1016",
+     "event": "btn:set",
+     "arg": "",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1028",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "idle",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1030",
+     "event": "btn:set",
+     "arg": "again r02",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "waiting",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 4
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 4
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1031",
+     "event": "btn:snooze",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "waiting",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 5
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 5
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:remind:5",
+     "event": "timer:remind",
+     "arg": null,
+     "token": 5,
+     "kind": "step",
+     "seq": 6,
+     "at": "ringing",
+     "t_ms": 210000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "call": "log_ping"
+      },
+      {
+       "start_timer": "autoclose",
+       "ms": 30000,
+       "token": 6
+      },
+      {
+       "send": "ringing"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:autoclose:6",
+     "event": "timer:autoclose",
+     "arg": null,
+     "token": 6,
+     "kind": "step",
+     "seq": 7,
+     "at": "idle",
+     "t_ms": 240000,
+     "actions": [
+      {
+       "cancel_timer": "autoclose"
+      },
+      {
+       "call": "notify_owner"
+      },
+      {
+       "call": "clear_reminder"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r03": {
+   "snapshot": {
+    "at": "idle",
+    "seq": 3
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1006",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1007",
+     "event": "btn:set",
+     "arg": "!pay rent",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:nag:2",
+     "event": "timer:nag",
+     "arg": null,
+     "token": 2,
+     "kind": "step",
+     "seq": 3,
+     "at": "idle",
+     "t_ms": 45000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "call": "notify_owner"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r04": {
+   "snapshot": {
+    "at": "waiting",
+    "timers": {
+     "nag": 3,
+     "remind": 3
+    },
+    "seq": 3
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1013",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1014",
+     "event": "btn:set",
+     "arg": "water plants",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1022",
+     "event": "btn:snooze",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "waiting",
+     "t_ms": 30000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 3
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 3
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r05": {
+   "snapshot": {
+    "at": "idle",
+    "seq": 3
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1001",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1017",
+     "event": "btn:set",
+     "arg": "gym",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1021",
+     "event": "btn:cancel",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "idle",
+     "t_ms": 30000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "call": "clear_reminder"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r06": {
+   "snapshot": {
+    "at": "waiting",
+    "timers": {
+     "nag": 3,
+     "remind": 3
+    },
+    "seq": 3
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1008",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1020",
+     "event": "btn:set",
+     "arg": "stretch",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1024",
+     "event": "btn:snooze",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "waiting",
+     "t_ms": 60000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 3
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 3
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r07": {
+   "snapshot": {
+    "at": "idle",
+    "seq": 7
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1009",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1010",
+     "event": "btn:set",
+     "arg": "meds",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1026",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "idle",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1027",
+     "event": "btn:set",
+     "arg": "again r07",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "waiting",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 4
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 4
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1029",
+     "event": "btn:snooze",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "waiting",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 5
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 5
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:remind:5",
+     "event": "timer:remind",
+     "arg": null,
+     "token": 5,
+     "kind": "step",
+     "seq": 6,
+     "at": "ringing",
+     "t_ms": 210000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "call": "log_ping"
+      },
+      {
+       "start_timer": "autoclose",
+       "ms": 30000,
+       "token": 6
+      },
+      {
+       "send": "ringing"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:autoclose:6",
+     "event": "timer:autoclose",
+     "arg": null,
+     "token": 6,
+     "kind": "step",
+     "seq": 7,
+     "at": "idle",
+     "t_ms": 240000,
+     "actions": [
+      {
+       "cancel_timer": "autoclose"
+      },
+      {
+       "call": "notify_owner"
+      },
+      {
+       "call": "clear_reminder"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r08": {
+   "snapshot": {
+    "at": "idle",
+    "seq": 7
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1004",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1005",
+     "event": "btn:set",
+     "arg": "standup",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1032",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 3,
+     "at": "idle",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1033",
+     "event": "btn:set",
+     "arg": "again r08",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "waiting",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 4
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 4
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1034",
+     "event": "btn:snooze",
+     "arg": null,
+     "token": null,
+     "kind": "step",
+     "seq": 5,
+     "at": "waiting",
+     "t_ms": 150000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 5
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 5
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:remind:5",
+     "event": "timer:remind",
+     "arg": null,
+     "token": 5,
+     "kind": "step",
+     "seq": 6,
+     "at": "ringing",
+     "t_ms": 210000,
+     "actions": [
+      {
+       "cancel_timer": "remind"
+      },
+      {
+       "cancel_timer": "nag"
+      },
+      {
+       "call": "log_ping"
+      },
+      {
+       "start_timer": "autoclose",
+       "ms": 30000,
+       "token": 6
+      },
+      {
+       "send": "ringing"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "timer:autoclose:6",
+     "event": "timer:autoclose",
+     "arg": null,
+     "token": 6,
+     "kind": "step",
+     "seq": 7,
+     "at": "idle",
+     "t_ms": 240000,
+     "actions": [
+      {
+       "cancel_timer": "autoclose"
+      },
+      {
+       "call": "notify_owner"
+      },
+      {
+       "call": "clear_reminder"
+      },
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r09": {
+   "snapshot": {
+    "at": "waiting",
+    "timers": {
+     "nag": 4,
+     "remind": 4
+    },
+    "seq": 4
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1015",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1018",
+     "event": "btn:set",
+     "arg": "!deploy",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "reset:30",
+     "event": "reset",
+     "arg": null,
+     "token": null,
+     "kind": "reset",
+     "seq": 3,
+     "at": "idle",
+     "t_ms": 30000,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1023",
+     "event": "btn:set",
+     "arg": "!deploy v2",
+     "token": null,
+     "kind": "step",
+     "seq": 4,
+     "at": "waiting",
+     "t_ms": 30000,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 4
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 4
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  },
+  "r10": {
+   "snapshot": {
+    "at": "waiting",
+    "timers": {
+     "nag": 2,
+     "remind": 2
+    },
+    "seq": 2
+   },
+   "doc": "reminders",
+   "transitions": [
+    {
+     "update_id": "tg:1003",
+     "event": "cmd:start",
+     "arg": null,
+     "token": null,
+     "kind": "start",
+     "seq": 1,
+     "at": "idle",
+     "t_ms": 0,
+     "actions": [
+      {
+       "send": "idle"
+      }
+     ],
+     "recovered": false
+    },
+    {
+     "update_id": "tg:1011",
+     "event": "btn:set",
+     "arg": "lunch",
+     "token": null,
+     "kind": "step",
+     "seq": 2,
+     "at": "waiting",
+     "t_ms": 0,
+     "actions": [
+      {
+       "call": "save_reminder"
+      },
+      {
+       "start_timer": "remind",
+       "ms": 60000,
+       "token": 2
+      },
+      {
+       "start_timer": "nag",
+       "ms": 45000,
+       "token": 2
+      },
+      {
+       "send": "waiting"
+      }
+     ],
+     "recovered": false
+    }
+   ]
+  }
+ },
+ "effects": [
+  {
+   "key": "r01:1:0",
+   "user": "r01",
+   "send": "idle"
+  },
+  {
+   "key": "r01:2:3",
+   "user": "r01",
+   "send": "waiting"
+  },
+  {
+   "key": "r02:1:0",
+   "user": "r02",
+   "send": "idle"
+  },
+  {
+   "key": "r02:2:3",
+   "user": "r02",
+   "send": "waiting"
+  },
+  {
+   "key": "r02:3:2",
+   "user": "r02",
+   "send": "idle"
+  },
+  {
+   "key": "r02:4:3",
+   "user": "r02",
+   "send": "waiting"
+  },
+  {
+   "key": "r02:5:4",
+   "user": "r02",
+   "send": "waiting"
+  },
+  {
+   "key": "r02:6:4",
+   "user": "r02",
+   "send": "ringing"
+  },
+  {
+   "key": "r02:7:1",
+   "user": "r02",
+   "call": "notify"
+  },
+  {
+   "key": "r02:7:3",
+   "user": "r02",
+   "send": "idle"
+  },
+  {
+   "key": "r03:1:0",
+   "user": "r03",
+   "send": "idle"
+  },
+  {
+   "key": "r03:2:3",
+   "user": "r03",
+   "send": "waiting"
+  },
+  {
+   "key": "r03:3:2",
+   "user": "r03",
+   "call": "notify"
+  },
+  {
+   "key": "r03:3:3",
+   "user": "r03",
+   "send": "idle"
+  },
+  {
+   "key": "r04:1:0",
+   "user": "r04",
+   "send": "idle"
+  },
+  {
+   "key": "r04:2:3",
+   "user": "r04",
+   "send": "waiting"
+  },
+  {
+   "key": "r04:3:4",
+   "user": "r04",
+   "send": "waiting"
+  },
+  {
+   "key": "r05:1:0",
+   "user": "r05",
+   "send": "idle"
+  },
+  {
+   "key": "r05:2:3",
+   "user": "r05",
+   "send": "waiting"
+  },
+  {
+   "key": "r05:3:3",
+   "user": "r05",
+   "send": "idle"
+  },
+  {
+   "key": "r06:1:0",
+   "user": "r06",
+   "send": "idle"
+  },
+  {
+   "key": "r06:2:3",
+   "user": "r06",
+   "send": "waiting"
+  },
+  {
+   "key": "r06:3:4",
+   "user": "r06",
+   "send": "waiting"
+  },
+  {
+   "key": "r07:1:0",
+   "user": "r07",
+   "send": "idle"
+  },
+  {
+   "key": "r07:2:3",
+   "user": "r07",
+   "send": "waiting"
+  },
+  {
+   "key": "r07:3:2",
+   "user": "r07",
+   "send": "idle"
+  },
+  {
+   "key": "r07:4:3",
+   "user": "r07",
+   "send": "waiting"
+  },
+  {
+   "key": "r07:5:4",
+   "user": "r07",
+   "send": "waiting"
+  },
+  {
+   "key": "r07:6:4",
+   "user": "r07",
+   "send": "ringing"
+  },
+  {
+   "key": "r07:7:1",
+   "user": "r07",
+   "call": "notify"
+  },
+  {
+   "key": "r07:7:3",
+   "user": "r07",
+   "send": "idle"
+  },
+  {
+   "key": "r08:1:0",
+   "user": "r08",
+   "send": "idle"
+  },
+  {
+   "key": "r08:2:3",
+   "user": "r08",
+   "send": "waiting"
+  },
+  {
+   "key": "r08:3:2",
+   "user": "r08",
+   "send": "idle"
+  },
+  {
+   "key": "r08:4:3",
+   "user": "r08",
+   "send": "waiting"
+  },
+  {
+   "key": "r08:5:4",
+   "user": "r08",
+   "send": "waiting"
+  },
+  {
+   "key": "r08:6:4",
+   "user": "r08",
+   "send": "ringing"
+  },
+  {
+   "key": "r08:7:1",
+   "user": "r08",
+   "call": "notify"
+  },
+  {
+   "key": "r08:7:3",
+   "user": "r08",
+   "send": "idle"
+  },
+  {
+   "key": "r09:1:0",
+   "user": "r09",
+   "send": "idle"
+  },
+  {
+   "key": "r09:2:3",
+   "user": "r09",
+   "send": "waiting"
+  },
+  {
+   "key": "r09:3:0",
+   "user": "r09",
+   "send": "idle"
+  },
+  {
+   "key": "r09:4:3",
+   "user": "r09",
+   "send": "waiting"
+  },
+  {
+   "key": "r10:1:0",
+   "user": "r10",
+   "send": "idle"
+  },
+  {
+   "key": "r10:2:3",
+   "user": "r10",
+   "send": "waiting"
+  }
+ ],
+ "invariants": {
+  "idempotency_keys_unique_lifetime": "PASS",
+  "external_effect_once_per_intent": "PASS",
+  "actions_complete": "PASS",
+  "outbox_drained": "PASS",
+  "seq_plus_one": "PASS",
+  "all_updates_acked": "PASS",
+  "no_lost_ack": "PASS",
+  "stale_timer_no_effect": "PASS",
+  "timer_not_early": "PASS",
+  "guards_match_domain_model": "PASS",
+  "domain_model_consistent": "PASS",
+  "send_at_least_once": "PASS",
+  "send_duplicates_explained": "PASS",
+  "crashes_effective": "PASS",
+  "external_faults_effective": "PASS",
+  "restart_reproduces_state": "FAIL",
+  "equals_clean_run": "FAIL"
+ },
+ "invariant_failures": {
+  "restart_reproduces_state": [
+   "timers"
+  ],
+  "equals_clean_run": {
+   "users": [
+    "r01",
+    "r02",
+    "r04",
+    "r06",
+    "r07",
+    "r08",
+    "r09",
+    "r10"
+   ],
+   "first_diff": {
+    "user": "r01",
+    "index": 2,
+    "run": null,
+    "ref": [
+     "timer:remind",
+     null,
+     2,
+     "step",
+     3,
+     "ringing",
+     "[{\"cancel_timer\": \"remind\"}, {\"cancel_timer\": \"nag\"}, {\"call\": \"log_ping\"}, {\"start_timer\": \"autoclose\", \"ms\": 30000, \"token\": 3}, {\"send\": \"ringing\"}]",
+     false
+    ]
+   },
+   "effects_only_run": [
+    [
+     "r02:4:3",
+     "waiting"
+    ],
+    [
+     "r02:5:4",
+     "waiting"
+    ],
+    [
+     "r02:6:4",
+     "ringing"
+    ],
+    [
+     "r02:7:1",
+     "notify"
+    ],
+    [
+     "r02:7:3",
+     "idle"
+    ]
+   ],
+   "effects_only_ref": [
+    [
+     "r01:3:4",
+     "ringing"
+    ],
+    [
+     "r01:4:2",
+     "idle"
+    ],
+    [
+     "r02:4:0",
+     "idle"
+    ],
+    [
+     "r02:5:3",
+     "waiting"
+    ],
+    [
+     "r02:6:4",
+     "waiting"
+    ]
+   ],
+   "domain_tables": [
+    "reminders",
+    "pings",
+    "notifications_local"
+   ]
+  }
+ },
+ "counts": {
+  "users": 10,
+  "transitions": 41,
+  "steps_logged": 50,
+  "updates_acked": 37,
+  "updates_abandoned": 0,
+  "acks_by_status": {
+   "ok": 33,
+   "dup": 3,
+   "ignored": 1
+  },
+  "nacks": 0,
+  "crashes": 1,
+  "host_restarts": 2,
+  "recovered": 0,
+  "repairs": 0,
+  "resets": 1,
+  "rejected": 0,
+  "outbox_rows": 136,
+  "outbox_retried": 2,
+  "crm_effects": 4,
+  "crm_requests_by_outcome": {
+   "applied": 4,
+   "500": 2
+  },
+  "tg_deliveries": 41,
+  "tg_duplicate_keys": 0,
+  "ext_fault_modes_seen": {
+   "500": 2
+  },
+  "timers_by_state": {
+   "lost": 22,
+   "fired": 16,
+   "canceled": 3
+  },
+  "engine_retries": 0,
+  "upgrades": 0,
+  "orphaned_timers": 0,
+  "idempotency_key_conflicts_at_crm": 0,
+  "ext_reordered_batches": 0
+ },
+ "latency": {
+  "host_update_ms": {
+   "n": 37,
+   "p50": 9.752,
+   "p95": 40.245,
+   "p99": 45.534,
+   "max": 57.929
+  },
+  "host_step_ms": {
+   "n": 37,
+   "p50": 8.991,
+   "p95": 40.212,
+   "p99": 45.513,
+   "max": 57.909
+  },
+  "e2e_ms": {
+   "n": 37,
+   "p50": 10.183,
+   "p95": 41.537,
+   "p99": 47.288,
+   "max": 61.214
+  },
+  "elapsed_s": 0.773,
+  "throughput_updates_per_s": 47.9
+ },
+ "faults_injected": [
+  {
+   "line": 27,
+   "fault": "crash",
+   "at": "before_commit",
+   "on": "timer:remind"
+  },
+  {
+   "line": 38,
+   "fault": "external",
+   "target": "crm",
+   "mode": "500",
+   "count": 2
+  }
+ ],
+ "config": {
+  "workers": 8,
+  "engines": 2,
+  "executors": 4,
+  "window": 32,
+  "sync": "FULL",
+  "engine": "/home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped"
+ }
+}

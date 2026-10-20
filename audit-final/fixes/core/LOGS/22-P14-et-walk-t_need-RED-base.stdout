@@ -1,0 +1,6 @@
+{"doc": "docs/t_need.bot.json", "mutate": null, "seed": 1, "replies": 1246, "coverage_targets": 19, "checks": 9769, "per_invariant": {"I1": 1931, "I10": 106, "I11": 175, "I12": 31, "I2": 1756, "I3": 791, "I4": 1084, "I5": 332, "I6": 332, "I7": 752, "I8": 90, "I9": 2389}, "violations": 116}
+  I9: cover target=c/btn:go/-1 i=0: unexpected need {'id': 23, 'need': ['expensive']} ev=btn:go tok=None
+  I9: cover target=c/btn:go/-1 i=0: still no result {'id': 23, 'need': ['expensive']}
+  I9: cover target=c/cmd:start/0 i=0: unexpected need {'id': 29, 'need': ['expensive']} ev=btn:go tok=None
+  I9: cover target=c/cmd:start/0 i=0: still no result {'id': 29, 'need': ['expensive']}
+  I9: cover target=m2/btn:pick/0 i=1: ev=btn:pick tok=None guards={} reply={'id': 39, 'need': ['g1', 'g2']} expected need ['g1']

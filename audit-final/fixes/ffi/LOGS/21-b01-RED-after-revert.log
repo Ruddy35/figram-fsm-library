@@ -1,0 +1,22 @@
+command: bash ffi/audit/b01_build.sh 
+cwd: /home/user/figram-audit-worktrees/fix-ffi
+start: 2026-10-20T02:11:27.477Z
+end: 2026-10-20T02:11:28.942Z
+exit_code: 1
+--- stdout (1186 bytes, last 200 lines)
+FAIL ffi/build.sh rc≠0:
+    cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+    cp: cannot stat '/home/user/leanprover/lean4/build/release/stage1/lib/libc++.a': No such file or directory
+    cp: cannot stat '/home/user/leanprover/lean4/build/release/stage1/lib/libc++abi.a': No such file or directory
+    cp: cannot stat '/home/user/leanprover/lean4/build/release/stage1/lib/libuv.a': No such file or directory
+    cp: cannot stat '/home/user/leanprover/lean4/build/release/stage1/lib/libgmp.a': No such file or directory
+FAIL ffi/out/LDFLAGS отсутствует или пуст
+FAIL ffi/out/LDFLAGS.runtime отсутствует или пуст
+ok   архив libInit.a: 653 объектов
+ok   архив libleanrt.a: 35 объектов
+FAIL go build без CGO_LDFLAGS не собирается
+    /usr/bin/ld: cannot find -lc++: No such file or directory
+    /usr/bin/ld: cannot find -lc++abi: No such file or directory
+    collect2: error: ld returned 1 exit status
+ok   ffi/figram_ffi.c компилируется без системных заголовков (как leanc официального релиза)
+--- stderr (0 bytes, last 100 lines)

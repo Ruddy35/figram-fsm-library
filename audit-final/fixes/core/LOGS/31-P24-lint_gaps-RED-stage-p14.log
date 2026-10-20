@@ -1,0 +1,15 @@
+command: python3 -B lint_gaps.py --figram /home/user/figram-audit/fixes/core/stage-p14/figram --engine /home/user/figram-audit/fixes/core/stage-p14/figram-engine 
+cwd: /home/user/figram-audit-worktrees/fix-core/audit/core-compiler
+start: 2026-10-20T02:45:38.756Z
+end: 2026-10-20T02:45:38.938Z
+exit_code: 1
+--- stdout (1269 bytes, last 200 lines)
+{"case": "timer_arrow_on_non_owner", "figram_check": [0, "ok", []], "engine_evidence": {"start_timers": {}, "fire_on_a": [], "fire_with_foreign_entry": "a"}, "as_documented": false}
+{"case": "same_timer_two_messages", "figram_check": [0, "ok", []], "engine_evidence": {"a->b": [{"cancel_timer": "t"}, {"start_timer": "t", "ms": 2, "token": 2}, {"send": "b"}], "old_token": [], "new_token_at": "a"}, "as_documented": true}
+{"case": "resume_only_from_inside", "figram_check": [0, "ok", []], "engine_evidence": {"at_before": "y", "back_goes_to": "y", "actions": [{"send": "y"}]}, "as_documented": false}
+{"case": "variant_after_unconditional", "figram_check": [0, "ok", []], "engine_evidence": {"targets_reached_for_all_c1": ["b"]}, "as_documented": false}
+{"case": "duplicate_guard_in_arrow", "figram_check": [0, "ok", []], "engine_evidence": {"targets_reached_for_all_c1": ["a", "b"]}, "as_documented": false}
+{"case": "need_for_shadowed_section_guard", "figram_check": [0, "ok", []], "engine_evidence": {"engine_reply": {"id": 3, "snapshot": {"at": "b", "seq": 2}, "actions": [{"send": "b"}]}}, "as_documented": true}
+{"case": "unreachable_message", "figram_check": [0, "ok", []], "engine_evidence": {"states": 2}, "as_documented": false}
+cases: 7 as documented: False
+--- stderr (0 bytes, last 100 lines)

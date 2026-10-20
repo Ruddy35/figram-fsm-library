@@ -1,0 +1,8 @@
+command: timeout 600 python3 ffi/python-example/protocol_edges.py /home/user/figram-audit-worktrees/fix-protocol/.lake/build/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-protocol
+start: 2026-10-20T02:52:40.314Z
+end: 2026-10-20T02:52:41.431Z
+exit_code: 0
+--- stdout (103 bytes, last 200 lines)
+граничных случаев протокола 105, ответов 105, расхождений 0
+--- stderr (0 bytes, last 100 lines)

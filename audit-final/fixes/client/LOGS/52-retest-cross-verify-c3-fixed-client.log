@@ -1,0 +1,23 @@
+command: python3 xverify/c3_slow_load_client.py /home/user/figram-audit/fresh/figram-engine /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/c3/unique-800.bot.json 
+cwd: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/c3
+start: 2026-10-20T02:38:09.588Z
+end: 2026-10-20T02:40:39.914Z
+exit_code: 1
+--- stdout (957 bytes, last 200 lines)
+engine=/home/user/figram-audit/fresh/figram-engine
+doc=/tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/c3/unique-800.bot.json
+measured load+hello without client: 25.2s rc=0 b'{"id":1,"protocol":1,"states":800}\n'
+A: Engine(binary, doc) with default timeout=10.0; host retries start() 4 times
+  try 1: OK at=m0  (0.0s, engine pid 25725)
+  try 2: OK at=m0  (0.0s, engine pid 25725)
+  try 3: OK at=m0  (0.0s, engine pid 25725)
+  try 4: OK at=m0  (0.0s, engine pid 25725)
+B: CONTROL Engine(binary, doc, timeout=76)
+  try 1: OK at=m0  (0.0s, engine pid 29162)
+C: default timeout, host warms up 30s before the first call, then one process crash
+  first call after warm-up: OK at=m0  (0.0s, engine pid 29499)
+  after crash, try 1: OK at=m0  (23.6s, engine pid 31224)
+  after crash, try 2: OK at=m0  (0.0s, engine pid 31224)
+  after crash, try 3: OK at=m0  (0.0s, engine pid 31224)
+C3 NOT REPRODUCED / control red
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,15 @@
+command: python3 /home/user/figram-audit/fixes/client/mutate_client_v2.py ffi/python-example /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped examples/pizza.bot.json examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:51:54.301Z
+end: 2026-10-20T06:00:39.543Z
+exit_code: 0
+--- stdout (1823 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/fix-final/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped
+M07 нет замены неисправного процесса: убит: client_faults.py  client_faults.py=1 6.9с ['НЕТ замена неисправного процесса: процесс движка неисправен: внедрённый сбой']
+M08 EOF вывода не обнаруживается: убит: client_robustness.py  client_faults.py=0 11.2с []; client_contract.py=0 2.1с []; client_robustness.py=timeout 240.1с []
+M09 _fail не останавливает писателя (утечка потока): убит: client_robustness.py  client_faults.py=0 15.0с []; client_contract.py=0 5.1с []; client_robustness.py=1 175.2с ['НЕТ R2 300 из 300 циклов сбоя (цикл < 2.5 с): потоки Python 11→268, потоки ОС 11→268, fd 15→271, потомков после close 0', 'НЕТ R2 close() исправного пула из 2 процессов: 5.00 с (срок 5 с)']
+M10 писатель не закрывает stdin: убит: client_faults.py  client_faults.py=stderr 10.1с []
+M11 _fail не очищает таблицу ожидающих: убит: client_robustness.py  client_faults.py=0 7.0с []; client_contract.py=0 2.1с []; client_robustness.py=1 43.2с ['НЕТ R3 после сбоя: ожидающих 4, вызов неисправного процесса — ошибка за 0.00 с']
+M12 не проверяются значения guards: убит: client_contract.py  client_faults.py=0 7.0с []; client_contract.py=1 0.1с []
+выживших мутантов: 0 из 6
+--- stderr (0 bytes, last 100 lines)

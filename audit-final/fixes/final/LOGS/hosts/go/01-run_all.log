@@ -1,0 +1,22 @@
+command: bash scripts/run_all.sh /home/user/figram-audit/fixes/final/hosts/out/go 
+cwd: /home/user/figram-audit-worktrees/fix-final/audit/host-go
+start: 2026-10-20T04:56:42.951Z
+end: 2026-10-20T04:58:09.247Z
+exit_code: 0
+--- stdout (1259 bytes, last 200 lines)
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/order-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/order-2.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/booking-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/booking-2.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/support-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/reminders-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/reminders-2.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/migration-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/failures-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/failures-2.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/adversarial-1.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/load_u1-7.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/load_u10-7.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/load_u100-7.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/hosts/go/ok/load_u1000-7.log
+--- stderr (0 bytes, last 100 lines)

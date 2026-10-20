@@ -1,0 +1,18 @@
+
+== Происхождение прогона
+дата: 2026-10-20T04:18:43Z; ядер: 4
+коммит: df7dec3dd9b6817b56d8c59436034d01b266fea3; изменённых отслеживаемых файлов: 0
+verify.sh sha256: e116e5d4319dae006117309a71cc197b7b1b18a00ed2686d4c34a7238e90cbd9
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (46 jobs).
+✔ [21/46] Built Figram.Warnings (613ms)
+✔ [22/46] Built Figram.RandomDoc (935ms)
+✔ [23/46] Built Figram.Warnings:c.o (78ms)
+✔ [24/46] Built Figram.FormatIO (2.2s)
+✔ [25/46] Built Figram.RandomDoc:c.o (1.6s)
+✔ [26/46] Built Figram.Format:c.o (3.8s)
+НЕТ: предупреждения сборки

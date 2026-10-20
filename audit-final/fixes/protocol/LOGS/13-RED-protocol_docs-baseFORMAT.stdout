@@ -1,0 +1,28 @@
+НЕТ FORMAT §7 error table [] != ErrCode ['parse_error', 'too_large', 'bad_request', 'bad_snapshot', 'seq_overflow']
+НЕТ FORMAT §7: field `id` of `hello` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `op` of `hello` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `id` of `start` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `op` of `start` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `seq` of `start` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `id` of `restart` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `op` of `restart` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `snapshot` of `restart` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `id` of `step` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `op` of `step` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `snapshot` of `step` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `event` of `step` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `guards` of `step` not named in the strict-request paragraph
+НЕТ FORMAT §7: field `token` of `step` not named in the strict-request paragraph
+НЕТ FORMAT §7: default size limit not stated
+НЕТ FORMAT §7 does not document size limit option ('--max-request')
+НЕТ FORMAT §7 does not document mutant gating ('FIGRAM_ALLOW_MUTANTS=1')
+НЕТ FORMAT §7 does not document hello.mutant ('"mutant"')
+НЕТ FORMAT §7 does not document reply order (FIFO) ('строго в порядке запросов')
+НЕТ FORMAT §7 does not document id echo ('{"id":')
+НЕТ FORMAT §7 does not document invalid UTF-8 ('UTF-8')
+НЕТ FORMAT §7 does not document blank lines ('пропускается без ответа')
+НЕТ FORMAT §7 does not document start with seq ('"seq"?: N')
+НЕТ FORMAT §7 does not document high-water seq for start ('верхнюю отметку')
+НЕТ FORMAT §7 rule 3 still says «по той же версии снимка» (INT-08)
+НЕТ FORMAT §7 rule 3 does not use the HOST.md §1.3 condition (INT-08)
+protocol docs: codes 5, ops 4, failures 27

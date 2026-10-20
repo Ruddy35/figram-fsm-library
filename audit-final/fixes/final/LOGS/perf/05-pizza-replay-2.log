@@ -1,0 +1,8 @@
+command: bash /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/perf/replay.sh /home/user/figram-audit/fixes/final/bin-final/figram-engine examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/perf/reqs2.jsonl /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/perf/out2.jsonl 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T04:21:25.663Z
+end: 2026-10-20T04:21:27.055Z
+exit_code: 0
+--- stdout (392 bytes, last 200 lines)
+{"requests": 50000, "replies": 50000, "error_replies": 0, "hello_only": {"label": "hello-only", "rc": 0, "wall_s": 0.0087, "user_s": 0.0041, "sys_s": 0.0041, "maxrss_kb": 11528}, "replay": {"label": "replay", "rc": 0, "wall_s": 1.2263, "user_s": 1.1503, "sys_s": 0.0556, "maxrss_kb": 11696}, "wall_per_req_us": 24.35, "cpu_per_req_us": 23.95, "req_per_s_wall": 41064, "req_per_s_cpu": 41747}
+--- stderr (0 bytes, last 100 lines)

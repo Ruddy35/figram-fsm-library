@@ -1,0 +1,16 @@
+
+== Происхождение прогона
+дата: 2026-10-20T05:14:19Z; ядер: 4
+коммит: нет git-репозитория
+verify.sh sha256: 4fa3fbe014365ff7a92fdf484d73feade6a605da39cb6cfc5fcaf2b13ff45c46
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (46 jobs).
+
+== Приложенные бинарники bin/ собраны ровно из этих исходников
+figram-engine: FAILED
+sha256sum: WARNING: 1 computed checksum did NOT match
+НЕТ: bin/* не совпадают с bin/SHA256SUMS

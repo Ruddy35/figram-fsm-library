@@ -1,0 +1,18 @@
+command: timeout 1200 python3 tests/formats/f_parser_scaling.py --figram .lake/build/bin/figram --engine .lake/build/bin/figram-engine --check --json /home/user/figram-audit/fixes/protocol/LOGS/08-GREEN-parser_scaling.json --tmp /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tmp 
+cwd: /home/user/figram-audit-worktrees/fix-protocol
+start: 2026-10-20T02:26:02.065Z
+end: 2026-10-20T02:26:06.069Z
+exit_code: 0
+--- stdout (1419 bytes, last 200 lines)
+measurement floor (/bin/true): RSS 10.4 MiB
+     json: object 16k keys                0.22 MB     0.07 s  RSS     22.2 MiB ( 107.0×)  rc=0 reply=b'OK {"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"'
+     json: object 32k keys                0.46 MB     0.10 s  RSS     24.2 MiB (  55.5×)  rc=0 reply=b'OK {"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"'
+     json: integer 160k digits            0.16 MB     0.05 s  RSS     18.6 MiB ( 122.1×)  rc=0 reply=b'OK 1123456789012345678901234567890123456'
+     json: fraction 160k digits           0.16 MB     0.08 s  RSS     21.0 MiB ( 137.9×)  rc=0 reply=b'OK 0.12345678901234567890123456789012345'
+     json: string 5 MB                    5.00 MB     0.36 s  RSS     54.2 MiB (  11.4×)  rc=0 reply=b'OK "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+     json: string 20 MB                  20.00 MB     0.90 s  RSS    122.3 MiB (   6.4×)  rc=0 reply=b'OK "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+     engine: guards 32k keys              0.44 MB     0.06 s  RSS     20.3 MiB (  48.7×)  rc=0 reply=b'{"id":1,"snapshot":{"at":"home","timers"'
+     engine: id 160k digits (echo)        0.16 MB     0.07 s  RSS     18.8 MiB ( 122.9×)  rc=0 reply=b'{"id":1123456789012345678901234567890123'
+     engine: event 20 MB                 20.00 MB     1.58 s  RSS     70.0 MiB (   3.7×)  rc=0 reply=b'{"id":1,"snapshot":{"at":"home"},"action'
+inputs=9 over-budget=0 engine-options=['--max-request', '0']
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,34 @@
+command: nice -n 10 timeout 1800 bash audit/proofs/strict_gate.sh 
+cwd: /home/user/figram-audit-worktrees/fix-docs
+start: 2026-10-20T02:05:13.679Z
+end: 2026-10-20T02:05:24.209Z
+exit_code: 0
+--- stdout (1027 bytes, last 200 lines)
+79 theorems from 6 files
+theorem list = tracked list (79 names)
+ok: 79 theorems, only propext/Quot.sound/Classical.choice
+theorems in Figram modules (environment): 600; from sources: 79; non-internal env theorems not in source list (auto-generated equation lemmas etc.): 147
+definitions: 928; opaque constants (partial/opaque defs): 15; declared axioms: 0
+opaque constants: [Figram.Format.allEvents,
+ Figram.Format.allTimers,
+ Figram.Format.nodeErrors,
+ Figram.Format.parseArr,
+ Figram.Format.parseDigits,
+ Figram.Format.parseObj,
+ Figram.Format.parseStr,
+ Figram.Format.parseValue,
+ Figram.Format.render,
+ Figram.Format.renderCompact,
+ Figram.Format.skipWs,
+ Figram.RandomDoc.build,
+ Figram.Format.J.keysUnique,
+ Figram.Format.instReprJ.repr,
+ Figram.Format.instReprNodeDoc.repr]
+axiom set [Quot.sound]: 1 theorems
+axiom set [propext, Quot.sound]: 51 theorems
+axiom set [propext]: 194 theorems
+axiom set []: 302 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 52 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+--- stderr (0 bytes, last 100 lines)

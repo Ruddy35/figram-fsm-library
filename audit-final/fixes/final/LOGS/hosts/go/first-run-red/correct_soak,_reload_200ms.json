@@ -1,0 +1,316 @@
+{
+ "broken": "",
+ "drift": {
+  "Threads": {
+   "early": 13.5,
+   "late": 14,
+   "ratio": 1.037
+  },
+  "VmRSS": {
+   "early": 55626,
+   "late": 61716,
+   "ratio": 1.109
+  },
+  "VmSize": {
+   "early": 4205474,
+   "late": 4243870,
+   "ratio": 1.009
+  },
+  "fds": {
+   "early": 70,
+   "late": 72,
+   "ratio": 1.029
+  },
+  "goroutines": {
+   "early": 55.5,
+   "late": 53,
+   "ratio": 0.955
+  }
+ },
+ "e2e_ms": {
+  "max": 69.413,
+  "n": 30870,
+  "p50": 5.073,
+  "p95": 33.211,
+  "p99": 44.903
+ },
+ "elapsed_s": 30.111,
+ "exits": [
+  {
+   "t_us": 30211188,
+   "gen": 1,
+   "pid": 21672,
+   "code": 0,
+   "expected": true
+  }
+ ],
+ "final_stats": {
+  "binding": {
+   "c_nanos": 1937589761,
+   "calls": 37730,
+   "in_bytes": 4221514,
+   "live_machines": 1,
+   "loads": 151,
+   "out_bytes": 4180354,
+   "unloads": 150
+  },
+  "clock": 0,
+  "engine_calls": 37730,
+  "exec_paused": false,
+  "faults_detected": {},
+  "faults_injected": {},
+  "go_heap_alloc": 4724496,
+  "go_sys": 16210960,
+  "goroutines": 48,
+  "init": {
+   "Code": 0,
+   "Duration": 3238647,
+   "LeanSigstackSize": 32768,
+   "Restored": false,
+   "SigaltstackChange": false
+  },
+  "lat_us": 327,
+  "num_gc": 436,
+  "retired": 150,
+  "stats": {
+   "exec_external": 3430,
+   "exec_local": 10290,
+   "exec_send": 27440,
+   "g1_drain": 3421
+  }
+ },
+ "host": "go",
+ "invariant_failures": {},
+ "invariants": {
+  "actions_complete": "PASS",
+  "all_updates_acked": "PASS",
+  "crashes_effective": "PASS",
+  "db_lock_effective": "PASS",
+  "domain_model_consistent": "PASS",
+  "engine_faults_effective": "PASS",
+  "external_effect_once_per_intent": "PASS",
+  "external_faults_effective": "PASS",
+  "guards_match_domain_model": "PASS",
+  "idempotency_keys_unique_lifetime": "PASS",
+  "no_lost_ack": "PASS",
+  "no_overbooking": "PASS",
+  "no_unexpected_host_death": "PASS",
+  "one_order_per_payment": "PASS",
+  "outbox_drained": "PASS",
+  "restart_reproduces_state": "PASS",
+  "send_at_least_once": "PASS",
+  "send_duplicates_explained": "PASS",
+  "seq_plus_one": "PASS",
+  "snapshots_valid_final": "PASS",
+  "stale_timer_no_effect": "PASS",
+  "timer_not_early": "PASS"
+ },
+ "reload_errors": 0,
+ "reload_load_ms": {
+  "max": 0.821,
+  "n": 150,
+  "p50": 0.294,
+  "p95": 0.485,
+  "p99": 0.782
+ },
+ "reloads": 150,
+ "samples": [
+  {
+   "acked": 0,
+   "binding": {
+    "c_nanos": 188240,
+    "calls": 3,
+    "in_bytes": 63,
+    "live_machines": 1,
+    "loads": 1,
+    "out_bytes": 207,
+    "unloads": 0
+   },
+   "go_heap_alloc": 2242144,
+   "goroutines": 36,
+   "pid": 21672,
+   "proc": {
+    "Threads": 8,
+    "VmHWM": 27116,
+    "VmRSS": 27116,
+    "VmSize": 3795736,
+    "fds": 17
+   },
+   "retired": 0,
+   "t_s": 0.005
+  },
+  {
+   "acked": 5477,
+   "binding": {
+    "c_nanos": 329280248,
+    "calls": 6687,
+    "in_bytes": 741191,
+    "live_machines": 1,
+    "loads": 26,
+    "out_bytes": 735314,
+    "unloads": 25
+   },
+   "go_heap_alloc": 4682680,
+   "goroutines": 54,
+   "pid": 21672,
+   "proc": {
+    "Threads": 13,
+    "VmHWM": 54536,
+    "VmRSS": 54380,
+    "VmSize": 4168608,
+    "fds": 70
+   },
+   "retired": 25,
+   "t_s": 5.002
+  },
+  {
+   "acked": 10441,
+   "binding": {
+    "c_nanos": 702741536,
+    "calls": 12760,
+    "in_bytes": 1419202,
+    "live_machines": 1,
+    "loads": 51,
+    "out_bytes": 1406718,
+    "unloads": 50
+   },
+   "go_heap_alloc": 4215368,
+   "goroutines": 57,
+   "pid": 21672,
+   "proc": {
+    "Threads": 14,
+    "VmHWM": 57372,
+    "VmRSS": 56872,
+    "VmSize": 4242340,
+    "fds": 70
+   },
+   "retired": 50,
+   "t_s": 10.007
+  },
+  {
+   "acked": 15511,
+   "binding": {
+    "c_nanos": 1011171571,
+    "calls": 18957,
+    "in_bytes": 2114116,
+    "live_machines": 1,
+    "loads": 75,
+    "out_bytes": 2095051,
+    "unloads": 74
+   },
+   "go_heap_alloc": 4655424,
+   "goroutines": 57,
+   "pid": 21672,
+   "proc": {
+    "Threads": 14,
+    "VmHWM": 58560,
+    "VmRSS": 58436,
+    "VmSize": 4243360,
+    "fds": 70
+   },
+   "retired": 74,
+   "t_s": 15.002
+  },
+  {
+   "acked": 20746,
+   "binding": {
+    "c_nanos": 1313376511,
+    "calls": 25357,
+    "in_bytes": 2832344,
+    "live_machines": 1,
+    "loads": 100,
+    "out_bytes": 2806224,
+    "unloads": 99
+   },
+   "go_heap_alloc": 3312792,
+   "goroutines": 58,
+   "pid": 21672,
+   "proc": {
+    "Threads": 14,
+    "VmHWM": 61252,
+    "VmRSS": 60884,
+    "VmSize": 4243360,
+    "fds": 70
+   },
+   "retired": 100,
+   "t_s": 20.002
+  },
+  {
+   "acked": 25747,
+   "binding": {
+    "c_nanos": 1622604337,
+    "calls": 31469,
+    "in_bytes": 3518094,
+    "live_machines": 1,
+    "loads": 126,
+    "out_bytes": 3485181,
+    "unloads": 125
+   },
+   "go_heap_alloc": 5355776,
+   "goroutines": 55,
+   "pid": 21672,
+   "proc": {
+    "Threads": 14,
+    "VmHWM": 61252,
+    "VmRSS": 60788,
+    "VmSize": 4243360,
+    "fds": 70
+   },
+   "retired": 125,
+   "t_s": 25.003
+  },
+  {
+   "acked": 30811,
+   "binding": {
+    "c_nanos": 1932942623,
+    "calls": 37650,
+    "in_bytes": 4211284,
+    "live_machines": 1,
+    "loads": 151,
+    "out_bytes": 4171716,
+    "unloads": 150
+   },
+   "go_heap_alloc": 4722352,
+   "goroutines": 51,
+   "pid": 21672,
+   "proc": {
+    "Threads": 14,
+    "VmHWM": 62644,
+    "VmRSS": 62644,
+    "VmSize": 4244380,
+    "fds": 74
+   },
+   "retired": 150,
+   "t_s": 30.003
+  },
+  {
+   "acked": 30870,
+   "binding": {
+    "c_nanos": 1937589761,
+    "calls": 37730,
+    "in_bytes": 4221514,
+    "live_machines": 1,
+    "loads": 151,
+    "out_bytes": 4180354,
+    "unloads": 150
+   },
+   "go_heap_alloc": 4593616,
+   "goroutines": 48,
+   "pid": 21672,
+   "proc": {
+    "Threads": 14,
+    "VmHWM": 62464,
+    "VmRSS": 61888,
+    "VmSize": 4244380,
+    "fds": 74
+   },
+   "retired": 150,
+   "t_s": 30.111
+  }
+ ],
+ "scenario": "soak",
+ "secs": 30,
+ "throughput_updates_per_s": 1025.213,
+ "updates_acked": 30870,
+ "users": 16
+}

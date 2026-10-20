@@ -1,0 +1,3 @@
+неисправность код ожидание последняя строка
+native-decide        1      1        ok НЕТ: в исходниках Lean запрещённые конструкции (axiom, native_decide, implemented_by, extern, sorry, admit, sk
+шлюз красный на каждой неисправности и зелёный без них

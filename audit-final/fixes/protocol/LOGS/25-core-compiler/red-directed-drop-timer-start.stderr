@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/fix-protocol/audit/core-compiler/directed.py", line 434, in <module>
+    main()
+    ~~~~^^
+  File "/home/user/figram-audit-worktrees/fix-protocol/audit/core-compiler/directed.py", line 417, in main
+    errs = run_case(c, mk)
+  File "/home/user/figram-audit-worktrees/fix-protocol/audit/core-compiler/directed.py", line 365, in run_case
+    e = mk(text)
+  File "/home/user/figram-audit-worktrees/fix-protocol/audit/core-compiler/directed.py", line 411, in <lambda>
+    targets.append(("engine", lambda t: Engine(args.engine, t, mutate=args.mutate)))
+                                        ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/figram-audit-worktrees/fix-protocol/audit/core-compiler/engine.py", line 33, in __init__
+    raise EngineLoadError(err.strip())
+engine.EngineLoadError: неизвестная мутация «drop-timer-start» (список — --mutants)

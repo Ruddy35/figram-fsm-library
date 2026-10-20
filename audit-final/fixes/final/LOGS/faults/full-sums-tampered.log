@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh full sums-tampered 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:14:17.069Z
+end: 2026-10-20T05:14:18.566Z
+exit_code: 0
+--- stdout (372 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+sums-tampered        1      1        ok НЕТ: пересобранные бинарники не совпадают с /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

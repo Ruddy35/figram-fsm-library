@@ -1,0 +1,8 @@
+command: nice -n 10 lake build 
+cwd: /home/user/figram-audit-worktrees/release-check
+start: 2026-10-20T06:38:08.658Z
+end: 2026-10-20T06:38:08.910Z
+exit_code: 0
+--- stdout (40 bytes, last 200 lines)
+Build completed successfully (46 jobs).
+--- stderr (0 bytes, last 100 lines)

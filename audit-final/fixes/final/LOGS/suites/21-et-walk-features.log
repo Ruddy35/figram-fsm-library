@@ -1,0 +1,8 @@
+command: timeout 600 python3 -B audit/engine_timers/ptdriver.py /home/user/figram-audit-worktrees/fix-final/.lake/build/bin/figram-engine walk examples/features.bot.json --users 20 --steps 40 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T04:41:31.400Z
+end: 2026-10-20T04:41:31.909Z
+exit_code: 0
+--- stdout (306 bytes, last 200 lines)
+{"doc": "examples/features.bot.json", "mutate": null, "seed": 1, "replies": 1369, "coverage_targets": 36, "checks": 11521, "per_invariant": {"I1": 2071, "I10": 118, "I11": 216, "I12": 54, "I2": 2005, "I3": 916, "I4": 1366, "I5": 506, "I6": 685, "I7": 860, "I8": 64, "I9": 2635, "T1": 25}, "violations": 0}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,11 @@
+ok   P-09 без перехвата исключения C++ пойман: terminate called after throwing an instance of 'lean::exception'
+ok   P-09 без проверки запаса RLIMIT_AS пойман: INTERNAL PANIC: out of memory
+ok   P-21 без ленивой инициализации пойман: 
+ok   P-21 без проверки NULL запроса пойман: FAIL request_json(h, NULL) → bad_request: {"id":null,"error":"пустой запрос","code":"parse_error"}
+ok   P-21 без обнаружения повторной выгрузки пойман: 
+ok   P-21 _n без проверки NUL пойман: FAIL request_json_n with embedded NUL → parse_error: {"id":null,"error":"лишний текст после JSON"}
+ok   P-18 без проверки UTF-8 запроса пойман: FAIL invalid UTF-8 request 1 → parse_error, id null: {"id":1,"snapshot":{"at":"menu"},"actions":[]}
+ok   P-18 без предела размера пойман: FAIL request of 1 MiB + 1 → too_large (default limit): {"id":1,"protocol":1,"states":11}
+ok   P-22 без восстановления SIGPIPE пойман: FAIL SIGPIPE disposition preserved: before 0x563982189739 flags 335544320, after 0x1 flags 335544320
+ok   P-22 без восстановления sigaltstack пойман: FAIL sigaltstack of the calling thread preserved: before sp=0x55658aff82b0 size=65536 flags=0, after sp=0x55658b008470 s
+все мутанты пойманы

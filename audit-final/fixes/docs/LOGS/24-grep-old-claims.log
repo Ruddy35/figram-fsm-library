@@ -1,0 +1,23 @@
+command: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/grep_old_claims.sh /home/user/figram-audit-worktrees/fix-docs 
+cwd: /home/user/figram-audit-worktrees/fix-docs
+start: 2026-10-20T02:16:23.016Z
+end: 2026-10-20T02:16:23.201Z
+exit_code: 0
+--- stdout (847 bytes, last 200 lines)
+base=1  head=0  ~90 000 шагов/с
+base=1  head=0  ~11 мкс
+base=2  head=0  1000 сообщений — 1 с
+base=1  head=0  около 160 секунд
+base=1  head=0  ~160 с
+base=1  head=0  120 000 на 4 зёрнах
+base=1  head=0  Замеры на машине с одним ядром
+base=1  head=0  в среде аудита одно ядро
+base=1  head=0  (~10 с)
+base=1  head=0  шести видах сбоев
+base=1  head=0  ведут себя одинаково,
+base=1  head=0  Поэтому отмена — оптимизация, а не условие корректности.
+base=1  head=0  4 вида порчи ответов ловятся
+base=0  head=0  рантайм Lean заменяет символом U+FFFD
+base=1  head=0  события таймеров —
+base=1  head=0  | ошибок нет |
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,3 @@
+exit_code=0 log=/home/user/figram-audit/fixes/release/LOGS/10-lake-build.log
+exit_code=3 log=/home/user/figram-audit/fixes/release/LOGS/11-verify-full.log
+verify exit: 3

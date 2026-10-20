@@ -1,0 +1,72 @@
+command: go test -count=1 -v . 
+cwd: /home/user/figram-audit-worktrees/fix-ffi/ffi/go-example
+start: 2026-10-20T02:30:35.844Z
+end: 2026-10-20T02:30:53.049Z
+exit_code: 0
+--- stdout (3899 bytes, last 200 lines)
+=== RUN   TestAuditCloseRequestStorm
+    audit_test.go:85: 100 rounds × 16 goroutines: ok=173205 after-close errors=5354122 other=0
+--- PASS: TestAuditCloseRequestStorm (2.74s)
+=== RUN   TestAuditHelloAlwaysError
+    audit_test.go:106: open bot, hello → resp=map[id:1 protocol:1 states:11] variant="hello" err=<nil>
+--- PASS: TestAuditHelloAlwaysError (0.00s)
+=== RUN   TestAuditRequestBadOp
+--- PASS: TestAuditRequestBadOp (0.00s)
+=== RUN   TestAuditLoadNUL
+--- PASS: TestAuditLoadNUL (0.00s)
+=== RUN   TestAuditRequestNUL
+    audit_test.go:169: NUL in snapshot.at → variant result resp map[actions:[map[send:menu]] id:1 recovered:true snapshot:map[at:menu seq:1]]
+    audit_test.go:174: NUL in event → variant result resp map[actions:[] id:2 snapshot:map[at:menu]]
+--- PASS: TestAuditRequestNUL (0.00s)
+=== RUN   TestAuditLargeRequests
+    audit_test.go:214: event 1 MB: variant=result err=<nil> time=153ms VmHWM 37→86 MB
+    audit_test.go:214: event 8 MB: variant=result err=<nil> time=2.265s VmHWM 99→474 MB
+    audit_test.go:214: event 32 MB: variant=result err=<nil> time=8.442s VmHWM 538→1848 MB
+    audit_test.go:226: guards with 1000 keys: variant=need err=<nil> time=4ms
+    audit_test.go:226: guards with 4000 keys: variant=need err=<nil> time=46ms
+    audit_test.go:226: guards with 16000 keys: variant=need err=<nil> time=843ms
+--- PASS: TestAuditLargeRequests (11.87s)
+=== RUN   TestAuditScaling
+    audit_test.go:234: FIGRAM_SCALING not set
+--- SKIP: TestAuditScaling (0.00s)
+=== RUN   TestAuditSoak
+    audit_test.go:287: FIGRAM_SOAK not set
+--- SKIP: TestAuditSoak (0.00s)
+=== RUN   TestAuditSignals
+    audit_test.go:379: FIGRAM_SIGNALS not set
+--- SKIP: TestAuditSignals (0.00s)
+=== RUN   TestAuditInitRace
+    audit_test.go:422: FIGRAM_INIT_RACE not set
+--- SKIP: TestAuditInitRace (0.00s)
+=== RUN   TestAuditThreadCount
+    audit_test.go:484: 1000 goroutines × 50 requests, GOMAXPROCS=4: OS threads before 12, max during 13, after 13, bad 0
+--- PASS: TestAuditThreadCount (0.72s)
+=== RUN   TestAuditSIGPIPE
+    audit_test.go:510: mode=noinit: child exit: signal: broken pipe; stderr: 
+    audit_test.go:510: mode=init: child exit: signal: broken pipe; stderr: 
+--- PASS: TestAuditSIGPIPE (0.22s)
+=== RUN   TestFixLazyLoadWithoutInit
+    fix_test.go:114: child: <nil>
+        lazy: ok
+--- PASS: TestFixLazyLoadWithoutInit (0.01s)
+=== RUN   TestFixInitUnderRlimitAS
+    fix_test.go:127: RLIMIT_AS="": child <nil>
+        RLIMIT_AS=2802696192: figram_init=2
+        RLIMIT_AS=2802696192: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 2802696192 байт, занято 1728954368, нужно ещё не меньше 2000000000 (арена mimalloc 1 ГиБ и стек потока цикла событий libuv 1 ГиБ; см. ffi/figram.h)
+    fix_test.go:127: RLIMIT_AS="3000000000": child <nil>
+        RLIMIT_AS=3000000000: figram_init=2
+        RLIMIT_AS=3000000000: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 3000000000 байт, занято 1586343936, нужно ещё не меньше 2000000000 (арена mimalloc 1 ГиБ и стек потока цикла событий libuv 1 ГиБ; см. ffi/figram.h)
+--- PASS: TestFixInitUnderRlimitAS (0.01s)
+=== RUN   TestFixLoadReason
+    fix_test.go:140: Load(bad) → документ не загружен: нужно поле «bot»
+--- PASS: TestFixLoadReason (0.00s)
+=== RUN   TestFixRequestTooLarge
+    fix_test.go:159: 2 MiB event → variant "error" err <nil> code too_large
+--- PASS: TestFixRequestTooLarge (0.17s)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+=== RUN   TestSharedRequestMap
+--- PASS: TestSharedRequestMap (0.02s)
+PASS
+ok  	gofig	15.771s
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,123 @@
+command: timeout 2400 ./verify.sh 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T04:03:27.291Z
+end: 2026-10-20T04:06:28.100Z
+exit_code: 1
+--- stdout (10733 bytes, last 200 lines)
+
+== Происхождение прогона
+дата: 2026-10-20T04:03:27Z; ядер: 4
+коммит: 8d69c906457ddc8209af825318aa4fb5966ef571; изменённых отслеживаемых файлов: 6
+verify.sh sha256: e116e5d4319dae006117309a71cc197b7b1b18a00ed2686d4c34a7238e90cbd9
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (46 jobs).
+
+== Приложенные бинарники bin/ собраны ровно из этих исходников
+ok: пересборка совпадает с /home/user/figram-audit/fixes/final/sums-pre/SUMS (bin/ с исходниками НЕ сверялись)
+
+== Теоремы: только стандартные аксиомы, формулировки закреплены
+'Figram.Chart.compile_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.run_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.session_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.chart_run_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_state_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+'Figram.Format.toChart_decls' does not depend on any axioms
+'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.step_snapOK' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.guards_irrelevant' depends on axioms: [propext, Quot.sound]
+теорем 17: аксиомы только из ['Classical.choice', 'Quot.sound', 'propext']
+формулировки 17 теорем совпадают с ci/THEOREMS.expected
+в исходниках нет axiom, native_decide, implemented_by, extern, sorry, admit
+
+== Теоремы: строгий шлюз — все теоремы исходников и окружения, формулировки, leanchecker
+axiom set []: 373 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 48 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+
+== Фиксированные сценарии совпадают с сохранёнными
+ok (сценариев: 12)
+
+== Соответствие движка: фиксированные и случайные сценарии
+покрыто вариантов стрелок: 42 из 42
+покрыто вариантов стрелок: 36 из 36
+запросов 18103, расхождений 0
+
+== Соответствие на 100 случайных документах
+документов 100, запросов 96455, документов с расхождениями 0
+
+== Мутационное тестирование
+examples/pizza.bot.json: мутаций 56
+examples/features.bot.json: мутаций 51
+обнаружено 107 из 107 мутаций (100%)
+
+== Контракт хоста
+контракт выполнен
+
+== CLI: ошибки аргументов дают ненулевой код
+ok
+
+== Огромный показатель степени: быстрый контролируемый отказ
+ok (код 1, figram: не удалось прочитать документ: показатель степени по модулю больше 1000)
+
+== Снимок: схема и движок согласованы, граница seq; restart, условия, жетоны, hello
+снимков 24, ответов 24, расхождений схемы и движка 0
+граница seq: ok
+граничных случаев протокола 106, ответов 106, расхождений 0
+
+== Текстовый слой JSON: дифференциально против Python json
+случаев 30000: принято обоими 8962, отвергнуто обоими 21038, расхождений 0, записей не читается обратно 0 из 8962
+контроль: парсер без ограничений обнаружен (случаев 3000: принято обоими 809, отвергнуто обоими 1229, расхождений 962, записей не читается обратно 0 из 1771)
+
+== C-прослойка: невалидный UTF-8, огромные входы, 16 потоков, ASan и UBSan (инструментирована только прослойка)
+строка 5 МБ → {"id":null,"error":"запрос длиннее предела 1048576 байт"
+16 потоков × 20000 вызовов к одному автомату: расхождений 0
+5000 загрузок и выгрузок: рост памяти -14368 КБ; без выгрузки (контроль): 45268 КБ
+
+== C-ABI ffi/figram.h: init без падения хоста, NULL, дескрипторы, NUL, UTF-8, предел, сигналы
+регрессионных проверок C-ABI 24, провалено 0
+ffi/figram.h компилируется как C99 и C++ без предупреждений
+
+== Клиент Python: сбои движка, контракт методов, чистый stderr
+клиент устойчив
+контракт клиента выполнен
+ОТКАЗ шага «client_robustness», журнал: verify-logs/client_robustness.log
+НЕТ R4 SIGSTOP: ошибок 2 из 4, самый долгий 1.00 с, процесс собран по hang_timeout 1.5 с True
+ok  R10 hello с протокол 2: EngineError: движок не запустился: процесс движка неисправен: нарушение протокола: протокол движка 2
+ok  R10 hello с поле mutant (тестовый движок): ok
+ok  R11 медленный запрос (1.5 с при timeout 0.6 с) дважды: ['ошибка', 'ошибка']; соседи: ответов 809 (после медленных 672), ошибок 16, чужих ответов 0; процесс тот же True, запусков 1
+ok  R11 настоящий движок: снимок из 30000 записей разбирается 0.10 с — быстро, пропущено
+ok  R11 зависший процесс (hang_timeout 1.5 с, timeout 0.5 с): вызов — ошибка, замечен через 1.5 с «движок завис: нет вывода 1.5 с при неотвеченных запросах», собран True, следующий вызов в новом процессе (запусков 2)
+ok  R11 движок пропустил ответ на запрос, но ответил на следующий: «ответ на запрос 2 раньше, чем на 1: нарушен порядок ответов»
+ok  R12 id:null (новый протокол): плохие вызовы [('parse_error', False), ('parse_error', False)]…; соседи: ответов 570, ошибок 0, чужих 0; процесс тот же True, запусков 1
+ok  R12 id:null (старый протокол): плохие вызовы [(None, False), (None, False)]…; соседи: ответов 589, ошибок 0, чужих 0; процесс тот же True, запусков 1
+ok  R12 настоящий движок, повторяющийся ключ в снимке: плохие вызовы [False, False, False, False, False]; соседи: ответов 595, ошибок 0; процесс тот же True
+ok  R12 контроль: результат с id:null — ошибка, процесс помечен неисправным True
+ok  R12 контроль: ошибка id:null без ожидающих запросов — процесс неисправен True
+ok  R13 настоящий движок, невалидный документ: «движок не запустился: процесс движка неисправен: движок закрыл вывод; движок завершился с кодом 1; stderr: ошибка документа: Начальный экран»
+ok  R13 документ сломан после сбоя, 4 потока повторяют 3 с: запусков движка 5 (пауза растёт), ошибок 2151, из них с хвостом stderr 2151
+ok  R13 документ исправлен: снова отвечает через 0.3 с; после сбоя поработавшего процесса замена сразу — ok
+ok  R16 close() пула из 4 процессов, которые не выходят по EOF: 1.00 с (timeout 1 с), потомков после 0
+ok  R16 close() пула, процессы которого ещё загружаются: 0.00 с (timeout 2 с), потомков 0
+ok  R17 функция условий 1.3 с, timeout 0.5 с (step_timeout по умолчанию 1 с): ошибка за 1.3 с, запросов к движку 1 (второй не отправлен)
+ok  R17 step_timeout=5 с, функция условий 1.3 с при timeout 0.5 с: vip
+ok  R17 условия 0.5 с + второй запрос 1.5 с при step_timeout 1 с (timeout 2 с): ошибка за 1.00 с
+ok  R18 суррогат байтами и экранированный — ошибка, пара и кириллица приняты: {'btn:cesu': 'ошибка', 'btn:esc': 'ошибка', 'btn:pair': '😀', 'btn:ru': 'пицца'}
+ok  R19 ошибка движка с code ('bad_snapshot', False), без code (None, False), таймаут (None, True) (code, retryable); процесс тот же True
+ok  R19 ответ-ошибка неверной формы (code не строка, лишнее поле) — сбой процесса: (None, True) True, (None, True) True
+ok  R19 настоящий движок, снимок с лишним полем: (code, retryable) = ('bad_snapshot', False), процесс жив True
+ok  R20 start без seq — noseq, start(seq=41) — seq41
+НАРУШЕНИЕ УСТОЙЧИВОСТИ КЛИЕНТА
+--- stderr (0 bytes, last 100 lines)

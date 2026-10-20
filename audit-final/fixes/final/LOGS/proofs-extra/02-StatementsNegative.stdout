@@ -1,0 +1,13 @@
+audit/proofs/StatementsNegative.lean:7:49: error: Type mismatch
+  Chart.compile_correct
+has type
+  ∀ (c : Chart),
+    c.compile.wf = true → ∀ (s : Snapshot) (ev : Event) (env : HostEnv), c.compile.step s ev env = c.step s ev env
+but is expected to have type
+  ∀ (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv), c.compile.step s ev env = c.step s ev env
+audit/proofs/StatementsNegative.lean:8:52: error: Type mismatch
+  decode_encode
+has type
+  ∀ (d : Doc), DocWF d → decode (encode d) = Except.ok d
+but is expected to have type
+  ∀ (d : Doc), decode (encode d) = Except.ok d

@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh prebuilt fixtures-shrunk 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:33:07.707Z
+end: 2026-10-20T05:34:25.400Z
+exit_code: 0
+--- stdout (398 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+fixtures-shrunk      1      1        ok НЕТ: снимки: «снимков 2, ответов 2, расхождений схемы и движка 0» не удовлетворяет g[0] >= 24 and g[0] == g[1]
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)

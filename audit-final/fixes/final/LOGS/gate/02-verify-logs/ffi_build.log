@@ -1,0 +1,11 @@
+✔ [22/24] Built Figram.Api (773ms)
+✔ [23/24] Built Figram.Api:c.o (156ms)
+✔ [24/24] Built FigramApi:static (26ms)
+Build completed successfully (24 jobs).
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+готово: ffi/out/libfigram.a, флаги компоновки: ffi/out/LDFLAGS

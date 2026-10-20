@@ -1,0 +1,8 @@
+command: python3 ffi/python-example/loadtest.py /home/user/figram-audit/fresh/figram-engine examples/pizza.bot.json /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza.jsonl 64 2 
+cwd: /home/user/figram-audit-worktrees/fix-client
+start: 2026-10-20T02:04:28.164Z
+end: 2026-10-20T02:04:29.787Z
+exit_code: 0
+--- stdout (212 bytes, last 200 lines)
+потоков  64, процессов 2: шагов 8000 (из них с запросом условий 464), расхождений 0, 5,346 шагов/с, задержка p50 9,685 мкс, p99 27,755 мкс
+--- stderr (0 bytes, last 100 lines)

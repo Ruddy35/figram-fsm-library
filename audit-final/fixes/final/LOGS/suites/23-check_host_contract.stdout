@@ -1,0 +1,5 @@
+§4 lost-snapshot procedure: start with the high-water seq
+   life1 keys 10, life2 keys 10, colliding 0; irreversible calls deduplicated away: []
+§4 lost-snapshot procedure: restart with placeholder snapshot {"at": "-", "seq": 0}
+   life1 keys 10, life2 keys 10, colliding 0; irreversible calls deduplicated away: []
+OK

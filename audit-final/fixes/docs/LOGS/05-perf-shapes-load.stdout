@@ -1,0 +1,5 @@
+machine: 4 vCPU, Model name: Intel(R) Xeon(R) Processor @ 2.80GHz, 15 GB; engine: /home/user/figram-audit-worktrees/fix-docs/.lake/build/bin/figram-engine (75f4833489306ff6)
+one section, 1000 messages, one arrow each + resume arrow: 0.41 s (rc 0, load 1.15)
+unique button per message, 250 messages: 0.74 s (rc 0, load 1.15)
+unique button per message, 500 messages: 6.14 s (rc 0, load 1.30)
+pizza (11 messages): 0.03 s (rc 0, load 1.30)

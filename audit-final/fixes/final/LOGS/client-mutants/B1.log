@@ -1,0 +1,16 @@
+command: python3 /home/user/figram-audit/fixes/client/mutate_client_v2.py ffi/python-example /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped examples/pizza.bot.json examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:41:29.880Z
+end: 2026-10-20T05:51:54.264Z
+exit_code: 0
+--- stdout (2033 bytes, last 200 lines)
+исходник: /home/user/figram-audit-worktrees/fix-final/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fixes/final/bin-final/figram-engine.stripped
+исходный клиент: {'client_faults.py': 0, 'client_contract.py': 0, 'client_robustness.py': 0}
+M01 нет пробуждения ожидающих в _fail: убит: client_robustness.py  client_faults.py=0 17.6с []; client_contract.py=0 3.1с []; client_robustness.py=1 102.0с ['НЕТ R1 невалидный JSON: ошибок 8 из 8, самый долгий 6.01 с (срок 6 с)', 'НЕТ R1 неизвестный id: ошибок 8 из 8, самый долгий 6.01 с (срок 6 с)']
+M02 нет срока ожидания: убит: client_faults.py  client_faults.py=1 122.1с ['НЕТ нет ответа: ошибок 8 из 8, зависло 0, 60.0 с, close 0.0 с', 'НЕТ не читает вход: ошибок 8 из 8, зависло 0, 30.0 с, close 0.0 с']
+M03 запись в вызывающем потоке (без писателя): убит: client_faults.py  client_faults.py=1 63.3с ['НЕТ невалидный JSON: ошибок 5 из 8, зависло 0, 0.0 с, close 0.0 с', 'НЕТ неизвестный id: ошибок 6 из 8, зависло 0, 0.0 с, close 0.0 с']
+M04 _kill не убивает: убит: client_faults.py  client_faults.py=timeout 240.1с []
+M05 нет фонового wait (зомби): убит: client_contract.py  client_faults.py=0 7.2с []; client_contract.py=1 4.1с ['НЕТ аварийный процесс собран за 2.01 с без новых запросов']
+M06 нет check_reply: убит: client_faults.py  client_faults.py=1 13.1с ['НЕТ пустой результат: ошибок 7 из 8, зависло 0, 1.0 с, close 1.0 с', 'НЕТ seq = true: ошибок 7 из 8, зависло 0, 1.0 с, close 1.0 с']
+выживших мутантов: 0 из 6
+--- stderr (0 bytes, last 100 lines)

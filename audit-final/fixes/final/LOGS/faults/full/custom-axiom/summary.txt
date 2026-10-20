@@ -1,0 +1,2 @@
+неисправность код ожидание последняя строка
+custom-axiom         1      1        ok НЕТ: Figram.Engine.guards_irrelevant: недопустимые аксиомы ['Figram.Machine.figram_cheat']

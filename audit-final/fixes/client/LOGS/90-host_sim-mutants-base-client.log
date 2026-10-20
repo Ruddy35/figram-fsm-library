@@ -1,0 +1,66 @@
+command: python3 host_sim_mutants.py /home/user/figram-audit/fresh/figram-engine /home/user/figram-audit-worktrees/fix-client/examples/pizza.bot.json --host-sim /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/hs-base 
+cwd: /home/user/figram-audit/fixes/client/tools
+start: 2026-10-20T03:53:58.745Z
+end: 2026-10-20T03:55:10.052Z
+exit_code: 0
+--- stdout (3500 bytes, last 200 lines)
+host_sim: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/client/hs-base/host_sim.py
+контроль (без мутации): host_sim rc=0
+drop-call:clear_cart: host_sim rc=0 → ВЫЖИЛА
+drop-call:save_size: host_sim rc=0 → ВЫЖИЛА
+drop-call:add_to_cart: host_sim rc=1 → обнаружена
+drop-call:save_address: host_sim rc=1 → обнаружена
+drop-call:create_order: host_sim rc=1 → обнаружена
+redirect:0: host_sim rc=0 → ВЫЖИЛА
+redirect:1: host_sim rc=0 → ВЫЖИЛА
+redirect:2: host_sim rc=1 → обнаружена
+redirect:3: host_sim rc=0 → ВЫЖИЛА
+redirect:4: host_sim rc=0 → ВЫЖИЛА
+redirect:5: host_sim rc=0 → ВЫЖИЛА
+redirect:6: host_sim rc=0 → ВЫЖИЛА
+redirect:7: host_sim rc=0 → ВЫЖИЛА
+redirect:8: host_sim rc=0 → ВЫЖИЛА
+redirect:9: host_sim rc=0 → ВЫЖИЛА
+redirect:10: host_sim rc=0 → ВЫЖИЛА
+redirect:11: host_sim rc=0 → ВЫЖИЛА
+redirect:12: host_sim rc=0 → ВЫЖИЛА
+redirect:13: host_sim rc=0 → ВЫЖИЛА
+redirect:14: host_sim rc=1 → обнаружена
+redirect:15: host_sim rc=1 → обнаружена
+redirect:16: host_sim rc=0 → ВЫЖИЛА
+redirect:17: host_sim rc=0 → ВЫЖИЛА
+redirect:18: host_sim rc=0 → ВЫЖИЛА
+redirect:19: host_sim rc=1 → обнаружена
+redirect:20: host_sim rc=0 → ВЫЖИЛА
+redirect:21: host_sim rc=0 → ВЫЖИЛА
+redirect:22: host_sim rc=0 → ВЫЖИЛА
+redirect:23: host_sim rc=1 → обнаружена
+redirect:24: host_sim rc=0 → ВЫЖИЛА
+redirect:25: host_sim rc=0 → ВЫЖИЛА
+redirect:26: host_sim rc=1 → обнаружена
+redirect:27: host_sim rc=1 → обнаружена
+redirect:28: host_sim rc=1 → обнаружена
+redirect:29: host_sim rc=1 → обнаружена
+redirect:30: host_sim rc=0 → ВЫЖИЛА
+redirect:31: host_sim rc=0 → ВЫЖИЛА
+redirect:32: host_sim rc=0 → ВЫЖИЛА
+redirect:33: host_sim rc=1 → обнаружена
+redirect:34: host_sim rc=1 → обнаружена
+redirect:35: host_sim rc=0 → ВЫЖИЛА
+redirect:36: host_sim rc=0 → ВЫЖИЛА
+redirect:37: host_sim rc=0 → ВЫЖИЛА
+redirect:38: host_sim rc=1 → обнаружена
+redirect:39: host_sim rc=0 → ВЫЖИЛА
+redirect:40: host_sim rc=0 → ВЫЖИЛА
+redirect:41: host_sim rc=0 → ВЫЖИЛА
+drop-guard:27: host_sim rc=1 → обнаружена
+drop-guard:33: host_sim rc=1 → обнаружена
+swap-branches:27: host_sim rc=1 → обнаружена
+swap-branches:32: host_sim rc=1 → обнаружена
+reverse-entry:7: host_sim rc=0 → ВЫЖИЛА
+drop-exit: host_sim rc=0 → ВЫЖИЛА
+drop-remember: host_sim rc=0 → ВЫЖИЛА
+resume-default: host_sim rc=0 → ВЫЖИЛА
+drop-timer-start: host_sim rc=1 → обнаружена
+мутаций 56, обнаружено host_sim 20, выжило 36: ['drop-call:clear_cart', 'drop-call:save_size', 'redirect:0', 'redirect:1', 'redirect:3', 'redirect:4', 'redirect:5', 'redirect:6', 'redirect:7', 'redirect:8', 'redirect:9', 'redirect:10', 'redirect:11', 'redirect:12', 'redirect:13', 'redirect:16', 'redirect:17', 'redirect:18', 'redirect:20', 'redirect:21', 'redirect:22', 'redirect:24', 'redirect:25', 'redirect:30', 'redirect:31', 'redirect:32', 'redirect:35', 'redirect:36', 'redirect:37', 'redirect:39', 'redirect:40', 'redirect:41', 'reverse-entry:7', 'drop-exit', 'drop-remember', 'resume-default']
+--- stderr (0 bytes, last 100 lines)

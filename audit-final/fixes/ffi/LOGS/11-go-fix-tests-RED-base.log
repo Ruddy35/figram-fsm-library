@@ -1,0 +1,207 @@
+command: go test -count=1 -v -run \^TestFix . 
+cwd: /home/user/figram-audit-worktrees/fix-ffi/ffi/go-example
+start: 2026-10-20T02:09:13.521Z
+end: 2026-10-20T02:09:18.522Z
+exit_code: 1
+--- stdout (10604 bytes, last 200 lines)
+        SIGSEGV: segmentation violation
+        PC=0x626b0e m=0 sigcode=1 addr=0x8
+        signal arrived during cgo execution
+        
+        goroutine 1 gp=0xc000002380 m=0 mp=0xfabda0 [syscall]:
+        runtime.cgocall(0x58b6d0, 0xc0000c78f8)
+        	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc0000c78d0 sp=0xc0000c7898 pc=0x47b1eb
+        gofig._Cfunc_figram_request_json(0x58c0c270480, 0x23a39dc0)
+        	_cgo_gotypes.go:142 +0x47 fp=0xc0000c78f8 sp=0xc0000c78d0 pc=0x572507
+        gofig.(*Bot).Request.func2(...)
+        	/home/user/figram-audit-worktrees/fix-ffi/ffi/go-example/main.go:91
+        gofig.(*Bot).Request(0xc00008e8d0, 0xc0000c7d78)
+        	/home/user/figram-aud
+    fix_test.go:108: Load/Request without figram_init failed: exit status 2
+--- FAIL: TestFixLazyLoadWithoutInit (0.01s)
+=== RUN   TestFixInitUnderRlimitAS
+    fix_test.go:119: RLIMIT_AS="": child exit status 1
+        INTERNAL PANIC: out of memory
+    fix_test.go:121: RLIMIT_AS="": the process died instead of getting an error from Load: exit status 1
+    fix_test.go:119: RLIMIT_AS="3000000000": child <nil>
+        RLIMIT_AS=3000000000: loaded (enough address space)
+--- FAIL: TestFixInitUnderRlimitAS (0.03s)
+=== RUN   TestFixLoadReason
+    fix_test.go:132: Load(bad) → документ не прошёл проверку
+    fix_test.go:134: error does not explain the reason: документ не прошёл проверку
+--- FAIL: TestFixLoadReason (0.03s)
+=== RUN   TestFixRequestTooLarge
+SIGSEGV: segmentation violation
+PC=0x626b0e m=3 sigcode=1 addr=0x8
+signal arrived during cgo execution
+
+goroutine 10 gp=0xc000148380 m=3 mp=0xc000053008 [syscall]:
+runtime.cgocall(0x58b6d0, 0xc000139bb8)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000139b90 sp=0xc000139b58 pc=0x47b1eb
+gofig._Cfunc_figram_request_json(0x342a16c0480, 0x7f005445d010)
+	_cgo_gotypes.go:142 +0x47 fp=0xc000139bb8 sp=0xc000139b90 pc=0x572507
+gofig.(*Bot).Request.func2(...)
+	/home/user/figram-audit-worktrees/fix-ffi/ffi/go-example/main.go:91
+gofig.(*Bot).Request(0xc00007eba0, 0xc000139ed8)
+	/home/user/figram-audit-worktrees/fix-ffi/ffi/go-example/main.go:91 +0x3ee fp=0xc000139d58 sp=0xc000139bb8 pc=0x572e8e
+gofig.TestFixRequestTooLarge(0xc000148a80)
+	/home/user/figram-audit-worktrees/fix-ffi/ffi/go-example/fix_test.go:149 +0x2b9 fp=0xc000139f70 sp=0xc000139d58 pc=0x571819
+testing.tRunner(0xc000148a80, 0xc3c9c0)
+	/usr/local/go1.24.7/src/testing/testing.go:1792 +0xf4 fp=0xc000139fc0 sp=0xc000139f70 pc=0x502bf4
+testing.(*T).Run.gowrap1()
+	/usr/local/go1.24.7/src/testing/testing.go:1851 +0x25 fp=0xc000139fe0 sp=0xc000139fc0 pc=0x503c85
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000139fe8 sp=0xc000139fe0 pc=0x485001
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go1.24.7/src/testing/testing.go:1851 +0x413
+
+goroutine 1 gp=0xc000002380 m=nil [chan receive]:
+runtime.gopark(0x300000000c71ba8?, 0x30000009caae170?, 0x70?, 0xe1?, 0x7f009caa5108?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00013d8a0 sp=0xc00013d880 pc=0x47d92e
+runtime.chanrecv(0xc000022540, 0xc00013d987, 0x1)
+	/usr/local/go1.24.7/src/runtime/chan.go:664 +0x445 fp=0xc00013d918 sp=0xc00013d8a0 pc=0x418b65
+runtime.chanrecv1(0xfaa980?, 0xc755e0?)
+	/usr/local/go1.24.7/src/runtime/chan.go:506 +0x12 fp=0xc00013d940 sp=0xc00013d918 pc=0x418712
+testing.(*T).Run(0xc000148000, {0xc31988?, 0xc00013da38?}, 0xc3c9c0)
+	/usr/local/go1.24.7/src/testing/testing.go:1859 +0x431 fp=0xc00013da18 sp=0xc00013d940 pc=0x503b11
+testing.runTests.func1(0xc000148000)
+	/usr/local/go1.24.7/src/testing/testing.go:2279 +0x37 fp=0xc00013da58 sp=0xc00013da18 pc=0x505e17
+testing.tRunner(0xc000148000, 0xc00013db78)
+	/usr/local/go1.24.7/src/testing/testing.go:1792 +0xf4 fp=0xc00013daa8 sp=0xc00013da58 pc=0x502bf4
+testing.runTests(0xc0000100c0, {0xf8a300, 0x12, 0x12}, {0xc02ca0?, 0xc00007e8a0?, 0xfaab60?})
+	/usr/local/go1.24.7/src/testing/testing.go:2277 +0x4b4 fp=0xc00013dba8 sp=0xc00013daa8 pc=0x505cf4
+testing.(*M).Run(0xc00007c140)
+	/usr/local/go1.24.7/src/testing/testing.go:2142 +0x64a fp=0xc00013ddd8 sp=0xc00013dba8 pc=0x5046aa
+gofig.TestMain(0xc00007c140)
+	/home/user/figram-audit-worktrees/fix-ffi/ffi/go-example/audit_test.go:566 +0x16f fp=0xc00013deb0 sp=0xc00013ddd8 pc=0x56fd6f
+main.main()
+	_testmain.go:81 +0xa8 fp=0xc00013df50 sp=0xc00013deb0 pc=0x574f88
+runtime.main()
+	/usr/local/go1.24.7/src/runtime/proc.go:283 +0x28b fp=0xc00013dfe0 sp=0xc00013df50 pc=0x44a00b
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00013dfe8 sp=0xc00013dfe0 pc=0x485001
+
+goroutine 2 gp=0xc000002e00 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004cfa8 sp=0xc00004cf88 pc=0x47d92e
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.forcegchelper()
+	/usr/local/go1.24.7/src/runtime/proc.go:348 +0xb3 fp=0xc00004cfe0 sp=0xc00004cfa8 pc=0x44a353
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004cfe8 sp=0xc00004cfe0 pc=0x485001
+created by runtime.init.7 in goroutine 1
+	/usr/local/go1.24.7/src/runtime/proc.go:336 +0x1a
+
+goroutine 3 gp=0xc000003340 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004d780 sp=0xc00004d760 pc=0x47d92e
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.bgsweep(0xc000076000)
+	/usr/local/go1.24.7/src/runtime/mgcsweep.go:316 +0xdf fp=0xc00004d7c8 sp=0xc00004d780 pc=0x432c5f
+runtime.gcenable.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:204 +0x25 fp=0xc00004d7e0 sp=0xc00004d7c8 pc=0x427145
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004d7e8 sp=0xc00004d7e0 pc=0x485001
+created by runtime.gcenable in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:204 +0x66
+
+goroutine 4 gp=0xc000003500 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0xc6f710?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004df78 sp=0xc00004df58 pc=0x47d92e
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.(*scavengerState).park(0xfaabe0)
+	/usr/local/go1.24.7/src/runtime/mgcscavenge.go:425 +0x49 fp=0xc00004dfa8 sp=0xc00004df78 pc=0x4306c9
+runtime.bgscavenge(0xc000076000)
+	/usr/local/go1.24.7/src/runtime/mgcscavenge.go:658 +0x59 fp=0xc00004dfc8 sp=0xc00004dfa8 pc=0x430c59
+runtime.gcenable.gowrap2()
+	/usr/local/go1.24.7/src/runtime/mgc.go:205 +0x25 fp=0xc00004dfe0 sp=0xc00004dfc8 pc=0x4270e5
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004dfe8 sp=0xc00004dfe0 pc=0x485001
+created by runtime.gcenable in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:205 +0xa5
+
+goroutine 5 gp=0xc000003dc0 m=nil [finalizer wait]:
+runtime.gopark(0x0?, 0xc3ca28?, 0xa0?, 0x84?, 0x2000000020?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004c630 sp=0xc00004c610 pc=0x47d92e
+runtime.runfinq()
+	/usr/local/go1.24.7/src/runtime/mfinal.go:196 +0x107 fp=0xc00004c7e0 sp=0xc00004c630 pc=0x426107
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004c7e8 sp=0xc00004c7e0 pc=0x485001
+created by runtime.createfing in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mfinal.go:166 +0x3d
+
+goroutine 11 gp=0xc0001488c0 m=nil [GC worker (idle)]:
+runtime.gopark(0xc00004ef90?, 0xc00004ef01?, 0x1?, 0x0?, 0xc00004efb8?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004ef38 sp=0xc00004ef18 pc=0x47d92e
+runtime.gcBgMarkWorker(0xc0000225b0)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc00004efc8 sp=0xc00004ef38 pc=0x4295a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc00004efe0 sp=0xc00004efc8 pc=0x429485
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004efe8 sp=0xc00004efe0 pc=0x485001
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 12 gp=0xc000148c40 m=nil [GC worker (idle)]:
+runtime.gopark(0xed38d1cf498?, 0xc00004e750?, 0x60?, 0xe7?, 0x5027f3?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004e738 sp=0xc00004e718 pc=0x47d92e
+runtime.gcBgMarkWorker(0xc0000225b0)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc00004e7c8 sp=0xc00004e738 pc=0x4295a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc00004e7e0 sp=0xc00004e7c8 pc=0x429485
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004e7e8 sp=0xc00004e7e0 pc=0x485001
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 13 gp=0xc000148e00 m=nil [GC worker (idle)]:
+runtime.gopark(0xed38d182f3b?, 0x3?, 0x2d?, 0x3?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004f738 sp=0xc00004f718 pc=0x47d92e
+runtime.gcBgMarkWorker(0xc0000225b0)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc00004f7c8 sp=0xc00004f738 pc=0x4295a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc00004f7e0 sp=0xc00004f7c8 pc=0x429485
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004f7e8 sp=0xc00004f7e0 pc=0x485001
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 14 gp=0xc000148fc0 m=nil [GC worker (idle)]:
+runtime.gopark(0xed38d52ceb1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc00004ff38 sp=0xc00004ff18 pc=0x47d92e
+runtime.gcBgMarkWorker(0xc0000225b0)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc00004ffc8 sp=0xc00004ff38 pc=0x4295a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc00004ffe0 sp=0xc00004ffc8 pc=0x429485
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00004ffe8 sp=0xc00004ffe0 pc=0x485001
+created by runtime.gcBgMarkStartWorkers in goroutine 10
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+rax    0x0
+rbx    0xfcb554
+rcx    0xfdb700
+rdx    0x626b00
+rdi    0xfcb554
+rsi    0xfcb554
+rbp    0xfcb550
+rsp    0x7f0054ffdb98
+r8     0xc80301
+r9     0x4
+r10    0xc0
+r11    0xffe7ffffffffffff
+r12    0xfcb548
+r13    0x626b00
+r14    0x1
+r15    0x0
+rip    0x626b0e
+rflags 0x10297
+cs     0x33
+fs     0x0
+gs     0x0
+FAIL	gofig	0.841s
+FAIL
+--- stderr (0 bytes, last 100 lines)

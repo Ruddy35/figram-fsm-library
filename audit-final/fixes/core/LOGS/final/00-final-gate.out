@@ -1,0 +1,17 @@
+exit_code=3 log=/home/user/figram-audit/fixes/core/LOGS/final/01-verify.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/02-strict_gate.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/03-cc-run_all.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/04-perf-GREEN.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/05-perf-extra.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/06-lint_warnings.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/07-check_messages-fc07.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/08-compile_same.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/09-et-suite.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/10-et-walk-t_need.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/10-et-walk-t_timers.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/10-et-walk-pizza.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/10-et-walk-features.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/11-et-host-contract.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/12-ffi-build_audit.log
+exit_code=0 log=/home/user/figram-audit/fixes/core/LOGS/final/13-ffi-regress.log
+FINAL-GATE-DONE

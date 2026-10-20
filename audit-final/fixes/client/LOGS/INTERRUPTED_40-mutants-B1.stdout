@@ -1,0 +1,2 @@
+исходник: /home/user/figram-audit-worktrees/fix-client/ffi/python-example; тесты: ['client_faults.py', 'client_contract.py', 'client_robustness.py']; движок: /home/user/figram-audit/fresh/figram-engine
+исходный клиент: {'client_faults.py': 0, 'client_contract.py': 0, 'client_robustness.py': 0}

@@ -1,0 +1,9 @@
+command: /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/exp/contract_noprecheck rlimit_init 
+cwd: /home/user/figram-audit-worktrees/fix-ffi
+start: 2026-10-20T02:30:09.948Z
+end: 2026-10-20T02:30:09.965Z
+exit_code: 1
+--- stdout (59 bytes, last 200 lines)
+RLIMIT_AS set to 1092231168 (VmSize 18056 KB + 1073741824)
+--- stderr (30 bytes, last 100 lines)
+INTERNAL PANIC: out of memory

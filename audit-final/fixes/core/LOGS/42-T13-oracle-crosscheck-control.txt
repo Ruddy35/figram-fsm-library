@@ -1,0 +1,2 @@
+control: owner timer rows with an unconditional variant 1453, oracle fires on 1453 (must be equal)
+non-owner timer rows 5866, oracle ignores 5866 (must be equal)

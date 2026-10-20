@@ -1,0 +1,8 @@
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/60-client_robustness.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/61-client_faults.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/62-client_contract.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/63-protocol_edges.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/64-loadtest.log
+exit_code=0 log=/home/user/figram-audit/fixes/final/LOGS/suites/65-host_sim.log
+exit_code=1 log=/home/user/figram-audit/fixes/final/LOGS/suites/66-host_sim-no-barrier.log
+SUITES-DONE

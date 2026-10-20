@@ -1,0 +1,10 @@
+command: timeout 1700 ./verify-faults.sh prebuilt random-docs-shrunk 
+cwd: /home/user/figram-audit-worktrees/fix-final
+start: 2026-10-20T05:34:25.426Z
+end: 2026-10-20T05:34:27.696Z
+exit_code: 0
+--- stdout (323 bytes, last 200 lines)
+неисправность код ожидание последняя строка
+random-docs-shrunk   1      1        ok документов 1, запросов 999, документов с расхождениями 0
+шлюз красный на каждой неисправности и зелёный без них
+--- stderr (0 bytes, last 100 lines)
