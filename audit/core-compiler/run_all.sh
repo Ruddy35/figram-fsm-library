@@ -12,7 +12,8 @@
 # every snapshot timer), so diff-random / mutants / lint-gaps / designer-upgrades
 # are RED on the baseline engine and green on the fixed one.
 # CC01=baseline: the original expectations of the core-compiler agent (Lean
-# reading of decision 7), green on the baseline engine.
+# reading of decision 7), green on the baseline engine (with CC04=baseline CC05=baseline).
+# CC04 (need, P-14) and CC05 (check warnings, P-24) default to "fixed" as well (lint_gaps.py).
 set -u
 CC01=${CC01:-fixed}; export CC01
 D=""; UPW=1
@@ -30,7 +31,14 @@ step() { want=$1; name=$2; shift 2
   if [ "$rc" = "$want" ]; then echo "ok    $name (exit $rc)"; else echo "WRONG $name (exit $rc, want $want)"; fail=1; fi; }
 
 step 0 directed-conformance python3 directed.py --engine "$ENGINE" --group conformance
-step 1 directed-findings    python3 directed.py --engine "$ENGINE" --group findings
+if [ "$CC01" = fixed ]; then
+  # findings H2 (CC-01) and H3 (CC-04/P-14) are fixed: the engine must pass them against the
+  # designer reading of the oracle (exit 0); on fix/base (CC-01 fixed, P-14 not) this is exit 1
+  step 0 directed-findings  python3 directed.py --engine "$ENGINE" --group findings \
+       --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --oracle-opt need=min
+else
+  step 1 directed-findings  python3 directed.py --engine "$ENGINE" --group findings
+fi
 step 0 directed-designer-oracle python3 directed.py --oracle-only --group all \
      --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --oracle-opt need=min
 for m in drop-exit drop-remember resume-default drop-timer-start; do

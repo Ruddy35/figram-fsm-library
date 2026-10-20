@@ -57,6 +57,15 @@ example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bo
     (∀ n ∈ m.requiredGuards s.state ev.key, envOf gs n = env n) →
     m.step s ev (envOf gs) = m.step s ev env := @guards_irrelevant
 
+-- fix-core: the fast compiler/check are the specification (P-06), `need` is sufficient (P-14)
+example : ∀ (c : Chart), c.compile = c.compileSpec := @Chart.compile_eq_spec
+example : ∀ (c : Chart), c.compile.wf = c.wfDirect := @Chart.wfDirect_eq
+example : ∀ (c : Chart), c.lint = [] → c.compile.wf = true := @Chart.lint_nil_wf
+example : ∀ (m : Machine), m.wfFast = m.wf := @Machine.wfFast_eq
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) (env : HostEnv),
+    missing m s ev gs = [] → (∀ n v, givenOf gs n = some v → env n = v) →
+    m.step s ev (envOf gs) = m.step s ev env := @missing_nil_step
+
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse
 #print Figram.Format.parseValue

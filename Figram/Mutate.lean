@@ -1,4 +1,4 @@
-import Figram.Core
+import Figram.CoreProofs
 
 /-!
 # Мутации автомата — проверка силы тестового набора (F04)
@@ -14,16 +14,61 @@ namespace Figram.Mutate
 /-- Все варианты всех стрелок по порядку. -/
 def branches (m : Machine) : List FBranch := m.rows.flatMap (·.branches)
 
+/-- Изменить стрелки, сохранив группировку по сообщениям; `f` получает
+сквозной номер стрелки (в порядке `Machine.rows`). -/
+def mapRows (m : Machine) (f : Nat → Row → Row) : Machine := Id.run do
+  let mut k := 0
+  let mut table : Array (NodeId × List Row) := #[]
+  for (s, rs) in m.table do
+    let mut out : Array Row := #[]
+    for r in rs do
+      out := out.push (f k r)
+      k := k + 1
+    table := table.push (s, out.toList)
+  return { m with table := table.toList }
+
+/-- Изменить варианты; `f` получает сквозной номер варианта (в порядке `branches`). -/
 def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.run do
   let mut k := 0
-  let mut rows : List Row := []
-  for r in m.rows do
-    let mut bs : List FBranch := []
-    for b in r.branches do
-      bs := bs ++ [f k b]
-      k := k + 1
-    rows := rows ++ [{ r with branches := bs }]
-  return { m with rows := rows }
+  let mut table : Array (NodeId × List Row) := #[]
+  for (s, rs) in m.table do
+    let mut out : Array Row := #[]
+    for r in rs do
+      let mut bs : Array FBranch := #[]
+      for b in r.branches do
+        bs := bs.push (f k b)
+        k := k + 1
+      out := out.push { r with branches := bs.toList }
+    table := table.push (s, out.toList)
+  return { m with table := table.toList }
+
+/-- Мутации стрелок не меняют сообщений и действий выхода. -/
+theorem mapBranches_states (m : Machine) (f : Nat → FBranch → FBranch) :
+    (mapBranches m f).states = m.states := rfl
+theorem mapBranches_exit (m : Machine) (f : Nat → FBranch → FBranch) :
+    (mapBranches m f).exit = m.exit := rfl
+theorem mapRows_states (m : Machine) (f : Nat → Row → Row) : (mapRows m f).states = m.states := rfl
+theorem mapRows_exit (m : Machine) (f : Nat → Row → Row) : (mapRows m f).exit = m.exit := rfl
+
+/-- **Мутант стрелки таймера, которым сообщение не владеет, эквивалентен** на
+таких событиях: и исходный, и испорченный автомат игнорируют срабатывание, не
+читая стрелок (`Machine.step_unowned_timer`). Через протокол событие с ключом
+`timer:X` бывает только срабатыванием таймера (`Engine.decEvent`), поэтому
+мутации `redirect`/`drop-guard`/`reverse-actions`/`swap-branches` строк
+`timer:X` сообщений без X на поведение не влияют (T-13, INT-05). -/
+theorem mapBranches_unowned_timer (m : Machine) (f : Nat → FBranch → FBranch) (s : Snapshot)
+    (id : String) (tok : Nat) (env : HostEnv) (hs : s.state ∈ m.states)
+    (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    (mapBranches m f).step s (.timer id tok) env = m.step s (.timer id tok) env := by
+  rw [Machine.step_unowned_timer m s id tok env hs h,
+    Machine.step_unowned_timer (mapBranches m f) s id tok env hs h]
+
+theorem mapRows_unowned_timer (m : Machine) (f : Nat → Row → Row) (s : Snapshot)
+    (id : String) (tok : Nat) (env : HostEnv) (hs : s.state ∈ m.states)
+    (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    (mapRows m f).step s (.timer id tok) env = m.step s (.timer id tok) env := by
+  rw [Machine.step_unowned_timer m s id tok env hs h,
+    Machine.step_unowned_timer (mapRows m f) s id tok env hs h]
 
 def callNames (m : Machine) : List String :=
   let names := ((branches m).flatMap (·.actions)).filterMap fun
@@ -66,9 +111,8 @@ def apply (m : Machine) (spec : String) : Option Machine :=
       if i == k then { b with actions := b.actions.reverse } else b
   | ["drop-guard", k] => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with guard := none } else b
-  | ["swap-branches", k] => k.toNat?.map fun k =>
-      { m with rows := m.rows.zipIdx.map fun (r, i) =>
-          if i == k then { r with branches := r.branches.reverse } else r }
+  | ["swap-branches", k] => k.toNat?.map fun k => mapRows m fun i r =>
+      if i == k then { r with branches := r.branches.reverse } else r
   | ["reverse-entry", k] => k.toNat?.map fun k =>
       { m with entry := m.entry.zipIdx.map fun (e, i) => if i == k then (e.1, e.2.reverse) else e }
   | ["drop-exit"] => some { m with exit := m.exit.map fun e => (e.1, []) }

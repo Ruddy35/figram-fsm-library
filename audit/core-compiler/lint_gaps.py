@@ -7,7 +7,8 @@ is requested although it cannot matter).
   python3 lint_gaps.py --figram BIN --engine BIN
 
 Prints one line per case: check verdict + engine evidence.  Exit 0 when every
-case behaves as documented in REPORT.md (accepted by check, defect observable)."""
+case behaves as documented in REPORT.md (accepted by check, defect observable)
+and, since P-24 (CC05=fixed, default), `check` warns about each defect on stderr."""
 
 import argparse
 import json
@@ -59,7 +60,29 @@ def check(figram, doc):
     with tempfile.NamedTemporaryFile("w", suffix=".bot.json", delete=False) as f:
         json.dump(doc, f)
     p = subprocess.run([figram, "check", f.name], capture_output=True, text=True, timeout=60)
-    return p.returncode, p.stdout.strip()
+    return p.returncode, p.stdout.strip(), [ln for ln in p.stderr.splitlines() if ln.strip()]
+
+
+# CC05=fixed (default, P-24): `check` still accepts (exit 0, "ok") but warns on stderr;
+# CC05=baseline: the original observation (accepted silently).
+WARN = {
+    "timer_arrow_on_non_owner": "Стрелка «timer:t» на «a» никогда не сработает",
+    "same_timer_two_messages": None,
+    "resume_only_from_inside": "нарисовано только изнутри раздела",
+    "variant_after_unconditional": "вариант 2 никогда не сработает",
+    "duplicate_guard_in_arrow": "условие «c1» повторяется",
+    "need_for_shadowed_section_guard": None,
+    "unreachable_message": "Сообщение «lost» недостижимо",
+}
+
+
+def warned_ok(name, warnings):
+    if os.environ.get("CC05") == "baseline":
+        return warnings == []
+    frag = WARN[name]
+    if frag is None:
+        return warnings == []
+    return any(w.startswith("предупреждение: ") and frag in w for w in warnings)
 
 
 def evidence(engine, name, doc):
@@ -110,7 +133,11 @@ EXPECT = {
     "resume_only_from_inside": lambda ev: ev["back_goes_to"] == ev["at_before"],
     "variant_after_unconditional": lambda ev: ev["targets_reached_for_all_c1"] == ["b"],
     "duplicate_guard_in_arrow": lambda ev: "c" not in ev["targets_reached_for_all_c1"],
-    "need_for_shadowed_section_guard": lambda ev: ev["engine_reply"].get("need") == ["c2"],
+    # P-14 fixed (CC04=fixed, default): the shadowed guard is not requested, the step goes to b;
+    # CC04=baseline: the original observation (need ["c2"]).
+    "need_for_shadowed_section_guard": lambda ev: (
+        ev["engine_reply"].get("need") == ["c2"] if os.environ.get("CC04") == "baseline"
+        else "need" not in ev["engine_reply"] and ev["engine_reply"]["snapshot"]["at"] == "b"),
     "unreachable_message": lambda ev: ev["states"] == 2,
 }
 
@@ -122,11 +149,11 @@ def main():
     args = ap.parse_args()
     ok_all = True
     for name, doc in CASES.items():
-        rc, out = check(args.figram, doc)
+        rc, out, warnings = check(args.figram, doc)
         ev = evidence(args.engine, name, doc)
-        good = rc == 0 and out == "ok" and EXPECT[name](ev)
+        good = rc == 0 and out == "ok" and warned_ok(name, warnings) and EXPECT[name](ev)
         ok_all &= good
-        print(json.dumps({"case": name, "figram_check": [rc, out], "engine_evidence": ev,
+        print(json.dumps({"case": name, "figram_check": [rc, out, warnings], "engine_evidence": ev,
                           "as_documented": good}, ensure_ascii=False))
     print("cases:", len(CASES), "as documented:", ok_all)
     raise SystemExit(0 if ok_all else 1)

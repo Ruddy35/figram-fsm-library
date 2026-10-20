@@ -26,7 +26,85 @@ theorem realize_state (s : Snapshot) (T : NodeId) (acts : List Action) :
     (realize s T acts).1.state = T := by
   simp only [realize, foldl_realize_state]
 
+theorem lookup_some_mem {α β} [DecidableEq α] {t : List (α × β)} {k : α} {v : β}
+    (h : lookup t k = some v) : (k, v) ∈ t := by
+  simp only [lookup, Option.map_eq_some_iff] at h
+  obtain ⟨p, hp, rfl⟩ := h
+  have hk := List.find?_some hp
+  simp only [decide_eq_true_eq] at hk
+  rw [← hk]
+  exact List.mem_of_find?_eq_some hp
+
+/-- Выбор варианта не зависит от вариантов после первого безусловного. -/
+theorem find?_untilUnguarded (env : HostEnv) (bs : List FBranch) :
+    bs.find? (fun b => guardOK env b.guard) =
+      (untilUnguarded (·.guard) bs).find? (fun b => guardOK env b.guard) := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih =>
+    cases hg : b.guard with
+    | none => simp [untilUnguarded, hg, guardOK]
+    | some n =>
+      simp only [untilUnguarded, hg, List.find?_cons, guardOK]
+      cases hn : env n
+      · exact ih
+      · rfl
+
+theorem neededIn_given {known : String → Option Bool} {bs : List FBranch} {n : String}
+    (h : n ∈ Machine.neededIn known bs) : known n = none := by
+  induction bs with
+  | nil => simp [Machine.neededIn] at h
+  | cons b bs ih =>
+    unfold Machine.neededIn at h
+    split at h
+    · simp at h
+    · split at h
+      · simp at h
+      · exact ih h
+      · rename_i g _ hg
+        rcases List.mem_cons.mp h with rfl | h
+        · exact hg
+        · exact ih h
+
+/-- Если недостающих условий нет, выбор варианта одинаков для любых значений,
+согласных с известными. -/
+theorem find?_neededIn {known : String → Option Bool} {bs : List FBranch} (env₁ env₂ : HostEnv)
+    (h : Machine.neededIn known bs = [])
+    (h₁ : ∀ n v, known n = some v → env₁ n = v) (h₂ : ∀ n v, known n = some v → env₂ n = v) :
+    bs.find? (fun b => guardOK env₁ b.guard) = bs.find? (fun b => guardOK env₂ b.guard) := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih =>
+    unfold Machine.neededIn at h
+    cases hg : b.guard with
+    | none => simp [hg, guardOK]
+    | some g =>
+      simp only [hg] at h
+      cases hv : known g with
+      | none => simp [hv] at h
+      | some v =>
+        simp only [hv] at h
+        have e₁ := h₁ g v hv
+        have e₂ := h₂ g v hv
+        cases v with
+        | true => simp [hg, guardOK, e₁, e₂]
+        | false =>
+          simp only [List.find?_cons, hg, guardOK, e₁, e₂]
+          exact ih h
+
 namespace Machine
+
+/-- Найденная стрелка — одна из стрелок автомата. -/
+theorem row_mem {m : Machine} {s : NodeId} {e : EventId} {r : Row} (h : m.row s e = some r) :
+    r ∈ m.rows := by
+  unfold row at h
+  have hr := List.mem_of_find?_eq_some h
+  cases hl : lookup m.table s with
+  | none => simp [hl] at hr
+  | some rs =>
+    rw [hl] at hr
+    simp only [rows, List.mem_flatMap]
+    exact ⟨(s, rs), lookup_some_mem hl, hr⟩
 
 theorem wf_parts {m : Machine} (h : m.wf = true) :
     m.initial ∈ m.states ∧
@@ -79,7 +157,7 @@ theorem step_state_valid (m : Machine) (hwf : m.wf = true)
         · exact hs
         · rename_i b hb
           simp only [fire, realize_state]
-          exact resolve_mem hwf s _ (hrows r (List.mem_of_find?_eq_some hr) b
+          exact resolve_mem hwf s _ (hrows r (row_mem hr) b
             (List.mem_of_find?_eq_some hb))
 
 theorem find?_congr {α} (l : List α) (p q : α → Bool)
@@ -90,6 +168,16 @@ theorem find?_congr {α} (l : List α) (p q : α → Bool)
     have hx := h x (by simp)
     have hxs : ∀ y ∈ xs, p y = q y := fun y hy => h y (by simp [hy])
     simp only [List.find?_cons, hx, ih hxs]
+
+/-- Срабатывание таймера, которым текущее сообщение не владеет (выход из него
+таймер не отменяет), стрелок не читает: снимок остаётся прежним, действий нет.
+Поэтому стрелка `timer:X` сообщения без таймера X недостижима (T-13). -/
+theorem step_unowned_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
+    (hs : s.state ∈ m.states) (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    m.step s (.timer id tok) env = (s, []) := by
+  unfold step
+  simp only [hs, not_true_eq_false, ite_false, ownsTimer, h, Bool.and_false, Bool.not_false,
+    ite_true]
 
 theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)
     (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :
@@ -104,8 +192,8 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
       · rfl
       · rename_i r hr
         simp only [hr] at h
-        have hfind : r.branches.find? (fun b => guardOK env₁ b.guard)
-            = r.branches.find? (fun b => guardOK env₂ b.guard) := by
+        have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
+            = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
           apply find?_congr
           intro b hb
           cases hg : b.guard with
@@ -113,7 +201,7 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
           | some n =>
             simp only [guardOK]
             exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
-        rw [hfind]
+        rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
 
 end Machine
 end Figram

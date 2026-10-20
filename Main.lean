@@ -6,7 +6,8 @@ import Figram.RandomDoc
 # CLI `figram`
 
 * `figram example` — документ бота пиццерии;
-* `figram check <bot.json>` — ошибки документа;
+* `figram check <bot.json>` — ошибки документа (код 1); предупреждения —
+  в stderr с префиксом «предупреждение:», код 0;
 * `figram fmt <bot.json>` — каноническая запись;
 * `figram stats <bot.json>` — размер скомпилированного автомата;
 * `figram trace <bot.json> <count> <length> <seed>` — случайные эталонные
@@ -67,8 +68,11 @@ def run (args : List String) : IO Unit := do
   match args with
   | ["example"] => IO.println (print (encode Examples.pizzaDoc))
   | ["check", p] =>
-    let errs := (← readDoc p).check
-    if errs.isEmpty then IO.println "ok"
+    let d ← readDoc p
+    let errs := d.check
+    if errs.isEmpty then
+      IO.println "ok"
+      for w in d.warnings do IO.eprintln s!"предупреждение: {sanitize w}"
     else
       for e in errs do IO.println (sanitize e)
       throw <| IO.userError s!"ошибок: {errs.length}"

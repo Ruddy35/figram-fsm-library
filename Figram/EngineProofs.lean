@@ -219,7 +219,7 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
             simp only [staleCancels, List.mem_map] at ha
             obtain ⟨_, _, rfl⟩ := ha
             rfl
-          · exact hrows r (List.mem_of_find?_eq_some hr) b (List.mem_of_find?_eq_some hb) a ha
+          · exact hrows r (Machine.row_mem hr) b (List.mem_of_find?_eq_some hb) a ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hentry e he)) _ a ha
 
@@ -249,6 +249,49 @@ theorem guards_irrelevant (m : Machine) (s : Snapshot) (ev : Event) (gs : List (
     (hagree : ∀ n ∈ m.requiredGuards s.state ev.key, envOf gs n = env n) :
     m.step s ev (envOf gs) = m.step s ev env :=
   m.step_guard_local s ev _ _ hagree
+
+/-- **Запрос `need` достаточен**: если движок не просит ни одного условия,
+результат шага одинаков для любых значений условий, согласных с переданными
+в запросе (непереданные условия на шаг не влияют). -/
+theorem missing_nil_step (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool))
+    (env : HostEnv) (h : missing m s ev gs = [])
+    (hagree : ∀ n v, givenOf gs n = some v → env n = v) :
+    m.step s ev (envOf gs) = m.step s ev env := by
+  have hgiven : ∀ n v, givenOf gs n = some v → envOf gs n = v := by
+    intro n v hv
+    simp only [givenOf] at hv
+    simp [envOf, hv]
+  unfold missing at h
+  unfold Machine.step
+  split
+  · rfl
+  · split
+    · rfl
+    · rename_i hs hacc
+      have hc : (decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev) = true := by
+        simp only [Bool.not_eq_true', Bool.not_eq_false] at hacc
+        simp only [Bool.and_assoc, hacc, Bool.and_true]
+        simpa using hs
+      simp only [hc, ite_true] at h
+      split
+      · rfl
+      · rename_i r hr
+        have hn : m.neededGuards s.state ev.key (givenOf gs) = [] := by
+          apply List.eq_nil_iff_forall_not_mem.mpr
+          intro n hn
+          have hnone : givenOf gs n = none := by
+            simp only [Machine.neededGuards, hr] at hn
+            exact neededIn_given hn
+          have hmem : n ∈ (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter
+              (fun n => !(gs.any (·.1 == n))) := by
+            refine List.mem_filter.mpr ⟨(mem_dedup _ _).mpr hn, ?_⟩
+            simp only [givenOf, Option.map_eq_none_iff, List.find?_eq_none] at hnone
+            simp only [Bool.not_eq_true', List.any_eq_false]
+            exact hnone
+          rw [h] at hmem
+          simp at hmem
+        simp only [Machine.neededGuards, hr] at hn
+        rw [find?_neededIn (envOf gs) env hn hgiven hagree]
 
 /-- **Замкнутость протокола**: для автомата, прошедшего загрузку, ответ на шаг
 из допустимого снимка содержит снимок, который движок читает обратно тем же. -/

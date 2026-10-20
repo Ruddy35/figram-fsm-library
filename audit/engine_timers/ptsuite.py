@@ -117,21 +117,21 @@ def need_scenarios(ex, own):
     ra = step(e, s, "btn:go")
     rt = step(e, s, "btn:go", guards={"expensive": True})
     rf = step(e, s, "btn:go", guards={"expensive": False})
-    rec("N6", "need", "OBS",
-        "need asks for a guard of an UNREACHABLE branch: own unconditional branch at 'a' shadows the "
-        "section's 'if expensive'; result is identical for true/false",
-        {"need": ra, "true": rt["snapshot"], "false": rf["snapshot"],
-         "independent": rt["snapshot"] == rf["snapshot"] and rt["actions"] == rf["actions"]})
+    # P-14 (fix-core): `need` lists only guards that can influence the step
+    hard("N6", "need", "need" not in ra and ra.get("snapshot", {}).get("at") == "c",
+         "own unconditional branch at 'a' shadows the section's 'if expensive': no need, goes to c",
+         {"need": ra, "true": rt["snapshot"], "false": rf["snapshot"],
+          "independent": rt["snapshot"] == rf["snapshot"] and rt["actions"] == rf["actions"]})
     hard("N6b", "need", rt["snapshot"] == rf["snapshot"] and rt["actions"] == rf["actions"],
          "guards_irrelevant: unreachable guard does not influence the result", None)
     m2 = step(e, s, "btn:m2", guards={})["snapshot"]
     rp = step(e, m2, "btn:pick")
-    rec("N7", "need", "OBS", "within one transition a branch after an unconditional one is still requested "
-        "(and `figram check` reports nothing)", rp)
+    hard("N7", "need", rp.get("need") == ["g1"],
+         "within one transition the guard after an unconditional branch (g2) is not requested", rp)
     m3 = step(e, s, "btn:m3")["snapshot"]
     rq = step(e, m3, "btn:go", guards={"g1": True})
-    rec("N2", "need", "OBS", "partial guards: g1=true already decides (first branch wins) but engine still "
-        "asks for 'expensive' (all candidate guards are demanded at once)", rq)
+    hard("N2", "need", "need" not in rq and rq.get("snapshot", {}).get("at") == "b",
+         "partial guards: g1=true already decides (first branch wins): 'expensive' is not requested", rq)
     e.close()
 
 
