@@ -443,13 +443,19 @@ def spy(pid, sig):
 
 
 figram_client.os.killpg = spy
+slow = []
 try:
-    eng = Engine(fake(HELLO + 'read l; kill -SEGV $$'), pizza, timeout=2.0, restart_backoff=(0, 0))
+    # Двойник умирает от SIGKILL, а не от SIGSEGV: при SIGSEGV ядро сначала отдаёт дамп
+    # обработчику из core_pattern (на раннерах GitHub — системный обработчик сбоев), и
+    # каналы процесса закрываются только после него — время итерации мерило бы ОС, а
+    # не клиента (на загруженном раннере до 8 таких падений за итерацию > 1,5 с).
+    eng = Engine(fake(HELLO + 'read l; kill -KILL $$'), pizza, timeout=2.0, restart_backoff=(0, 0))
     for _ in range(200):
         t0 = time.monotonic()
         parallel(lambda i: eng.start("u"), 8)
-        if time.monotonic() - t0 > 1.5:   # сбой обнаруживается сразу; не ждать 200 × срок
-            calls[1] += 1000
+        dt = time.monotonic() - t0
+        if dt > 1.5:   # сбой обнаруживается сразу; не ждать 200 × срок
+            slow.append(dt)
             break
     eng.close()
     eng = Engine(engine_bin, pizza, processes=2, timeout=2.0)
@@ -461,6 +467,8 @@ finally:
     figram_client.os.killpg = real_killpg
 report(calls[1] == 0 and calls[0] > 0,
        f"R9 killpg: вызовов {calls[0]}, из них по уже собранному (свободному) pid {calls[1]}")
+report(not slow, f"R9 сбой двойника замечен сразу: итераций дольше 1,5 с {len(slow)}"
+       + (f" ({slow[0]:.2f} с)" if slow else ""))
 
 # ---------------------------------------------------------------------------
 # R10–R20: регрессии fix/client. pyfake — ТЕСТОВЫЕ ДВОЙНИКИ движка на Python

@@ -1,0 +1,11 @@
+command: python3 -I /home/user/figram-audit/fixes/client/mutate_client_v2.py ffi/python-example bin/figram-engine examples/pizza.bot.json examples/features.bot.json client_robustness.py 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T07:09:50.190Z
+end: 2026-10-20T07:11:17.969Z
+exit_code: 0
+--- stdout (488 bytes, last 200 lines)
+исходник: /home/user/figram-fsm-library/ffi/python-example; тесты: ['client_robustness.py']; движок: /home/user/figram-fsm-library/bin/figram-engine
+исходный клиент: {'client_robustness.py': 0}
+M20 killpg при каждом _fail: убит: client_robustness.py  client_robustness.py=1 43.7с ['НЕТ R9 killpg: вызовов 298, из них по уже собранному (свободному) pid 17']
+выживших мутантов: 0 из 1
+--- stderr (0 bytes, last 100 lines)
