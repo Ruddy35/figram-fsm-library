@@ -1,0 +1,4 @@
+/home/user/figram-audit/fixes/release/memory_probe.sh: line 5:   435 Done                    printf '{"id":1,"op":"hello"}\n'
+       436 Aborted                 | timeout 10 bin/figram-engine examples/pizza.bot.json > /tmp/probe.out 2>&1
+/home/user/figram-audit/fixes/release/memory_probe.sh: line 5:   444 Done                    printf '{"id":1,"op":"hello"}\n'
+       445 Aborted                 | timeout 10 bin/figram-engine examples/pizza.bot.json > /tmp/probe.out 2>&1

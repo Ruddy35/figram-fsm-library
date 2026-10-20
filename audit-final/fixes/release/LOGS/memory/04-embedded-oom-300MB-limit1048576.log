@@ -1,0 +1,12 @@
+command: bash -c ulimit\ -v\ 3686400\;\ exec\ nice\ -n\ 10\ timeout\ 300\ /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/oom/oom_embedded\ examples/pizza.bot.json\ 300\ 1048576 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T14:36:23.498Z
+end: 2026-10-20T14:36:23.727Z
+exit_code: 0
+--- stdout (436 bytes, last 200 lines)
+хост pid 673: figram_init = 0 
+1. до сбоя: {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+2. запрос 300 МБ, предел запроса 1048576 байт...
+   ответ: {"id":null,"error":"запрос длиннее предела 1048576 байт","code":"too_large"}
+3. хост жив, следующий запрос: {"id":3,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+--- stderr (0 bytes, last 100 lines)

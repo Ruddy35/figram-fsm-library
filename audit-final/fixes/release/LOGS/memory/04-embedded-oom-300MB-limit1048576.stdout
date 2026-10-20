@@ -1,0 +1,5 @@
+хост pid 673: figram_init = 0 
+1. до сбоя: {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+2. запрос 300 МБ, предел запроса 1048576 байт...
+   ответ: {"id":null,"error":"запрос длиннее предела 1048576 байт","code":"too_large"}
+3. хост жив, следующий запрос: {"id":3,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}

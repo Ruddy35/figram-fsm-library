@@ -1,0 +1,11 @@
+command: bash -c ulimit\ -v\ 3686400\;\ exec\ nice\ -n\ 10\ timeout\ 300\ /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/oom/oom_embedded\ examples/pizza.bot.json\ 600\ 0 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T14:36:14.578Z
+end: 2026-10-20T14:36:23.474Z
+exit_code: 1
+--- stdout (191 bytes, last 200 lines)
+хост pid 656: figram_init = 0 
+1. до сбоя: {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+2. запрос 600 МБ, предел запроса 0 байт...
+--- stderr (30 bytes, last 100 lines)
+INTERNAL PANIC: out of memory
