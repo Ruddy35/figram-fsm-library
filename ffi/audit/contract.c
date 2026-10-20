@@ -502,13 +502,15 @@ static int t_utf8_strict(const char* path) {
 }
 
 /* P-18/PROTOCOL_CHANGES 5, 8: предел размера запроса и пустой запрос. */
-static char* req_of_size(size_t n) {   /* {"id":1,"op":"hello","pad":"xxxx…"} ровно n байт */
-  const char* head = "{\"id\":1,\"op\":\"hello\",\"pad\":\"";
+/* {"id":1,"op":"hello"   …пробелы…   } ровно n байт: корректный строгий запрос (лишних полей
+   нет — PROTOCOL_CHANGES 3), размер набирается пробелами между значением и `}`. */
+static char* req_of_size(size_t n) {
+  const char* head = "{\"id\":1,\"op\":\"hello\"";
   size_t h = strlen(head);
   char* b = malloc(n + 1);
   memcpy(b, head, h);
-  memset(b + h, 'x', n - h - 2);
-  b[n - 2] = '"'; b[n - 1] = '}'; b[n] = 0;
+  memset(b + h, ' ', n - h - 1);
+  b[n - 1] = '}'; b[n] = 0;
   return b;
 }
 static int t_limit(const char* path) {
@@ -518,14 +520,14 @@ static int t_limit(const char* path) {
   figram_free(r);
   char* at = req_of_size(1048576), *over = req_of_size(1048577);
   r = figram_request_json(m, at);
-  ok_if(r && !strstr(r, "too_large"), "request of exactly 1 MiB is not too_large", r); figram_free(r);
+  ok_if(r && strstr(r, "\"protocol\":1"), "request of exactly 1 MiB is accepted (hello)", r); figram_free(r);
   r = figram_request_json(m, over);
   ok_if(is_error_code(r, "too_large", 1), "request of 1 MiB + 1 → too_large (default limit)", r); figram_free(r);
   if (HAVE(figram_set_max_request)) {
     size_t prev = figram_set_max_request(100);
     ok_if(prev == 1048576, "default limit is 1048576", NULL);
     char* a = req_of_size(100), *b = req_of_size(101);
-    r = figram_request_json(m, a); ok_if(r && !strstr(r, "too_large"), "limit 100: 100 bytes accepted", r); figram_free(r);
+    r = figram_request_json(m, a); ok_if(r && strstr(r, "\"protocol\":1"), "limit 100: 100 bytes accepted", r); figram_free(r);
     r = figram_request_json(m, b); ok_if(is_error_code(r, "too_large", 1), "limit 100: 101 bytes → too_large", r); figram_free(r);
     if (HAVE(figram_request_json_n)) {
       r = figram_request_json_n(m, b, 101); ok_if(is_error_code(r, "too_large", 1), "limit 100: request_json_n 101 bytes → too_large", r); figram_free(r);
