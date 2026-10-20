@@ -110,7 +110,11 @@ EXPECT = {
     "resume_only_from_inside": lambda ev: ev["back_goes_to"] == ev["at_before"],
     "variant_after_unconditional": lambda ev: ev["targets_reached_for_all_c1"] == ["b"],
     "duplicate_guard_in_arrow": lambda ev: "c" not in ev["targets_reached_for_all_c1"],
-    "need_for_shadowed_section_guard": lambda ev: ev["engine_reply"].get("need") == ["c2"],
+    # P-14 fixed (CC04=fixed, default): the shadowed guard is not requested, the step goes to b;
+    # CC04=baseline: the original observation (need ["c2"]).
+    "need_for_shadowed_section_guard": lambda ev: (
+        ev["engine_reply"].get("need") == ["c2"] if os.environ.get("CC04") == "baseline"
+        else "need" not in ev["engine_reply"] and ev["engine_reply"]["snapshot"]["at"] == "b"),
     "unreachable_message": lambda ev: ev["states"] == 2,
 }
 

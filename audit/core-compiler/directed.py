@@ -285,10 +285,21 @@ case("H3_need_after_unconditional", "findings", D_BUBBLE,
      [("btn:y", None, None, {"at": "A", "no_need": True})],
      spec="message has an unconditional variant; the section's guarded variant can never win, yet "
           "engine asks the host to evaluate c1")
+case("H3b_need_known_true_decides", "findings", D_BUBBLE,
+     [("btn:x", None, {"c1": True}, {"at": "A", "no_need": True})],
+     spec="the first variant's guard c1 is supplied and true: it wins whatever c2 is, yet the engine "
+          "asks the host to evaluate c2")
+case("H3c_need_prefix", "findings", D_BUBBLE,
+     [("btn:x", None, {}, {"need": {"c1", "c2"}}), ("btn:x", None, {"c1": False}, {"need": {"c2"}})],
+     spec="need lists exactly the guards before the first unconditional variant that are not known")
 
 
 def check(exp, before, rep, oracle_res, where):
     errs = []
+    if "need" in exp:
+        if set(rep.get("need", [])) != exp["need"] or "snapshot" in rep:
+            errs.append(f"{where}: expected need {sorted(exp['need'])}, got {rep}")
+        return errs
     if "need_superset_of" in exp or "need_excludes" in exp:
         if "need" not in rep:
             return [f"{where}: expected need, got {rep}"]
@@ -385,7 +396,7 @@ def run_case(c, mk):
                 if exp.get("no_need") and "need" in rep:
                     errs.append(f"step {i} {ev}: engine asked need {rep['need']} although the "
                                 f"winning variant is unconditional")
-                    req["guards"] = {g: False for g in rep["need"]}
+                    req["guards"] = dict(req.get("guards") or {}, **{g: False for g in rep["need"]})
                     rep = e.req(req)
             errs += check(exp, snap, rep, None, f"step {i} {ev}")
             if "snapshot" in rep:

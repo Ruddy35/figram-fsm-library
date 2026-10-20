@@ -258,6 +258,25 @@ class Ref:
                 out.append(g)
         return out
 
+    def needed(self, s, ev, tok, known):
+        """Guards `need` asks for (P-14, FORMAT §7.3): candidate variants in order up to the
+        first unconditional one or the first guard known to be true; guards not supplied on
+        the way, each once."""
+        if s["at"] not in self.leaves or not self.accepts(s, ev, tok):
+            return []
+        out = []
+        for b in self.cands(s["at"], ev):
+            g = b[0]
+            if g is None:
+                break
+            if g in known:
+                if known[g]:
+                    break
+                continue
+            if g not in out:
+                out.append(g)
+        return out
+
     def unreachable_only(self, s, ev):
         """Guards that only appear after the first unconditional candidate branch."""
         cs = self.cands(s["at"], ev)
@@ -489,7 +508,7 @@ class Session:
         raw, rid, r = self.call(req, where)
         if r is None:
             return None
-        exp_need = [g for g in req_g if g not in partial]
+        exp_need = ref.needed(u.snap, ev, tok, partial)
         if exp_need:
             ck.ok("need" in r and sorted(r["need"]) == sorted(exp_need), "I9",
                   f"{where}: ev={ev} tok={tok} guards={partial} reply={r} expected need {exp_need}")
