@@ -63,9 +63,11 @@ check "P-21 length variants, load_doc_ex, NUL in output" 0 "$B/contract" lengths
 check "P-18 strict UTF-8 on the FFI path" 0 "$B/contract" utf8_strict $D
 # PROTOCOL_CHANGES 5, 8: предел размера запроса (too_large), пустой запрос (parse_error).
 check "P-18 request size limit and empty request" 0 "$B/contract" limit $D
-# P-22 (FFI-09, NP-02): SIGPIPE хоста и sigaltstack вызывающего потока сохраняются.
+# P-22 (FFI-09, NP-02): диспозиции SIGPIPE, SIGSEGV, SIGBUS хоста и sigaltstack вызывающего потока
+# сохраняются; встроенный рантайм не запускает потоков и не открывает дескрипторов.
 check "P-22 signals preserved (defaults)" 0 "$B/contract" signals default
-check "P-22 signals preserved (custom handler + altstack)" 0 "$B/contract" signals custom
+check "P-22 signals preserved (custom handlers + altstack)" 0 "$B/contract" signals custom
+check "P-22 no runtime threads or file descriptors" 0 "$B/contract" host_state $D
 # Не регрессировало: основная обвязка и нагрузка с выгрузкой других автоматов.
 check "harness 16x20000 + reload" 0 "$B/harness_plain" $D memory
 check "stress 16x20000 + 4 loaders" 0 "$B/stress" $D 16 20000 4

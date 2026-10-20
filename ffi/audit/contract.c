@@ -541,34 +541,42 @@ static int t_limit(const char* path) {
   return n_fail != 0;
 }
 
-/* P-22: figram_init сохраняет SIGPIPE хоста и sigaltstack вызывающего потока. */
+/* P-22: figram_init сохраняет диспозиции SIGPIPE, SIGSEGV, SIGBUS и sigaltstack вызывающего потока. */
 static void host_handler(int s) { (void)s; }
+/* SA_RESTORER glibc добавляет при каждой установке обработчика — это не изменение диспозиции. */
+#ifndef SA_RESTORER
+#define SA_RESTORER 0x04000000
+#endif
+static void same_action(const char* name, const struct sigaction* a, const struct sigaction* b) {
+  int same_mask = 1;
+  for (int sig = 1; sig < 32; sig++) same_mask &= sigismember(&a->sa_mask, sig) == sigismember(&b->sa_mask, sig);
+  char what[64], d[256];
+  snprintf(what, sizeof what, "%s disposition preserved", name);
+  snprintf(d, sizeof d, "before %p flags %d, after %p flags %d", (void*)a->sa_handler, a->sa_flags,
+           (void*)b->sa_handler, b->sa_flags);
+  ok_if(a->sa_handler == b->sa_handler && (a->sa_flags & ~SA_RESTORER) == (b->sa_flags & ~SA_RESTORER) && same_mask,
+        what, d);
+}
 static int t_signals(const char* mode) {
   int custom = !strcmp(mode, "custom");
+  static const int sigs[] = {SIGPIPE, SIGSEGV, SIGBUS};
+  static const char* names[] = {"SIGPIPE", "SIGSEGV", "SIGBUS"};
   struct sigaction sa; memset(&sa, 0, sizeof sa);
   sa.sa_handler = host_handler; sa.sa_flags = SA_RESTART;
-  if (custom) sigaction(SIGPIPE, &sa, NULL);
+  if (custom) for (int i = 0; i < 3; i++) sigaction(sigs[i], &sa, NULL);
   stack_t st; memset(&st, 0, sizeof st);
   if (custom) {
     st.ss_size = 1 << 16; st.ss_sp = malloc(st.ss_size); st.ss_flags = 0;
     sigaltstack(&st, NULL);
   }
-  struct sigaction p0; sigaction(SIGPIPE, NULL, &p0);
+  struct sigaction a0[3], a1[3];
+  for (int i = 0; i < 3; i++) sigaction(sigs[i], NULL, &a0[i]);
   stack_t s0; sigaltstack(NULL, &s0);
   if (figram_init()) { ok_if(0, "figram_init", err_or(NULL)); return 1; }
-  struct sigaction p1; sigaction(SIGPIPE, NULL, &p1);
+  for (int i = 0; i < 3; i++) sigaction(sigs[i], NULL, &a1[i]);
   stack_t s1; sigaltstack(NULL, &s1);
+  for (int i = 0; i < 3; i++) same_action(names[i], &a0[i], &a1[i]);
   char d[256];
-  snprintf(d, sizeof d, "before %p flags %d, after %p flags %d", (void*)p0.sa_handler, p0.sa_flags,
-           (void*)p1.sa_handler, p1.sa_flags);
-  /* SA_RESTORER glibc добавляет при каждой установке обработчика — это не изменение диспозиции. */
-#ifndef SA_RESTORER
-#define SA_RESTORER 0x04000000
-#endif
-  int same_mask = 1;
-  for (int sig = 1; sig < 32; sig++) same_mask &= sigismember(&p0.sa_mask, sig) == sigismember(&p1.sa_mask, sig);
-  ok_if(p0.sa_handler == p1.sa_handler && (p0.sa_flags & ~SA_RESTORER) == (p1.sa_flags & ~SA_RESTORER) && same_mask,
-        "SIGPIPE disposition preserved", d);
   snprintf(d, sizeof d, "before sp=%p size=%zu flags=%d, after sp=%p size=%zu flags=%d",
            s0.ss_sp, s0.ss_size, s0.ss_flags, s1.ss_sp, s1.ss_size, s1.ss_flags);
   ok_if(s0.ss_flags == s1.ss_flags && ((s0.ss_flags & SS_DISABLE) || (s0.ss_sp == s1.ss_sp && s0.ss_size == s1.ss_size)),
@@ -577,11 +585,46 @@ static int t_signals(const char* mode) {
   return n_fail != 0;
 }
 
+/* P-22: встроенный рантайм не запускает потоков и не открывает файловых дескрипторов (ни при
+   figram_init, ни при загрузке и запросах), а figram_init резервирует меньше 8 МБ адресов (раньше
+   ≈75 МБ: стек потока libuv и арена glibc malloc этого потока; без ffi/figram_rt.c — ещё 1 ГиБ арены mimalloc). */
+#define MAX_INIT_VMSIZE_KB (8 * 1024)
+static int n_fds(void) {
+  DIR* d = opendir("/proc/self/fd"); int n = 0; struct dirent* e;
+  while (d && (e = readdir(d))) if (e->d_name[0] != '.') n++;
+  if (d) closedir(d);
+  return n;
+}
+static int t_host_state(const char* path) {
+  int t0 = n_threads(), f0 = n_fds();
+  long vm0 = status_kb("VmSize");
+  if (figram_init()) { ok_if(0, "figram_init", err_or(NULL)); return 1; }
+  long vm1 = status_kb("VmSize");
+  int t1 = n_threads(), f1 = n_fds();
+  char* doc = read_all(path);
+  void* m = figram_load_doc(doc);
+  ok_if(m != NULL, "load", err_or(NULL));
+  char* r = m ? figram_request_json(m, REQ) : NULL;
+  ok_if(r != NULL && strstr(r, "\"snapshot\"") != NULL, "request", r);
+  figram_free(r);
+  figram_unload(m);
+  free(doc);
+  int t2 = n_threads(), f2 = n_fds();
+  char d[128];
+  snprintf(d, sizeof d, "threads %d → %d after init → %d after load and request", t0, t1, t2);
+  ok_if(t1 == t0 && t2 == t0, "no runtime threads", d);
+  snprintf(d, sizeof d, "fds %d → %d after init → %d after load and request", f0, f1, f2);
+  ok_if(f1 == f0 && f2 == f0, "no runtime file descriptors", d);
+  snprintf(d, sizeof d, "VmSize %ld → %ld KB (+%ld KB, limit %d KB)", vm0, vm1, vm1 - vm0, MAX_INIT_VMSIZE_KB);
+  ok_if(vm1 - vm0 <= MAX_INIT_VMSIZE_KB, "figram_init address-space reservation", d);
+  return n_fail != 0;
+}
+
 static int usage(void) {
   fprintf(stderr, "usage: contract init_twice | init_race DOC | before_init check|fmt|load DOC |\n"
                   "  null check|fmt|load|line|handle|unload|free|unload_failed_load DOC |\n"
                   "  unload_twice DOC | use_after_unload DOC [OTHER] | threads DOC N |\n"
-                  "  side_effects | nul DOC | utf8 DOC\n");
+                  "  side_effects | nul DOC | utf8 DOC | signals default|custom | host_state DOC\n");
   return 2;
 }
 
@@ -608,5 +651,6 @@ int main(int argc, char** argv) {
   if (!strcmp(t, "utf8_strict") && argc > 2) return t_utf8_strict(argv[2]);
   if (!strcmp(t, "limit") && argc > 2) return t_limit(argv[2]);
   if (!strcmp(t, "signals") && argc > 2) return t_signals(argv[2]);
+  if (!strcmp(t, "host_state") && argc > 2) return t_host_state(argv[2]);
   return usage();
 }
