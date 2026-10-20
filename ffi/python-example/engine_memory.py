@@ -41,13 +41,16 @@ for mb in (32, 64, 256):
     report(good, f"ulimit -v {mb} МБ: код {p.returncode}, ответов {len(out)}"
            + ("" if good else f"; stderr: {p.stderr.decode(errors='replace')[:200]!r}"))
 
-# Переполнение стека: 250 вложенных объектов при стеке 64 и 32 КиБ (при 8 МиБ — обычная ошибка документа).
+# Переполнение стека: 250 вложенных объектов при стеке 24 и 32 КиБ (при 8 МиБ — обычная ошибка документа).
+# Окружение пустое: его строки лежат в начале стека основного потока и сдвигают границу. Без окружения
+# обе сборки (официальная и из исходников) переполняются с сообщением при 16–48 КиБ, при 56–64 КиБ —
+# не всегда, ниже 16 КиБ стека не хватает уже до запуска рантайма.
 with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
     f.write('{"figram":1,"bot":' + '{"a":' * 250 + "1" + "}" * 250 + "}")
-for kb in (64, 32):
+for kb in (24, 32):
     def small_stack(kb=kb):
         resource.setrlimit(resource.RLIMIT_STACK, (kb << 10, resource.RLIM_INFINITY))
-    p = subprocess.run([ENGINE, f.name], input=REQS, capture_output=True, timeout=30, preexec_fn=small_stack)
+    p = subprocess.run([ENGINE, f.name], input=REQS, capture_output=True, timeout=30, preexec_fn=small_stack, env={})
     err = p.stderr.decode(errors="replace")
     report(p.returncode == -6 and "Stack overflow detected" in err,
            f"ulimit -s {kb} КиБ, вложенность 250: код {p.returncode}, stderr {err.strip()[:80]!r}")
