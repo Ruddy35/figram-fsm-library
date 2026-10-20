@@ -3,12 +3,13 @@
 #   ffi/audit/regress.sh [BIN_DIR]   (сначала ffi/audit/build_audit.sh)
 set -u
 cd "$(dirname "$0")/../.."
-B=${1:-ffi/audit/out}; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0
+B=${1:-ffi/audit/out}; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0; n=0; nfail=0
 check() {  # имя ожидаемый_код команда…
   local name=$1 want=$2; shift 2
-  out=$(timeout 120 "$@" 2>&1); rc=$?
+  out=$(timeout 120 "$@" 2>&1); rc=$?; n=$((n+1))
   if [ "$rc" -eq "$want" ]; then echo "PASS $name (rc=$rc)"
   else
+    nfail=$((nfail+1))
     echo "FAIL $name: rc=$rc, want $want"
     printf '%s\n' "$out" | grep -E "^FAIL|terminate|what\(\)" | head -12 | sed 's/^/    /'
     printf '%s\n' "$out" | tail -2 | sed 's/^/    /'; fail=1
@@ -17,9 +18,10 @@ check() {  # имя ожидаемый_код команда…
 # check_out имя регвыр команда… — код 0 И в выводе есть строка по регулярному выражению.
 check_out() {
   local name=$1 rx=$2; shift 2
-  out=$(timeout 120 "$@" 2>&1); rc=$?
+  out=$(timeout 120 "$@" 2>&1); rc=$?; n=$((n+1))
   if [ "$rc" -eq 0 ] && printf '%s\n' "$out" | grep -qE "$rx"; then echo "PASS $name (rc=0, «$rx»)"
   else
+    nfail=$((nfail+1))
     echo "FAIL $name: rc=$rc, want 0 and «$rx»"
     printf '%s\n' "$out" | grep -E "^FAIL|terminate|what\(\)|figram_init=" | head -12 | sed 's/^/    /'; fail=1
   fi
@@ -62,4 +64,5 @@ check "P-22 signals preserved (custom handler + altstack)" 0 "$B/contract" signa
 # Не регрессировало: основная обвязка и нагрузка с выгрузкой других автоматов.
 check "harness 16x20000 + reload" 0 "$B/harness_plain" $D memory
 check "stress 16x20000 + 4 loaders" 0 "$B/stress" $D 16 20000 4
+echo "регрессионных проверок C-ABI $n, провалено $nfail"
 exit $fail
