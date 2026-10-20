@@ -1,0 +1,11 @@
+command: /home/user/figram-audit/fixes/memory/goload/goload base examples/pizza.bot.json 1000 1 10 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T21:41:58.636Z
+end: 2026-10-20T21:42:08.653Z
+exit_code: 0
+--- stdout (824 bytes, last 200 lines)
+старт                                    RSS    6.5 МБ (анонимная   1.1, файлов  5.4), Private_Dirty    1.1 МБ, резерв  1567.7 МБ, обязательство   81.7 МБ, потоков 6
+нагрузка: base, горутин 1000, автоматов 1, 10 с: запросов 43989988 (4398999/с), плохих ответов 0
+пик под нагрузкой                        RSS   18.7 МБ (анонимная  13.3, файлов  5.4), Private_Dirty   13.3 МБ, резерв  1928.8 МБ, обязательство  139.4 МБ, потоков 11
+после нагрузки                           RSS   15.9 МБ (анонимная  10.5, файлов  5.4), Private_Dirty   10.5 МБ, резерв  1928.8 МБ, обязательство  139.4 МБ, потоков 11
+--- stderr (0 bytes, last 100 lines)
