@@ -34,25 +34,26 @@ type Config struct {
 // BrokenVariants: deliberately broken host variants for the RED matrix (each is a
 // real fault in the host code path, the checker is unchanged).
 var BrokenVariants = map[string]string{
-	"no-dedup":           "update_id dedup disabled (pre-check and in-transaction check)",
-	"ack-before-commit":  "HTTP 200 (ack) is flushed before the step transaction commits",
-	"outbox-after-ack":   "snapshot+processed committed and acked, outbox rows in a later transaction",
-	"const-guards":       "every guard is constant true",
-	"no-drain":           "guards computed without draining the user's pending calls (no rule G1)",
-	"no-resource-lock":   "slot_free without slot lock, counting executed reservations only (no rule G2)",
-	"seq-keys-start":     "reset via start (seq restarts at 1) + old outbox history deleted (ET-01 path)",
-	"random-keys":        "external idempotency key gets a fresh nonce on every attempt",
-	"no-user-lock":       "no per-user mutex and no optimistic version check",
-	"stale-token-lookup": "timer token taken from the current snapshot instead of the fired timer",
-	"no-validate":        "Telegram updates not validated (timer:* and token pass)",
-	"memory-timers":      "scheduler state not durable: timers lost on restart",
-	"trust-snapshot":     "stored snapshot passed to the engine as-is (no schema/high-water check, no repair)",
-	"no-capacity-check":  "reserve_slot trusts the guard (no capacity check in the domain write)",
-	"no-ack-retry":       "DB error after a successful external effect re-executes the effect later",
-	"no-crash-points":    "crash ctl accepted but never armed (test of the test)",
-	"skip-external":      "external calls are marked done without calling the external service",
-	"no-reply-validate":  "engine replies are trusted (no id/schema/doc checks)",
-	"unload-no-wait":     "document reload frees the old automaton without waiting for in-flight calls",
+	"no-dedup":               "update_id dedup disabled (pre-check and in-transaction check)",
+	"ack-before-commit":      "HTTP 200 (ack) is flushed before the step transaction commits",
+	"outbox-after-ack":       "snapshot+processed committed and acked, outbox rows in a later transaction",
+	"const-guards":           "every guard is constant true",
+	"no-drain":               "guards computed without draining the user's pending calls (no rule G1)",
+	"no-resource-lock":       "slot_free without slot lock, counting executed reservations only (no rule G2)",
+	"seq-keys-start":         "reset via start (seq restarts at 1) + old outbox history deleted (ET-01 path)",
+	"random-keys":            "external idempotency key gets a fresh nonce on every attempt",
+	"no-user-lock":           "no per-user mutex and no optimistic version check",
+	"stale-token-lookup":     "timer token taken from the current snapshot instead of the fired timer",
+	"no-validate":            "Telegram updates not validated (timer:* and token pass)",
+	"memory-timers":          "scheduler state not durable: timers lost on restart",
+	"trust-snapshot":         "stored snapshot passed to the engine as-is (no schema/high-water check, no repair)",
+	"no-capacity-check":      "reserve_slot trusts the guard (no capacity check in the domain write)",
+	"no-ack-retry":           "DB error after a successful external effect re-executes the effect later",
+	"no-crash-points":        "crash ctl accepted but never armed (test of the test)",
+	"skip-external":          "external calls are marked done without calling the external service",
+	"no-reply-validate":      "engine replies are trusted (no id/schema/doc checks)",
+	"unload-no-wait":         "document reload frees the old automaton without waiting for in-flight calls",
+	"strict-snapshot-timers": "reply validator also requires snapshot.timers to be timers of the current document (first version of this host)",
 }
 
 // CrashPoint is an armed kill -9 point.
@@ -132,6 +133,7 @@ func New(cfg Config) (*Host, error) {
 	h.eng = NewEngines(cfg.Bots, cfg.EngineTimeout, f)
 	h.eng.Validate = !h.broken["no-reply-validate"]
 	h.eng.UnsafeDrop = h.broken["unload-no-wait"]
+	h.eng.StrictTimers = h.broken["strict-snapshot-timers"]
 	f.OnKill = func() { h.die(CrashPoint{At: "engine_kill"}, "engine") }
 	f.OnEvent = func(kind, mode string) { h.log(kind, "", map[string]any{"mode": mode}) }
 	h.ext = NewExtClient(cfg.ExtSock, cfg.ExtTimeout)

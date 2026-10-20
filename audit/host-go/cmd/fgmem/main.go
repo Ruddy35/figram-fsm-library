@@ -37,6 +37,7 @@ func main() {
 	reqs := flag.Int("reqs", 50, "requests per cycle per goroutine")
 	gor := flag.Int("goroutines", 8, "concurrent requesters per cycle")
 	docPath := flag.String("doc", "/home/user/figram-audit/hosts/shared/bots/pizza.bot.json", "document")
+	churn := flag.Int("churn", 0, "thread churn: N goroutines that LockOSThread, call once and exit locked (the OS thread dies)")
 	flag.Parse()
 	d, err := os.ReadFile(*docPath)
 	if err != nil {
@@ -50,6 +51,29 @@ func main() {
 		b, _ := json.Marshal(map[string]any{"cycle": i, "t_s": time.Since(t0).Seconds(), "proc": status(),
 			"go_heap": ms.HeapAlloc, "go_sys": ms.Sys, "goroutines": runtime.NumGoroutine(), "binding": figram.GetStats()})
 		fmt.Println(string(b))
+	}
+	if *churn > 0 {
+		m, err := figram.Load("pizza", d)
+		if err != nil {
+			panic(err)
+		}
+		for i := 0; i <= *churn; i++ {
+			if i%(*churn/10) == 0 {
+				runtime.GC()
+				sample(i)
+			}
+			done := make(chan struct{})
+			go func() {
+				runtime.LockOSThread() // never unlocked: Go terminates this thread when the goroutine exits
+				if _, err := m.Request(line); err != nil {
+					panic(err)
+				}
+				close(done)
+			}()
+			<-done
+		}
+		m.Close()
+		return
 	}
 	for i := 0; i <= *reloads; i++ {
 		if i%(*reloads/10) == 0 {

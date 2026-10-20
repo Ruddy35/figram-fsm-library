@@ -24,23 +24,23 @@ var (
 )
 
 type Trans struct {
-	N         int64             `json:"-"`
-	User      string            `json:"-"`
-	UID       string            `json:"update_id"`
-	Event     string            `json:"event"`
-	Arg       *string           `json:"arg"`
-	Token     *int64            `json:"token"`
-	Kind      string            `json:"kind"`
-	SeqBefore int64             `json:"-"`
-	Seq       int64             `json:"seq"`
-	At        string            `json:"at"`
-	Doc       string            `json:"-"`
-	TMs       int64             `json:"t_ms"`
-	Actions   []map[string]any  `json:"actions"`
-	Recovered bool              `json:"recovered"`
-	Guards    map[string]bool   `json:"-"`
-	Changed   bool              `json:"-"`
-	Note      string            `json:"-"`
+	N         int64            `json:"-"`
+	User      string           `json:"-"`
+	UID       string           `json:"update_id"`
+	Event     string           `json:"event"`
+	Arg       *string          `json:"arg"`
+	Token     *int64           `json:"token"`
+	Kind      string           `json:"kind"`
+	SeqBefore int64            `json:"-"`
+	Seq       int64            `json:"seq"`
+	At        string           `json:"at"`
+	Doc       string           `json:"-"`
+	TMs       int64            `json:"t_ms"`
+	Actions   []map[string]any `json:"actions"`
+	Recovered bool             `json:"recovered"`
+	Guards    map[string]bool  `json:"-"`
+	Changed   bool             `json:"-"`
+	Note      string           `json:"-"`
 }
 
 type outboxRow struct {
@@ -497,16 +497,16 @@ func normRow(r []any) []any {
 // ------------------------------------------------------------------ invariants
 
 type checkCtx struct {
-	r       *Runner
-	st      *DBState
-	scen    string
-	family  string
-	inv     map[string]string
-	fails   map[string][]string
-	clean   *DBState
+	r        *Runner
+	st       *DBState
+	scen     string
+	family   string
+	inv      map[string]string
+	fails    map[string][]string
+	clean    *DBState
 	pristine *DBState
-	before  map[string]any
-	after   map[string]any
+	before   map[string]any
+	after    map[string]any
 }
 
 func (c *checkCtx) set(name string, bad []string) {
@@ -539,7 +539,7 @@ func (c *checkCtx) run() {
 	// action keys of committed transitions
 	type actRef struct {
 		user, kind, name string
-		t           Trans
+		t                Trans
 	}
 	acts := map[string][]actRef{}
 	for _, t := range st.Trans {

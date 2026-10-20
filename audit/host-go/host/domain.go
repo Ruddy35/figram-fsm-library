@@ -103,9 +103,9 @@ func ticketOf(q Querier, user string) (id int64, state string, ok bool, err erro
 
 // GuardCtx is what a guard may look at besides the DB.
 type GuardCtx struct {
-	User           string
-	Arg            string
-	CountIntents   bool // rule G2: count other users' pending reserve_slot rows (broken: no-resource-lock)
+	User         string
+	Arg          string
+	CountIntents bool // rule G2: count other users' pending reserve_slot rows (broken: no-resource-lock)
 }
 
 // EvalGuard computes one guard from the domain DB.

@@ -465,14 +465,14 @@ func (h *Host) StatsReport() map[string]any {
 	return map[string]any{
 		"stats":           st,
 		"faults_injected": inj, "faults_detected": det,
-		"goroutines": runtime.NumGoroutine(),
+		"goroutines":    runtime.NumGoroutine(),
 		"go_heap_alloc": ms.HeapAlloc, "go_sys": ms.Sys, "num_gc": ms.NumGC,
 		"binding": map[string]any{"calls": bs.Calls, "c_nanos": bs.Nanos, "in_bytes": bs.InBytes,
 			"out_bytes": bs.OutBytes, "loads": bs.Loads, "unloads": bs.Unloads, "live_machines": bs.Live},
-		"engine_calls":   h.eng.Calls.Load(),
-		"retired":        h.eng.Retired.Load(),
-		"init":           figram.InitReport(),
-		"clock":          h.now(),
-		"exec_paused":    h.exec.paused.Load(),
+		"engine_calls": h.eng.Calls.Load(),
+		"retired":      h.eng.Retired.Load(),
+		"init":         figram.InitReport(),
+		"clock":        h.now(),
+		"exec_paused":  h.exec.paused.Load(),
 	}
 }

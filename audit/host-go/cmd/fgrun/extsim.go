@@ -48,13 +48,13 @@ type extReq struct {
 }
 
 type crmEffect struct {
-	Key    string         `json:"key"`
-	User   string         `json:"user"`
-	Op     string         `json:"op"`
-	FP     string         `json:"fp"`
-	Result map[string]any `json:"result"`
-	Seq    int            `json:"seq"`
-	Payload any           `json:"payload"`
+	Key     string         `json:"key"`
+	User    string         `json:"user"`
+	Op      string         `json:"op"`
+	FP      string         `json:"fp"`
+	Result  map[string]any `json:"result"`
+	Seq     int            `json:"seq"`
+	Payload any            `json:"payload"`
 }
 
 type tgDelivery struct {
@@ -90,11 +90,11 @@ type ExtSim struct {
 	Reorders  [][]int
 	rng       *rand.Rand
 
-	rmu    sync.Mutex
-	batch  []*pending
+	rmu     sync.Mutex
+	batch   []*pending
 	timerOn bool
-	srv    *http.Server
-	ln     net.Listener
+	srv     *http.Server
+	ln      net.Listener
 }
 
 type pending struct {

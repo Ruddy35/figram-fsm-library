@@ -44,6 +44,7 @@ MATRIX = [
     ("skip-external", "skip-external", "order-1", [], ["external_faults_effective", "external_effect_once_per_intent"]),
     ("no-reply-validate", "no-reply-validate", "adversarial-1", [], ["engine_faults_effective"]),
     ("busy-8000ms (test of test)", "", "failures-1", ["-busy-ms", "8000"], ["db_lock_effective"]),
+    ("strict-snapshot-timers", "strict-snapshot-timers", "migration-1", [], ["all_updates_acked", "equals_clean_run"]),
     ("unload-no-wait (soak, reload 200ms)", "unload-no-wait", "soak", [], ["no_unexpected_host_death"]),
     ("correct (soak, reload 200ms)", "", "soak", [], []),
 ]

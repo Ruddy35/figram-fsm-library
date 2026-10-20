@@ -234,7 +234,7 @@ func cmdSoak(args []string) int {
 	res := map[string]any{"host": "go", "scenario": "soak", "broken": o.Broken, "secs": *secs, "users": *users,
 		"updates_acked": len(r.Acks), "elapsed_s": round3(r.Elapsed.Seconds()),
 		"throughput_updates_per_s": round3(float64(len(r.Acks)) / r.Elapsed.Seconds()),
-		"e2e_ms": percentiles(lat), "reloads": reloads, "reload_errors": reloadErrs, "reload_load_ms": percentiles(reloadMs),
+		"e2e_ms":                   percentiles(lat), "reloads": reloads, "reload_errors": reloadErrs, "reload_load_ms": percentiles(reloadMs),
 		"samples": samples, "drift": drift, "invariants": c.inv, "invariant_failures": c.fails, "exits": r.Exits,
 		"final_stats": st}
 	b, _ := json.MarshalIndent(res, "", " ")

@@ -195,22 +195,22 @@ type Runner struct {
 	Exits     []exitRec
 	Restarts  int
 
-	inflight  atomic.Int64
-	busy      map[string]int
-	Acks      []ackRec
-	Abandoned []map[string]any
-	Nacks     atomic.Int64
-	NackWhy   map[string]int
-	clock     int64
-	Faults    []map[string]any
-	lockWG    sync.WaitGroup
-	lockNacks atomic.Int64
-	lockOn    atomic.Bool
-	Corrupted map[string]string
-	LockSpans [][2]int64
-	RawLines  []map[string]any
-	StopStats []map[string]any
-	Elapsed   time.Duration
+	inflight   atomic.Int64
+	busy       map[string]int
+	Acks       []ackRec
+	Abandoned  []map[string]any
+	Nacks      atomic.Int64
+	NackWhy    map[string]int
+	clock      int64
+	Faults     []map[string]any
+	lockWG     sync.WaitGroup
+	lockNacks  atomic.Int64
+	lockOn     atomic.Bool
+	Corrupted  map[string]string
+	LockSpans  [][2]int64
+	RawLines   []map[string]any
+	StopStats  []map[string]any
+	Elapsed    time.Duration
 	hostStderr *os.File
 }
 

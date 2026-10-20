@@ -62,6 +62,11 @@ func main() {
 	fmt.Println("load-invalid:", err)
 	_, err = figram.Load("nul", []byte("{\"figram\":1}\x00"))
 	fmt.Println("load-nul:", err)
+	for _, depth := range []int{200, 256, 257, 100000} {
+		line := `{"id":10,"op":"hello","x":` + strings.Repeat("[", depth) + strings.Repeat("]", depth) + `}`
+		r, err := m.Request([]byte(line))
+		fmt.Printf("nesting %-6d err=%v reply=%.120q\n", depth, err, r)
+	}
 	m.Close()
 	_, err = m.Request([]byte(`{"id":1,"op":"hello"}`))
 	fmt.Println("after-close:", err)

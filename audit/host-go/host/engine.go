@@ -108,7 +108,7 @@ type Faults struct {
 	armed    []string
 	Injected map[string]int
 	Detected map[string]int
-	OnKill   func() // real kill -9 of this process (engine crash == host crash with FFI)
+	OnKill   func()                  // real kill -9 of this process (engine crash == host crash with FFI)
 	OnEvent  func(kind, mode string) // durable record (host_log) of injections/detections
 }
 
@@ -164,19 +164,20 @@ func (f *Faults) Snapshot() (map[string]int, map[string]int) {
 
 // Engines is the registry of loaded machines (one per document name).
 type Engines struct {
-	dir        string
-	mu         sync.Mutex
-	machines   map[string]*figram.Machine
-	infos      map[string]*DocInfo
-	nextID     atomic.Int64
-	Timeout    time.Duration
-	Faults     *Faults
-	Validate   bool // broken variant no-reply-validate turns it off
-	UnsafeDrop bool // broken variant unload-no-wait
-	Calls      atomic.Int64
-	Retired    atomic.Int64
-	rng        *rand.Rand
-	rngMu      sync.Mutex
+	dir          string
+	mu           sync.Mutex
+	machines     map[string]*figram.Machine
+	infos        map[string]*DocInfo
+	nextID       atomic.Int64
+	Timeout      time.Duration
+	Faults       *Faults
+	Validate     bool // broken variant no-reply-validate turns it off
+	UnsafeDrop   bool // broken variant unload-no-wait
+	StrictTimers bool // broken variant strict-snapshot-timers
+	Calls        atomic.Int64
+	Retired      atomic.Int64
+	rng          *rand.Rand
+	rngMu        sync.Mutex
 }
 
 func NewEngines(dir string, timeout time.Duration, faults *Faults) *Engines {
@@ -478,6 +479,13 @@ func (e *Engines) parseReply(b []byte, id int64, di *DocInfo) (*Reply, error) {
 	// NOTE: snapshot.timers is NOT checked against the document: after a document
 	// upgrade the engine legitimately keeps timers of the old version (ET-02); a
 	// check here turned every later step of such users into a poison loop.
+	if e.StrictTimers {
+		for t := range snap.Timers {
+			if di != nil && di.Timers[t] == nil {
+				return nil, fmt.Errorf("snapshot timer %q unknown", t)
+			}
+		}
+	}
 	r.Snap = snap
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(b, &raw); err != nil {

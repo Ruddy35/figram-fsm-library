@@ -475,3 +475,23 @@ func TestRaceDetectorControl(t *testing.T) {
 	wg.Wait()
 	m.Close()
 }
+
+// Same as BenchmarkStepParallel but every goroutine has its own automaton: if this
+// scales better, the shared (lean_mark_mt) object is a contention point (atomic RC).
+func BenchmarkStepParallelPrivate(b *testing.B) {
+	d := doc(b, "pizza")
+	line := []byte(`{"id":7,"op":"step","snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":5},"seq":5},"event":"btn:checkout","guards":{"cart_not_empty":true}}`)
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		m, err := Load("pizza", d)
+		if err != nil {
+			b.Fatal(err)
+		}
+		defer m.Close()
+		for pb.Next() {
+			if _, err := m.Request(line); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}
