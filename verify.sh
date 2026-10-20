@@ -254,21 +254,39 @@ if [ "$rc" -ne 1 ] || ! grep -q "РАСХОЖДЕНИЕ" "$T/lax.out" || grep -q
 fi
 echo "контроль: парсер без ограничений обнаружен ($(grep -m1 '^случаев' "$T/lax.out"))"
 
-step "C-прослойка: невалидный UTF-8, огромные входы, 16 потоков, ASan и UBSan"
+step "C-прослойка: невалидный UTF-8, огромные входы, 16 потоков, ASan и UBSan (инструментирована только прослойка)"
 ./ffi/build.sh > "$LOGS/ffi_build.log" 2>&1 || { tail -20 "$LOGS/ffi_build.log"; fail "ffi/build.sh"; }
 PFX=$(lean --print-prefix)
 O=.lake/build/ir/Figram
 OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
-LIBS="-Lffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic -lstdc++ -lm -ldl -lpthread -lrt"  # AUDIT: -lstdc++ for from-source toolchain
-ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
+# Флаги компоновки для этого тулчейна Lean пишет ffi/build.sh (B-01): официальный релиз — libc++ из
+# префикса Lean, сборка из исходников — системные статические libuv/libgmp и libstdc++.
+LIBS=$(cat ffi/out/LDFLAGS.runtime)
+ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -fexceptions -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
 ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" ffi/c_harness_io.c
-ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" $OBJS $LIBS
+ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o $OBJS $LIBS
 SHOW=2 logged c_asan env ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 "$T/harness" examples/pizza.bot.json
 expect "$LOGS/c_asan.log" '^16 потоков × (\d+) вызовов к одному автомату: расхождений (\d+)$' 'g[0] > 0 and g[1] == 0' "C, 16 потоков"
 # Память при загрузке и выгрузке — на обычной сборке (у ASan карантин памяти).
-ccstep harness_plain gcc -O1 -o "$T/harness_plain" ffi/c_harness.c ffi/c_harness_io.c -Lffi/out -l:libfigram.a $LIBS
+ccstep harness_plain gcc -O1 -o "$T/harness_plain" ffi/c_harness.c ffi/c_harness_io.c $(cat ffi/out/LDFLAGS)
 logged c_reload "$T/harness_plain" examples/pizza.bot.json memory
 expect "$LOGS/c_reload.log" '^(\d+) загрузок и выгрузок: рост памяти' 'g[0] > 0' "C, загрузки и выгрузки"
+
+step "C-ABI ffi/figram.h: init без падения хоста, NULL, дескрипторы, NUL, UTF-8, предел, сигналы"
+# ffi/audit/regress.sh (P-09, P-18, P-21, P-22, FFI-01/05/06): каждый подтест — отдельный процесс;
+# init под RLIMIT_AS (prlimit), 2×300 процессов с одновременной (в т.ч. ленивой) инициализацией.
+CA="$T/ffi-audit"; mkdir -p "$CA"
+for t in contract stress; do
+  ccstep "$t" gcc -g -O1 -pthread -I"$PFX/include" -o "$CA/$t" "ffi/audit/$t.c" $(cat ffi/out/LDFLAGS)
+done
+ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" ffi/audit/oom.c $(cat ffi/out/LDFLAGS)
+cp "$T/harness_plain" "$CA/harness_plain"
+logged c_contract bash ffi/audit/regress.sh "$CA"
+expect "$LOGS/c_contract.log" '^регрессионных проверок C-ABI (\d+), провалено (\d+)$' 'g[0] >= 24 and g[1] == 0' "C-ABI"
+# Заголовок с контрактом самодостаточен для C и C++.
+ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
+ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h
+echo "ffi/figram.h компилируется как C99 и C++ без предупреждений"
 
 step "Клиент Python: сбои движка, контракт методов, чистый stderr"
 clean client_faults python3 $P/client_faults.py $E examples/pizza.bot.json
@@ -313,14 +331,20 @@ if command -v go >/dev/null; then
   logged go_reload $G/gofig -reload 5000 examples/pizza.bot.json "$T/small.jsonl"
   # Один словарь запроса из многих горутин: Request не должен его изменять.
   (cd $G && CC=${CC:-gcc} GOMAXPROCS=4 go test -race -count=1 -v \
-      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL)$' .) \
+      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges)$' .) \
       > "$LOGS/go_shared_map.log" 2>&1 \
     || { grep -m3 -A3 "DATA RACE" "$LOGS/go_shared_map.log" || tail -20 "$LOGS/go_shared_map.log"; fail "гонка при общем словаре запроса"; }
-  for t in TestSharedRequestMap TestAuditHelloAlwaysError TestAuditRequestBadOp TestAuditLoadNUL TestAuditRequestNUL; do
+  for t in TestSharedRequestMap TestAuditHelloAlwaysError TestAuditRequestBadOp TestAuditLoadNUL TestAuditRequestNUL \
+           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges; do
     grep -q "^--- PASS: $t " "$LOGS/go_shared_map.log" \
       || { tail -5 "$LOGS/go_shared_map.log"; fail "тест $t не выполнялся или не прошёл"; }
   done
-  echo "общий словарь запроса из 8 горутин: гонок нет; регрессионные тесты обёртки Bot (hello, op, NUL): пройдены"
+  echo "общий словарь запроса из 8 горутин: гонок нет; регрессионные тесты обёртки Bot (hello, op, NUL, ленивый Load, причина отказа, too_large, коды ошибок): пройдены"
+  # Отказ figram_init под RLIMIT_AS (P-09) — ошибка Load, процесс Go жив (без -race: TSan занимает адресное пространство).
+  (cd $G && CC=${CC:-gcc} go test -count=1 -v -run '^TestFixInitUnderRlimitAS$' .) > "$LOGS/go_rlimit.log" 2>&1 \
+    || { tail -20 "$LOGS/go_rlimit.log"; fail "Go: figram_init под RLIMIT_AS роняет процесс"; }
+  grep -q "^--- PASS: TestFixInitUnderRlimitAS " "$LOGS/go_rlimit.log" || { tail -5 "$LOGS/go_rlimit.log"; fail "тест TestFixInitUnderRlimitAS не выполнялся"; }
+  echo "Go под RLIMIT_AS: Load возвращает ошибку figram_init, процесс жив"
   # Повреждённый сценарий рядом с корректным обязан провалить Go-проверку.
   (head -1 "$T/small.jsonl"; echo '{oops') > "$T/corrupt.jsonl"
   if $G/gofig examples/pizza.bot.json "$T/corrupt.jsonl" >/dev/null 2>&1; then

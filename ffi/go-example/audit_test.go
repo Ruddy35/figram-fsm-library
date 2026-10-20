@@ -204,6 +204,8 @@ func TestAuditLargeRequests(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer bot.Close()
+	// Предел размера запроса (1 МиБ по умолчанию) снят: замеряется сам движок.
+	defer SetMaxRequest(SetMaxRequest(0))
 	for _, mb := range []int{1, 8, 32} {
 		ev := "btn:" + strings.Repeat("x", mb<<20)
 		h0 := hwmKB()
@@ -298,7 +300,6 @@ func TestAuditSoak(t *testing.T) {
 		wg.Add(1)
 		go func(g int) {
 			defer wg.Done()
-			// «hello» не годится: checkReply считает его ответ нарушением протокола.
 			reqs := []map[string]any{stepReq, {"op": "start"},
 				{"op": "step", "snapshot": map[string]any{"at": "cart"}, "event": "btn:checkout", "guards": map[string]any{"cart_not_empty": true}}}
 			for i := 0; ; i++ {
@@ -511,6 +512,9 @@ func TestAuditSIGPIPE(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
+	if mode := os.Getenv("FIGRAM_CHILD"); mode != "" {
+		os.Exit(runChild(mode))
+	}
 	if mode := os.Getenv("FIGRAM_SIGPIPE_CHILD"); mode != "" {
 		if mode == "init" && initFigram() != 0 {
 			os.Exit(3)
