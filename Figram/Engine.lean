@@ -132,10 +132,16 @@ def decEvent (kvs : Obj) : R Event := do
 def envOf (gs : List (String × Bool)) : HostEnv :=
   fun n => ((gs.find? (·.1 == n)).map (·.2)).getD false
 
-/-- Условия, которые нужны шагу, но не переданы в запросе. -/
+/-- Значение условия из запроса, если оно передано. -/
+def givenOf (gs : List (String × Bool)) (n : String) : Option Bool :=
+  (gs.find? (·.1 == n)).map (·.2)
+
+/-- Условия, которые нужны шагу, но не переданы в запросе: только те, что
+могут повлиять на выбор варианта при уже переданных значениях
+(`Machine.neededGuards`; достаточность — `missing_nil_step`). -/
 def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : List String :=
   if decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev then
-    (dedup (m.requiredGuards s.state ev.key)).filter fun n => !(gs.any (·.1 == n))
+    (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
   else []
 
 /-- Шаг протокола после разбора запроса. -/

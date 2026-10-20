@@ -123,6 +123,14 @@ def guardOK (env : HostEnv) : Option String → Bool
   | none => true
   | some n => env n
 
+/-- Начало списка вариантов до первого безусловного включительно: только эти
+варианты могут быть выбраны, остальные затенены. -/
+def untilUnguarded {α} (g : α → Option String) : List α → List α
+  | [] => []
+  | b :: bs => match g b with
+    | none => [b]
+    | some _ => b :: untilUnguarded g bs
+
 inductive Target where
   | node (n : NodeId)
   /-- «Вернуться в раздел `sec` туда, где был». -/
@@ -208,16 +216,38 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
 /-- Первый вход пользователя. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
 
-/-- Условия разработчика, которые нужны для шага из `st` по событию с ключом `e`. -/
+/-- Условия разработчика, которые нужны для шага из `st` по событию с ключом `e`:
+условия вариантов до первого безусловного включительно. Варианты после него
+выбраны быть не могут, их условия на шаг не влияют (`step_guard_local`). -/
 def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
   match m.row st e with
   | none => []
-  | some r => r.branches.filterMap (·.guard)
+  | some r => (untilUnguarded (·.guard) r.branches).filterMap (·.guard)
 
 /-- `targetOK` по готовым множествам сообщений и разделов. -/
 def targetIn (st secs : Std.HashSet NodeId) : Target → Bool
   | .node n => st.contains n
   | .resume sec => secs.contains sec
+
+/-- Условия, значения которых нужны, чтобы выбрать вариант, когда значения
+части условий уже известны (`known`): варианты перебираются по порядку до
+безусловного или до условия, про которое известно, что оно истинно. -/
+def neededIn (known : String → Option Bool) : List FBranch → List String
+  | [] => []
+  | b :: bs => match b.guard with
+    | none => []
+    | some g => match known g with
+      | some true => []
+      | some false => neededIn known bs
+      | none => g :: neededIn known bs
+
+/-- Недостающие условия для шага из `st` по событию `e` при известных `known`
+(всегда часть `requiredGuards`). -/
+def neededGuards (m : Machine) (st : NodeId) (e : EventId) (known : String → Option Bool) :
+    List String :=
+  match m.row st e with
+  | none => []
+  | some r => neededIn known r.branches
 
 def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)

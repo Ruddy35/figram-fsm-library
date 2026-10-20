@@ -35,6 +35,63 @@ theorem lookup_some_mem {α β} [DecidableEq α] {t : List (α × β)} {k : α} 
   rw [← hk]
   exact List.mem_of_find?_eq_some hp
 
+/-- Выбор варианта не зависит от вариантов после первого безусловного. -/
+theorem find?_untilUnguarded (env : HostEnv) (bs : List FBranch) :
+    bs.find? (fun b => guardOK env b.guard) =
+      (untilUnguarded (·.guard) bs).find? (fun b => guardOK env b.guard) := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih =>
+    cases hg : b.guard with
+    | none => simp [untilUnguarded, hg, guardOK]
+    | some n =>
+      simp only [untilUnguarded, hg, List.find?_cons, guardOK]
+      cases hn : env n
+      · exact ih
+      · rfl
+
+theorem neededIn_given {known : String → Option Bool} {bs : List FBranch} {n : String}
+    (h : n ∈ Machine.neededIn known bs) : known n = none := by
+  induction bs with
+  | nil => simp [Machine.neededIn] at h
+  | cons b bs ih =>
+    unfold Machine.neededIn at h
+    split at h
+    · simp at h
+    · split at h
+      · simp at h
+      · exact ih h
+      · rename_i g _ hg
+        rcases List.mem_cons.mp h with rfl | h
+        · exact hg
+        · exact ih h
+
+/-- Если недостающих условий нет, выбор варианта одинаков для любых значений,
+согласных с известными. -/
+theorem find?_neededIn {known : String → Option Bool} {bs : List FBranch} (env₁ env₂ : HostEnv)
+    (h : Machine.neededIn known bs = [])
+    (h₁ : ∀ n v, known n = some v → env₁ n = v) (h₂ : ∀ n v, known n = some v → env₂ n = v) :
+    bs.find? (fun b => guardOK env₁ b.guard) = bs.find? (fun b => guardOK env₂ b.guard) := by
+  induction bs with
+  | nil => rfl
+  | cons b bs ih =>
+    unfold Machine.neededIn at h
+    cases hg : b.guard with
+    | none => simp [hg, guardOK]
+    | some g =>
+      simp only [hg] at h
+      cases hv : known g with
+      | none => simp [hv] at h
+      | some v =>
+        simp only [hv] at h
+        have e₁ := h₁ g v hv
+        have e₂ := h₂ g v hv
+        cases v with
+        | true => simp [hg, guardOK, e₁, e₂]
+        | false =>
+          simp only [List.find?_cons, hg, guardOK, e₁, e₂]
+          exact ih h
+
 namespace Machine
 
 /-- Найденная стрелка — одна из стрелок автомата. -/
@@ -125,8 +182,8 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
       · rfl
       · rename_i r hr
         simp only [hr] at h
-        have hfind : r.branches.find? (fun b => guardOK env₁ b.guard)
-            = r.branches.find? (fun b => guardOK env₂ b.guard) := by
+        have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
+            = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
           apply find?_congr
           intro b hb
           cases hg : b.guard with
@@ -134,7 +191,7 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
           | some n =>
             simp only [guardOK]
             exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
-        rw [hfind]
+        rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
 
 /-- Быстрая проверка `wf` (хеш-множества) равна спецификации. -/
 theorem wfFast_eq (m : Machine) : m.wfFast = m.wf := by
