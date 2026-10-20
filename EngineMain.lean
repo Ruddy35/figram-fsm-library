@@ -74,6 +74,21 @@ def usage : String :=
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine --mutants <bot.json>\n" ++
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine [--max-request BYTES] --mutate <мутация> <bot.json>"
 
+/-- Номер или имя в мутации относится к этому автомату: иначе, например,
+`redirect:999` или `drop-call:нет_такого` молча дали бы неиспорченный движок.
+Мутации без номера (`drop-exit` и т. п.) применимы к любому автомату. -/
+def specInRange (m : Machine) (spec : String) : Bool :=
+  match spec.splitOn ":" with
+  | ["drop-call", n] => (Mutate.callNames m).contains n
+  | [kind, k] =>
+    match k.toNat? with
+    | some k =>
+      if kind == "swap-branches" then k < m.rows.length
+      else if kind == "reverse-entry" then k < m.entry.length
+      else k < (Mutate.branches m).length
+    | none => false
+  | _ => true
+
 /-- Тестовый режим испорченного движка включается только явно. -/
 def mutantsAllowed : IO Bool := return (← IO.getEnv "FIGRAM_ALLOW_MUTANTS") == some "1"
 
@@ -101,13 +116,11 @@ def main (args : List String) : IO UInt32 := do
       IO.eprintln mutantsRefused
       return 2
     let some m ← loadOrFail path | return 1
-    -- только мутации из списка `--mutants`: иначе, например, `redirect:999`
-    -- молча дал бы неиспорченный движок
-    unless (Mutate.mutants m).contains spec do
-      IO.eprintln s!"неизвестная мутация «{Format.sanitize spec}» (список — --mutants)"
-      return 2
     let some m' := Mutate.apply m spec
-      | IO.eprintln s!"неизвестная мутация «{Format.sanitize spec}»"; return 2
+      | IO.eprintln s!"неизвестная мутация «{Format.sanitize spec}» (список — --mutants)"; return 2
+    unless specInRange m spec do
+      IO.eprintln s!"мутация «{Format.sanitize spec}» не относится к этому автомату (список — --mutants)"
+      return 2
     -- условия теорем о протоколе проверяются и у испорченного автомата
     unless m'.wf && Engine.namesOK m' do
       IO.eprintln s!"мутант «{Format.sanitize spec}» не прошёл проверку wf/namesOK"
