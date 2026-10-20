@@ -1,0 +1,12 @@
+command: python3 ffi/python-example/engine_memory.py .lake/build/bin/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T14:58:12.497Z
+end: 2026-10-20T14:58:12.756Z
+exit_code: 0
+--- stdout (362 bytes, last 200 lines)
+ok  ulimit -v 64 МБ: код 0, ответов 2
+ok  ulimit -v 256 МБ: код 0, ответов 2
+ok  резерв адресов после старта 219 МБ (предел 512)
+ok  занятая память после 2000 запросов 10 МБ (предел 64)
+память движка: резерв адресов 219 МБ, занято 10 МБ
+--- stderr (0 bytes, last 100 lines)

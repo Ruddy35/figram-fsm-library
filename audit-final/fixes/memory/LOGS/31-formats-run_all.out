@@ -1,0 +1,26 @@
+a-roundtrip                        want=0 got=0 PASS  docs=253 variants=1265 P1=1265 P2=1265 P3=1265 P4=1265 failures=0 edge_fail=0/3 break=None
+a-roundtrip-strict                 want=0 got=0 PASS  docs=8 variants=40 P1=40 P2=40 P3=40 P4=40 failures=0 edge_fail=0/3 break=None
+a-break-sort-unknown               want=1 got=1 PASS  docs=33 variants=165 P1=165 P2=100 P3=100 P4=100 failures=65 edge_fail=0/3 break=sort-unknown
+a-break-keep-resume-false          want=1 got=1 PASS  docs=33 variants=165 P1=165 P2=101 P3=101 P4=101 failures=64 edge_fail=0/3 break=keep-resume-false
+a-break-keep-num-text              want=1 got=1 PASS  docs=33 variants=165 P1=165 P2=120 P3=120 P4=120 failures=45 edge_fail=0/3 break=keep-num-text
+a-break-drop-unknown               want=1 got=1 PASS  docs=33 variants=165 P1=165 P2=96 P3=96 P4=96 failures=69 edge_fail=3/3 break=drop-unknown
+a-mutant-sut                       want=1 got=1 PASS  docs=33 variants=165 P1=165 P2=30 P3=30 P4=30 failures=135 edge_fail=0/3 break=None
+b-rfc                              want=0 got=0 PASS  table rows=133 T1=133 T2=133 T3=52; random=4000 oracle-equal=4000 reparsed=4000 idempotent=4000 fc01-hits=0; failures=0 known-finding-diffs=0 break=None
+b-rfc-strict                       want=0 got=0 PASS  strict=all: counted known-finding diffs 0
+b-rfc-strict-fc01                  want=0 got=0 PASS  strict=fc01: counted known-finding diffs 0
+b-break-dup-last-wins              want=1 got=1 PASS  table rows=133 T1=133 T2=133 T3=52; random=1000 oracle-equal=1000 reparsed=1000 idempotent=1000 fc01-hits=0; failures=15 known-finding-diffs=0 break=dup-last-wins
+b-break-no-surrogate               want=1 got=1 PASS  table rows=133 T1=133 T2=133 T3=52; random=1000 oracle-equal=1000 reparsed=1000 idempotent=1000 fc01-hits=0; failures=10 known-finding-diffs=0 break=no-surrogate
+b-break-float                      want=1 got=1 PASS  table rows=133 T1=133 T2=133 T3=52; random=1000 oracle-equal=375 reparsed=1000 idempotent=1000 fc01-hits=0; failures=658 known-finding-diffs=4 break=float
+c-schema                           want=0 got=0 PASS  rows=103 (docs 76, snapshots 27) classes={'agree': 45, 'prec': 3, 'struct': 11, 'V': 9, 'footgun': 3, 'dev': 5, 'snap-agree': 22, 'snap-prec': 3, 'snap-dev': 2} mismatches-vs-expected=0 break=None
+c-break-no-minlength               want=1 got=1 PASS  rows=103 (docs 76, snapshots 27) classes={'agree': 45, 'prec': 3, 'struct': 11, 'V': 9, 'footgun': 3, 'dev': 5, 'snap-agree': 22, 'snap-prec': 3, 'snap-dev': 2} mismatches-vs-expected=9 break=no-minlength
+c-break-const2                     want=1 got=1 PASS  rows=103 (docs 76, snapshots 27) classes={'agree': 45, 'prec': 3, 'struct': 11, 'V': 9, 'footgun': 3, 'dev': 5, 'snap-agree': 22, 'snap-prec': 3, 'snap-dev': 2} mismatches-vs-expected=40 break=const2
+c-break-no-integer                 want=1 got=1 PASS  rows=103 (docs 76, snapshots 27) classes={'agree': 45, 'prec': 3, 'struct': 11, 'V': 9, 'footgun': 3, 'dev': 5, 'snap-agree': 22, 'snap-prec': 3, 'snap-dev': 2} mismatches-vs-expected=2 break=no-integer
+d-engine                           want=0 got=0 PASS  requests=74 replies=74 mismatches=0 tags={'-': 51, 'ET-07': 10, 'FC-04': 6, 'ET-12': 4, 'FC-03': 3} break=None
+d-break-flip                       want=1 got=1 PASS  requests=74 replies=74 mismatches=1 tags={'-': 51, 'ET-07': 10, 'FC-04': 6, 'ET-12': 4, 'FC-03': 3} break=flip
+d-break-lax-id                     want=1 got=1 PASS  requests=74 replies=74 mismatches=8 tags={'-': 51, 'ET-07': 10, 'FC-04': 6, 'ET-12': 4, 'FC-03': 3} break=lax-id
+e-cli                              want=0 got=0 PASS  rows=9 stream-checks=54 rows-violating-P=0 control=False
+e-cli-strict                       want=0 got=0 PASS  rows=9 stream-checks=54 rows-violating-P=0 control=False
+e-cli-control                      want=0 got=0 PASS  rows=9 stream-checks=54 rows-violating-P=0 control=True
+f-parser-scaling                   want=0 got=0 PASS  inputs=9 over-budget=0 engine-options=['--max-request', '0']
+g-protocol-docs                    want=0 got=0 PASS  protocol docs: codes 5, ops 4, failures 0
+f-parser-diff                      want=0 got=0 PASS  inputs=60000 identical=60000 (accepted 31200, rejected 28800) differences=0 error-messages-covered=22/22 []

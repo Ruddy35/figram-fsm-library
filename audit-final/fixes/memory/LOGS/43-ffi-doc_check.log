@@ -1,0 +1,25 @@
+command: bash ffi/audit/doc_check.sh 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T15:26:49.844Z
+end: 2026-10-20T15:26:49.912Z
+exit_code: 0
+--- stdout (991 bytes, last 200 lines)
+ok: в README.md нет «зависимости — только libc»
+ok: в Figram/Api.lean нет «lean_mark_persistent»
+ok: в Figram/Api.lean есть «lean_mark_mt»
+ok: в README.md есть «^## Встраивание»
+ok: в README.md есть «R_X86_64_TPOFF32»
+ok: в README.md есть «не видят кучу Lean»
+ok: в README.md есть «RLIMIT_AS»
+ok: в README.md есть «свой дескриптор»
+ok: в ffi/figram.h есть «SIGPIPE»
+ok: в ffi/figram.h есть «sigaltstack»
+ok: в ffi/figram.h есть «io_uring»
+ok: в ffi/figram.h есть «RLIMIT_AS»
+ok: в ffi/figram.h есть «mimalloc»
+ok: в ffi/figram.h есть «отдельный дескриптор»
+ok: в ffi/figram.h есть «НЕОПРЕДЕЛЁННОЕ»
+ok: в ffi/figram.h есть «figram_load_doc_ex»
+ok: в ffi/figram.h есть «figram_set_max_request»
+ok: figram.h и figram_ffi.c экспортируют одни и те же 15 функций
+--- stderr (0 bytes, last 100 lines)

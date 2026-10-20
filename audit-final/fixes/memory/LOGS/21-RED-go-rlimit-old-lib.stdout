@@ -1,0 +1,17 @@
+=== RUN   TestFixInitUnderRlimitAS
+    fix_test.go:134: FIGRAM_CHILD_AS_HEADROOM=268435456: child <nil>
+        RLIMIT_AS=1922011136: figram_init=2
+        RLIMIT_AS=1922011136: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 1922011136 байт, занято 1653575680, нужно ещё не меньше 2000000000 (арена mimalloc 1 ГиБ и стек потока цикла событий libuv 1 ГиБ; см. ffi/figram.h)
+    fix_test.go:136: FIGRAM_CHILD_AS_HEADROOM=268435456: Load under RLIMIT_AS must succeed (err <nil>)
+    fix_test.go:134: FIGRAM_CHILD_AS_HEADROOM=1073741824: child <nil>
+        RLIMIT_AS=2727317504: figram_init=2
+        RLIMIT_AS=2727317504: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 2727317504 байт, занято 1653575680, нужно ещё не меньше 2000000000 (арена mimalloc 1 ГиБ и стек потока цикла событий libuv 1 ГиБ; см. ffi/figram.h)
+    fix_test.go:136: FIGRAM_CHILD_AS_HEADROOM=1073741824: Load under RLIMIT_AS must succeed (err <nil>)
+    fix_test.go:134: FIGRAM_CHILD_AS=3000000000: child <nil>
+        RLIMIT_AS=3000000000: figram_init=2
+        RLIMIT_AS=3000000000: Load error: figram_init = 2: figram_init: рантайму Lean не хватит адресного пространства: RLIMIT_AS = 3000000000 байт, занято 1653575680, нужно ещё не меньше 2000000000 (арена mimalloc 1 ГиБ и стек потока цикла событий libuv 1 ГиБ; см. ffi/figram.h)
+    fix_test.go:136: FIGRAM_CHILD_AS=3000000000: Load under RLIMIT_AS must succeed (err <nil>)
+--- FAIL: TestFixInitUnderRlimitAS (0.02s)
+FAIL
+FAIL	gofig	0.021s
+FAIL

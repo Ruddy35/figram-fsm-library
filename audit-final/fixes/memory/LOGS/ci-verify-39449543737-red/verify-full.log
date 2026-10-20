@@ -1,0 +1,119 @@
+
+== Происхождение прогона
+дата: 2026-10-20T15:34:15Z; ядер: 4
+коммит: a7c2495ce2c26c53b768dc6c96f3fb49c2934b8f; изменённых отслеживаемых файлов: 0
+verify.sh sha256: d2b83c8bae18366c604ef1e63efb29c4db7b9032c01d0b969459fa825232ad3c
+lean: Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.12.3; jsonschema 4.10.3
+go: go version go1.23.12 linux/amd64
+
+== Сборка без предупреждений
+Build completed successfully (50 jobs).
+
+== Приложенные бинарники bin/ собраны ровно из этих исходников
+ok: хеши совпадают побайтно
+
+== Теоремы: только стандартные аксиомы, формулировки закреплены
+'Figram.Chart.compile_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.run_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.session_correct' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.chart_run_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_state_valid' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.compile_eq_spec' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.wfDirect_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.lint_nil_wf' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.wfFast_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+'Figram.Format.toChart_decls' does not depend on any axioms
+'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.step_snapOK' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.guards_irrelevant' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.missing_nil_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startAt_snapOK' depends on axioms: [propext, Quot.sound]
+теорем 23: аксиомы только из ['Classical.choice', 'Quot.sound', 'propext']
+формулировки 23 теорем совпадают с ci/THEOREMS.expected
+в исходниках нет axiom, native_decide, implemented_by, extern, sorry, admit
+
+== Теоремы: строгий шлюз — все теоремы исходников и окружения, формулировки, leanchecker
+axiom set []: 373 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 48 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+
+== Фиксированные сценарии совпадают с сохранёнными
+ok (сценариев: 12)
+
+== Соответствие движка: фиксированные и случайные сценарии
+покрыто вариантов стрелок: 42 из 42
+покрыто вариантов стрелок: 36 из 36
+запросов 18103, расхождений 0
+
+== Соответствие на 100 случайных документах
+документов 100, запросов 96455, документов с расхождениями 0
+
+== Мутационное тестирование
+examples/pizza.bot.json: мутаций 56
+examples/features.bot.json: мутаций 51
+обнаружено 107 из 107 мутаций (100%)
+
+== Контракт хоста
+контракт выполнен
+
+== CLI: ошибки аргументов дают ненулевой код
+ok
+
+== Огромный показатель степени: быстрый контролируемый отказ
+ok (код 1, figram: не удалось прочитать документ: показатель степени по модулю больше 1000)
+
+== Память движка: запуск под ulimit -v 64 и 256 МБ, резерв адресов ≤ 512 МБ, занято ≤ 64 МБ
+память движка: резерв адресов 171 МБ, занято 5 МБ
+
+== Снимок: схема и движок согласованы, граница seq; restart, условия, жетоны, hello
+снимков 24, ответов 24, расхождений схемы и движка 0
+граница seq: ok
+граничных случаев протокола 106, ответов 106, расхождений 0
+
+== Текстовый слой JSON: дифференциально против Python json
+случаев 30000: принято обоими 8962, отвергнуто обоими 21038, расхождений 0, записей не читается обратно 0 из 8962
+контроль: парсер без ограничений обнаружен (случаев 3000: принято обоими 809, отвергнуто обоими 1229, расхождений 962, записей не читается обратно 0 из 1771)
+
+== C-прослойка: невалидный UTF-8, огромные входы, 16 потоков, ASan и UBSan (инструментирована только прослойка)
+строка 5 МБ → {"id":null,"error":"запрос длиннее предела 1048576 байт"
+16 потоков × 20000 вызовов к одному автомату: расхождений 0
+5000 загрузок и выгрузок: рост памяти 40 КБ; без выгрузки (контроль): 45956 КБ
+
+== C-ABI ffi/figram.h: init без падения хоста, NULL, дескрипторы, NUL, UTF-8, предел, сигналы
+ОТКАЗ шага «c_contract» (код 1), журнал: verify-logs/c_contract.log
+--- хвост журнала:
+PASS P-09 init with 48 MiB address-space headroom → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init with 64 MiB address-space headroom → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init with 96 MiB address-space headroom → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init with 128 MiB address-space headroom → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init with 256 MiB address-space headroom → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init with 1024 MiB address-space headroom → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init under RLIMIT_AS=512MB → rc 0 (rc=0, «^figram_init=0 »)
+PASS P-09 init with 4 MiB headroom → caught C++ exception (rc=0, «^figram_init=2 last_error=.*failed to create thread»)
+PASS P-21 lazy init (load/request before figram_init) (rc=0)
+PASS P-21 lazy init race, 8 threads x 300 processes (rc=0)
+PASS P-21 NULL arguments and foreign handle (rc=0)
+PASS P-21 null check: no SIGSEGV (rc=0)
+PASS P-21 null fmt: no SIGSEGV (rc=0)
+PASS P-21 null load: no SIGSEGV (rc=0)
+PASS P-21 null line: no SIGSEGV (rc=0)
+PASS P-21 null handle: no SIGSEGV (rc=0)
+PASS P-21 use-after-unload / double unload detected (rc=0)
+PASS P-21 length variants, load_doc_ex, NUL in output (rc=0)
+PASS P-18 strict UTF-8 on the FFI path (rc=0)
+PASS P-18 request size limit and empty request (rc=0)
+PASS P-22 signals preserved (defaults) (rc=0)
+PASS P-22 signals preserved (custom handler + altstack) (rc=0)
+PASS harness 16x20000 + reload (rc=0)
+PASS stress 16x20000 + 4 loaders (rc=0)
+регрессионных проверок C-ABI 30, провалено 1

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/fix-memory/tests/formats/f_parser_diff.py /home/user/figram-fsm-library/bin/figram /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram --n 60000 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T15:08:06.353Z
+end: 2026-10-20T15:09:00.072Z
+exit_code: 0
+--- stdout (108 bytes, last 200 lines)
+inputs=60000 identical=60000 (accepted 31200, rejected 28800) differences=0 error-messages-covered=22/22 []
+--- stderr (0 bytes, last 100 lines)

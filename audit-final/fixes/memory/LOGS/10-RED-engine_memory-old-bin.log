@@ -1,0 +1,12 @@
+command: python3 ffi/python-example/engine_memory.py /home/user/figram-fsm-library/bin/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T14:58:12.260Z
+end: 2026-10-20T14:58:12.464Z
+exit_code: 1
+--- stdout (685 bytes, last 200 lines)
+НЕТ ulimit -v 64 МБ: код -6, ответов 0; stderr: 'libc++abi: terminating due to uncaught exception of type lean::exception: failed to create thread: Resource temporarily unavailable\n'
+НЕТ ulimit -v 256 МБ: код -6, ответов 0; stderr: 'libc++abi: terminating due to uncaught exception of type lean::exception: failed to create thread: Resource temporarily unavailable\n'
+НЕТ резерв адресов после старта 3209 МБ (предел 512)
+ok  занятая память после 2000 запросов 8 МБ (предел 64)
+память движка: резерв адресов 3209 МБ, занято 8 МБ; провалено 3
+--- stderr (0 bytes, last 100 lines)

@@ -3,16 +3,16 @@
  "official_toolchain": "Lean (version 4.35.0, x86_64-unknown-linux-gnu, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release) from lean-4.35.0-linux.tar.zst sha256 7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d (ci/lean-toolchain.sha256, first trust in run 39381510381)",
  "bin_build": {
   "workflow": "release-bin.yml",
-  "run": 39381510381,
-  "source_commit": "179b246d03a6fa2fc490701f457b0309271d14ae",
-  "artifact": 12245249173,
-  "artifact_zip_sha256": "7596e5f1a4ebfe97128cc70263349cf0441c73030a86fc19caff64f975dc4708"
+  "run": 39448541379,
+  "source_commit": "773793388a18c27df1d25b965acf5a991f5d98ae",
+  "artifact": 12276483563,
+  "artifact_zip_sha256": "f33de20259cba0d14593709893bf3602915c7db6349e97afc334d441e7c50564"
  },
  "bin_sha256": {
-  "bin/figram": "49d6651035ce5946a747f02932b324ab65ab4dbbd4542e829e7a9044ed97cc32",
-  "bin/figram-engine": "151a3b303d3a0ad22cccd91bae0ee373b36522ba1473ebacd1770ad12f61fc9c"
+  "bin/figram": "7a86a928d0b09601166eb53d29097d71e5ec7135b5ead7142c27b938bd62bdf5",
+  "bin/figram-engine": "0d0242d29bac07155ed0e11f3a35c1219ff27ee8d77b53bfc0bee9615e7b72df"
  },
- "bin_commit": "f780b2fb000c4e29318a7ad48078365e0b384626",
+ "bin_commit": "a7c2495",
  "local_gate": {
   "commit": "179b246",
   "toolchain": "from source (gcc)",
@@ -31,7 +31,13 @@
   "artifact_zip_sha256": "d5dfe45b7c041f79d839a14ca4559eb8b1323107c2fae8ac40b798c2a75a226f",
   "verify_log": "VERIFY.log (verbatim verify-full.log)"
  },
- "ci_verify": {
+ "ci_red_runs": {
+  "39381510380": "179b246: expected, Lean archive sha256 not pinned yet and bin/ stale",
+  "39383775277": "f7c7fa1: flaky test R9 (N-10), fixed in 5314928",
+  "39448541171": "7737933: expected, bin/ stale before the bin commit",
+  "39449543737": "a7c2495: C-ABI 16 MiB headroom bound too tight for the official toolchain (clean rc 2), fixed in 2119c8b"
+ },
+ "ci_verify_previous": {
   "workflow": "verify.yml",
   "run": 39385153871,
   "commit": "53149286c578680d68eda3515e3a9387ab47a93d",
@@ -41,8 +47,22 @@
   "artifact_zip_sha256": "45e3faa0725f8f1c4e118a274c54a6cb08f4ac8fad26a11111335db3797edd5e",
   "verify_log": "VERIFY.log (verbatim verify-full.log)"
  },
- "ci_red_runs": {
-  "39381510380": "179b246: expected, Lean archive sha256 not pinned yet and bin/ stale",
-  "39383775277": "f7c7fa1: flaky test R9 (N-10), fixed in 5314928"
+ "ci_verify": {
+  "workflow": "verify.yml",
+  "run": 39450097996,
+  "commit": "2119c8b6cbf3067b6a92e49a16bf3d10e87d9059",
+  "conclusion": "success",
+  "verdict": "ВСЁ В ПОРЯДКЕ",
+  "artifact": 12278226634,
+  "artifact_zip_sha256": "985296bf0a47c76fc55e3031ea9ade136ed784879ee15375e03d107928391d82",
+  "verify_log": "VERIFY.log (verbatim verify-full.log)"
+ },
+ "memory": {
+  "engine_vmsize_mb": "3209 -> 155..171",
+  "engine_rss_mb": "8 -> 5..7",
+  "engine_min_ulimit_v": "3.2 GB -> <= 64 MB",
+  "go_runtime_reserve": "+2.16 GB -> +76 MB",
+  "go_runtime_rss": "+11 MB -> +7 MB",
+  "per_machine_kb": "~9"
  }
 }

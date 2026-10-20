@@ -1,0 +1,16 @@
+command: python3 -B /home/user/figram-audit/fixes/memory/stack_stress.py /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine /home/user/figram-audit-worktrees/fix-memory/audit/core-compiler 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T15:19:28.857Z
+end: 2026-10-20T15:19:31.360Z
+exit_code: 0
+--- stdout (919 bytes, last 200 lines)
+ok  deep60: 9 КБ; check код 0; движок код 0, ответов 2
+ok  deep100: 14 КБ; check код 0; движок код 0, ответов 2
+ok  deep124: 17 КБ; check код 0; движок код 0, ответов 2
+ok  deep126: 18 КБ; check код 1 (figram: не удалось прочитать документ: вложенность больше 256); движок код 1, ответов 0; stderr ошибка документа: вложенность больше 256
+
+ok  deep127: 18 КБ; check код 1 (figram: не удалось прочитать документ: вложенность больше 256); движок код 1, ответов 0; stderr ошибка документа: вложенность больше 256
+
+ok  global2000x1000: 370 КБ; check код 0; движок код 0, ответов 2
+документов 6, аварийных завершений 0
+--- stderr (0 bytes, last 100 lines)

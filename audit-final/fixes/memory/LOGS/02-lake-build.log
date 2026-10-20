@@ -1,0 +1,20 @@
+command: nice -n 10 lake build 
+cwd: /home/user/figram-audit-worktrees/fix-memory
+start: 2026-10-20T14:48:05.016Z
+end: 2026-10-20T14:50:01.414Z
+exit_code: 0
+--- stdout (846 bytes, last 200 lines)
+ℹ [47/50] Built figram/figram_rt.o (190ms)
+info: stderr:
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+ℹ [48/50] Built figram/figram_exe.o (241ms)
+info: stderr:
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+✔ [49/50] Built figram:exe (27s)
+✔ [50/50] Built «figram-engine»:exe (27s)
+Build completed successfully (50 jobs).
+--- stderr (0 bytes, last 100 lines)

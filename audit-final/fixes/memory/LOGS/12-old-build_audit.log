@@ -1,0 +1,12 @@
+command: nice -n 10 bash ffi/audit/build_audit.sh 
+cwd: /home/user/figram-audit-worktrees/release-check
+start: 2026-10-20T14:58:40.430Z
+end: 2026-10-20T14:59:10.618Z
+exit_code: 0
+--- stdout (28 bytes, last 200 lines)
+готово: ffi/audit/out
+--- stderr (290 bytes, last 100 lines)
+ffi/audit/contract.c: In function 'main':
+ffi/audit/contract.c:236:58: warning: '%s' directive argument is null [-Wformat-overflow=]
+  236 |   printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
+      |                                                          ^~

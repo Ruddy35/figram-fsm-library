@@ -42,6 +42,7 @@
 | `fix/docs` | `f4531cab100902e31414f9fb8b42c1713b4135da` |
 | `fix/ffi` | `9ba1932c78ee28966863baae2377465fb2614dcd` |
 | `fix/final` | `8e580aa969f9bf72f170df11737b8bacfeaf5338` |
+| `fix/memory` | `14ddea36ca7433e0705d3df93a81f333484c05ed` |
 | `fix/protocol` | `db974ec2330219fa6ea7fe1fb06bd4400b5203f7` |
 
 Применение исправлений к baseline без TEST-ONLY:

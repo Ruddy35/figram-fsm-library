@@ -1,0 +1,18 @@
+command: python3 directed.py --engine /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine --group findings --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --oracle-opt need=min 
+cwd: /home/user/figram-audit-worktrees/fix-memory/audit/core-compiler
+start: 2026-10-20T15:09:00.562Z
+end: 2026-10-20T15:09:00.676Z
+exit_code: 0
+--- stdout (2045 bytes, last 200 lines)
+PASS [engine] findings/H2_upgrade_moved_timer_fires_on_other_message -- HOST §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. Leaving A must cancel it (or its fire must be ignored); baseline keeps it forever and the section handler fires on D, calling k1
+PASS [engine] findings/H2_upgrade_renamed_timer_unreachable_arrow_fires -- v2 renamed A's reminder remind->nudge; arrow timer:remind on C (C owns no timer) is unreachable by design, yet fires on the stale v1 token
+PASS [engine] findings/H3_need_after_unconditional -- message has an unconditional variant; the section's guarded variant can never win, yet engine asks the host to evaluate c1
+PASS [engine] findings/H3b_need_known_true_decides -- the first variant's guard c1 is supplied and true: it wins whatever c2 is, yet the engine asks the host to evaluate c2
+PASS [engine] findings/H3c_need_prefix -- need lists exactly the guards before the first unconditional variant that are not known
+PASS [oracle] findings/H2_upgrade_moved_timer_fires_on_other_message -- HOST §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. Leaving A must cancel it (or its fire must be ignored); baseline keeps it forever and the section handler fires on D, calling k1
+PASS [oracle] findings/H2_upgrade_renamed_timer_unreachable_arrow_fires -- v2 renamed A's reminder remind->nudge; arrow timer:remind on C (C owns no timer) is unreachable by design, yet fires on the stale v1 token
+PASS [oracle] findings/H3_need_after_unconditional -- message has an unconditional variant; the section's guarded variant can never win, yet engine asks the host to evaluate c1
+PASS [oracle] findings/H3b_need_known_true_decides -- the first variant's guard c1 is supplied and true: it wins whatever c2 is, yet the engine asks the host to evaluate c2
+PASS [oracle] findings/H3c_need_prefix -- need lists exactly the guards before the first unconditional variant that are not known
+cases run: 10 (targets: ['engine', 'oracle']), requests: 24, failed: 0
+--- stderr (0 bytes, last 100 lines)
