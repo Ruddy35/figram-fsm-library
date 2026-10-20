@@ -1,0 +1,9 @@
+/tmp/tmp.hEH2Cd3lG2/reach_self: узлов 27, корней 8, достижимо 17
+ok  unreachable «dead»: недостижимо 1 из 1
+ok  reachable «via_table»: достижимо 1 из 1
+      путь: via_table ← main
+ok  reachable «via_ctor»: достижимо 1 из 1
+      путь: via_ctor ← ctor
+ok  reachable «dtor»: достижимо 1 из 1
+      путь: dtor
+проверок 4, отказов 0

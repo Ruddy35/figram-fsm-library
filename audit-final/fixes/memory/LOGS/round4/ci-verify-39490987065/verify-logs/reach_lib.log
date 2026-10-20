@@ -1,0 +1,11 @@
+/tmp/tmp.hEH2Cd3lG2/ffi-audit/contract: узлов 21337, корней 21, достижимо 19355
+ok  unreachable «(lean::)?lean_uv_.*»: в файле нет
+ok  unreachable «(lean::)?event_loop_.*»: в файле нет
+ok  unreachable «initialize_libuv»: в файле нет
+ok  unreachable «(lean::)?initialize_libuv_.*»: в файле нет
+ok  unreachable «(lean::)?g_uv_.*_external_class»: в файле нет
+ok  unreachable «(lean::)?segv_handler.*»: недостижимо 1 из 1
+ok  unreachable «lean::initialize_stack_overflow\(\)»: недостижимо 1 из 1
+ok  reachable «lean::initialize_alloc\(\)»: достижимо 1 из 1
+      путь: lean::initialize_alloc() ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+проверок 8, отказов 0

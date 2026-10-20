@@ -1,0 +1,55 @@
+command: python3 /home/user/figram-audit/fixes/memory/overflow_map.py /home/user/figram-fsm-library/bin/figram-engine /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T20:19:08.918Z
+end: 2026-10-20T20:19:11.282Z
+exit_code: 0
+--- stdout (2224 bytes, last 200 lines)
+== /home/user/figram-fsm-library/bin/figram-engine, окружение родителя
+ 12 КиБ: -11 -11 -11 -11 -11 -11 -11 -11
+ 16 КиБ: -6m -11 -11 -11 -11 -6m -11 -11
+ 20 КиБ: -6m -6m -6m -11 -6m -6m -6m -11
+ 24 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 28 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 32 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 40 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 48 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 56 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 64 КиБ: 1 -6m -6m -6m 1 -6m 1 1
+ 80 КиБ: 1 1 1 1 1 1 1 1
+== /home/user/figram-fsm-library/bin/figram-engine, пустое окружение
+ 12 КиБ: -6m -6m -11 -6m -11 -6m -6m -6m
+ 16 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 20 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 24 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 28 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 32 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 40 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 48 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 56 КиБ: 1 1 1 1 1 1 1 1
+ 64 КиБ: 1 1 1 1 1 1 1 1
+ 80 КиБ: 1 1 1 1 1 1 1 1
+== /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine, окружение родителя
+ 12 КиБ: -11 -11 -11 -11 -11 -11 -11 -11
+ 16 КиБ: -11 -11 -11 -11 -6m -11 -11 -11
+ 20 КиБ: -6m -6m -11 -6m -11 -11 -11 -6m
+ 24 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 28 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 32 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 40 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 48 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 56 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 64 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 80 КиБ: 1 1 1 1 1 1 1 1
+== /home/user/figram-audit-worktrees/fix-memory/.lake/build/bin/figram-engine, пустое окружение
+ 12 КиБ: -6m -6m -11 -6m -6m -11 -11 -6m
+ 16 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 20 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 24 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 28 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 32 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 40 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 48 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 56 КиБ: -6m -6m -6m -6m -6m -6m -6m -6m
+ 64 КиБ: -6m 1 1 -6m -6m 1 -6m -6m
+ 80 КиБ: 1 1 1 1 1 1 1 1
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,22 @@
+/tmp/tmp.hEH2Cd3lG2/contract-stock: узлов 21466, корней 21, достижимо 19598
+ok  reachable «(lean::)?lean_uv_.*»: достижимо 8 из 70
+      путь: lean::lean_uv_timer_finalizer(void*) ← lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::lean_uv_timer_finalizer(void*)::$_0::__invoke(uv_handle_s*) ← lean::lean_uv_timer_finalizer(void*) ← lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::lean_uv_tcp_socket_finalizer(void*) ← lean::initialize_libuv_tcp_socket() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+ok  reachable «(lean::)?event_loop_.*»: достижимо 3 из 5
+      путь: lean::event_loop_lock(lean::event_loop_t*) ← lean::lean_uv_timer_finalizer(void*) ← lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::event_loop_unlock(lean::event_loop_t*) ← lean::lean_uv_timer_finalizer(void*) ← lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::event_loop_run_loop(lean::event_loop_t*) ← std::__1::__function::__func<initialize_libuv::$_0, void ()>::operator()[abi:nqe230100]() ← vtable for std::__1::__function::__func<initialize_libuv::$_0, void ()> ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+ok  reachable «initialize_libuv»: достижимо 1 из 1
+      путь: initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+ok  reachable «(lean::)?initialize_libuv_.*»: достижимо 9 из 9
+      путь: lean::initialize_libuv_loop() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::initialize_libuv_timer()::$_0::__invoke(void*, lean_object*) ← lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+ok  reachable «(lean::)?g_uv_.*_external_class»: достижимо 4 из 4
+      путь: lean::g_uv_timer_external_class ← lean::initialize_libuv_timer() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::g_uv_tcp_socket_external_class ← lean::initialize_libuv_tcp_socket() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+      путь: lean::g_uv_udp_socket_external_class ← lean::initialize_libuv_udp_socket() ← initialize_libuv ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+ok  reachable «(lean::)?segv_handler.*»: достижимо 1 из 1
+      путь: segv_handler ← lean::initialize_stack_overflow() ← lean_initialize_runtime_module ← do_init ← figram_init ← main
+проверок 6, отказов 0

@@ -1,0 +1,16 @@
+command: python3 ffi/python-example/engine_memory.py /tmp/claude-0/-home-user-figram-fsm-library/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/artifact-9c5f522/x/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-fsm-library
+start: 2026-10-20T20:15:24.635Z
+end: 2026-10-20T20:15:24.890Z
+exit_code: 0
+--- stdout (679 bytes, last 200 lines)
+ok  ulimit -v 32 МБ: код 0, ответов 2
+ok  ulimit -v 64 МБ: код 0, ответов 2
+ok  ulimit -v 256 МБ: код 0, ответов 2
+ok  ulimit -s 64 КиБ, вложенность 250: код -6, stderr 'Stack overflow detected. Aborting.'
+ok  ulimit -s 32 КиБ, вложенность 250: код -6, stderr 'Stack overflow detected. Aborting.'
+ok  резерв адресов после старта 10 МБ (предел 64)
+ok  занятая память после 2000 запросов 4 МБ (предел 16)
+ok  потоков 1 (предел 1)
+память движка: резерв адресов 10 МБ, занято 4 МБ, потоков 1
+--- stderr (0 bytes, last 100 lines)
