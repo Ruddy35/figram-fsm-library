@@ -5,7 +5,7 @@ Checks that FORMAT.md §7 states every rule the engine enforces (and nothing
 contradicting HOST.md §1.3), so the doc cannot silently drift from the code:
 
   * every error code of `ErrCode.name` (Figram/Engine.lean) is listed in the
-    §7 error table and in `ERROR_CODES` of ffi/python-example/protocol.py, and
+    §7 error table and in `ERROR_CODES` of clients/python/protocol.py, and
     no other code is;
   * every field of `opKeys` (Engine.lean) is named in §7 for its operation;
   * §7 documents the id echo on parse errors, the order of replies, the request
@@ -30,7 +30,7 @@ def read(*p):
 
 
 fmt = open(sys.argv[2], encoding="utf-8").read() if sys.argv[1:2] == ["--format"] else read("FORMAT.md")
-host, eng, proto = read("HOST.md"), read("Figram", "Engine.lean"), read("ffi", "python-example", "protocol.py")
+host, eng, proto = read("HOST.md"), read("Figram", "Engine.lean"), read("clients", "python", "protocol.py")
 s7 = fmt[fmt.index("## 7."):]
 
 

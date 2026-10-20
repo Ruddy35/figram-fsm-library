@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Регрессионные тесты C-ABI (находки ffi-go FFI-01…FFI-10 и исправления fix-ffi). Код 0 — все исправлены.
-#   ffi/audit/regress.sh [BIN_DIR]   (сначала ffi/audit/build_audit.sh)
+#   tests/capi/regress.sh [BIN_DIR]   (сначала tests/capi/build.sh)
 set -u
 cd "$(dirname "$0")/../.."
-B=${1:-ffi/audit/out}; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0; n=0; nfail=0
+B=${1:-tests/capi/out}; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0; n=0; nfail=0
 check() {  # имя ожидаемый_код команда…
   local name=$1 want=$2; shift 2
   out=$(timeout 120 "$@" 2>&1); rc=$?; n=$((n+1))
@@ -38,7 +38,7 @@ check_rc_out() {
   fi
 }
 # FFI-01: одновременный figram_init из двух потоков (300 свежих процессов).
-check "FFI-01 concurrent figram_init" 0 ffi/audit/init_race.sh "$B/contract" 300
+check "FFI-01 concurrent figram_init" 0 tests/capi/init_race.sh "$B/contract" 300
 # FFI-05: отказ malloc в dup() — NULL вместо SIGSEGV.
 check "FFI-05 malloc failure in dup" 0 "$B/oom"
 # FFI-06: figram_unload(NULL) — как free(NULL); в т.ч. после неудачной загрузки.
@@ -58,7 +58,7 @@ check_rc_out "P-09 init with 256 KiB headroom → Lean out-of-memory exit 1, no 
   env FIGRAM_TEST_AS_HEADROOM=262144 "$B/contract" rlimit_init
 # P-21 (FFI-03, I-17): вызовы до figram_init — ленивая потокобезопасная инициализация.
 check "P-21 lazy init (load/request before figram_init)" 0 "$B/contract" lazy $D
-check "P-21 lazy init race, 8 threads x 300 processes" 0 ffi/audit/init_race.sh "$B/contract" 300 lazy_race
+check "P-21 lazy init race, 8 threads x 300 processes" 0 tests/capi/init_race.sh "$B/contract" 300 lazy_race
 # P-21 (FFI-04, FFI-07): NULL, чужой указатель, use-after-unload, двойная выгрузка.
 check "P-21 NULL arguments and foreign handle" 0 "$B/contract" null_safe $D
 for w in check fmt load line handle; do check "P-21 null $w: no SIGSEGV" 0 "$B/contract" null $w $D; done

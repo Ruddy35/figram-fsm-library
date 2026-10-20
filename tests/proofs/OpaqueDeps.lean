@@ -1,6 +1,6 @@
 /- Which theorem STATEMENTS (types) depend, through definition bodies, on opaque constants
 (partial defs)? Such statements mention functions whose logical value is unspecified, so their
-hypotheses cannot be discharged by evaluation. Run: lake env lean audit/proofs/OpaqueDeps.lean -/
+hypotheses cannot be discharged by evaluation. Run: lake env lean tests/proofs/OpaqueDeps.lean -/
 import Figram
 import FigramAudit.Glue
 import Lean.Elab.Command

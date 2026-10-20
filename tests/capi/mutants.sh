@@ -2,7 +2,7 @@
 # Контроль чувствительности регрессионных тестов fix-ffi: каждое исправление по очереди
 # «откатывается» в копии figram_ffi.c (или подменой ffi/figram_init.cpp), и соответствующий подтест
 # обязан покраснеть.
-#   ffi/audit/mutants.sh   (после ffi/build.sh)   — код 0, если каждый мутант пойман.
+#   tests/capi/mutants.sh   (после ffi/build.sh)   — код 0, если каждый мутант пойман.
 set -u
 cd "$(dirname "$0")/../.."
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
@@ -24,7 +24,7 @@ open(out, "w", encoding="utf-8").write(s.replace(old, new))
 PY
   cp ffi/figram.h "$T/figram.h"
   if ! leanc -c -fexceptions -o "$T/m.o" "$T/m.c" 2> "$T/cc.log" || \
-     ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" ffi/audit/contract.c "$T/m.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ${INIT_O-ffi/out/figram_init.o} $OBJS \
+     ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" tests/capi/contract.c "$T/m.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ${INIT_O-ffi/out/figram_init.o} $OBJS \
          $(cat ffi/out/LDFLAGS.runtime) 2>> "$T/cc.log"; then
     echo "НЕТ $name: мутант не собирается"; grep -m3 error "$T/cc.log"; ok=0; return
   fi

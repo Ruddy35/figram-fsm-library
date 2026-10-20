@@ -1,5 +1,5 @@
 /- Negative control for Statements.lean: README wording without hypotheses must be REJECTED.
-Expected: 2 errors, exit code 1. Run: lake env lean audit/proofs/StatementsNegative.lean -/
+Expected: 2 errors, exit code 1. Run: lake env lean tests/proofs/StatementsNegative.lean -/
 import Figram
 open Figram Figram.Format
 -- negative control: the README wording WITHOUT the hypotheses must NOT be accepted

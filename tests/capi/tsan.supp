@@ -1,4 +1,4 @@
-# TSan suppressions for ffi/audit/sanitizers.sh (T-12: TSan only partly sees the Lean runtime).
+# TSan suppressions for tests/capi/sanitizers.sh (T-12: TSan only partly sees the Lean runtime).
 #
 # Closed terms of the generated C are initialised lazily (Lean 4.35: lean_obj_once in lean.h).
 # The cold path lean_obj_once_cold (libleanrt, src/runtime/object.cpp) runs the initialiser

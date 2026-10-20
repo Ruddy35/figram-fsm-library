@@ -67,7 +67,7 @@
  *   - figram_free для указателя, не полученного от библиотеки (как free);
  *   - вызовы после fork() в дочернем процессе (не проверялось).
  *   Внимание: ASan, valgrind и TSan не видят кучу Lean (mimalloc) и не заменяют
- *   функциональный стресс со сверкой ответов (ffi/audit/stress.c).
+ *   функциональный стресс со сверкой ответов (tests/capi/stress.c).
  */
 #ifndef FIGRAM_H
 #define FIGRAM_H

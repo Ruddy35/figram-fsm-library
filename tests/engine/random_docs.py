@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from conformance import load_jsonl, run
 from protocol import default_timeout
 

@@ -18,7 +18,7 @@ import time
 engine, doc, traces, ftraces = (os.path.abspath(a) for a in sys.argv[1:5])
 here = os.path.dirname(os.path.abspath(__file__))
 features = os.path.join(os.path.dirname(doc), "features.bot.json")
-schema = os.path.join(os.path.dirname(os.path.dirname(doc)), "snapshot.schema.json")
+schema = os.path.join(here, "..", "..", "schemas", "snapshot.schema.json")
 
 PROXY = """#!/usr/bin/env python3
 import json, subprocess, sys

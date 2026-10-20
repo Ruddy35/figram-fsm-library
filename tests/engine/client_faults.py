@@ -17,6 +17,7 @@ import tempfile
 import threading
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from figram_client import Engine, EngineError
 
 HELLO = 'read l; echo \'{"id":0,"protocol":1,"states":1}\'; '

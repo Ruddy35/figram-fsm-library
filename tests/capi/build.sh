@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Сборка аудит-тестов ffi/audit в вариантах plain, asan (ASan+UBSan), tsan на библиотеке
+# Сборка тестов tests/capi в вариантах plain, asan (ASan+UBSan), tsan на библиотеке
 # из ffi/build.sh (любой тулчейн Lean: официальный релиз или сборка из исходников —
 # флаги компоновки берутся из ffi/out/LDFLAGS, B-01).
-#   ffi/audit/build_audit.sh [OUT]   (по умолчанию ffi/audit/out)
+#   tests/capi/build.sh [OUT]   (по умолчанию tests/capi/out)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
-OUT=${1:-ffi/audit/out}
+OUT=${1:-tests/capi/out}
 bash ffi/build.sh >/dev/null
 P=$(lean --print-prefix)
 O=.lake/build/ir/Figram
@@ -16,18 +16,18 @@ LIBS=$(cat ffi/out/LDFLAGS)
 RTLIBS=$(cat ffi/out/LDFLAGS.runtime)
 cp ffi/out/LDFLAGS "$OUT/LDFLAGS"
 
-A=ffi/audit
+A=tests/capi
 CF="-g -O1 -I$P/include -pthread"
 gcc $CF -o "$OUT/contract" $A/contract.c $LIBS
 gcc $CF -Wl,--wrap=malloc -o "$OUT/oom" $A/oom.c $LIBS
 gcc $CF -o "$OUT/stress" $A/stress.c $LIBS
-gcc -O1 -o "$OUT/harness_plain" ffi/c_harness.c ffi/c_harness_io.c $LIBS
+gcc -O1 -o "$OUT/harness_plain" $A/c_harness.c $A/c_harness_io.c $LIBS
 # ASan+UBSan, как verify.sh: прослойка и тесты инструментированы, модули Lean — нет.
 SAN="-fsanitize=address,undefined -fno-omit-frame-pointer"
 gcc -c -g $SAN -fexceptions -I"$P/include" -o "$OUT/ffi_asan.o" ffi/figram_ffi.c
 LIBS_NOFFI="ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS $RTLIBS"
 for t in contract stress; do gcc $CF $SAN -o "$OUT/${t}_asan" $A/$t.c "$OUT/ffi_asan.o" $LIBS_NOFFI; done
-gcc -g $SAN -o "$OUT/harness_asan" ffi/c_harness.c ffi/c_harness_io.c "$OUT/ffi_asan.o" $LIBS_NOFFI
+gcc -g $SAN -o "$OUT/harness_asan" $A/c_harness.c $A/c_harness_io.c "$OUT/ffi_asan.o" $LIBS_NOFFI
 # TSan: прослойка, тесты И сгенерированный C модулей Figram инструментированы
 # (подсчёт ссылок lean.h инлайнится в них); рантайм Lean и Init — нет.
 TS="-fsanitize=thread -g -O1"

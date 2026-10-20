@@ -2,13 +2,13 @@ import Figram
 import Lean
 
 /-!
-# Теоремы, которые README.md и AUDIT.md называют доказанными
+# Теоремы, которые README.md называет доказанными
 
-`verify.sh` обрабатывает этот файл (`lake env lean ci/theorems.lean`) и требует:
-* формулировка каждой теоремы (строки `STMT`) совпадает с `ci/THEOREMS.expected`
+`verify.sh` обрабатывает этот файл (`lake env lean tests/proofs/theorems.lean`) и требует:
+* формулировка каждой теоремы (строки `STMT`) совпадает с `tests/proofs/THEOREMS.expected`
   — изменить формулировку можно только вместе с этим файлом, осознанно;
 * каждая теорема зависит только от `propext`, `Classical.choice`, `Quot.sound`.
-Добавляя теорему в README или AUDIT, добавьте её в оба списка ниже.
+Добавляя теорему в README, добавьте её в оба списка ниже.
 -/
 
 open Lean Elab Command Meta in

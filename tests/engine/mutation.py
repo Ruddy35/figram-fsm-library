@@ -7,9 +7,11 @@
     python3 mutation.py ENGINE --golden examples/golden.jsonl DOC=TRACES.jsonl ...
 """
 
+import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from conformance import corpus, run
 from protocol import default_timeout, mutant_env
 

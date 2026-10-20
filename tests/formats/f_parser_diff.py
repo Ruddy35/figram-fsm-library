@@ -35,7 +35,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.join(HERE, "..", "..", "ffi", "python-example"))
+sys.path.insert(0, os.path.join(HERE, "..", "engine"))
 import b_rfc_table  # noqa: E402
 import json_fuzz  # noqa: E402
 

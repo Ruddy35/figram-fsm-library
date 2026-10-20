@@ -25,12 +25,14 @@
 
 import copy
 import json
+import os
 import random
 import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from figram_client import Engine
 
 

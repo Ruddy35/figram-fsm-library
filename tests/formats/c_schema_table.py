@@ -210,8 +210,8 @@ def main():
     ap.add_argument("--break", dest="brk", default=None)
     ap.add_argument("--tmp", default=os.environ.get("TMPDIR", "/tmp"))
     a = ap.parse_args()
-    dv = schema(os.path.join(ROOT, "figram.schema.json"), a.brk)
-    sv = schema(os.path.join(ROOT, "snapshot.schema.json"), a.brk)
+    dv = schema(os.path.join(ROOT, "schemas", "figram.schema.json"), a.brk)
+    sv = schema(os.path.join(ROOT, "schemas", "snapshot.schema.json"), a.brk)
     tmp = os.path.join(a.tmp, f"fc-c-{os.getpid()}.json")
     bad = 0
     counts = {}

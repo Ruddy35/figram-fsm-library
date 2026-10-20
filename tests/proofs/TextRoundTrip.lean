@@ -3,7 +3,7 @@ Regression test (runtime, `#guard`): text round trip of numbers in annotations.
 A document that passes `check` must be printed (`print ∘ encode`, i.e. `figram fmt`)
 into text that `parse` accepts and that decodes to the same document model.
 Baseline: FAILS (1.5e-1000 is printed as "15e-1001", exponent > maxExponent).
-Run: lake env lean audit/proofs/TextRoundTrip.lean   (exit 0 = pass)
+Run: lake env lean tests/proofs/TextRoundTrip.lean   (exit 0 = pass)
 -/
 import Figram
 open Figram Figram.Format

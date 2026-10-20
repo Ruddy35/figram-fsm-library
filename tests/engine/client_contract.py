@@ -11,6 +11,7 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from figram_client import Engine, EngineError
 
 engine_bin, doc = sys.argv[1], sys.argv[2]

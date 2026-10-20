@@ -14,6 +14,7 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from protocol import ChildTimeout, ProtocolError, check_reply, default_timeout, mutant_env, run_child
 
 

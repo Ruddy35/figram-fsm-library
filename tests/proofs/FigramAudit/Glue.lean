@@ -1,7 +1,7 @@
 /-
 Proposed glue lemmas (audit). They close gaps between what the project proves
-and what README/AUDIT claim. Build: `lake build FigramAudit` (lean_lib with
-srcDir = "audit/proofs") or `lake env lean audit/proofs/Glue.lean`.
+and what README claims. Build: `lake build FigramAudit` (lean_lib with
+srcDir = "tests/proofs") or `lake env lean tests/proofs/FigramAudit/Glue.lean`.
 -/
 import Figram
 open Figram Figram.Format Figram.Engine

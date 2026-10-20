@@ -9,10 +9,12 @@
 """
 
 import json
+import os
 import sys
 import threading
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from figram_client import Engine
 
 binary, document, traces_path = sys.argv[1:4]

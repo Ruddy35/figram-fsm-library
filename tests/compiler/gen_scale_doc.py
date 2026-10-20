@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copied from audit/host-perf/gen_doc.py (host-perf agent) for the P-06/P-07 load/step series.
+# Document generator of the host-perf audit harness, kept for the P-06/P-07 load/step series.
 """Параметрический генератор документов Figram для замеров масштабируемости.
 
     gen_doc.py --states N [--groups G] [--depth D] [--branches B] [--resume R]

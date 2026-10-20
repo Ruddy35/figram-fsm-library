@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Regression test for T-14 / INT-06: audit/proofs/strict_gate.sh must never rewrite
+# Regression test for T-14 / INT-06: tests/proofs/strict_gate.sh must never rewrite
 # tracked files, and the tracked theorem list must act as a pin, not as an output.
 #
-#   bash audit/proofs/test_strict_gate_clean.sh        (needs a built tree: lake build)
+#   bash tests/proofs/test_strict_gate_clean.sh        (needs a built tree: lake build)
 #
 # 1. clean tree       — the gate passes and `git status --porcelain` is the same before and after;
 # 2. stale locations  — tracked theorems.txt / AllAxioms.lean carry shifted line numbers (as after
@@ -13,13 +13,13 @@
 # Exit 0 = all three hold. The tracked files are restored on any exit.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
-A=audit/proofs/AllAxioms.lean; N=audit/proofs/theorems.txt
+A=tests/proofs/AllAxioms.lean; N=tests/proofs/theorems.txt
 B=$(mktemp -d); trap 'cp "$B/A" "$A"; cp "$B/N" "$N"; rm -rf "$B"' EXIT
 cp "$A" "$B/A"; cp "$N" "$B/N"
 fails=0
 check() { if [ "$1" = 0 ]; then echo "ok   $2"; else echo "FAIL $2"; fails=$((fails + 1)); fi; }
 sums() { sha256sum "$A" "$N"; }
-gate() { bash audit/proofs/strict_gate.sh > "$B/gate.log" 2>&1; echo $?; }
+gate() { bash tests/proofs/strict_gate.sh > "$B/gate.log" 2>&1; echo $?; }
 
 # 1. clean tree
 st0=$(git status --porcelain)

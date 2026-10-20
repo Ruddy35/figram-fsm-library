@@ -47,7 +47,7 @@ lean_exe «figram-engine» where
   root := `EngineMain
   moreLinkObjs := #[figram_rt.o, figram_exe.o, figram_init.o]
 
--- Audit proposals (not a default target: product binaries are unchanged).
+-- Glue lemmas checked by tests/proofs (not a default target: product binaries are unchanged).
 lean_lib FigramAudit where
-  srcDir := "audit/proofs"
+  srcDir := "tests/proofs"
   roots := #[`FigramAudit.Glue]

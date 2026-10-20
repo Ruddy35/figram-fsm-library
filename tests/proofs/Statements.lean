@@ -1,8 +1,8 @@
 /-
-Pinned statements of every theorem named in README.md / AUDIT.md / FORMAT.md.
+Pinned statements of every theorem named in README.md / FORMAT.md.
 Each `example` re-states the theorem in full (as the auditor reads it) and is
 closed by the theorem itself: if a theorem is weakened, renamed or its
-hypotheses change, this file stops compiling. Run: lake env lean audit/proofs/Statements.lean
+hypotheses change, this file stops compiling. Run: lake env lean tests/proofs/Statements.lean
 -/
 import Figram
 open Figram Figram.Format Figram.Engine

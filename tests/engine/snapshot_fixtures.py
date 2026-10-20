@@ -1,14 +1,16 @@
 """Схема снимка и движок принимают и отвергают одни и те же снимки (N03).
 
-    python3 snapshot_fixtures.py ENGINE bot.json snapshot.schema.json
+    python3 snapshot_fixtures.py ENGINE bot.json schemas/snapshot.schema.json
 """
 
 import json
+import os
 import subprocess
 import sys
 
 import jsonschema
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from protocol import ChildTimeout, ProtocolError, check_reply, default_timeout, run_child
 
 M = 9007199254740991

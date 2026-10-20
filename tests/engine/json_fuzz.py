@@ -14,11 +14,13 @@ NaN/Infinity — отказ. На каждом входе сравниваетс
 """
 
 import json
+import os
 import random
 import re
 import sys
 from decimal import Decimal, InvalidOperation
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from protocol import default_timeout, run_child
 
 MAX_DEPTH, MAX_EXP = 256, 1000

@@ -5,10 +5,10 @@
 #   2) пишет ffi/out/LDFLAGS (полные флаги хоста) и ffi/out/LDFLAGS.runtime (без libfigram.a);
 #   3) в ffi/out/lean нет пустых архивов-заглушек;
 #   4) хост на C компонуется ТОЛЬКО флагами из ffi/out/LDFLAGS и работает;
-#   5) ffi/go-example собирается обычным `go build` без CGO_LDFLAGS и работает;
+#   5) clients/go собирается обычным `go build` без CGO_LDFLAGS и работает;
 #   6) C/C++-исходники библиотеки компилируются без системных заголовков (-nostdinc + встроенные
 #      заголовки clang), как их компилирует leanc официального релиза (если clang установлен).
-#   ffi/audit/b01_build.sh   — код 0, только если все пункты выполнены.
+#   tests/capi/build_check.sh   — код 0, только если все пункты выполнены.
 set -u
 cd "$(dirname "$0")/../.."
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
@@ -25,7 +25,7 @@ for a in ffi/out/lean/*.a; do
   else bad "архив $(basename "$a") пуст (заглушка)"; fi
 done
 if [ -s ffi/out/LDFLAGS ]; then
-  if ${CC:-cc} -O1 -pthread -o "$T/host" ffi/audit/stress.c $(cat ffi/out/LDFLAGS) 2> "$T/link.log"; then
+  if ${CC:-cc} -O1 -pthread -o "$T/host" tests/capi/stress.c $(cat ffi/out/LDFLAGS) 2> "$T/link.log"; then
     ok "C-хост скомпонован флагами ffi/out/LDFLAGS"
     if "$T/host" examples/pizza.bot.json 4 2000 1 > "$T/host.out" 2>&1; then ok "C-хост: $(tail -1 "$T/host.out")"
     else bad "C-хост завершился с кодом ≠ 0"; tail -5 "$T/host.out" | sed 's/^/    /'; fi
@@ -33,7 +33,7 @@ if [ -s ffi/out/LDFLAGS ]; then
   else bad "C-хост не компонуется флагами ffi/out/LDFLAGS"; grep -m5 -E "error|undefined" "$T/link.log" | sed 's/^/    /'; fi
 fi
 if command -v go > /dev/null; then
-  if (cd ffi/go-example && env -u CGO_LDFLAGS CC=${CC:-gcc} go build -o "$T/gofig" .) > "$T/go.log" 2>&1; then
+  if (cd clients/go && env -u CGO_LDFLAGS CC=${CC:-gcc} go build -o "$T/gofig" .) > "$T/go.log" 2>&1; then
     ok "go build без CGO_LDFLAGS"
     .lake/build/bin/figram trace examples/pizza.bot.json 20 30 7 > "$T/small.jsonl" 2>/dev/null
     if "$T/gofig" examples/pizza.bot.json "$T/small.jsonl" > "$T/gofig.out" 2>&1; then ok "Go: $(tail -1 "$T/gofig.out")"
@@ -46,7 +46,6 @@ if command -v clang > /dev/null; then
   P=$(lean --print-prefix)
   for s in ffi/*.c ffi/*.cpp; do
     [ -e "$s" ] || continue
-    case "$s" in ffi/c_harness*) continue;; esac
     if clang -nostdinc -isystem "$RES" -I "$P/include" -fPIC -c -o "$T/nostdinc.o" "$s" 2> "$T/nostdinc.log"; then
       ok "$s компилируется без системных заголовков (как leanc официального релиза)"
     else bad "$s не компилируется с -nostdinc:"; head -5 "$T/nostdinc.log" | sed 's/^/    /'; fi

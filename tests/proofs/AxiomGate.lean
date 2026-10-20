@@ -1,14 +1,14 @@
 /-
 Strict axiom gate for Figram (audit proposal).
 
-Run:  lake env lean audit/proofs/AxiomGate.lean
+Run:  lake env lean tests/proofs/AxiomGate.lean
 It enumerates EVERY theorem that lives in a module whose root is `Figram`
 (taken from the environment, not from a hand-written list), collects its axioms
 with `Lean.collectAxioms`, and fails (exit code 1) if any axiom outside
 {propext, Quot.sound, Classical.choice} is used (this catches `sorryAx`,
 `Lean.ofReduceBool`/`Lean.trustCompiler` from `native_decide`, and any custom
 `axiom`). It also fails if a module of the project declares an `axiom`, and if a
-theorem listed in audit/proofs/theorems.txt (extracted from the sources) is
+theorem listed in tests/proofs/theorems.txt (extracted from the sources) is
 missing from the environment or is not a theorem.
 -/
 import Figram
@@ -84,4 +84,4 @@ elab "#strict_axiom_gate " path:str : command => do
     for f in failures do logError f
     throwError "STRICT AXIOM GATE: FAIL ({failures.size} problems)"
 
-#strict_axiom_gate "audit/proofs/theorems.txt"
+#strict_axiom_gate "tests/proofs/theorems.txt"
