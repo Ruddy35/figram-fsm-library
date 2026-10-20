@@ -169,6 +169,16 @@ theorem find?_congr {α} (l : List α) (p q : α → Bool)
     have hxs : ∀ y ∈ xs, p y = q y := fun y hy => h y (by simp [hy])
     simp only [List.find?_cons, hx, ih hxs]
 
+/-- Срабатывание таймера, которым текущее сообщение не владеет (выход из него
+таймер не отменяет), стрелок не читает: снимок остаётся прежним, действий нет.
+Поэтому стрелка `timer:X` сообщения без таймера X недостижима (T-13). -/
+theorem step_unowned_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
+    (hs : s.state ∈ m.states) (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    m.step s (.timer id tok) env = (s, []) := by
+  unfold step
+  simp only [hs, not_true_eq_false, ite_false, ownsTimer, h, Bool.and_false, Bool.not_false,
+    ite_true]
+
 theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)
     (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :
     m.step s ev env₁ = m.step s ev env₂ := by

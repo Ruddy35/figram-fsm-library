@@ -73,6 +73,24 @@ def owned_ok(bot, L, e):
     return not (OWNED and e.startswith("timer:") and not any(t == e[6:] for t, _ in bot.nodes[L].timers))
 
 
+def oracle_ignores(text, L, e):
+    """The designer oracle (CC-01 reading) ignores `timer:X` on message L even with the
+    current token: the row (L, timer:X) is never taken (cross-check of owned_ok)."""
+    from oracle import Bot, Options
+    b = Bot(text, Options(timer_accept="owned", exit_cancels="snapshot"))
+    snap = {"at": L, "resume": {}, "timers": {e[6:]: 5}, "seq": 5}
+    r = b.step(snap, e, 5, {}, check_need=False)
+    return r[0] == "ok" and r[1] == snap and r[2] == [] and not r[3]
+
+
+def dead_row(bot, L, e, text):
+    if owned_ok(bot, L, e):
+        return None
+    if text is not None and not oracle_ignores(text, L, e):
+        return "LIVE timer row %s/%s: the oracle accepts the timer on a non-owner" % (L, e)
+    return "equivalent: timer arrow %s/%s on a message that does not own the timer" % (L, e)
+
+
 def entered(bot, rows):
     """Messages that some step can enter: the start/recovery landing and the landing of
     every live variant (a resume variant may land on any message of its section)."""
@@ -102,7 +120,7 @@ def outcome(cands, g):
     return None
 
 
-def classify(bot, mutant):
+def classify(bot, mutant, text=None):
     global BOT
     BOT = bot
     from exhaustive import select_guards
@@ -112,8 +130,9 @@ def classify(bot, mutant):
     kind, _, k = mutant.partition(":")
     if kind in ("redirect", "drop-guard", "reverse-actions"):
         (L, e, c), i = flat[int(k)]
-        if not owned_ok(bot, L, e):
-            return "equivalent: timer arrow %s/%s on a message that does not own the timer" % (L, e)
+        why = dead_row(bot, L, e, text)
+        if why:
+            return why
         if select_guards(c, i) is None:
             return "equivalent: dead variant %d of %s/%s" % (i, L, e)
         if kind == "drop-guard":
@@ -129,8 +148,9 @@ def classify(bot, mutant):
         return "LIVE variant %d of %s/%s" % (i, L, e)
     if kind == "swap-branches":
         L, e, c = rows[int(k)]
-        if not owned_ok(bot, L, e):
-            return "equivalent: timer arrow %s/%s on a message that does not own the timer" % (L, e)
+        why = dead_row(bot, L, e, text)
+        if why:
+            return why
         names = sorted({v.cond for v in c if v.cond})
         rc = list(reversed(c))
         for bits in itertools.product([False, True], repeat=len(names)):
@@ -175,7 +195,7 @@ def main():
         sv = json.load(open(args.reclassify, encoding="utf-8"))
         live = 0
         for x in sv:
-            why = classify(Bot(x["doc"]), x["mutant"])
+            why = classify(Bot(x["doc"]), x["mutant"], x["doc"])
             if not why.startswith("equivalent"):
                 live += 1
                 print("SURVIVOR", x["seed"], x["mutant"], why)
@@ -208,7 +228,7 @@ def main():
                 killed += 1
             else:
                 from oracle import Bot
-                why = classify(Bot(text), m)
+                why = classify(Bot(text), m, text)
                 survivors.append({"seed": seed, "mutant": m, "why": why, "doc": text})
     equiv = [s for s in survivors if s["why"].startswith("equivalent")]
     live = [s for s in survivors if not s["why"].startswith("equivalent")]

@@ -14,6 +14,7 @@ Figram.concatIndex_get	Compile.lean:223
 Figram.contains_insert	Compile.lean:234
 Figram.dedupFast_aux	Compile.lean:243
 Figram.dedupFast_eq	Compile.lean:276
+Figram.memStr_iff	Core.lean:41
 Figram.realizeOne_state	CoreProofs.lean:15
 Figram.foldl_realize_state	CoreProofs.lean:19
 Figram.realize_state	CoreProofs.lean:25
@@ -27,7 +28,8 @@ Figram.Machine.resolve_mem	CoreProofs.lean:116
 Figram.Machine.start_state_valid	CoreProofs.lean:138
 Figram.Machine.step_state_valid	CoreProofs.lean:142
 Figram.Machine.find?_congr	CoreProofs.lean:163
-Figram.Machine.step_guard_local	CoreProofs.lean:172
+Figram.Machine.step_unowned_timer	CoreProofs.lean:175
+Figram.Machine.step_guard_local	CoreProofs.lean:182
 Figram.lookup_map	Correct.lean:18
 Figram.find?_eq_self	Correct.lean:33
 Figram.Machine.wfFast_eq	Correct.lean:50
@@ -125,6 +127,12 @@ Figram.Format.wfOK_sound	FormatProofs.lean:454
 Figram.Format.check_wfOK	FormatProofs.lean:462
 Figram.Format.check_roundtrip	FormatProofs.lean:471
 Figram.Chart.lint_nil_wf	LintProofs.lean:15
+Figram.Mutate.mapBranches_states	Mutate.lean:46
+Figram.Mutate.mapBranches_exit	Mutate.lean:48
+Figram.Mutate.mapRows_states	Mutate.lean:50
+Figram.Mutate.mapRows_exit	Mutate.lean:51
+Figram.Mutate.mapBranches_unowned_timer	Mutate.lean:59
+Figram.Mutate.mapRows_unowned_timer	Mutate.lean:66
 Figram.Machine.run_state_valid	Run.lean:33
 Figram.Chart.run_correct	Run.lean:46
 Figram.Chart.chart_run_valid	Run.lean:57

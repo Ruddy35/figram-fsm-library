@@ -16,6 +16,7 @@ import Figram
 #print axioms Figram.contains_insert  -- Compile.lean:234
 #print axioms Figram.dedupFast_aux  -- Compile.lean:243
 #print axioms Figram.dedupFast_eq  -- Compile.lean:276
+#print axioms Figram.memStr_iff  -- Core.lean:41
 #print axioms Figram.realizeOne_state  -- CoreProofs.lean:15
 #print axioms Figram.foldl_realize_state  -- CoreProofs.lean:19
 #print axioms Figram.realize_state  -- CoreProofs.lean:25
@@ -29,7 +30,8 @@ import Figram
 #print axioms Figram.Machine.start_state_valid  -- CoreProofs.lean:138
 #print axioms Figram.Machine.step_state_valid  -- CoreProofs.lean:142
 #print axioms Figram.Machine.find?_congr  -- CoreProofs.lean:163
-#print axioms Figram.Machine.step_guard_local  -- CoreProofs.lean:172
+#print axioms Figram.Machine.step_unowned_timer  -- CoreProofs.lean:175
+#print axioms Figram.Machine.step_guard_local  -- CoreProofs.lean:182
 #print axioms Figram.lookup_map  -- Correct.lean:18
 #print axioms Figram.find?_eq_self  -- Correct.lean:33
 #print axioms Figram.Machine.wfFast_eq  -- Correct.lean:50
@@ -127,6 +129,12 @@ import Figram
 #print axioms Figram.Format.check_wfOK  -- FormatProofs.lean:462
 #print axioms Figram.Format.check_roundtrip  -- FormatProofs.lean:471
 #print axioms Figram.Chart.lint_nil_wf  -- LintProofs.lean:15
+#print axioms Figram.Mutate.mapBranches_states  -- Mutate.lean:46
+#print axioms Figram.Mutate.mapBranches_exit  -- Mutate.lean:48
+#print axioms Figram.Mutate.mapRows_states  -- Mutate.lean:50
+#print axioms Figram.Mutate.mapRows_exit  -- Mutate.lean:51
+#print axioms Figram.Mutate.mapBranches_unowned_timer  -- Mutate.lean:59
+#print axioms Figram.Mutate.mapRows_unowned_timer  -- Mutate.lean:66
 #print axioms Figram.Machine.run_state_valid  -- Run.lean:33
 #print axioms Figram.Chart.run_correct  -- Run.lean:46
 #print axioms Figram.Chart.chart_run_valid  -- Run.lean:57

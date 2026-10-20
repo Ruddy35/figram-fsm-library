@@ -1,4 +1,4 @@
-import Figram.Core
+import Figram.CoreProofs
 
 /-!
 # Мутации автомата — проверка силы тестового набора (F04)
@@ -41,6 +41,34 @@ def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.
       out := out.push { r with branches := bs.toList }
     table := table.push (s, out.toList)
   return { m with table := table.toList }
+
+/-- Мутации стрелок не меняют сообщений и действий выхода. -/
+theorem mapBranches_states (m : Machine) (f : Nat → FBranch → FBranch) :
+    (mapBranches m f).states = m.states := rfl
+theorem mapBranches_exit (m : Machine) (f : Nat → FBranch → FBranch) :
+    (mapBranches m f).exit = m.exit := rfl
+theorem mapRows_states (m : Machine) (f : Nat → Row → Row) : (mapRows m f).states = m.states := rfl
+theorem mapRows_exit (m : Machine) (f : Nat → Row → Row) : (mapRows m f).exit = m.exit := rfl
+
+/-- **Мутант стрелки таймера, которым сообщение не владеет, эквивалентен** на
+таких событиях: и исходный, и испорченный автомат игнорируют срабатывание, не
+читая стрелок (`Machine.step_unowned_timer`). Через протокол событие с ключом
+`timer:X` бывает только срабатыванием таймера (`Engine.decEvent`), поэтому
+мутации `redirect`/`drop-guard`/`reverse-actions`/`swap-branches` строк
+`timer:X` сообщений без X на поведение не влияют (T-13, INT-05). -/
+theorem mapBranches_unowned_timer (m : Machine) (f : Nat → FBranch → FBranch) (s : Snapshot)
+    (id : String) (tok : Nat) (env : HostEnv) (hs : s.state ∈ m.states)
+    (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    (mapBranches m f).step s (.timer id tok) env = m.step s (.timer id tok) env := by
+  rw [Machine.step_unowned_timer m s id tok env hs h,
+    Machine.step_unowned_timer (mapBranches m f) s id tok env hs h]
+
+theorem mapRows_unowned_timer (m : Machine) (f : Nat → Row → Row) (s : Snapshot)
+    (id : String) (tok : Nat) (env : HostEnv) (hs : s.state ∈ m.states)
+    (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    (mapRows m f).step s (.timer id tok) env = m.step s (.timer id tok) env := by
+  rw [Machine.step_unowned_timer m s id tok env hs h,
+    Machine.step_unowned_timer (mapRows m f) s id tok env hs h]
 
 def callNames (m : Machine) : List String :=
   let names := ((branches m).flatMap (·.actions)).filterMap fun
