@@ -259,7 +259,7 @@ step "C-прослойка: невалидный UTF-8, огромные вхо�
 PFX=$(lean --print-prefix)
 O=.lake/build/ir/Figram
 OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
-LIBS="-Lffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic -lstdc++ -lm -ldl -lpthread -lrt"  # AUDIT: -lstdc++ for from-source toolchain
+LIBS="-Lffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group -Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic -lm -ldl -lpthread -lrt"
 ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -I"$PFX/include" -o "$T/ffi.o" ffi/figram_ffi.c
 ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" ffi/c_harness_io.c
 ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" ffi/c_harness.c "$T/io.o" "$T/ffi.o" $OBJS $LIBS

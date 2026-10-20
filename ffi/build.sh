@@ -14,8 +14,5 @@ leanc -c -o ffi/out/figram_ffi.o ffi/figram_ffi.c
 rm -f ffi/out/libfigram.a
 ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o $OBJS
 cp "$P/lib/lean/libInit.a" "$P/lib/lean/libleanrt.a" ffi/out/lean/
-# AUDIT TEST-ONLY ADAPTATION (Lean built from source with gcc/libstdc++): the prefix has no bundled
-# libc++/libuv/libgmp archives. Use system static libuv/libgmp and empty libc++ stubs (link with -lstdc++).
-if [ -f "$P/lib/libc++.a" ]; then cp "$P/lib/libc++.a" "$P/lib/libc++abi.a" "$P/lib/libuv.a" "$P/lib/libgmp.a" ffi/out/lean/
-else cp /usr/lib/x86_64-linux-gnu/libuv.a /usr/lib/x86_64-linux-gnu/libgmp.a ffi/out/lean/; ar rcs ffi/out/lean/libc++.a; ar rcs ffi/out/lean/libc++abi.a; fi
+cp "$P/lib/libc++.a" "$P/lib/libc++abi.a" "$P/lib/libuv.a" "$P/lib/libgmp.a" ffi/out/lean/
 echo "готово: ffi/out/libfigram.a"
