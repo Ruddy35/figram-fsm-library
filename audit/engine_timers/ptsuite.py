@@ -430,6 +430,15 @@ def upgrade_scenarios(ex, own):
         "on 'cart' never gets the v2 reminder; old fire is accepted (token matches) but has no arrow",
         {"load_rc": rc, "fire_old_timer": fire_old, "leave_actions": leave["actions"],
          "timers_after_each_step": [x.get("timers") for x in trail]})
+    # CC-01/ET-02 regression (integration): a stale v1 timer must neither fire on a message that does
+    # not own it in v2 nor survive leaving that message (red on baseline d69bbaf).
+    hard("U4h", "upgrade", fire_old.get("actions") == [] and fire_old.get("snapshot") == at_cart
+         and {"cancel_timer": "cart_reminder"} in leave["actions"]
+         and all("cart_reminder" not in (x.get("timers") or {}) for x in trail),
+         "renamed timer: the v1 fire is ignored on 'cart' (v2 'cart' does not own it) and leaving 'cart' "
+         "cancels the stale v1 timer; it never reappears in snapshot.timers",
+         {"fire_old_timer": fire_old, "leave_actions": leave["actions"],
+          "timers_after_each_step": [x.get("timers") for x in trail]})
     e.close()
 
     # U5 timer moved to another message + section-level arrow
@@ -445,6 +454,9 @@ def upgrade_scenarios(ex, own):
     rec("U5", "upgrade", "OBS", "timer moved from 'cart' to 'address' with the arrow lifted to section 'order': "
         "the v1 in-flight fire (token still in snapshot) is ACCEPTED while the user is on 'cart' and moves them "
         "to 'reminder' although v2 has no reminder on 'cart'", {"load_rc": rc, "reply": r})
+    hard("U5h", "upgrade", r.get("actions") == [] and r.get("snapshot") == at_cart,
+         "moved timer: the v1 in-flight fire on 'cart' (which owns no timer in v2) is ignored, the "
+         "section-level arrow does not fire", {"reply": r})
     e.close()
 
     # U6 message turned into a section
