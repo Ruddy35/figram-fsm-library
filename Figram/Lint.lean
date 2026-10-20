@@ -1,11 +1,11 @@
-import Figram.Correct
+import Figram.Compile
 
 /-!
 # Проверка схемы перед экспортом
 
 Ошибки, которые редактор показывает дизайнеру. Решающая проверка — итоговая:
 `wfDirect`, она равна `c.compile.wf` (`wfDirect_eq`), то есть условию теорем
-`Figram.Run`; отсюда `lint_nil_wf`. Остальные проверки ловят ошибки раньше
+`Figram.Run`; отсюда `lint_nil_wf` (`Figram.LintProofs`). Остальные проверки ловят ошибки раньше
 и объясняют их понятным языком. Проверка не строит автомат: документ
 компилируется один раз — при загрузке.
 
@@ -32,17 +32,16 @@ def lintMsg : String := "Схема не проходит итоговую пр�
 (`Chart.index`: то же, что `find`), поэтому проверка линейна. -/
 def lintCore (c : Chart) : List String := Id.run do
   let ix := c.index
-  let found (n : NodeId) : Bool := (ix.node[n]?).isSome
-  let sec (n : NodeId) : Bool := match ix.node[n]? with
+  let found (n : NodeId) : Bool := (ix.node.find? n).isSome
+  let sec (n : NodeId) : Bool := match ix.node.find? n with
     | some ⟨_, _, .sec _⟩ => true
     | _ => false
-  let count : Std.HashMap NodeId Nat :=
-    c.nodes.foldl (fun m n => m.insert n.id (m.getD n.id 0 + 1)) {}
+  -- позиции объявлений по имени: повтор сообщается один раз, у первого объявления
+  let pos := concatIndex (c.nodes.zipIdx.map fun (n, i) => (n.id, [i]))
   let mut errs : Array String := #[]
-  let mut reported : Std.HashSet NodeId := {}
-  for n in c.nodes do
-    if count.getD n.id 0 > 1 && !reported.contains n.id then
-      reported := reported.insert n.id
+  for (n, i) in c.nodes.zipIdx do
+    let ps := pos.concat n.id
+    if ps.length > 1 && ps.head? == some i then
       errs := errs.push s!"Узел «{shown n.id}» объявлен несколько раз"
     match n.parent with
     | some p =>
@@ -50,11 +49,11 @@ def lintCore (c : Chart) : List String := Id.run do
       else if !sec p then errs := errs.push s!"Родитель «{shown p}» узла «{shown n.id}» — не раздел"
     | none => pure ()
     -- цикл: подъём по родителям упирается в лимит
-    if (ix.anc n.id).length > c.nodes.length then
+    if (ix.anc n.id).length > ix.fuel then
       errs := errs.push s!"Цикл во вложенности разделов через «{shown n.id}»"
     match n.kind with
     | .sec i =>
-      if (ix.node[i]?).bind (·.parent) != some n.id then
+      if (ix.node.find? i).bind (·.parent) != some n.id then
         errs := errs.push
           s!"Начальный экран «{shown i}» раздела «{shown n.id}» должен лежать внутри него"
     | .message => pure ()
@@ -81,21 +80,6 @@ def lint (c : Chart) : List String :=
   let errs := c.lintCore
   if errs.isEmpty && !c.wfDirect then errs ++ [lintMsg] else errs
 
-/-- **Схема без ошибок компилируется в автомат, прошедший `wf`.** -/
-theorem lint_nil_wf (c : Chart) (h : c.lint = []) : c.compile.wf = true := by
-  rw [wfDirect_eq]
-  unfold lint at h
-  cases hw : c.wfDirect with
-  | true => rfl
-  | false =>
-    exfalso
-    simp only [hw, Bool.not_false, Bool.and_true] at h
-    split at h
-    · simp at h
-    · rename_i hc
-      rw [h] at hc
-      simp at hc
-
 /-! ## Предупреждения -/
 
 /-- Таймер `X` события `timer:X`. -/
@@ -112,7 +96,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
   -- 1. Варианты одной стрелки после варианта без условия и повтор условия.
   for t in c.transitions do
     let mut uncond : Option Nat := none
-    let mut seen : Std.HashSet String := {}
+    let mut seen : List String := []
     let mut k := 0
     for b in t.branches do
       k := k + 1
@@ -127,7 +111,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
           if seen.contains g then
             ws := ws.push (s!"Стрелка «{shown t.src}» по «{t.event}»: условие «{g}» повторяется, " ++
               s!"вариант {k} никогда не сработает")
-          else seen := seen.insert g
+          else seen := g :: seen
   -- 2. Стрелки `timer:X` там, где таймер X не запускается: сообщение без X
   --    или раздел, внутри которого нет сообщения с X.
   let owners := concatIndex (c.timers.map fun tm => (tm.id, [tm.node]))
@@ -135,7 +119,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
     match timerOfEvent t.event with
     | none => pure ()
     | some x =>
-      let os := (owners[x]?).getD []
+      let os := owners.concat x
       unless os.any (fun o => (ix.anc o).contains t.src) do
         ws := ws.push (s!"Стрелка «{t.event}» на «{shown t.src}» никогда не сработает: таймер «{x}» " ++
           "запускают только другие сообщения, а срабатывание принимает лишь сообщение, которое его запустило")
@@ -153,25 +137,25 @@ def lintWarnings (c : Chart) : List String := Id.run do
   let target (b : FBranch) : NodeId := match b.target with
     | .node n => n
     | .resume sec => ((m.resumes.find? (·.sec == sec)).map (·.default)).getD sec
-  let mut seen : Std.HashSet NodeId := keySet [m.initial]
+  let mut seen : Tab Unit := (Tab.empty m.states.length).insert m.initial ()
   let mut queue : Array NodeId := #[m.initial]
   let mut i := 0
   for _ in [0:m.states.length + 1] do
     if h : i < queue.size then
       let L := queue[i]
       i := i + 1
-      for r in (tab[L]?).getD [] do
+      for r in (tab.find? L).getD [] do
         if owns L r.event then
           -- варианты после безусловного и с уже встреченным условием не сработают
-          let mut gs : Std.HashSet String := {}
+          let mut gs : List String := []
           for b in untilUnguarded (·.guard) r.branches do
             let dead := match b.guard with
               | some g => gs.contains g
               | none => false
-            if let some g := b.guard then gs := gs.insert g
+            if let some g := b.guard then gs := g :: gs
             let T := target b
             unless dead || seen.contains T do
-              seen := seen.insert T
+              seen := seen.insert T ()
               queue := queue.push T
   for L in m.states do
     unless seen.contains L do

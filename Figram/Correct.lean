@@ -44,6 +44,25 @@ theorem find?_eq_self {α} [DecidableEq α] (l : List α) (a : α) (h : a ∈ l)
         · exact h
       simp [hx, ih this]
 
+namespace Machine
+
+/-- Быстрая проверка `wf` (хеш-таблицы) равна спецификации. -/
+theorem wfFast_eq (m : Machine) : m.wfFast = m.wf := by
+  have hst : ∀ n, (keySet m.states).contains n = decide (n ∈ m.states) := keySet_contains _
+  have htgt : ∀ t : Target, targetIn (keySet m.states) (keySet (m.resumes.map (·.sec))) t =
+      m.targetOK t := by
+    intro t
+    cases t with
+    | node n => simp only [targetIn, targetOK, hst]
+    | resume sec =>
+      simp only [targetIn, targetOK, keySet_contains]
+      apply Bool.eq_iff_iff.mpr
+      simp only [decide_eq_true_eq, List.mem_map, List.any_eq_true]
+  unfold wfFast wf rows
+  simp only [List.all_flatMap, htgt, hst]
+
+end Machine
+
 namespace Chart
 
 variable (c : Chart)
@@ -53,7 +72,7 @@ variable (c : Chart)
 Каждый индекс `Chart.index` отвечает так же, как списковое определение,
 поэтому `compile` строит в точности `compileSpec`. -/
 
-theorem index_node (n : NodeId) : c.index.node[n]? = c.find n := by
+theorem index_node (n : NodeId) : c.index.node.find? n = c.find n := by
   simp only [index, firstIndex_get, find, List.find?_map, Option.map_map]
   cases h : c.nodes.find? (fun x => decide (x.id = n)) <;> simp [h, Function.comp_def]
 
@@ -116,7 +135,7 @@ theorem index_exitActs (L : NodeId) : c.index.exitActs L = c.exitActs L := by
 
 
 theorem transIndex_get (a : NodeId) :
-    ((c.transIndex c.index)[a]?).getD [] =
+    (c.transIndex c.index).concat a =
       (c.transitions.filter fun t => decide (t.src = a)).map fun t => (t.event, t.branches.map c.toF) := by
   simp only [transIndex, concatIndex_get, singletons_get]
   congr 1
@@ -133,7 +152,7 @@ theorem pairs_event {α} (l : List Transition) (f : Branch → α) (e : EventId)
     by_cases h : x.event = e <;> simp [h, ih]
 
 theorem leafTab_get (L e : NodeId) :
-    ((concatIndex ((c.index.anc L).flatMap fun a => ((c.transIndex c.index)[a]?).getD []))[e]?).getD [] =
+    (concatIndex ((c.index.anc L).flatMap fun a => (c.transIndex c.index).concat a)).concat e =
       (c.cands L e).map c.toF := by
   rw [concatIndex_get]
   simp only [transIndex_get, index_anc]
@@ -159,9 +178,11 @@ theorem filterMap_rows (L : NodeId) (evs : List EventId) (f : EventId → List F
       Bool.not_false]
 
 theorem leafRows_eq (L : NodeId) :
-    leafRows (dedupFast (c.transitions.map (·.event))) (c.transIndex c.index) c.index L = c.rowsSpec L := by
+    leafRows ((dedupFast (c.transitions.map (·.event))).map fun e => (e, hash e))
+      (c.transIndex c.index) c.index L = c.rowsSpec L := by
   unfold leafRows
-  simp only [leafTab_get]
+  rw [List.filterMap_map]
+  simp only [Function.comp_def, Tab.concatH_hash, leafTab_get]
   rw [filterMap_rows, dedupFast_eq]
   rfl
 
@@ -183,7 +204,7 @@ theorem flatMap_ite {α} (l : List α) (p : α → Bool) :
   | cons x xs ih => by_cases h : p x <;> simp [h, ih]
 
 theorem memberIndex_get (s : NodeId) (hs : s ∈ c.histSecs) :
-    ((c.memberIndex c.index)[s]?).getD [] = c.histCands s := by
+    (c.memberIndex c.index).concat s = c.histCands s := by
   rw [memberIndex, concatIndex_get, List.filter_flatMap, List.flatMap_assoc]
   have hl : ∀ l, (((dedupFast ((c.index.anc l).filter fun a => c.index.hist.contains a && a != l)).map
         fun a => (a, [l])).filter (fun p => decide (p.1 = s))).flatMap (·.2) =

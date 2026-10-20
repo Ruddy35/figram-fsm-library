@@ -1,5 +1,3 @@
-import Figram.Index
-
 /-!
 # Ядро: плоский автомат
 
@@ -224,11 +222,6 @@ def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
   | none => []
   | some r => (untilUnguarded (·.guard) r.branches).filterMap (·.guard)
 
-/-- `targetOK` по готовым множествам сообщений и разделов. -/
-def targetIn (st secs : Std.HashSet NodeId) : Target → Bool
-  | .node n => st.contains n
-  | .resume sec => secs.contains sec
-
 /-- Условия, значения которых нужны, чтобы выбрать вариант, когда значения
 части условий уже известны (`known`): варианты перебираются по порядку до
 безусловного или до условия, про которое известно, что оно истинно. -/
@@ -258,15 +251,6 @@ def wf (m : Machine) : Bool :=
   decide (m.initial ∈ m.states) &&
   m.rows.all (fun r => r.branches.all (fun b => m.targetOK b.target)) &&
   m.resumes.all (fun r => decide (r.default ∈ m.states) && r.members.all (fun v => decide (v ∈ m.states)))
-
-/-- `wf` за линейное время: принадлежность — через хеш-множества
-(`wfFast_eq : m.wfFast = m.wf`). -/
-def wfFast (m : Machine) : Bool :=
-  let st := keySet m.states
-  let secs := keySet (m.resumes.map (·.sec))
-  st.contains m.initial &&
-  m.table.all (fun g => g.2.all (fun r => r.branches.all (fun b => targetIn st secs b.target))) &&
-  m.resumes.all (fun r => st.contains r.default && r.members.all (fun v => st.contains v))
 
 end Machine
 end Figram

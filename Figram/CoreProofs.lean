@@ -193,20 +193,5 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
             exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
         rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
 
-/-- Быстрая проверка `wf` (хеш-множества) равна спецификации. -/
-theorem wfFast_eq (m : Machine) : m.wfFast = m.wf := by
-  have hst : ∀ n, (keySet m.states).contains n = decide (n ∈ m.states) := keySet_contains _
-  have htgt : ∀ t : Target, targetIn (keySet m.states) (keySet (m.resumes.map (·.sec))) t =
-      m.targetOK t := by
-    intro t
-    cases t with
-    | node n => simp only [targetIn, targetOK, hst]
-    | resume sec =>
-      simp only [targetIn, targetOK, keySet_contains]
-      apply Bool.eq_iff_iff.mpr
-      simp only [decide_eq_true_eq, List.mem_map, List.any_eq_true]
-  unfold wfFast wf rows
-  simp only [List.all_flatMap, htgt, hst]
-
 end Machine
 end Figram

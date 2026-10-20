@@ -1,4 +1,3 @@
-import Figram.Index
 import Figram.Core
 import Figram.CoreProofs
 import Figram.Chart
@@ -6,6 +5,7 @@ import Figram.Compile
 import Figram.Correct
 import Figram.Run
 import Figram.Lint
+import Figram.LintProofs
 import Figram.Examples
 import Figram.Format
 import Figram.Warnings
