@@ -42,9 +42,10 @@ key order of maps (`children`, `on`, `conditions`, …) is kept so that the desi
 not lost. Two documents that differ only in the key order of a map are therefore encoded
 differently. Key order does not affect the bot's behaviour except for `timers`: the order of a
 message's timers is the order of the `start_timer` and `cancel_timer` actions in an engine
-reply, and therefore of the action positions used in a host's idempotency keys ([host-contract.md](host-contract.md), section 1). For hashing or
-"semantic" comparison, sort the maps by key first — all maps except `timers` if the action
-order matters. `figram fmt` does not sort.
+reply, and therefore of the action positions used in a host's idempotency keys
+([host-contract.md](host-contract.md), section 1). For hashing or "semantic" comparison, sort
+the maps by key first — all maps except `timers` if the action order matters. `figram fmt`
+does not sort.
 
 **C4. Structural correctness.** Let `V` be the correctness conditions that the JSON structure
 does not enforce and that must be checked separately. The format is chosen to make `V`
@@ -111,9 +112,10 @@ After decisions 1–12, five semantic conditions remain, and `figram check` chec
 In addition, `check` verifies what holds automatically for JSON text but can be violated by a
 document built programmatically (names in maps are non-empty and unique, annotations do not
 collide with format keys), the value ranges of integer fields (a timer delay at most
-2^53 − 1), and, as its last step, that the chart compiles to a well-formed machine (section 7). A document that passes `check` is therefore guaranteed to be
-encoded into the JSON model `J` and decoded back (theorem `check_roundtrip`); the round trip
-through text (`print`/`parse`) is not proved and is covered by tests.
+2^53 − 1), and, as its last step, that the chart compiles to a well-formed machine
+(section 7). A document that passes `check` is guaranteed to be encoded into the JSON model `J`
+and decoded back (theorem `check_roundtrip`); the round trip through text (`print`/`parse`) is
+not proved and is covered by tests.
 
 **Warnings.** For a document without errors, `figram check` also looks for probable designer
 mistakes and prints them to stderr, one per line; the exit status stays 0 and the document
@@ -421,8 +423,8 @@ user over with `start` passes in `seq` the user's persistent high-water mark —
 ### Errors
 
 A request error is `{"id": …, "error": "text", "code": "code"}` with exactly these three
-fields; the snapshot is not changed. The text is for humans and may change between versions; hosts decide
-by `code`:
+fields; the snapshot is not changed. The text is for humans and may change between versions;
+hosts decide by `code`:
 
 | `code` | When |
 |---|---|

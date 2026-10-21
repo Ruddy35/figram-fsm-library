@@ -221,7 +221,8 @@ distinguishes a failure of one call from a failure of the process.
   with the reason of the last failure — the exit status and the tail of the engine's stderr. A
   process that answered at least one request is replaced immediately after a failure.
 
-Every client failure is an `EngineError`. `retryable = True` means a process failure or a
+Every client failure is an `EngineError` (an exception raised by the host's own `guards`
+function propagates unchanged). `retryable = True` means a process failure or a
 timeout: the host repeats such requests under the rules of section 1 (an engine step is a pure
 function; repeating it is safe while the transaction is not committed), with a pause between
 attempts. Limit retries after timeouts (for example to three): the process is single-threaded,

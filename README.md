@@ -11,9 +11,10 @@ its compiler, document format and engine protocol.
 
 A bot is one JSON document (`examples/*.bot.json`, schema
 [`schemas/figram.schema.json`](schemas/figram.schema.json)), meant to be written by a visual
-editor (not part of this repository) or by hand; the engine executes the document. The document describes messages, events, arrows with ordered
-variants guarded by named conditions, actions, nested sections, "resume where the user left
-off" arrows, and timers ([docs/format.md](docs/format.md)).
+editor (not part of this repository) or by hand; the engine executes the document. The document
+describes messages, events, arrows with ordered variants guarded by named conditions, actions,
+nested sections, "resume where the user left off" arrows, and timers
+([docs/format.md](docs/format.md)).
 
 The engine is **stateless**. It loads and compiles a document once and then answers requests:
 given a user's snapshot and an event, it returns the new snapshot and the actions to perform
@@ -41,9 +42,9 @@ The proved Lean code is what runs: it is compiled into
 
 ## Features
 
-* One JSON document per bot, with a strict decoder, a canonical form (`figram fmt`) and
-  extension rules: annotations under `x-` keys are kept and never change behaviour; semantic
-  extensions must be declared in `requires`.
+* One JSON document per bot, with a strict JSON parser, a canonical form (`figram fmt`) and
+  extension rules: annotations under `x-` keys (and any other unknown keys) are kept and never
+  change behaviour; semantic extensions must be declared in `requires`.
 * `figram check` reports the errors that the structure cannot rule out and warns about probable
   mistakes, such as variants that can never fire, unreachable messages and self-defeating timer
   loops.
