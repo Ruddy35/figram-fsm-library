@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regression test for T-14 / INT-06: tests/proofs/strict_gate.sh must never rewrite
+# Regression test: tests/proofs/strict_gate.sh must never rewrite
 # tracked files, and the tracked theorem list must act as a pin, not as an output.
 #
 #   bash tests/proofs/test_strict_gate_clean.sh        (needs a built tree: lake build)

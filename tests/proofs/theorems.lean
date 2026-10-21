@@ -2,13 +2,13 @@ import Figram
 import Lean
 
 /-!
-# Теоремы, которые README.md называет доказанными
+# The pinned theorems listed in docs/proofs.md
 
-`verify.sh` обрабатывает этот файл (`lake env lean tests/proofs/theorems.lean`) и требует:
-* формулировка каждой теоремы (строки `STMT`) совпадает с `tests/proofs/THEOREMS.expected`
-  — изменить формулировку можно только вместе с этим файлом, осознанно;
-* каждая теорема зависит только от `propext`, `Classical.choice`, `Quot.sound`.
-Добавляя теорему в README, добавьте её в оба списка ниже.
+`verify.sh` elaborates this file (`lake env lean tests/proofs/theorems.lean`) and requires:
+* the statement of every theorem (the `STMT` lines) equals `tests/proofs/THEOREMS.expected`
+  — a statement can change only together with that file, deliberately;
+* every theorem depends only on `propext`, `Classical.choice`, `Quot.sound`.
+When adding a theorem to docs/proofs.md, add it to both lists below.
 -/
 
 open Lean Elab Command Meta in

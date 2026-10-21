@@ -1,6 +1,6 @@
 /-
-Proposed glue lemmas (audit). They close gaps between what the project proves
-and what README claims. Build: `lake build FigramAudit` (lean_lib with
+Glue lemmas. They connect the product theorems end to end, closing gaps between
+what the theorems state and what docs/proofs.md claims. Build: `lake build FigramAudit` (lean_lib with
 srcDir = "tests/proofs") or `lake env lean tests/proofs/FigramAudit/Glue.lean`.
 -/
 import Figram
@@ -8,7 +8,7 @@ open Figram Figram.Format Figram.Engine
 
 namespace Figram.Chart
 
-/-- G1 (after P-06): `lint` is exactly `lintCore` plus the final `wf` check of the compiled
+/-- G1: `lint` is exactly `lintCore` plus the final `wf` check of the compiled
 machine — computed without building the machine (`wfDirect`, equal to `compile.wf` by
 `wfDirect_eq`), so `check` no longer compiles the document. -/
 theorem lint_eq (c : Chart) : c.lint =
@@ -69,8 +69,8 @@ theorem decEvent_named {kvs : Obj} {n : String} (h : decEvent kvs = .ok (.named 
   | some j =>
     cases j with
     | str e =>
-      -- fix wave (PROTOCOL_CHANGES 3): `decEvent` also rejects an empty event, an empty
-      -- timer name and a token on a named event; the statement is unchanged
+      -- `decEvent` also rejects an empty event, an empty timer name and a token on a
+      -- named event; the statement is unchanged
       by_cases he : e.isEmpty = true
       · simp [hg, he, bind, Except.bind, throw, throwThe, MonadExceptOf.throw] at h
       · simp only [hg, he, Bool.false_eq_true, ite_false, bind, Except.bind, pure, Except.pure] at h
@@ -130,8 +130,8 @@ theorem engine_step_is_reference {txt : String} {m : Machine} (hload : Engine.lo
   rw [Chart.compile_correct _ hwf]
   rfl
 
-/-! ## G8: `start` and `restart` also emit admissible snapshots (README claims
-"never emits a snapshot it cannot read" but the project proves it only for `step`). -/
+/-! ## G8: `start` and `restart` also emit admissible snapshots (the engine never produces a
+snapshot it could not read back; the product theorems state it for `step` and `startAt`). -/
 
 theorem start_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) :
     SnapOK m.start.1 := by

@@ -1,21 +1,21 @@
 import Figram
 
-#print axioms Figram.mem_dedup  -- Compile.lean:37
-#print axioms Figram.nodup_dedup  -- Compile.lean:53
-#print axioms Figram.Tab.concatH_hash  -- Compile.lean:111
-#print axioms Figram.Tab.size_insert  -- Compile.lean:118
-#print axioms Figram.Tab.bucket_insert  -- Compile.lean:122
-#print axioms Figram.Tab.ofList_aux  -- Compile.lean:135
-#print axioms Figram.Tab.bucket_ofList  -- Compile.lean:152
-#print axioms Figram.find?_slot  -- Compile.lean:160
-#print axioms Figram.filter_slot  -- Compile.lean:173
-#print axioms Figram.keySet_contains  -- Compile.lean:189
-#print axioms Figram.firstIndex_get  -- Compile.lean:201
-#print axioms Figram.concatIn_eq  -- Compile.lean:209
-#print axioms Figram.concatIndex_get  -- Compile.lean:223
-#print axioms Figram.contains_insert  -- Compile.lean:234
-#print axioms Figram.dedupFast_aux  -- Compile.lean:243
-#print axioms Figram.dedupFast_eq  -- Compile.lean:276
+#print axioms Figram.mem_dedup  -- Compile.lean:36
+#print axioms Figram.nodup_dedup  -- Compile.lean:52
+#print axioms Figram.Tab.concatH_hash  -- Compile.lean:110
+#print axioms Figram.Tab.size_insert  -- Compile.lean:117
+#print axioms Figram.Tab.bucket_insert  -- Compile.lean:121
+#print axioms Figram.Tab.ofList_aux  -- Compile.lean:134
+#print axioms Figram.Tab.bucket_ofList  -- Compile.lean:151
+#print axioms Figram.find?_slot  -- Compile.lean:159
+#print axioms Figram.filter_slot  -- Compile.lean:172
+#print axioms Figram.keySet_contains  -- Compile.lean:188
+#print axioms Figram.firstIndex_get  -- Compile.lean:200
+#print axioms Figram.concatIn_eq  -- Compile.lean:208
+#print axioms Figram.concatIndex_get  -- Compile.lean:222
+#print axioms Figram.contains_insert  -- Compile.lean:233
+#print axioms Figram.dedupFast_aux  -- Compile.lean:242
+#print axioms Figram.dedupFast_eq  -- Compile.lean:275
 #print axioms Figram.memStr_iff  -- Core.lean:41
 #print axioms Figram.realizeOne_state  -- CoreProofs.lean:15
 #print axioms Figram.foldl_realize_state  -- CoreProofs.lean:19

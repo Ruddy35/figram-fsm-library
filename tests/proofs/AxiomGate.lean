@@ -1,5 +1,5 @@
 /-
-Strict axiom gate for Figram (audit proposal).
+Strict axiom gate for Figram.
 
 Run:  lake env lean tests/proofs/AxiomGate.lean
 It enumerates EVERY theorem that lives in a module whose root is `Figram`

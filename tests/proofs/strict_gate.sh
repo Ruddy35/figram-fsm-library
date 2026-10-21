@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Strict proof gate (audit proposal; replaces verify.sh step "Теоремы без sorry",
-# which only greps the word "sorry" in #print axioms of 14 hand-picked theorems).
+# Strict proof gate: checks every theorem of the sources, not only the pinned ones
+# that verify.sh checks with tests/proofs/theorems.lean.
 #  1. theorem list is generated from the sources (gen_axioms.py), never empty;
 #  2. #print axioms for EVERY theorem; each line must name only propext/Quot.sound/
 #     Classical.choice (sorryAx, Lean.ofReduceBool, Lean.trustCompiler, custom axioms → red);
 #     number of answered lines must equal the number of theorems;
 #  3. AxiomGate.lean: same check from the environment (all theorems in Figram.* modules,
 #     all defs/opaques, no `axiom` declarations, source list ⊆ environment);
-#  4. Statements.lean: statements of the README theorems are pinned;
+#  4. Statements.lean: statements of the theorems in docs/proofs.md are pinned;
 #  5. leanchecker: every declaration of every Figram.* module is re-added through the kernel
 #     (catches environment hacking that #print axioms cannot see, e.g. addDeclCore doCheck:=false).
 # The gate never writes tracked files: the list and AllAxioms.lean are generated into a temporary

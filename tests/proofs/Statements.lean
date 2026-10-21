@@ -1,6 +1,6 @@
 /-
-Pinned statements of every theorem named in README.md / FORMAT.md.
-Each `example` re-states the theorem in full (as the auditor reads it) and is
+Pinned statements of the theorems named in docs/proofs.md and docs/format.md.
+Each `example` re-states the theorem in full (as a reader would write it) and is
 closed by the theorem itself: if a theorem is weakened, renamed or its
 hypotheses change, this file stops compiling. Run: lake env lean tests/proofs/Statements.lean
 -/
@@ -57,7 +57,7 @@ example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bo
     (∀ n ∈ m.requiredGuards s.state ev.key, envOf gs n = env n) →
     m.step s ev (envOf gs) = m.step s ev env := @guards_irrelevant
 
--- fix-core: the fast compiler/check are the specification (P-06), `need` is sufficient (P-14)
+-- the fast compiler and check equal the specification, `need` is sufficient
 example : ∀ (c : Chart), c.compile = c.compileSpec := @Chart.compile_eq_spec
 example : ∀ (c : Chart), c.compile.wf = c.wfDirect := @Chart.wfDirect_eq
 example : ∀ (c : Chart), c.lint = [] → c.compile.wf = true := @Chart.lint_nil_wf
