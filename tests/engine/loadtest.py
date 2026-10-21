@@ -1,11 +1,12 @@
-"""Нагрузочный тест figram-engine из многих потоков Python.
+"""Load test of figram-engine from many Python threads.
 
-Каждый эталонный сценарий (из `figram trace`, получен по доказанной
-семантике схемы) — это один пользователь. Потоки параллельно проигрывают
-сценарии разных пользователей через общий пул процессов и сверяют
-КАЖДЫЙ шаг с эталоном: снимок, действия и список нужных условий.
+Every reference scenario (from `figram trace`, derived from the proved
+semantics of the chart) is one user. The threads replay the scenarios of
+different users in parallel through a shared process pool and compare EVERY
+step with the reference: the snapshot, the actions and the list of needed
+conditions.
 
-    python3 loadtest.py <figram-engine> <bot.json> <traces.jsonl> <потоков> <процессов>
+    python3 loadtest.py <figram-engine> <bot.json> <traces.jsonl> <threads> <processes>
 """
 
 import json
@@ -43,7 +44,7 @@ errors: list[str] = []
 def worker() -> None:
     try:
         _worker()
-    except Exception as e:  # noqa: BLE001 — ошибка потока = провал теста
+    except Exception as e:  # noqa: BLE001 — an error in a thread fails the test
         with lock:
             errors.append(repr(e))
 
@@ -75,9 +76,9 @@ def _worker() -> None:
             if asked:
                 local_need += 1
             if sorted(asked) != sorted(st["guards"]):
-                fail(f"{user} шаг {n}: условия {asked} ≠ {list(st['guards'])}")
+                fail(f"{user} step {n}: conditions {asked} ≠ {list(st['guards'])}")
             if r["snapshot"] != st["snapshot"] or r["actions"] != st["actions"]:
-                fail(f"{user} шаг {n}: {r} ≠ {st}")
+                fail(f"{user} step {n}: {r} ≠ {st}")
             snapshot = r["snapshot"]
     with lock:
         stats["steps"] += local_steps
@@ -97,18 +98,18 @@ engine.close()
 latencies.sort() if latencies else latencies.append(0.0)
 p = lambda q: latencies[min(len(latencies) - 1, int(q * len(latencies)))] * 1e6
 print(
-    f"потоков {threads:3d}, процессов {processes}: "
-    f"шагов {stats['steps']} (из них с запросом условий {stats['need_rounds']}), "
-    f"расхождений {stats['mismatch']}, "
-    f"{stats['steps'] / wall:,.0f} шагов/с, "
-    f"задержка p50 {p(0.5):,.0f} мкс, p99 {p(0.99):,.0f} мкс"
+    f"threads {threads:3d}, processes {processes}: "
+    f"steps {stats['steps']} (with a conditions request {stats['need_rounds']}), "
+    f"mismatches {stats['mismatch']}, "
+    f"{stats['steps'] / wall:,.0f} steps/s, "
+    f"latency p50 {p(0.5):,.0f} µs, p99 {p(0.99):,.0f} µs"
 )
 for e in stats["examples"]:
     print("  ", e)
 for e in errors[:5]:
-    print("   ошибка потока:", e)
+    print("   thread error:", e)
 expected = sum(len(t["steps"]) for t in traces)
 failed = stats["mismatch"] or errors or stats["steps"] != expected or stats["steps"] == 0
 if stats["steps"] != expected:
-    print(f"   выполнено шагов {stats['steps']} из {expected}")
+    print(f"   steps done {stats['steps']} of {expected}")
 sys.exit(1 if failed else 0)

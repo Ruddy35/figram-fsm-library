@@ -9,7 +9,7 @@ Snapshots: snapshot.schema.json vs figram-engine `step` (decSnapshot).
 Every row carries the handwritten expected verdicts and a classification:
   agree      schema, decoder and check give the same answer;
   V          schema accepts, check rejects: semantic condition V1–V5 that the
-             schema cannot express (FORMAT.md §3 «Что остаётся в V», §6);
+             schema cannot express (docs/format.md, section 3, "What remains in V", and section 6);
   struct     schema rejects, decoder accepts, check rejects: the schema is
              stricter than the decoder but check catches it (empty names,
              empty children, 2^53 delays) — consistent at the check level;
@@ -77,11 +77,11 @@ DOCS = [
      '{"a":{"x-content":{"text":"hi"},"on":{"btn:x":[{"to":"a","x-note":"n"}]}}}}}', 1, 1, 1, "agree", ""),
     ("non-x-unknown-keys", '{"figram":1,"foo":1,"bot":{"initial":"a","Bar":null,"children":'
      '{"a":{"zz":[],"on":{"btn:x":[{"to":"a","note":"n"}]}}}}}', 1, 1, 1, "agree",
-     "К5а: any unknown key kept; x- is only a convention"),
+     "C5a: any unknown key kept; x- is only a convention"),
     ("future-key-unless", VAR('{"unless":"c","to":"a"}'), 1, 1, 1, "footgun",
-     "looks like a guard, silently ignored unless declared in requires (К5б)"),
+     "looks like a guard, silently ignored unless declared in requires (C5b)"),
     ("x-ui-in-children", D('{"a":{},"x-ui":{"pos":[1,2]}}'), 1, 1, 1, "footgun",
-     "annotation key inside children = a new message node «x-ui» (FORMAT §5 says so)"),
+     "annotation key inside children = a new message node 'x-ui' (docs/format.md, section 5, says so)"),
     ("timer-7.2e6", M('{"timers":{"t":7.2e6}}'), 1, 1, 1, "agree", "decision 12"),
     ("timer-7200000.0", M('{"timers":{"t":7200000.0}}'), 1, 1, 1, "agree", ""),
     ("timer-72e5", M('{"timers":{"t":72e5}}'), 1, 1, 1, "agree", ""),
@@ -113,7 +113,7 @@ DOCS = [
     ("do-empty", VAR('{"to":"a","do":[]}'), 1, 1, 1, "agree", "explicit default"),
     ("do-str", VAR('{"to":"a","do":"k"}'), 0, 0, 0, "agree", ""),
     ("requires-empty", D(top=',"requires":[]'), 1, 1, 1, "agree", ""),
-    ("requires-unknown", D(top=',"requires":["x"]'), 0, 0, 0, "agree", "К5б"),
+    ("requires-unknown", D(top=',"requires":["x"]'), 0, 0, 0, "agree", "C5b"),
     ("requires-dup", D(top=',"requires":["x","x"]'), 0, 0, 0, "agree", ""),
     ("requires-str", D(top=',"requires":"x"'), 0, 0, 0, "agree", ""),
     ("dup-node-across-sections", D('{"a":{},"s":{"initial":"a","children":{"a":{}}}}'), 1, 1, 0, "V", "V1"),

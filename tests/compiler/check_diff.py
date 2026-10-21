@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Acceptance differential: the oracle's own reading of FORMAT.md V1-V5 and
+"""Acceptance differential: the oracle's own reading of docs/format.md V1-V5 and
 the grammar vs `figram-engine` load (decode + Doc.check + wf/namesOK).
 
   python3 check_diff.py --engine BIN [--docs N] [--seed S] [--expect-red] [--oracle-skip V]

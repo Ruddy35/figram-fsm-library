@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Directed, table-driven edge cases for README decisions 1-8 and FORMAT §7.
+"""Directed, table-driven edge cases for the decisions of the specification 1-8
+(docs/format.md, section 7) and the engine protocol (section 8).
 
 Every expectation below is written BY HAND from the prose spec, and is
 checked against BOTH the real engine and the independent oracle (so the
@@ -111,7 +112,7 @@ D_RECOVER = doc(sec("H", {
     "H": sec("i", {"i": msg(timers={"it": 4}), "j": msg()}),
     "o": msg(on={"btn:back": [go("H", resume=True)]})}))
 
-# HOST.md §6 upgrade: v1 -- reminder "remind" on A; v2 -- the designer moved
+# Document upgrade (docs/host-contract.md, section 6): v1 -- reminder "remind" on A; v2 -- the designer moved
 # that reminder to B.  Section S handles timer:remind for any message inside.
 D_UP_V1 = doc(sec("S", {
     "S": sec("A", {
@@ -161,7 +162,7 @@ case("bubble_false_then_section_true", "conformance", D_BUBBLE,
 case("message_true_wins", "conformance", D_BUBBLE,
      [("btn:x", None, {"c1": True, "c2": False}, {"at": "A"})], spec="decision 1")
 case("need_lists_chain_guards", "conformance", D_BUBBLE,
-     [("btn:x", None, None, {"need_superset_of": {"c1", "c2"}})], spec="FORMAT §7.3")
+     [("btn:x", None, None, {"need_superset_of": {"c1", "c2"}})], spec="format.md §8, need")
 case("section_arrow_message_lacks", "conformance", D_BUBBLE,
      [("btn:z", None, {}, {"at": "B", "actions": [S("B")]})], spec="section arrow works on any message inside")
 case("root_guarded_false_ignored", "conformance", D_BUBBLE,
@@ -173,7 +174,7 @@ case("unconditional_message_shadows_section", "conformance", D_BUBBLE,
 case("irrelevant_guard_ignored", "conformance", D_BUBBLE,
      [("btn:z", None, {"zzz": True, "c1": True}, {"at": "B"})], spec="guards outside the chain")
 case("partial_guards_need_rest", "conformance", D_BUBBLE,
-     [("btn:x", None, {"c1": False}, {"need_superset_of": {"c2"}, "need_excludes": {"c1"}})], spec="FORMAT §7.3")
+     [("btn:x", None, {"c1": False}, {"need_superset_of": {"c2"}, "need_excludes": {"c1"}})], spec="format.md §8, need")
 
 case("action_order_exit_arrow_entry", "conformance", D_ORDER,
      [("btn:go", None, {}, {"at": "n", "seq": 2, "timers": {"u": 2},
@@ -257,14 +258,14 @@ case("root_level_timer_handler", "conformance", D_TIMERS,
 
 case("seq_overflow_transition", "conformance", D_BUBBLE,
      [("btn:z", None, {}, {"error": "seq_overflow"})], start=False,
-     snapshot={"at": "m", "seq": MAX_INT}, spec="FORMAT §7.5")
+     snapshot={"at": "m", "seq": MAX_INT}, spec="format.md §8, seq_overflow")
 case("seq_max_ignored_ok", "conformance", D_BUBBLE,
      [("btn:none", None, {}, {"unchanged": True})], start=False,
      snapshot={"at": "m", "seq": MAX_INT}, spec="ignored event does not bump seq")
 case("restart_clears_places", "conformance", D_RECOVER,
      [("@restart", None, None, {"at": "i", "seq": 8, "resume": {"H": "i"},
                                 "actions": [CANCEL("x"), START("it", 4, 8), S("i")]})], start=False,
-     snapshot={"at": "o", "resume": {"H": "j"}, "timers": {"x": 1}, "seq": 7}, spec="FORMAT §7 restart")
+     snapshot={"at": "o", "resume": {"H": "j"}, "timers": {"x": 1}, "seq": 7}, spec="format.md §8, restart")
 
 # ------------- findings: designer-level expectations the baseline violates
 case("H2_upgrade_moved_timer_fires_on_other_message", "findings", D_UP_V2,
@@ -272,7 +273,7 @@ case("H2_upgrade_moved_timer_fires_on_other_message", "findings", D_UP_V2,
       ("btn:x", None, {}, {"at": "D"}),
       ("timer:remind", 1, {}, {"unchanged": True})],
      start=False, snapshot={"at": "A", "timers": {"remind": 1}, "seq": 1},
-     spec="HOST §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. "
+     spec="host-contract.md §6 + decision 7: v1 snapshot on A with reminder 'remind'; v2 moved the reminder to B. "
           "Leaving A must cancel it (or its fire must be ignored); baseline keeps it forever and the "
           "section handler fires on D, calling k1")
 case("H2_upgrade_renamed_timer_unreachable_arrow_fires", "findings", D_UP_V2_RENAME,

@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
-# Самопроверка шлюза: каждая внедрённая неисправность обязана сделать проверку
-# красной (код 1), прогон без неисправностей — зелёным (код EXPECT_BASE, по умолчанию 0).
+# Self-test of the gate: every injected fault must make the check red (exit status 1), and the
+# run without faults must be green (exit status EXPECT_BASE, 0 by default).
 #
-#   ./verify-faults.sh prebuilt [НЕИСПРАВНОСТЬ…]   — verify-prebuilt.sh on FIGRAM_BIN (Lean не нужен)
-#   ./verify-faults.sh full     [НЕИСПРАВНОСТЬ…]   — verify.sh (нужен Lean; .lake копируется)
+#   ./verify-faults.sh prebuilt [FAULT…]   — verify-prebuilt.sh on FIGRAM_BIN (no Lean needed)
+#   ./verify-faults.sh full     [FAULT…]   — verify.sh (needs Lean; .lake is copied)
 #
-# Каждая неисправность внедряется в отдельную копию дерева GATE_TREE (по умолчанию —
-# это дерево), сама проверка выполняется в копии. Переменные:
-#   GATE_TREE         — дерево, чей шлюз проверяется (например, распакованная базовая версия);
-#   LAKE_CACHE        — каталог .lake для копий в режиме full (по умолчанию GATE_TREE/.lake);
+# Every fault is injected into a separate copy of the tree GATE_TREE (this tree by default), and
+# the check runs in the copy. Variables:
+#   GATE_TREE         — the tree whose gate is checked (for example, an unpacked baseline);
+#   LAKE_CACHE        — the .lake directory for the copies in full mode (default GATE_TREE/.lake);
 #   FIGRAM_BIN        — prebuilt mode: directory with figram and figram-engine (default
 #                       GATE_TREE/.lake/build/bin); every copy gets them in prebuilt/ with a
 #                       SHA256SUMS of its own;
-#   EXPECT_BASE       — ожидаемый код прогона без неисправностей (по умолчанию 0);
-#   FAULT_LOGS        — куда складывать журналы (по умолчанию ./verify-logs/faults).
+#   EXPECT_BASE       — the expected exit status of the run without faults (default 0);
+#   FAULT_LOGS        — where to put the logs (default ./verify-logs/faults).
 # In full mode every copy runs verify.sh with FIGRAM_SHA256SUMS = checksums of the stripped
 # binaries built from the unmodified copy, so the checksum step is exercised as in a release.
-# Код выхода 0 — все ожидания выполнены.
+# Exit status 0: all expectations are met.
 set -euo pipefail
 shopt -s inherit_errexit
 export LC_ALL=C.UTF-8
 HERE=$(cd "$(dirname "$0")" && pwd)
-MODE=${1:?режим: prebuilt или full}; shift
+MODE=${1:?mode: prebuilt or full}; shift
 TREE=$(cd "${GATE_TREE:-$HERE}" && pwd)
 OUT=${FAULT_LOGS:-$HERE/verify-logs/faults}
 mkdir -p "$OUT"
@@ -31,18 +31,18 @@ case $MODE in
             ALL="none golden-truncated selftest-shrunk fixtures-shrunk random-docs-shrunk json-fuzz-shrunk mutants-shrunk bin-swapped";;
   full)     SCRIPT=./verify.sh
             ALL="none golden-truncated sums-tampered build-warning custom-axiom native-decide theorem-weakened go-missing race-test-not-run coverage-drop coverage-drop-regen engine-bug-golden-edited";;
-  *) echo "неизвестный режим $MODE"; exit 2;;
+  *) echo "unknown mode $MODE"; exit 2;;
 esac
 FAULTS=${*:-$ALL}
 
-# sub ФАЙЛ СТАРОЕ НОВОЕ — точная замена ровно одного вхождения.
+# sub FILE OLD NEW — exact replacement of exactly one occurrence.
 sub() {
   python3 - "$@" <<'PY' || exit 2
 import sys
 p, a, b = sys.argv[1:4]
 s = open(p, encoding="utf-8").read()
 if s.count(a) != 1:
-    sys.exit(f"внедрение: в {p} ожидалось ровно одно вхождение {a!r}, найдено {s.count(a)}")
+    sys.exit(f"injection: expected exactly one occurrence of {a!r} in {p}, found {s.count(a)}")
 open(p, "w", encoding="utf-8").write(s.replace(a, b))
 PY
 }
@@ -68,65 +68,65 @@ prepare() {
   fi
 }
 
-inject() {  # inject НЕИСПРАВНОСТЬ — в текущем каталоге (копии)
+inject() {  # inject FAULT — in the current directory (a copy)
   local P=tests/engine
   case $1 in
     none) ;;
-    golden-truncated)     # 10 из 12 фиксированных сценариев удалены (таймеры, восстановление…)
+    golden-truncated)     # 10 of the 12 golden scenarios removed (timers, recovery…)
       head -2 examples/golden.jsonl > examples/g.tmp && mv examples/g.tmp examples/golden.jsonl;;
-    sums-tampered)        # эталон хешей испорчен
+    sums-tampered)        # the reference checksums are corrupted
       local f=${FIGRAM_SHA256SUMS:-prebuilt/SHA256SUMS}
       awk 'NR==1{c=substr($0,1,1); $0=(c=="0"?"1":"0") substr($0,2)}1' "$f" > sums.tampered
-      cmp -s "$f" sums.tampered && { echo "внедрение sums-tampered не изменило файл"; exit 2; }
+      cmp -s "$f" sums.tampered && { echo "injection sums-tampered did not change the file"; exit 2; }
       if [ -n "${FIGRAM_SHA256SUMS:-}" ]; then export FIGRAM_SHA256SUMS=$PWD/sums.tampered; else cp sums.tampered prebuilt/SHA256SUMS; fi;;
     bin-swapped)          # prebuilt/figram-engine replaced by figram, prebuilt/SHA256SUMS untouched
       [ -d prebuilt ] || { echo "bin-swapped: prebuilt mode only"; exit 2; }
       cp prebuilt/figram prebuilt/figram-engine;;
-    selftest-shrunk)      # самопроверка обвязки проверяет 1 вид порчи вместо 13
+    selftest-shrunk)      # the harness self-test checks 1 kind of corruption instead of 13
       sub $P/harness_selftest.py '    for name, code in CORRUPT.items():' '    for name, code in list(CORRUPT.items())[:1]:';;
-    fixtures-shrunk)      # 2 граничных снимка вместо 24
+    fixtures-shrunk)      # 2 edge snapshots instead of 24
       sub $P/snapshot_fixtures.py 'engine, doc, schema_path = sys.argv[1:4]' 'FIXTURES = FIXTURES[:2]
 engine, doc, schema_path = sys.argv[1:4]';;
-    random-docs-shrunk)   # 1 случайный документ вместо 100
+    random-docs-shrunk)   # 1 random document instead of 100
       sub $P/random_docs.py '    for seed in range(count):' '    for seed in range(min(count, 1)):';;
-    json-fuzz-shrunk)     # 10 случаев фаззинга вместо 30000
+    json-fuzz-shrunk)     # 10 fuzzing cases instead of 30000
       sub $P/json_fuzz.py '    for i in range(n):' '    for i in range(min(n, 10)):';;
-    mutants-shrunk)       # по 1 мутации на документ вместо 56 и 51
+    mutants-shrunk)       # 1 mutation per document instead of 56 and 51
       sub $P/mutation.py '        if len(mutants) < MIN_MUTANTS:' '        mutants = mutants[:1]
         if len(mutants) < MIN_MUTANTS:';;
-    custom-axiom)         # теорема из списка опирается на собственную аксиому
+    custom-axiom)         # a listed theorem relies on an axiom of its own
       sub Figram/CoreProofs.lean 'theorem step_guard_local (m' 'theorem step_guard_local_orig (m'
       sub Figram/CoreProofs.lean $'end Machine\nend Figram' $'axiom figram_cheat (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)\n    (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :\n    m.step s ev env₁ = m.step s ev env₂\n\ntheorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)\n    (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :\n    m.step s ev env₁ = m.step s ev env₂ := figram_cheat m s ev env₁ env₂ h\n\nend Machine\nend Figram';;
-    build-warning)        # сборка с предупреждением Lean (неиспользуемая переменная)
+    build-warning)        # a build with a Lean warning (an unused variable)
       printf '\ndef figramFaultUnused (x : Nat) : Nat := let y := 3; x\n' >> Figram/Examples.lean;;
-    native-decide)        # доказательство вычислением в компилированном коде (аксиома ofReduceBool)
+    native-decide)        # a proof by evaluation in compiled code (the ofReduceBool axiom)
       printf '\nexample : (20 : Nat) + 22 = 42 := by native_decide\n' >> Figram/Examples.lean;;
-    theorem-weakened)     # формулировка ослаблена: недостижимая посылка, доказательство то же
+    theorem-weakened)     # the statement is weakened: an unsatisfiable premise, the same proof
       sub Figram/EngineProofs.lean 'theorem reply_readable (m : Machine) (hwf' 'theorem reply_readable (m : Machine) (_hfalse : False) (hwf';;
-    go-missing)           # go не установлен
+    go-missing)           # go is not installed
       export PATH=$(printf '%s' "$PATH" | tr ':' '\n' | while read -r d; do [ -x "$d/go" ] || printf '%s:' "$d"; done | sed 's/:$//')
-      command -v go >/dev/null && { echo "внедрение go-missing: go всё ещё в PATH"; exit 2; } || true;;
-    race-test-not-run)    # тест гонки переименован и не запускается
+      command -v go >/dev/null && { echo "injection go-missing: go is still in PATH"; exit 2; } || true;;
+    race-test-not-run)    # the race test is renamed and does not run
       sub clients/go/race_test.go 'func TestSharedRequestMap(' 'func testSharedRequestMap(';;
-    coverage-drop)        # генератор сценариев почти не выбирает события сообщений
+    coverage-drop)        # the scenario generator almost never picks message events
       sub Figram/Trace.lean '  if roll < 23 then return (.named "unknown:event", g)' '  if roll < 97 then return (.named "unknown:event", g)';;
     coverage-drop-regen)  # the same, but FIGRAM_SHA256SUMS is regenerated from the changed sources
                           # (a release built from a commit that changes the generator)
       inject coverage-drop
-      lake build >/dev/null 2>&1 || { echo "внедрение: lake build"; exit 2; }
+      lake build >/dev/null 2>&1 || { echo "injection: lake build"; exit 2; }
       sums_of_build > "$FIGRAM_SHA256SUMS";;
-    engine-bug-golden-edited)  # движок перестал выставлять recovered; golden «поправлен» под движок,
+    engine-bug-golden-edited)  # the engine no longer sets recovered; golden is "fixed" to match the engine,
                                # FIGRAM_SHA256SUMS regenerated (a release of sources + scenarios)
       sub Figram/Engine.lean '    ++ field "recovered" recovered (.bool true))' '    ++ field "recovered" (recovered && as.isEmpty) (.bool true))'
       sed -i 's/,"recovered":true//' examples/golden.jsonl
-      lake build >/dev/null 2>&1 || { echo "внедрение: lake build"; exit 2; }
+      lake build >/dev/null 2>&1 || { echo "injection: lake build"; exit 2; }
       sums_of_build > "$FIGRAM_SHA256SUMS";;
-    *) echo "неизвестная неисправность $1"; exit 2;;
+    *) echo "unknown fault $1"; exit 2;;
   esac
 }
 
 ok=1
-printf '%-20s %-6s %-8s %s\n' "неисправность" "код" "ожидание" "последняя строка" | tee "$OUT/summary.txt"
+printf '%-20s %-6s %-8s %s\n' "fault" "exit" "expected" "verdict, last line" | tee "$OUT/summary.txt"
 for f in $FAULTS; do
   W=$(mktemp -d)
   tar -C "$TREE" --exclude=./.git --exclude=./.lake --exclude=./verify-logs -cf - . | tar -xf - -C "$W"
@@ -136,10 +136,10 @@ for f in $FAULTS; do
   rc=$?
   set -e
   want=1; [ "$f" = none ] && want=${EXPECT_BASE:-0}
-  verdict="ok"; [ "$rc" -eq "$want" ] || { verdict="НЕТ"; ok=0; }
+  verdict="ok"; [ "$rc" -eq "$want" ] || { verdict="FAIL"; ok=0; }
   last=$(grep -v '^\s*$' "$OUT/$MODE-$f.log" | grep -v '^   (' | tail -1)
   last=${last:0:110}
   printf '%-20s %-6s %-8s %s %s\n' "$f" "$rc" "$want" "$verdict" "$last" | tee -a "$OUT/summary.txt"
   rm -rf "$W"
 done
-[ $ok = 1 ] && echo "шлюз красный на каждой неисправности и зелёный без них" || { echo "НЕТ: шлюз пропускает неисправности (см. $OUT/summary.txt)"; exit 1; }
+[ $ok = 1 ] && echo "the gate is red on every fault and green without them" || { echo "FAIL: the gate lets faults through (see $OUT/summary.txt)"; exit 1; }

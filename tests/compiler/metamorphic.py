@@ -15,7 +15,7 @@ Transformations (each applied to every random document):
   unreachable_resume  extra unreachable message with a resume arrow into an existing section
                  -> identical ACTIONS (snapshot `resume` may differ: decision 4 remembers more)
   numbers        delays written as 6e4 / 60000.0                        -> identical
-  shuffle_timers order of a message's `timers` dictionary              -> FORMAT K3в claims identical
+  shuffle_timers order of a message's `timers` dictionary              -> docs/format.md (C3c) claims identical
                  behaviour; actions are compared exactly (expected to differ in order only)
 Exit 1 on any violation of an invariant marked must-hold.
 """
@@ -136,10 +136,10 @@ def transform(rng, name, doc):
 
         def ann(n, o):
             o["x-ui"] = {"x": 1.5, "y": -2e3}
-            o["x-note"] = "заметка"
+            o["x-note"] = "a note"
             for vs in o.get("on", {}).values():
                 for v in vs:
-                    v["x-label"] = "кнопка"
+                    v["x-label"] = "a button"
         walk_nodes(d["bot"], ann)
     elif name == "unreachable":
         tgt = d["bot"]["initial"]
@@ -296,7 +296,7 @@ def main():
     bad = False
     for n in names:
         r = res[n]
-        tag = "MUST" if n in MUST else "CLAIMED(FORMAT K3в)"
+        tag = "MUST" if n in MUST else "CLAIMED(C3c)"
         print(f"{n:20s} {tag:20s} docs={r['docs']} steps={r['steps']} violations={r['violations']}")
         if r["example"]:
             print("   example:", json.dumps(r["example"], ensure_ascii=False)[:600])

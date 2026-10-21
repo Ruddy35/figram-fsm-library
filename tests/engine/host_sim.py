@@ -1,26 +1,27 @@
-"""Эталонный хост: контракт обработки событий (HOST.md) и его проверка.
+"""Reference host: the event processing contract (docs/host-contract.md) and its test.
 
-Модель продакшена в миниатюре:
-* «база» с атомарными транзакциями: снимок пользователя, обработанные
-  update_id, очередь исходящих действий (outbox) с данными события и данные
-  хоста (корзина, адрес) пишутся вместе;
-* отдельный исполнитель outbox (фоновый поток) выполняет действия с ключами
-  идемпотентности; локальные вызовы (корзина, адрес) — по ключу один раз;
-* «CRM» принимает вызов один раз на ключ;
-* условия вычисляются по настоящим данным: `cart_not_empty` — по корзине,
-  `in_delivery_zone` — по тексту сообщения; перед шагом пользователя хост
-  дожидается исполнения его незавершённых действий (барьер, HOST.md §1.3);
-* планировщик таймеров присылает события с жетонами.
+A production setup in miniature:
+* a "database" with atomic transactions: the user's snapshot, the processed
+  update_ids, the queue of outgoing actions (outbox) with the event data and the
+  host data (cart, address) are written together;
+* a separate outbox executor (a background thread) runs the actions with
+  idempotency keys; local calls (cart, address) run once per key;
+* the "CRM" accepts a call once per key;
+* the conditions are computed from real data: `cart_not_empty` from the cart,
+  `in_delivery_zone` from the message text; before a step of a user the host
+  waits until that user's unfinished actions have run (the barrier,
+  docs/host-contract.md, section 1, step 3);
+* a timer scheduler sends events with tokens.
 
-Сбои внедряются случайно: до фиксации транзакции, после фиксации до
-исполнения, между исполнением и отметкой «выполнено». Повторная доставка
-и параллельная доставка событий одного пользователя — тоже. Пользователи
-проходят разные ветки: пустая корзина при «Оформить», адрес вне зоны.
+Failures are injected at random: before the transaction commits, after the
+commit before the execution, between the execution and the "done" mark. Repeated
+and concurrent delivery of a user's events too. Users take different branches:
+an empty cart at "Checkout", an address outside the zone.
 
     python3 host_sim.py ENGINE pizza.bot.json [--no-barrier]
 
-`--no-barrier` — хост без барьера (условия читают данные до исполнения
-действий прошлого шага): тест должен быть красным.
+`--no-barrier` — a host without the barrier (the conditions read the data before
+the actions of the previous step have run): the test must be red.
 """
 
 import copy
@@ -37,21 +38,21 @@ from figram_client import Engine
 
 
 class Crash(Exception):
-    """Внедрённый сбой процесса хоста."""
+    """An injected failure of the host process."""
 
 
 LOCAL_CALLS = {"add_to_cart", "clear_cart", "save_size", "save_address"}
 
 
 class DB:
-    """Хранилище с атомарными транзакциями (одна блокировка на фиксацию)."""
+    """Storage with atomic transactions (one lock per commit)."""
 
     def __init__(self):
         self._lock = threading.Lock()
         self.users = {}        # user -> {"snapshot": ..., "seen": set()}
         self.outbox = []       # {"key", "user", "action", "payload", "done"}
         self.data = {}         # user -> {"cart": int, "address": str | None}
-        self.applied = set()   # ключи исполненных локальных вызовов (уникальный индекс)
+        self.applied = set()   # keys of the local calls already run (a unique index)
 
     def read(self, user):
         with self._lock:
@@ -69,7 +70,7 @@ class DB:
                                     "user": user, "action": a, "payload": payload, "done": False})
 
     def apply_local(self, key, user, name, payload):
-        """Локальный вызов в той же базе: исполняется один раз на ключ."""
+        """A local call in the same database: runs once per key."""
         with self._lock:
             if key in self.applied:
                 return
@@ -92,7 +93,7 @@ class DB:
 
 
 class CRM:
-    """Внешняя система: вызов с тем же ключом выполняется один раз."""
+    """An external system: a call with the same key runs once."""
 
     def __init__(self):
         self._lock = threading.Lock()
@@ -105,19 +106,19 @@ class CRM:
 
 class Host:
     def __init__(self, engine, crash_rate, naive=False, barrier=True):
-        self.naive = naive         # контрольный хост без контракта
-        self.barrier = barrier     # HOST §1.3: действия прошлых шагов исполнены до условий
+        self.naive = naive         # control host without the contract
+        self.barrier = barrier     # host contract, section 1, step 3: earlier actions run before the conditions
         self.crashes = 0
         self.engine = engine
         self.db = DB()
         self.crm = CRM()
-        self.timers = {}       # (user, timer) -> token: «планировщик»
-        self.sent = []         # отправленные сообщения
+        self.timers = {}       # (user, timer) -> token: the "scheduler"
+        self.sent = []         # sent messages
         self.crash_rate = crash_rate
         self._user_locks = {}
         self._locks_lock = threading.Lock()
         self._exec_lock = threading.Lock()
-        self.order_log = {}    # user -> (событие, жетон, условия) в порядке обработки
+        self.order_log = {}    # user -> (event, token, conditions) in processing order
         self._stop = threading.Event()
         self._executor = None
 
@@ -131,7 +132,7 @@ class Host:
             return self._user_locks.setdefault(user, threading.Lock())
 
     def guards(self, user, payload, used):
-        """Условия по данным хоста (корзина) и по данным события (текст адреса)."""
+        """Conditions from the host data (cart) and from the event data (address text)."""
         def f(names):
             d = self.db.get_data(user)
             vals = {"cart_not_empty": d["cart"] > 0,
@@ -142,28 +143,28 @@ class Host:
         return f
 
     def handle(self, user, update_id, event, token=None, payload=None):
-        """Обработка одного обновления. Возвращает статус; Crash — сбой."""
-        with self._user_lock(user):                     # 1. по одному на пользователя
+        """Process one update. Returns the status; Crash — a failure."""
+        with self._user_lock(user):                     # 1. one at a time per user
             if self.barrier:
-                self.drain(user)                         # барьер: прошлые действия исполнены
+                self.drain(user)                         # barrier: earlier actions have run
             rec = self.db.read(user)
-            if update_id in rec["seen"] and not self.naive:  # 2. повторная доставка
+            if update_id in rec["seen"] and not self.naive:  # 2. repeated delivery
                 return "duplicate"
             used = {}
             if rec["snapshot"] is None:
                 r = self.engine.start(user)
             else:
                 r = self.engine.step(user, rec["snapshot"], event, self.guards(user, payload, used), token)
-            self._maybe_crash("до фиксации")             # сбой: ничего не записано
+            self._maybe_crash("before commit")           # failure: nothing written
             rec["snapshot"] = r["snapshot"]
             rec["seen"].add(update_id)
-            self.db.commit(user, rec, r["actions"], payload)  # 3. атомарно: снимок + outbox
+            self.db.commit(user, rec, r["actions"], payload)  # 3. atomically: snapshot + outbox
             self.order_log.setdefault(user, []).append((event, token, used))
-        self._maybe_crash("после фиксации")               # сбой: действия в outbox
+        self._maybe_crash("after commit")                 # failure: the actions are in the outbox
         return "ok"
 
     def drain(self, user=None):
-        """Исполнитель outbox: каждое действие выполняется с ключом идемпотентности."""
+        """The outbox executor: every action runs with an idempotency key."""
         with self._exec_lock:
             for e in self.db.pending(user):
                 a = e["action"]
@@ -179,12 +180,13 @@ class Host:
                     self.timers[(e["user"], a["start_timer"])] = a["token"]
                 elif "cancel_timer" in a:
                     self.timers.pop((e["user"], a["cancel_timer"]), None)
-                self._maybe_crash("до отметки «выполнено»")  # сбой: выполнено, не отмечено
+                self._maybe_crash("before the done mark")    # failure: done, not marked
                 self.db.mark_done(e)
 
     def start_executor(self, poll=0.05):
-        """Отдельный исполнитель (HOST §2): фоновый поток, опрашивает outbox раз в
-        `poll` секунд (как типичный опросчик outbox); сбой = перезапуск."""
+        """A separate executor (docs/host-contract.md, section 2): a background thread
+        that polls the outbox every `poll` seconds (like a typical outbox poller);
+        a failure = a restart."""
         def loop():
             while not self._stop.is_set():
                 try:
@@ -202,28 +204,28 @@ class Host:
 
 
 def deliver(host, user, update_id, event, token=None, payload=None, attempts=50):
-    """Доставка «как Telegram»: повторять, пока хост не подтвердит."""
+    """Delivery "like Telegram": repeat until the host acknowledges."""
     for _ in range(attempts):
         try:
             return host.handle(user, update_id, event, token, payload)
         except Crash:
             time.sleep(0.001)
-    raise RuntimeError("не удалось доставить")
+    raise RuntimeError("delivery failed")
 
 
 ORDER = ["/start", "btn:order", "btn:pizza", "btn:size", "btn:add",
          "btn:checkout", "msg:text", "payment:success"]
-# Сначала «Оформить» с пустой корзиной (ложная ветка → каталог), потом заказ.
+# "Checkout" with an empty cart first (the false branch → catalog), then the order.
 EMPTY_FIRST = ["/start", "btn:order", "btn:cart", "btn:checkout", "btn:pizza", "btn:size",
                "btn:add", "btn:checkout", "msg:text", "payment:success"]
 
 
 def plan(u):
-    """События пользователя u и ожидаемый итог: адрес в зоне → done и один заказ,
-    вне зоны → pickup и ни одного."""
+    """The events of user u and the expected outcome: an address in the zone → done
+    and one order, outside the zone → pickup and none."""
     events = EMPTY_FIRST if u % 3 == 0 else ORDER
     in_zone = u % 2 == 0
-    text = "zone:Ленина 1" if in_zone else "far:Загородная 99"
+    text = "zone:1 Main St" if in_zone else "far:99 Country Rd"
     seq = [(ev, text if ev == "msg:text" else None) for ev in events]
     return seq, ("done", 1) if in_zone else ("pickup", 0)
 
@@ -236,13 +238,13 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
 
     def user_stream(u):
         for i, (ev, payload) in enumerate(plan(u)[0]):
-            with ThreadPoolExecutor(2) as pool:           # дубль параллельно
+            with ThreadPoolExecutor(2) as pool:           # a concurrent duplicate
                 list(pool.map(lambda _: deliver(host, f"u{u}", i, ev, payload=payload), range(2)))
 
     with ThreadPoolExecutor(16) as pool:
         list(pool.map(user_stream, range(users)))
     host.stop_executor()
-    for _ in range(100):                                  # дожать outbox после сбоев
+    for _ in range(100):                                  # finish the outbox after failures
         try:
             host.drain()
             break
@@ -259,7 +261,7 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
         text = next(p for ev, p in plan(u)[0] if ev == "msg:text")
         at = host.db.users[f"u{u}"]["snapshot"]["at"]
         mine = [o for o in orders if o[0] == f"u{u}"]
-        # Заказ — с непустой корзиной и с адресом из сообщения пользователя.
+        # An order has a non-empty cart and the address from the user's message.
         good = all(o[2]["cart"] > 0 and o[2]["address"] == text for o in mine)
         if at == exp_at and len(mine) == exp_orders and good:
             expected_ok += 1
@@ -267,8 +269,8 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
             wrong.append((f"u{u}", at, len(mine), [(o[2]["cart"], o[2]["address"]) for o in mine]))
     pending = len(host.db.pending())
     total = sum(len(plan(u)[0]) for u in range(users))
-    # Порядок: снимок каждого пользователя равен последовательному проигрыванию
-    # его событий в порядке обработки с теми же условиями — нет потерянных обновлений.
+    # Order: the snapshot of every user equals a sequential replay of their events in
+    # processing order with the same conditions, so no update is lost.
     lost = 0
     for u in range(users):
         snap = None
@@ -278,13 +280,13 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
         if snap != host.db.users[f"u{u}"]["snapshot"]:
             lost += 1
     engine.close()
-    name = "НАИВНЫЙ хост" if naive else ("хост по контракту" if barrier else "хост БЕЗ барьера")
-    print(f"{name}, внедрено сбоев {host.crashes}")
-    print(f"  пользователей {users}: итог как ожидалось (done/pickup, заказов 1/0, в заказе корзина и адрес) у {expected_ok}, "
-          f"заказов в CRM {len(orders)}, обработано событий {sum(len(v) for v in host.order_log.values())} "
-          f"из {total} (повторные доставки), потерянных обновлений {lost}, невыполненных действий {pending}")
+    name = "NAIVE host" if naive else ("host by the contract" if barrier else "host WITHOUT the barrier")
+    print(f"{name}, failures injected {host.crashes}")
+    print(f"  users {users}: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for {expected_ok}, "
+          f"orders in the CRM {len(orders)}, events processed {sum(len(v) for v in host.order_log.values())} "
+          f"of {total} (repeated deliveries), lost updates {lost}, actions not run {pending}")
     if wrong:
-        print(f"  не так, как ожидалось: {wrong[:5]}{' …' if len(wrong) > 5 else ''}")
+        print(f"  not as expected: {wrong[:5]}{' …' if len(wrong) > 5 else ''}")
     return expected_ok == users and lost == 0 and pending == 0
 
 
@@ -298,21 +300,21 @@ def scenario_stale_timer(engine_path, doc):
 
     u = "t"
     step(0, "/start")
-    for i, ev in enumerate(["btn:order", "btn:cart"], 1):  # корзина запускает напоминание
+    for i, ev in enumerate(["btn:order", "btn:cart"], 1):  # the cart starts the reminder
         step(i, ev)
     old = host.timers[(u, "cart_reminder")]
-    step(3, "btn:cancel")                                   # уход — таймер отменён
+    step(3, "btn:cancel")                                   # leaving cancels the timer
     step(4, "btn:order")
-    step(5, "btn:cart")                                     # новый запуск, новый жетон
+    step(5, "btn:cart")                                     # a new run, a new token
     new = host.timers[(u, "cart_reminder")]
     before = host.db.users[u]["snapshot"]["at"]
-    step(6, "timer:cart_reminder", token=old)               # запоздавшее старое событие
+    step(6, "timer:cart_reminder", token=old)               # a late old event
     after_old = host.db.users[u]["snapshot"]["at"]
     step(7, "timer:cart_reminder", token=new)
     after_new = host.db.users[u]["snapshot"]["at"]
     engine.close()
-    print(f"таймер: жетоны {old} → {new}; старое событие: {before} → {after_old}; "
-          f"текущее: → {after_new}")
+    print(f"timer: tokens {old} → {new}; old event: {before} → {after_old}; "
+          f"current: → {after_new}")
     return old != new and after_old == before == "cart" and after_new == "reminder"
 
 
@@ -321,14 +323,14 @@ if __name__ == "__main__":
     barrier = "--no-barrier" not in sys.argv[3:]
     ok1 = scenario_orders(engine_path, doc, barrier=barrier)
     ok2 = scenario_stale_timer(engine_path, doc)
-    print("--- контроль: хост без отсева дублей и без ключей идемпотентности")
-    # Контроль вероятностный (дубль заказа возникает только при сбое в нужном месте):
-    # до трёх попыток, достаточно одной красной. Основной сценарий не повторяется.
+    print("--- control: a host without duplicate filtering and without idempotency keys")
+    # The control is probabilistic (a duplicate order happens only with a failure at the right
+    # place): up to three attempts, one red one is enough. The main scenario is not repeated.
     for attempt in range(3):
         control = scenario_orders(engine_path, doc, naive=True)
         if not control:
             break
-    print("  тест ловит нарушение:", "да" if not control else "НЕТ", f"(попыток контроля: {attempt + 1})")
+    print("  the test catches the violation:", "yes" if not control else "FAIL", f"(control attempts: {attempt + 1})")
     ok2 = ok2 and not control
-    print("контракт выполнен" if ok1 and ok2 else "НАРУШЕНИЕ КОНТРАКТА")
+    print("contract holds" if ok1 and ok2 else "CONTRACT VIOLATED")
     sys.exit(0 if ok1 and ok2 else 1)

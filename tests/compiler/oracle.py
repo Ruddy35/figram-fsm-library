@@ -1,21 +1,21 @@
 """Independent reference interpreter of Figram designer semantics.
 
-Written from the PROSE of README.md ("Решения спецификации" 1-8), FORMAT.md
-(sections 3-4, 7) and HOST.md -- NOT from Figram/Chart.lean.  Wherever the
-prose is ambiguous the interpreter has an explicit switch (see `Options`);
-the defaults are the readings that the Lean implementation turned out to
-use, the alternatives are what a literal reading of the prose (or the
-designer-level model "a reminder lives on its message") would give.  The
-differential driver counts how often each ambiguity is *hit* (the two
-readings would give different observable results).
+Written from the PROSE of docs/format.md (sections 3-4, the decisions of the
+specification 1-8 in section 7, section 8) and docs/host-contract.md -- NOT
+from Figram/Chart.lean.  Wherever the prose is ambiguous the interpreter has
+an explicit switch (see `Options`); the defaults are the readings that the
+Lean implementation turned out to use, the alternatives are what a literal
+reading of the prose (or the designer-level model "a reminder lives on its
+message") would give.  The differential driver counts how often each
+ambiguity is *hit* (the two readings would give different observable results).
 
-Document model (FORMAT.md §4):
+Document model (docs/format.md, section 4):
   section  <=> object has "children"; "initial" is a direct child (V2)
   message  has optional "timers": {name: ms}
   "on": {event: [variant]}, variant = {"if"?, "to", "resume"?, "do"?}
-Semantics (README):
+Semantics (docs/format.md, section 7):
   * entering a section = entering its initial node, recursively, until a
-    message is reached ("стрелка в раздел ведёт на его начальное сообщение");
+    message is reached ("an arrow into a section leads to its initial message");
   * candidates for event e at message M: M's own variants, then those of the
     section above, ... up to the bot root (decision 1); the first variant
     whose condition holds wins;
@@ -28,7 +28,7 @@ Semantics (README):
   * no matching variant -> ignore (decision 6);
   * timer event accepted only with the token of its current launch (7);
   * snapshot pointing at a non-existent message -> start over: cancel all
-    snapshot timers, keep remembered places, "recovered": true (8, FORMAT §7.1).
+    snapshot timers, keep remembered places, "recovered": true (8; format.md §8).
 """
 
 import json
@@ -375,7 +375,7 @@ class Bot:
         return snap, acts
 
     def restart(self, snap):
-        """FORMAT §7: cancel snapshot timers, clear places, first-entry actions,
+        """format.md §8 (restart): cancel snapshot timers, clear places, first-entry actions,
         keep counting seq."""
         return self._over(snap, keep_resume=False)
 
@@ -422,7 +422,7 @@ class Bot:
         hits = set() if hits is None else hits
         guards = guards or {}
         if token is not None and not (type(token) is int and 0 <= token <= MAX_INT):
-            # strict protocol (fix wave, PROTOCOL_CHANGES 3): checked while decoding the request,
+            # strict protocol (docs/format.md, section 8): checked while decoding the request,
             # i.e. before recovery and before the token is compared
             raise RequestError(f"`token` must be an integer from 0 to {MAX_INT}")
         if not self.is_message(snap["at"]):          # decision 8

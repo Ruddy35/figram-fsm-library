@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 # Document generator of the host-perf audit harness, kept for the P-06/P-07 load/step series.
-"""Параметрический генератор документов Figram для замеров масштабируемости.
+"""Parametric generator of Figram documents for scalability measurements.
 
     gen_doc.py --states N [--groups G] [--depth D] [--branches B] [--resume R]
                [--events shared|unique] [--timers P] > doc.json
 
-Форма документа:
-* корень: `cmd:start` → m0, `cmd:help` → help (глобальные события, всплывают
-  на каждое сообщение);
-* G групп; группа g — цепочка из D вложенных разделов g{g}_l0 ⊃ … ⊃ g{g}_l{D-1},
-  её сообщения лежат во внутреннем разделе (глубина каждого сообщения = D);
-  на каждом уровне раздела стрелка `btn:up{l}` → начальное сообщение уровня
-  (проверка всплытия на глубину);
-* у каждого сообщения m_i: `btn:next` и `btn:prev` с B вариантами
-  (B−1 с условиями c1..c{B-1} и «иначе»), действия k1/k2 на вариантах;
-* `--events unique`: дополнительно у каждого сообщения своя кнопка `btn:go{i}`
-  (реалистично для больших ботов: у кнопок уникальные callback_data) —
-  число различных событий растёт как N;
-* `--resume R`: первые R групп — цели «вернуться туда, где был» из help
-  (`btn:back{g}`), каждое сообщение внутри запоминает место;
-* `--timers P`: процент сообщений с таймером t{i} и стрелкой `timer:t{i}`;
-* `--global G`: ещё G глобальных команд `cmd:g{j}` на корне — всплывают на
-  каждое сообщение, поэтому строк автомата ≈ N · (G + собственные события).
+Shape of the document:
+* root: `cmd:start` → m0, `cmd:help` → help (global events that bubble up to
+  every message);
+* G groups; group g is a chain of D nested sections g{g}_l0 ⊃ … ⊃ g{g}_l{D-1},
+  its messages live in the innermost section (every message has depth D);
+  every section level has an arrow `btn:up{l}` → the initial message of the
+  level (checks bubbling at depth);
+* every message m_i has `btn:next` and `btn:prev` with B variants
+  (B−1 with conditions c1..c{B-1} and "otherwise"), actions k1/k2 on the variants;
+* `--events unique`: in addition every message has a button of its own `btn:go{i}`
+  (realistic for large bots: buttons have unique callback_data), so the number
+  of distinct events grows as N;
+* `--resume R`: the first R groups are targets of "resume where the user left
+  off" from help (`btn:back{g}`); every message inside remembers its place;
+* `--timers P`: the percentage of messages with a timer t{i} and an arrow `timer:t{i}`;
+* `--global G`: G more global commands `cmd:g{j}` on the root; they bubble up to
+  every message, so the machine has ≈ N · (G + own events) rows.
 """
 import argparse
 import json
@@ -37,7 +37,7 @@ def main():
     ap.add_argument("--events", choices=["shared", "unique"], default="shared")
     ap.add_argument("--timers", type=int, default=10)
     ap.add_argument("--global", dest="glob", type=int, default=0,
-                    help="число дополнительных глобальных команд cmd:g{j} на корне")
+                    help="number of additional global commands cmd:g{j} on the root")
     a = ap.parse_args()
 
     n = max(2, a.states)
@@ -48,7 +48,7 @@ def main():
     r_count = min(a.resume, g_count)
     conds = [f"c{j}" for j in range(1, b)]
 
-    msgs = [f"m{i}" for i in range(n - 1)]          # n-1 рабочих + help
+    msgs = [f"m{i}" for i in range(n - 1)]          # n-1 working messages + help
     groups = [[] for _ in range(g_count)]
     for i, m in enumerate(msgs):
         groups[i % g_count].append(m)
@@ -88,8 +88,8 @@ def main():
 
     doc = {
         "figram": 1,
-        "conditions": {c: f"условие {c}" for c in conds},
-        "calls": {"k1": "действие 1", "k2": "действие 2"},
+        "conditions": {c: f"condition {c}" for c in conds},
+        "calls": {"k1": "action 1", "k2": "action 2"},
         "bot": {
             "initial": "g0_l0",
             "on": {"cmd:start": [{"to": "m0"}], "cmd:help": [{"to": "help"}],

@@ -29,6 +29,12 @@ First release.
   mutants, Go tests ([docs/testing.md](docs/testing.md)).
 - Release archives for Linux x86_64 with SHA-256 checksums ([docs/releasing.md](docs/releasing.md)).
 
+### Changed
+
+- All user-facing texts are now in English: engine error messages, `figram` diagnostics and CLI
+  output, C ABI error texts, the Go wrapper and the Python client (its `EngineError` messages).
+  Error `code` values, JSON field names, CLI command names and exit statuses are unchanged.
+
 ### Audit
 
 - An independent audit and a fix cycle preceded this release. The audit reports, logs and

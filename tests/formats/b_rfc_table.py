@@ -6,10 +6,10 @@ Each row: (id, input bytes, expected `figram json` line, class).
             "ERR"           — any rejection.
   class     rfc   — plain RFC 8259 behaviour (Python json agrees);
             dev   — documented Figram deviation (FormatIO.lean header,
-                    FORMAT.md §3 «Числа»): Python json differs;
+                    docs/format.md, section 3, "Numbers"): Python json differs;
             model — Figram's exact m·10^e model prints the value differently
                     from Python's float (value-equal);
-            fc01 / fc02 / fc03 — rows of findings in REPORT.md (fc01, fc03 fixed:
+            fc01 / fc02 / fc03 — rows of findings of the formats audit (fc01, fc03 fixed:
                     their rows now expect the fixed behaviour).
 
 Checks, for every row:

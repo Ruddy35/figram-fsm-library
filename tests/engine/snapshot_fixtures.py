@@ -1,4 +1,4 @@
-"""Схема снимка и движок принимают и отвергают одни и те же снимки (N03).
+"""The snapshot schema and the engine accept and reject the same snapshots.
 
     python3 snapshot_fixtures.py ENGINE bot.json schemas/snapshot.schema.json
 """
@@ -46,8 +46,8 @@ validator = jsonschema.Draft202012Validator(json.load(open(schema_path)))
 
 
 def ask(requests, phase):
-    """Отправить запросы; вернуть ответы, проверенные по протоколу и id.
-    Любое расхождение в числе, id или форме ответа — провал."""
+    """Send the requests; return the replies checked against the protocol and the ids.
+    Any mismatch in the number, the id or the form of a reply is a failure."""
     data = "\n".join(json.dumps({**r, "id": i}) for i, r in enumerate(requests)) + "\n"
     try:
         out = run_child([engine, doc], data.encode(), default_timeout(), phase)
@@ -57,42 +57,42 @@ def ask(requests, phase):
     if lines and lines[-1] == "":
         lines.pop()
     if out.returncode != 0 or len(lines) != len(requests):
-        raise SystemExit(f"{phase}: ответов {len(lines)} из {len(requests)}, код {out.returncode}")
+        raise SystemExit(f"{phase}: replies {len(lines)} of {len(requests)}, exit code {out.returncode}")
     replies = []
     for i, (r, line) in enumerate(zip(requests, lines)):
         try:
             resp = json.loads(line)
             variant = check_reply(resp, i, r["op"])
         except (ValueError, ProtocolError) as e:
-            raise SystemExit(f"{phase}: ответ {i} нарушает протокол: {e}")
+            raise SystemExit(f"{phase}: reply {i} violates the protocol: {e}")
         replies.append((variant, resp))
     return replies
 
 
 replies = ask([{"op": "step", "snapshot": s, "event": "unknown:event"} for s in FIXTURES],
-              "граничные снимки")
+              "edge snapshots")
 bad = 0
 for snap, (variant, resp) in zip(FIXTURES, replies):
     by_engine = variant == "result"
     by_schema = validator.is_valid(snap)
     if by_engine != by_schema:
         bad += 1
-        print(f"  расходятся: {snap}: схема {by_schema}, движок {by_engine} {resp.get('error', '')}")
+        print(f"  disagree: {snap}: schema {by_schema}, engine {by_engine} {resp.get('error', '')}")
     elif not by_engine and resp.get("code") != "bad_snapshot":
-        # отвергнутый снимок — именно код bad_snapshot (FORMAT.md §7, «Ошибки»)
+        # a rejected snapshot has exactly the code bad_snapshot (docs/format.md, section 8, "Errors")
         bad += 1
-        print(f"  расходятся: {snap}: код ошибки {resp.get('code')!r} вместо 'bad_snapshot'")
-print(f"снимков {len(FIXTURES)}, ответов {len(replies)}, расхождений схемы и движка {bad}")
+        print(f"  disagree: {snap}: error code {resp.get('code')!r} instead of 'bad_snapshot'")
+print(f"snapshots {len(FIXTURES)}, replies {len(replies)}, schema/engine mismatches {bad}")
 
-# N06: на границе seq движок не выдаёт снимок, который сам не прочитает.
+# At the seq boundary the engine never returns a snapshot that it cannot read itself.
 edge = ask([
     {"op": "step", "snapshot": {"at": "home", "seq": M}, "event": "btn:self"},
     {"op": "step", "snapshot": {"at": "home", "seq": M}, "event": "unknown:event"},
     {"op": "step", "snapshot": {"at": "home", "seq": M - 1}, "event": "btn:self"},
-], "граница seq")
+], "seq boundary")
 edge_ok = (edge[0] == ("error", {"id": 0, "error": "seq_overflow", "code": "seq_overflow"})
            and edge[1][0] == "result" and edge[1][1]["snapshot"].get("seq") == M
            and edge[2][0] == "result" and edge[2][1]["snapshot"].get("seq") == M
            and validator.is_valid(edge[2][1]["snapshot"]))
-print("граница seq:", "ok" if edge_ok else f"НЕТ {edge}")
+print("seq boundary:", "ok" if edge_ok else f"FAIL {edge}")
 sys.exit(1 if bad or not edge_ok else 0)

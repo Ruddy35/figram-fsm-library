@@ -1,23 +1,25 @@
-"""Достижимость кода и данных в готовом исполняемом файле (ELF x86-64, PIE) по binutils.
+"""Reachability of code and data in a built executable (ELF x86-64, PIE), using binutils.
 
-    python3 ci/reach.py FILE [--unreachable РВ…] [--reachable РВ…]
-        для символов, чьё имя (или имя после c++filt) целиком подходит под регулярное выражение:
-        ДОСТИЖИМ с кратчайшим путём от корня или НЕДОСТИЖИМ. Код 1, если достижим символ из
-        --unreachable или ни один символ из --reachable (выражение без единого символа в --reachable —
-        тоже отказ: проверка была бы пустой).
+    python3 ci/reach.py FILE [--unreachable RX…] [--reachable RX…]
+        for the symbols whose name (or name after c++filt) fully matches a regular expression:
+        REACHABLE with the shortest path from a root, or UNREACHABLE. Exit status 1 if a symbol of
+        --unreachable is reachable or no symbol of --reachable is (an expression that matches no
+        symbol in --reachable fails too: the check would be empty).
     python3 ci/reach.py --calls FILE SYMBOL
-        функции, которые SYMBOL вызывает напрямую (call, jmp), по порядку; FILE — исполняемый или
-        объектный файл.
+        the functions that SYMBOL calls directly (call, jmp), in order; FILE is an executable or an
+        object file.
 
-Граф. Узел — символ таблицы символов (функция или объект данных; синонимы по одному адресу — один
-узел; символ без размера тянется до следующего символа). Рёбра — все адреса, на которые ссылается код
-(call, jmp, lea, mov… по `objdump -d`), и указатели в данных: в PIE каждый указатель на свой код или
-данные записан динамическим перемещением (R_X86_64_RELATIVE, IRELATIVE; `readelf -r`). Корни — точка
-входа, main, _init, _fini, .preinit_array, .init_array, .fini_array, символы из динамической таблицы
-(их могут вызвать разделяемые библиотеки) и цели указателей из мест вне известных символов.
-Оценка сверху: недостижимый символ не исполняется и не читается никаким путём, кроме переходов по
-адресам, вычисленным во время работы не из кода и не из данных файла (dlsym и подобное).
-Файл не PIE (указатели в данных без перемещений не видны) — отказ с кодом 2.
+The graph. A node is a symbol of the symbol table (a function or a data object; aliases at one
+address are one node; a symbol without a size extends to the next symbol). The edges are all
+addresses referenced by the code (call, jmp, lea, mov… in `objdump -d`) and the pointers in data:
+in a PIE every pointer to its own code or data is written by a dynamic relocation
+(R_X86_64_RELATIVE, IRELATIVE; `readelf -r`). The roots are the entry point, main, _init, _fini,
+.preinit_array, .init_array, .fini_array, the symbols of the dynamic table (shared libraries may
+call them) and the pointer targets stored outside known symbols.
+An over-approximation: an unreachable symbol is not executed or read by any path, except jumps to
+addresses computed at run time from something other than the code and data of the file (dlsym and
+the like). A file that is not a PIE (its data pointers have no relocations and are invisible) is
+refused with exit status 2.
 """
 import bisect, collections, re, subprocess, sys
 
@@ -32,8 +34,8 @@ def demangle(names):
 
 
 def calls(path, symbol):
-    """Прямые вызовы и переходы из функции symbol: в объектном файле — по перемещениям, в исполняемом —
-    по адресу перехода (переходы внутри функции, <symbol+0x…>, пропускаются)."""
+    """Direct calls and jumps from the function symbol: in an object file by the relocations, in an
+    executable by the target address (jumps inside the function, <symbol+0x…>, are skipped)."""
     lines = run("objdump", "-dr", "--no-show-raw-insn", f"--disassemble={symbol}", path).splitlines()
     out = []
     for i, line in enumerate(lines):
@@ -54,9 +56,9 @@ def calls(path, symbol):
 
 def graph(path):
     if "DYN" not in run("readelf", "-h", path).split("Type:", 1)[1].splitlines()[0]:
-        print(f"{path}: не PIE — указатели в данных без перемещений не видны, оценка невозможна")
+        print(f"{path}: not a PIE: data pointers without relocations are invisible, no estimate is possible")
         sys.exit(2)
-    # Узлы: адрес начала → имена; границы — размер символа или начало следующего.
+    # Nodes: start address → names; the end is the symbol's size or the start of the next symbol.
     named = collections.defaultdict(set)
     size = {}
     for line in run("nm", "-S", "--defined-only", path).splitlines():
@@ -69,7 +71,7 @@ def graph(path):
     ends = [size[a] or (starts[i + 1] - a if i + 1 < len(starts) else 1) for i, a in enumerate(starts)]
     ends = [a + e for a, e in zip(starts, ends)]
 
-    def owner(addr):  # последний начавшийся символ, внутри которого addr (вложенные — редкость)
+    def owner(addr):  # the last symbol starting at or before addr that contains it (nesting is rare)
         i = bisect.bisect_right(starts, addr) - 1
         for j in range(i, max(i - 8, -1), -1):
             if addr < ends[j]:
@@ -78,7 +80,7 @@ def graph(path):
 
     edges = collections.defaultdict(set)
     roots = set()
-    # Указатели в данных.
+    # Pointers in data.
     arrays = []
     for line in run("readelf", "-SW", path).splitlines():
         m = re.search(r"\]\s+(\.init_array|\.fini_array|\.preinit_array)\s+\S+\s+([0-9a-f]+)\s+[0-9a-f]+\s+([0-9a-f]+)", line)
@@ -97,7 +99,7 @@ def graph(path):
                 roots.add(t)
             else:
                 edges[src].add(t)
-    # Код.
+    # Code.
     ref = re.compile(r"\b([0-9a-f]+) <[^>]+>")
     cur = None
     dis = subprocess.Popen(["objdump", "-d", "--no-show-raw-insn", path], stdout=subprocess.PIPE, text=True)
@@ -113,8 +115,8 @@ def graph(path):
                 if t is not None and t != cur:
                     edges[cur].add(t)
     if dis.wait():
-        sys.exit("objdump завершился с ошибкой")
-    # Корни: точка входа, main, _init/_fini, массивы конструкторов и деструкторов, динамические символы.
+        sys.exit("objdump failed")
+    # Roots: the entry point, main, _init/_fini, the constructor and destructor arrays, the dynamic symbols.
     entry = int(re.search(r"Entry point address:\s+0x([0-9a-f]+)", run("readelf", "-h", path)).group(1), 16)
     roots |= {owner(entry)}
     for a, names in named.items():
@@ -153,7 +155,7 @@ def main(argv):
                 prev[t] = s; queue.append(t)
     pretty = demangle(sorted({n for ns in named.values() for n in ns}))
     label = {a: min(pretty[n] for n in ns) for a, ns in named.items()}
-    print(f"{path}: узлов {len(named)}, корней {len(roots)}, достижимо {len(prev)}")
+    print(f"{path}: nodes {len(named)}, roots {len(roots)}, reachable {len(prev)}")
     bad = 0
     for mode, rxs in want.items():
         for rx in rxs:
@@ -161,18 +163,18 @@ def main(argv):
             live = [a for a in hits if a in prev]
             if mode == "--unreachable":
                 ok = not live
-                verdict = f"в файле нет" if not hits else f"недостижимо {len(hits) - len(live)} из {len(hits)}"
+                verdict = f"not in the file" if not hits else f"unreachable {len(hits) - len(live)} of {len(hits)}"
             else:
                 ok = bool(live)
-                verdict = f"в файле нет" if not hits else f"достижимо {len(live)} из {len(hits)}"
+                verdict = f"not in the file" if not hits else f"reachable {len(live)} of {len(hits)}"
             bad += not ok
-            print(f"{'ok ' if ok else 'НЕТ'} {mode[2:]} «{rx}»: {verdict}")
+            print(f"{'ok  ' if ok else 'FAIL'} {mode[2:]} '{rx}': {verdict}")
             for a in live[:3]:
                 path_ = []
                 while a is not None:
                     path_.append(label[a]); a = prev[a]
-                print("      путь: " + " ← ".join(path_[:14]))
-    print(f"проверок {sum(map(len, want.values()))}, отказов {bad}")
+                print("      path: " + " ← ".join(path_[:14]))
+    print(f"checks {sum(map(len, want.values()))}, failed {bad}")
     return 1 if bad else 0
 
 

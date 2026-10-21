@@ -1,16 +1,16 @@
-"""Дифференциальное тестирование текстового слоя JSON (FormatIO.lean).
+"""Differential testing of the JSON text layer (FormatIO.lean).
 
-Эталон — модуль json стандартной библиотеки Python плюс намеренные
-ограничения формата: повторяющийся ключ, непарный суррогат в \\u,
-вложенность больше 256, показатель степени по модулю больше 1000,
-NaN/Infinity — отказ. На каждом входе сравнивается:
+The reference is the json module of the Python standard library plus the
+deliberate restrictions of the format: a duplicate key, an unpaired surrogate in
+\\u, nesting deeper than 256, an exponent above 1000 in absolute value and
+NaN/Infinity are rejected. On every input it compares:
 
-* принят ли текст обоими или отвергнут обоими;
-* если принят — точное значение (числа как Decimal, порядок ключей учитывается);
-* печать идемпотентна: разбор нашей записи даёт то же значение, и сам Figram
-  читает свою запись обратно в ту же запись.
+* whether the text is accepted by both or rejected by both;
+* if accepted, the exact value (numbers as Decimal, key order counts);
+* printing is idempotent: parsing our output gives the same value, and Figram
+  itself reads its output back into the same output.
 
-    python3 json_fuzz.py FIGRAM [случаев] [seed]
+    python3 json_fuzz.py FIGRAM [cases] [seed]
 """
 
 import json
@@ -33,7 +33,7 @@ class Reject(Exception):
 def pairs_hook(pairs):
     keys = [k for k, _ in pairs]
     if len(keys) != len(set(keys)):
-        raise Reject("повторяющийся ключ")
+        raise Reject("duplicate key")
     return ("obj", tuple(pairs))
 
 
@@ -47,18 +47,18 @@ def load(text):
 
 
 def walk(v, depth=0):
-    """Проверка ограничений формата на разобранном значении."""
+    """Checks the restrictions of the format on a parsed value."""
     if isinstance(v, str):
         if any(0xD800 <= ord(c) <= 0xDFFF for c in v):
-            raise Reject("непарный суррогат")
+            raise Reject("unpaired surrogate")
     elif isinstance(v, list):
         if depth + 1 > MAX_DEPTH:
-            raise Reject("глубина")
+            raise Reject("depth")
         for x in v:
             walk(x, depth + 1)
     elif isinstance(v, tuple):
         if depth + 1 > MAX_DEPTH:
-            raise Reject("глубина")
+            raise Reject("depth")
         for k, x in v[1]:
             walk(k, depth + 1)
             walk(x, depth + 1)
@@ -68,7 +68,7 @@ NUM = re.compile(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE]([+-]?\d+))?")
 
 
 def exponents_ok(text):
-    """Показатели степени в числах вне строк."""
+    """Exponents of the numbers outside strings."""
     i, n = 0, len(text)
     while i < n:
         c = text[i]
@@ -92,15 +92,15 @@ def expected(text):
         v = load(text)
         walk(v)
         if not exponents_ok(text):
-            raise Reject("показатель")
+            raise Reject("exponent")
         return ("ok", v)
     except (ValueError, Reject, RecursionError, InvalidOperation):
-        # InvalidOperation — показатель степени, который не умещается даже в Decimal;
-        # по правилам формата такой текст отвергается.
+        # InvalidOperation: an exponent that does not fit even into Decimal; the rules
+        # of the format reject such a text.
         return ("err", None)
 
 
-# --- генерация ---------------------------------------------------------------
+# --- generation ---------------------------------------------------------------
 
 def rand_char(r):
     k = r.random()
@@ -113,7 +113,7 @@ def rand_char(r):
     if k < 0.85:
         return chr(r.randint(0x10000, 0x10FFFF))
     if k < 0.9:
-        return chr(r.randint(0xD800, 0xDFFF))   # непарный суррогат
+        return chr(r.randint(0xD800, 0xDFFF))   # unpaired surrogate
     return r.choice('"\\/\b\f\n\r\t')
 
 
@@ -133,7 +133,7 @@ def rand_num_text(r):
 
 
 def rand_text(r, depth=0):
-    """Текст JSON (не всегда допустимый по ограничениям формата)."""
+    """A JSON text (not always valid under the restrictions of the format)."""
     ws = lambda: r.choice(["", "", " ", "\t", "\r", "  "])
     k = r.random()
     if depth > 4 and k < 0.9 or k < 0.3:
@@ -142,14 +142,14 @@ def rand_text(r, depth=0):
             return rand_num_text(r)
         if c < 0.75:
             return json.dumps(rand_str(r), ensure_ascii=r.random() < 0.5)
-        # NaN/Infinity — запрещённые форматом константы: без них ограничение не проверялось бы
+        # NaN/Infinity are constants forbidden by the format: without them the restriction would go untested
         return r.choice(["true", "false", "null", "true", "false", "null", "NaN", "Infinity", "-Infinity"])
     if k < 0.65:
         items = [rand_text(r, depth + 1) for _ in range(r.randint(0, 4))]
         return "[" + ws() + ("," + ws()).join(items) + ws() + "]"
     keys = [rand_str(r) for _ in range(r.randint(0, 4))]
     if keys and r.random() < 0.1:
-        keys.append(keys[0])                    # повторяющийся ключ
+        keys.append(keys[0])                    # duplicate key
     items = [json.dumps(k_, ensure_ascii=r.random() < 0.5) + ws() + ":" + ws() + rand_text(r, depth + 1)
              for k_ in keys]
     return "{" + ws() + ("," + ws()).join(items) + ws() + "}"
@@ -190,17 +190,17 @@ def main():
             t = deep_text(r)
         elif i % 2 == 1:
             t = mutate(r, t)
-        # Сырой непарный суррогат не кодируется в UTF-8 — в реальном тексте его нет;
-        # экранированные (\\udXXX) остаются и проверяются.
+        # A raw unpaired surrogate cannot be encoded in UTF-8, so a real text has none;
+        # escaped ones (\\udXXX) stay and are checked.
         t = "".join("?" if 0xD800 <= ord(c) <= 0xDFFF else c for c in t)
-        cases.append(t.replace("\n", " "))      # одна строка — один случай
+        cases.append(t.replace("\n", " "))      # one line per case
     res = run_child([figram, "json"], ("\n".join(cases) + "\n").encode(), default_timeout(), "json")
     if res.returncode != 0:
-        raise SystemExit(f"парсер завершился с кодом {res.returncode}")
+        raise SystemExit(f"the parser exited with code {res.returncode}")
     raw = res.stdout
     out = raw.decode().split("\n")[:-1]
     if n < 1 or len(out) != len(cases):
-        raise SystemExit(f"ответов {len(out)} из {len(cases)}")
+        raise SystemExit(f"replies {len(out)} of {len(cases)}")
     accepted = rejected = bad = 0
     for text, line in zip(cases, out):
         exp, val = expected(text)
@@ -209,7 +209,7 @@ def main():
             try:
                 ours = load(line[3:])
             except Exception as e:  # noqa: BLE001
-                ours = ("не читается", repr(e))
+                ours = ("unreadable", repr(e))
         else:
             got, ours = "err", None
         ok = got == exp and (exp == "err" or ours == val)
@@ -219,22 +219,22 @@ def main():
         else:
             bad += 1
             if bad <= 5:
-                print(f"  РАСХОЖДЕНИЕ: {text[:150]!r}\n    эталон {exp}, наш {line[:150]!r}")
-    # Идемпотентность по самому Figram: каждая запись «OK …» читается Figram обратно в ту же
-    # запись. Python здесь не годится: он принимает показатели больше 1000 (находка FC-01).
+                print(f"  MISMATCH: {text[:150]!r}\n    reference {exp}, ours {line[:150]!r}")
+    # Idempotence by Figram itself: Figram reads every "OK …" output back into the same
+    # output. Python does not fit here: it accepts exponents above 1000.
     printed = [line[3:] for line in out if line.startswith("OK ")]
     res2 = run_child([figram, "json"], ("\n".join(printed) + "\n").encode(), default_timeout(), "json")
     again = res2.stdout.decode().split("\n")[:-1]
     if res2.returncode != 0 or len(again) != len(printed):
-        raise SystemExit(f"повторный разбор: код {res2.returncode}, ответов {len(again)} из {len(printed)}")
+        raise SystemExit(f"second parse: exit code {res2.returncode}, replies {len(again)} of {len(printed)}")
     unread = 0
     for p_, a_ in zip(printed, again):
         if a_ != "OK " + p_:
             unread += 1
             if unread <= 5:
-                print(f"  НЕ ЧИТАЕТСЯ ОБРАТНО: {p_[:150]!r}\n    {a_[:150]!r}")
-    print(f"случаев {n}: принято обоими {accepted}, отвергнуто обоими {rejected}, расхождений {bad}, "
-          f"записей не читается обратно {unread} из {len(printed)}")
+                print(f"  DOES NOT READ BACK: {p_[:150]!r}\n    {a_[:150]!r}")
+    print(f"cases {n}: accepted by both {accepted}, rejected by both {rejected}, mismatches {bad}, "
+          f"outputs not read back {unread} of {len(printed)}")
     sys.exit(1 if bad or unread else 0)
 
 
