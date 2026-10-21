@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Document generator of the host-perf audit harness, kept for the P-06/P-07 load/step series.
+# Document generator of the load/step scalability series (perf_scale.py).
 """Parametric generator of Figram documents for scalability measurements.
 
     gen_doc.py --states N [--groups G] [--depth D] [--branches B] [--resume R]

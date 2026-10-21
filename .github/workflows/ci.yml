@@ -59,7 +59,7 @@ jobs:
           - { suite: compiler, timeout: 45 }   # independent oracle, differential/metamorphic, mutants (~9 min)
           - { suite: capi, timeout: 30 }       # C ABI under ASan/UBSan and TSan, mutants of the C layer
           - { suite: go, timeout: 30 }         # go test of the Go wrapper, plain and -race
-          - { suite: proofs, timeout: 30 }     # strict proof gate leaves tracked files untouched
+          - { suite: proofs, timeout: 30 }     # strict gate leaves tracked files untouched; proof controls
           - { suite: docs, timeout: 20 }       # documentation matches the code
           - { suite: faults-prebuilt, timeout: 60 }  # verify-prebuilt.sh turns red on every injected fault
           - { suite: faults-full, timeout: 120 }     # verify.sh turns red on every injected fault
@@ -104,7 +104,8 @@ jobs:
               go test -count=1 -v ./... 2>&1 | tee "$L/go-test.txt"
               go test -race -count=1 -v ./... 2>&1 | tee "$L/go-test-race.txt";;
             proofs)
-              bash tests/proofs/test_strict_gate_clean.sh 2>&1 | tee "$L/test_strict_gate_clean.txt";;
+              bash tests/proofs/test_strict_gate_clean.sh 2>&1 | tee "$L/test_strict_gate_clean.txt"
+              bash tests/proofs/controls.sh 2>&1 | tee "$L/controls.txt";;
             docs)
               python3 ci/check_docs.py 2>&1 | tee "$L/check_docs.txt";;
             faults-prebuilt)

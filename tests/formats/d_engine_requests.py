@@ -6,7 +6,7 @@ Document: examples/features.bot.json (guard is_vip on home/btn:go, timer
 Every request is a raw text line (so 1.0 / 1e0 / -0 / duplicate keys reach
 the engine as written; a few rows are raw bytes with invalid UTF-8).  The
 expected reply column is the exact byte string; it was recorded from the
-baseline binary, reviewed by hand against docs/format.md (section 8), and then
+baseline binary (commit d69bbaf), reviewed by hand against docs/format.md (section 8), and then
 rewritten by hand for the protocol changes of the audit fix cycle: every
 error carries a machine `code`, a parse error echoes a leading scalar `id`,
 requests are strict (unknown fields, `token` only on timer events and only as
@@ -14,8 +14,8 @@ an integer 0…2^53−1, non-empty `event`, non-empty timer name), `start` takes
 optional `seq`, invalid UTF-8 is a parse error.  The column `why` says which
 rule each reply follows.
 
-Rows tagged ET-07 / ET-12 / FC-xx are the audit findings; their expectations
-now encode the FIXED behaviour.
+Rows tagged ET-07 / ET-12 / FC-xx are defects found during the audit; their
+expectations now encode the FIXED behaviour.
 
     python3 d_engine_requests.py [--break flip|lax-id] [--record]
 """

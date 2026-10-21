@@ -33,10 +33,6 @@ listed), 2 on a usage error. The checks:
                                   in the next ```text output block.
              `figram` and `figram-engine` are taken from --bin (default .lake/build/bin), put first
              on PATH.
-
-Until the repository layout is final, a few sources are also looked up at their former locations
-(ci/THEOREMS.expected, ffi/python-example, ffi/go-example, audit/proofs); the paths check always
-uses the documented paths.
 """
 
 import argparse
@@ -78,13 +74,11 @@ def exists(path):
     return os.path.exists(os.path.join(ROOT, path))
 
 
-def first_existing(*paths):
-    """The first of the candidate paths that exists; a note when it is not the first one."""
-    for p in paths:
-        if exists(p):
-            if p != paths[0]:
-                notes.append(f"{paths[0]} not found, using the former location {p}")
-            return p
+def required(check, path):
+    """path if it exists; otherwise a problem of the check and None."""
+    if exists(path):
+        return path
+    fail(check, f"{path} not found")
     return None
 
 
@@ -235,7 +229,7 @@ def lean_sources():
     global LEAN_FILES
     if LEAN_FILES is None:
         LEAN_FILES = {}
-        pats = ["*.lean", "Figram/*.lean", "tests/proofs/**/*.lean", "audit/proofs/**/*.lean"]
+        pats = ["*.lean", "Figram/*.lean", "tests/proofs/**/*.lean"]
         for pat in pats:
             for p in glob.glob(os.path.join(ROOT, pat), recursive=True):
                 LEAN_FILES[rel(p)] = open(p, encoding="utf-8").read()
@@ -251,9 +245,8 @@ def lean_declares(name):
 
 
 def check_theorems():
-    exp_path = first_existing("tests/proofs/THEOREMS.expected", "ci/THEOREMS.expected")
+    exp_path = required("theorems", "tests/proofs/THEOREMS.expected")
     if exp_path is None:
-        fail("theorems", "tests/proofs/THEOREMS.expected not found")
         return
     pinned = re.findall(r"^STMT (\S+) :", read(exp_path), re.M)
     if not pinned:
@@ -322,13 +315,13 @@ def check_codes():
         listed = set(re.findall(r"^\* `(\w+)` —", para.group(2), re.M)) if para else set()
         if listed != shim:
             fail("codes", f"docs/embedding.md lists shim codes {sorted(listed)}, ffi/figram_ffi.c produces {sorted(shim)}")
-    proto = first_existing("clients/python/protocol.py", "ffi/python-example/protocol.py")
+    proto = required("codes", "clients/python/protocol.py")
     if proto:
         pm = re.search(r"ERROR_CODES = frozenset\(\{([^}]*)\}\)", read(proto))
         py = set(re.findall(r'"(\w+)"', pm.group(1))) if pm else set()
         if py != engine_codes:
             fail("codes", f"{proto} ERROR_CODES {sorted(py)} != engine codes {sorted(engine_codes)}")
-    gomain = first_existing("clients/go/main.go", "ffi/go-example/main.go")
+    gomain = required("codes", "clients/go/main.go")
     if gomain:
         gm = re.search(r"var errorCodes = map\[string\]bool\{(.*?)\n\}", read(gomain), re.S)
         go = set(re.findall(r'"(\w+)": true', gm.group(1))) if gm else set()
@@ -463,7 +456,7 @@ def check_capi():
                 fail("capi", f"docs/embedding.md:{n}: `{f}` is not a function of ffi/figram.h")
     if "figram_shutdown" in h:
         fail("capi", "ffi/figram.h declares figram_shutdown, docs/embedding.md says there is none")
-    # topics of the contract that the page must keep (formerly ffi/audit/doc_check.sh)
+    # topics of the contract that the page must keep
     text = flat(d.text)
     for topic in ("SIGPIPE", "sigaltstack", "io_uring", "RLIMIT_AS", "mimalloc", "R_X86_64_TPOFF32",
                   "one handle per thread", "Undefined behaviour", "do not see the Lean heap",
@@ -499,9 +492,9 @@ def dict_entries(src, name):
 
 
 def check_numbers():
-    exp = first_existing("tests/proofs/THEOREMS.expected", "ci/THEOREMS.expected")
-    txt = first_existing("tests/proofs/theorems.txt", "audit/proofs/theorems.txt")
-    engine_dir = first_existing("tests/engine", "ffi/python-example") or "tests/engine"
+    exp = required("numbers", "tests/proofs/THEOREMS.expected")
+    txt = required("numbers", "tests/proofs/theorems.txt")
+    engine_dir = "tests/engine"
     v = read("verify.sh")
     faults = read(f"{engine_dir}/client_faults.py") if exists(f"{engine_dir}/client_faults.py") else ""
     robust = read(f"{engine_dir}/client_robustness.py") if exists(f"{engine_dir}/client_robustness.py") else ""
@@ -630,9 +623,8 @@ def run_env():
     env = dict(os.environ)
     env["PATH"] = BIN + os.pathsep + env.get("PATH", "")
     env["LC_ALL"] = "C.UTF-8"
-    py = first_existing("clients/python", "ffi/python-example")
-    if py:
-        env["PYTHONPATH"] = os.path.join(ROOT, py) + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
+    py = os.path.join(ROOT, "clients", "python")
+    env["PYTHONPATH"] = py + (os.pathsep + env["PYTHONPATH"] if env.get("PYTHONPATH") else "")
     env.pop("FIGRAM_ALLOW_MUTANTS", None)
     return env
 

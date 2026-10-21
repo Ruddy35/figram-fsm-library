@@ -3,8 +3,9 @@
 #   tests/capi/init_race.sh BIN N [SUBTEST]   — exit code 0 only if all N processes succeed.
 #   SUBTEST: init_race (default; two threads, explicit figram_init) or
 #            lazy_race (8 threads, no figram_init: lazy initialization in load/request).
+BIN=${1:-}; case $BIN in ""|/*) ;; *) BIN=$PWD/$BIN;; esac   # relative to the caller's directory
 cd "$(dirname "$0")/../.."
-BIN=${1:-tests/capi/out/contract}; N=${2:-200}; SUB=${3:-init_race}
+BIN=${BIN:-tests/capi/out/contract}; N=${2:-200}; SUB=${3:-init_race}
 declare -A codes; fail=0
 for i in $(seq 1 "$N"); do
   timeout 20 "$BIN" "$SUB" examples/pizza.bot.json > /dev/null 2>&1; rc=$?

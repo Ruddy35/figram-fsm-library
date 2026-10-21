@@ -11,7 +11,7 @@ Property P (expected of a safe CLI): stdout/stderr of `figram check`,
 than the LF that ends each diagnostic line, and `check` never prints a line
 that is exactly "ok" when it exits non-zero.
 
-Rows marked FC-06 are expected to violate P on the baseline (finding).
+Rows marked FC-06 violate P on the baseline (commit d69bbaf, before the fix).
 `--control` runs the same rows with harmless names: P must hold (shows the
 detector is not trivially red).  `--strict` makes FC-06 rows count.
 

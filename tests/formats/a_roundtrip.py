@@ -25,8 +25,8 @@ and check, for every variant x:
       `figram trace x 3 8 <seed>` are byte-identical to the base document
       (C5a: annotations / defaults / number spelling do not change behaviour)
 
-Known finding rows (FC-01) are run separately (see EDGE below) and are
-expected to FAIL on the baseline; use --strict to make them count.
+Rows of a fixed defect (FC-01) are run separately (see EDGE below); they
+FAIL on the baseline (commit d69bbaf); use --strict to make them count.
 
     python3 a_roundtrip.py [--seeds N] [--break ORACLE_BUG] [--strict]
 """

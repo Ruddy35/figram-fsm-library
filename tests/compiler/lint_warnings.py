@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""P-24 / CC-05 / ET-05 / FC-07: `figram check` warns about designer mistakes that
+"""`figram check` warns about designer mistakes that
 are valid documents, and names the root section "bot".
 
   python3 lint_warnings.py --figram BIN

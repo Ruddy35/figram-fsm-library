@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""P-06 / P-07: load time (check + compile) and step cost on large documents.
+"""Load time (check + compile) and step cost on large documents.
 
   python3 perf_scale.py --engine BIN --figram BIN [--only a,b] [--load-timeout S]
                         [--steps N] [--check] [--out results.jsonl]
                         [--max-load-s S] [--max-step-us U]
 
-Scenarios are the series of the audit agents host-perf (gen_scale_doc.py = their
-gen_doc.py) and core-compiler (perf.py).  For each document:
+Scenarios are the scalability series of gen_scale_doc.py and perf.py.  For each document:
   * load:  CPU and wall time of `figram-engine DOC` answering one `hello` and exiting
            (parse + check + compile + wf/namesOK), measured with wait4 rusage;
   * check: (with --check) CPU of `figram check DOC`;
@@ -39,7 +38,7 @@ def gen(**kw):
 
 G = "btn:next"   # guarded event of gen_scale_doc messages (c1 … else)
 SCEN = {
-    # host-perf series
+    # gen_scale_doc.py series
     "states1000": (lambda f: gen(states=1000, branches=2, resume=1, timers=0), ["btn:none", G, "cmd:start"]),
     "states3000": (lambda f: gen(states=3000, branches=2, resume=1, timers=0), ["btn:none", G, "cmd:start"]),
     "unique1000": (lambda f: gen(states=1000, branches=2, resume=1, timers=10, events="unique"),

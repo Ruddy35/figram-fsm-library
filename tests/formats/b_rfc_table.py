@@ -9,8 +9,8 @@ Each row: (id, input bytes, expected `figram json` line, class).
                     docs/format.md, section 3, "Numbers"): Python json differs;
             model — Figram's exact m·10^e model prints the value differently
                     from Python's float (value-equal);
-            fc01 / fc02 / fc03 — rows of findings of the formats audit (fc01, fc03 fixed:
-                    their rows now expect the fixed behaviour).
+            fc01 / fc02 / fc03 — rows of the defects found during the audit (fc01,
+                    fc03 fixed: their rows now expect the fixed behaviour).
 
 Checks, for every row:
   T1  figram output == expected column (handwritten);
@@ -180,7 +180,7 @@ T = [
 ]
 
 # Byte-level rows: invalid UTF-8 on the stdin line.  RFC 8259 §8.1: text MUST be
-# UTF-8; Python json.loads(bytes) raises.  At the audit Figram's stream path
+# UTF-8; Python json.loads(bytes) raises.  Before the fix Figram's stream path
 # replaced invalid bytes with U+FFFD (finding FC-03: `"\xff"` and `"\xfe"` became
 # the same string); since the fix `figram json` and `figram-engine` read bytes and
 # reject a line that is not UTF-8, like `figram check` rejects such a file.

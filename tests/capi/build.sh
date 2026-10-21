@@ -4,8 +4,9 @@
 # linker flags come from ffi/out/LDFLAGS).
 #   tests/capi/build.sh [OUT]   (default tests/capi/out)
 set -euo pipefail
+OUT=${1:-}; case $OUT in ""|/*) ;; *) OUT=$PWD/$OUT;; esac   # relative to the caller's directory
 cd "$(dirname "$0")/../.."
-OUT=${1:-tests/capi/out}
+OUT=${OUT:-tests/capi/out}
 bash ffi/build.sh >/dev/null
 P=$(lean --print-prefix)
 O=.lake/build/ir/Figram

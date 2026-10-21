@@ -57,8 +57,8 @@ done
 lake build --no-build figram figram-engine >/dev/null 2>&1 \
   || die "$B is not up to date with the sources: run lake build figram figram-engine"
 [ -f ffi/out/libfigram.a ] && [ -f ffi/out/LDFLAGS.runtime ] || die "ffi/out is missing: run bash ffi/build.sh"
-stale=$(find ffi -maxdepth 1 -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \) -newer ffi/out/libfigram.a)
-stale+=$(find .lake/build/ir -name '*.c.o.export' -newer ffi/out/libfigram.a 2>/dev/null)
+stale=$(find ffi -maxdepth 1 -type f \( -name '*.c' -o -name '*.cpp' -o -name '*.h' \) -newer ffi/out/libfigram.a
+        find .lake/build/ir -name '*.c.o.export' -newer ffi/out/libfigram.a)
 [ -z "$stale" ] || die "ffi/out/libfigram.a is older than $(echo $stale): run bash ffi/build.sh"
 [ -f ffi/figram.h ] || die "ffi/figram.h is missing"
 if git rev-parse --git-dir >/dev/null 2>&1; then
