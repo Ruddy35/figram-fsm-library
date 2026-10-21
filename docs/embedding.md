@@ -242,11 +242,15 @@ threads, the system thread stack size).
 
 ## Go
 
-The reference wrapper lives in [`clients/go`](../clients/go). It is a cgo wrapper (`Init`,
-`SetMaxRequest`, `Load`, `Bot.Request`, `Bot.Close`) together with the `gofig` test driver that
-replays reference scenarios from many goroutines. Both are one `main` package (module `gofig`):
-to use the wrapper, copy its part of `main.go` into your own package (a standalone Go module is
-planned).
+For Go programs use the module [`github.com/Ruddy35/ffl-go`](https://github.com/Ruddy35/ffl-go)
+(`go get github.com/Ruddy35/ffl-go@v0.1.0`): a typed API (`Load`, `Start`, `Step`, `Timer`,
+`Restart`, `Decide`, `Check`, `Fmt`) over this C ABI that bundles the static libraries of the
+release for linux/amd64, so no build of this repository is needed.
+
+The reference wrapper used by the tests of this repository lives in
+[`clients/go`](../clients/go). It is a cgo wrapper (`Init`, `SetMaxRequest`, `Load`,
+`Bot.Request`, `Bot.Close`) together with the `gofig` test driver that replays reference
+scenarios from many goroutines. Both are one `main` package (module `gofig`).
 
 * `Load(doc)` initializes the runtime on first use (`sync.Once`) and returns a `*Bot`, or an
   error with the reason of the failed load (`figram_load_doc_ex_n`).

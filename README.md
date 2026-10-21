@@ -58,6 +58,9 @@ The proved Lean code is what runs: it is compiled into
 * Embedding with minimal side effects on the host process: initialization creates no threads,
   file descriptors or signal handlers (the `SIGPIPE` disposition that the Lean runtime changes is
   restored), and works under `RLIMIT_AS` ([docs/embedding.md](docs/embedding.md)).
+* Go module [`github.com/Ruddy35/ffl-go`](https://github.com/Ruddy35/ffl-go): a typed Go API
+  over the embedded engine, with the release libraries bundled (`go get` is enough on
+  linux/amd64).
 * Reference clients: a Python client with a pool of engine processes, and a Go cgo wrapper.
 
 ## Quick start
@@ -191,7 +194,8 @@ cc host.c -I ffi $(cat ffi/out/LDFLAGS)
 
 The C ABI (initialization, ownership, strings, threads, side effects, memory limits), a complete
 C example and the Go wrapper in [`clients/go`](clients/go) are described in
-[docs/embedding.md](docs/embedding.md).
+[docs/embedding.md](docs/embedding.md). For Go programs, the module
+[`github.com/Ruddy35/ffl-go`](https://github.com/Ruddy35/ffl-go) bundles the library.
 
 ### Python client
 
