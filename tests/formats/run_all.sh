@@ -61,6 +61,12 @@ expect 0 e-cli-strict           python3 "$here/e_cli_names.py" --strict --tmp "$
 expect 0 e-cli-control          python3 "$here/e_cli_names.py" --control --tmp "$T"
 expect 0 f-parser-scaling       python3 "$here/f_parser_scaling.py" --figram "$FIGRAM" \
   --engine "$FIGRAM_ENGINE" --check --tmp "$T"
+# FC-01 at the Lean level: every number text `parse` accepts is printed back into parseable text
+if command -v lake >/dev/null; then
+  expect 0 fc01-lean-check      lake env lean "$here/fc01_lean_check.lean"
+else
+  echo "fc01-lean-check: skipped (lake is not installed)"
+fi
 if [ -n "${FIGRAM_OLD:-}" ]; then
   expect 0 f-parser-diff        python3 "$here/f_parser_diff.py" "$FIGRAM_OLD" "$FIGRAM" --n 60000
 fi

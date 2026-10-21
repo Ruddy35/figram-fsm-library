@@ -69,4 +69,6 @@ for t in rename_nodes annotations unreachable_resume shuffle_children; do
 step 0 check-diff timeout 840 python3 check_diff.py --engine "$ENGINE" --docs 20
 step 0 red-check-diff timeout 300 python3 check_diff.py --engine "$ENGINE" --docs 1 --oracle-accept-all --expect-red
 step 0 lint-gaps python3 lint_gaps.py --figram "$FIGRAM" --engine "$ENGINE"
+# the warnings of `figram check` (CC05=fixed): expected fragments, and none on clean documents
+if [ "${CC05:-fixed}" = fixed ]; then step 0 lint-warnings python3 lint_warnings.py --figram "$FIGRAM"; fi
 exit $fail
