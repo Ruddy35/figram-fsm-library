@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hypothesis 3: documents with designer mistakes that `figram check` accepts
+"""Documents with designer mistakes that `figram check` used to accept
 silently.  For every case the script (1) runs `figram check`, (2) proves the
 defect is real with the engine (the arrow/variant is unreachable, or a guard
 is requested although it cannot matter).
@@ -7,8 +7,9 @@ is requested although it cannot matter).
   python3 lint_gaps.py --figram BIN --engine BIN
 
 Prints one line per case: check verdict + engine evidence.  Exit 0 when every
-case behaves as documented in REPORT.md (accepted by check, defect observable)
-and, since P-24 (CC05=fixed, default), `check` warns about each defect on stderr."""
+case behaves as expected (accepted by check, defect observable) and `check`
+warns about each defect on stderr (CC05=fixed, the default; CC05=baseline
+expects the silent acceptance of the baseline, commit d69bbaf)."""
 
 import argparse
 import json
@@ -63,7 +64,7 @@ def check(figram, doc):
     return p.returncode, p.stdout.strip(), [ln for ln in p.stderr.splitlines() if ln.strip()]
 
 
-# CC05=fixed (default, P-24): `check` still accepts (exit 0, "ok") but warns on stderr;
+# CC05=fixed (default): `check` still accepts (exit 0, "ok") but warns on stderr;
 # CC05=baseline: the original observation (accepted silently).
 WARN = {
     "timer_arrow_on_non_owner": "arrow `timer:t` on `a` never fires",
@@ -125,7 +126,7 @@ def evidence(engine, name, doc):
 
 
 EXPECT = {
-    # CC-01 fixed: a foreign snapshot entry no longer fires the arrow on a non-owner (stays on a);
+    # CC01=fixed (default): a foreign snapshot entry no longer fires the arrow on a non-owner (stays on a);
     # CC01=baseline: the original observation (the arrow fires, user moves to z).
     "timer_arrow_on_non_owner": lambda ev: ev["fire_on_a"] == [] and ev["fire_with_foreign_entry"] == (
         "z" if os.environ.get("CC01") == "baseline" else "a"),
@@ -133,7 +134,7 @@ EXPECT = {
     "resume_only_from_inside": lambda ev: ev["back_goes_to"] == ev["at_before"],
     "variant_after_unconditional": lambda ev: ev["targets_reached_for_all_c1"] == ["b"],
     "duplicate_guard_in_arrow": lambda ev: "c" not in ev["targets_reached_for_all_c1"],
-    # P-14 fixed (CC04=fixed, default): the shadowed guard is not requested, the step goes to b;
+    # CC04=fixed (default): the shadowed guard is not requested, the step goes to b;
     # CC04=baseline: the original observation (need ["c2"]).
     "need_for_shadowed_section_guard": lambda ev: (
         ev["engine_reply"].get("need") == ["c2"] if os.environ.get("CC04") == "baseline"

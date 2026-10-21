@@ -102,7 +102,7 @@ def expText : String :=
   | .ok d => d.check.isEmpty
   | .error _ => false
 -- On baseline d69bbaf the canonical text written by `print (encode d)` (what `figram fmt`
--- writes) is "…15e-1001" and is REJECTED by `parse` (LOGS/09-counterexamples.stdout).
+-- writes) is "…15e-1001" and is REJECTED by `parse`.
 -- The fix in Figram/FormatIO.lean (`render`) makes it parse; the asserting regression test
 -- is tests/proofs/TextRoundTrip.lean. Here we only show the current behaviour:
 #eval match parse expText >>= decode with

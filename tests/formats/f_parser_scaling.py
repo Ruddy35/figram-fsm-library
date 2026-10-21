@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""(f) Scaling benchmark of the JSON text layer (P-10): time and peak RSS of
+"""(f) Scaling benchmark of the JSON text layer: time and peak RSS of
 `figram json` and `figram-engine` on ordinary large inputs.
 
 Inputs (all well-formed, ≤ 20 MB): an object with 16k / 32k keys, numbers with
@@ -14,9 +14,9 @@ the method — the same for a trivial child — is printed first).
 
 With --check the run fails (exit 1) if any input exceeds its budget: time
 ≤ 1.5 s per input for keys/digits, ≤ 3 s for strings, and peak RSS ≤ 8 × input
-size + 64 MiB.  The baseline parser (List Char, linear duplicate-key search,
-digit-by-digit Nat accumulation) needs 4.5 s for 32k keys, ≈10 s for 160k digits
-and ≈50 × the input in RSS (agents/formats-security, ISSUES_PRODUCT P-10).
+size + 64 MiB.  The parser before its rewrite (baseline commit d69bbaf: List
+Char, linear duplicate-key search, digit-by-digit Nat accumulation) needed 4.5 s
+for 32k keys, ≈10 s for 160k digits and ≈50 × the input in RSS.
 """
 
 import argparse

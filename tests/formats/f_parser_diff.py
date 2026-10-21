@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """(f) Differential test of two builds of the JSON text layer: OLD vs NEW `figram json`.
 
-Used for P-10 (parser rewritten from `List Char` to byte positions, hash set of
-keys, divide-and-conquer digit conversion, divide-and-conquer number printing):
-the accepted language, the parsed value, the printed text AND the error text
-must be byte-identical.  OLD is the baseline binary (fix/base), NEW the branch.
+Written for the rewrite of the parser (from `List Char` to byte positions, hash
+set of keys, divide-and-conquer digit conversion and number printing): the
+accepted language, the parsed value, the printed text AND the error text must be
+byte-identical.  OLD is the build before a change, NEW the build after it.
 
 Inputs (all valid UTF-8, one per line, no LF inside a line):
   * every text row of the RFC edge table (b_rfc_table.T);

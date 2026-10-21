@@ -11,8 +11,10 @@ oracle itself is validated against the prose, too).
 
 group conformance: behaviour the spec states explicitly (must pass).
 group findings:    designer-level expectations that the baseline VIOLATES
-                   (regression tests for the findings in REPORT.md; they are
-                   expected to FAIL on baseline).
+                   (commit d69bbaf, the code before the audit fixes; audit archive:
+                   commit 16c885a): regression tests of the defects found during the
+                   audit (H2 timers after a document upgrade, H3 `need`); they pass
+                   on the current engine and FAIL on the baseline.
 """
 
 import argparse

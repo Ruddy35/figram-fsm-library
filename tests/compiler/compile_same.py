@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""The compiled automaton of two builds has the same shape (P-06/P-07 regression).
+"""The compiled automaton of two builds has the same shape (a regression test for
+the faster document load and the indexed row lookup of `step`).
 
   python3 compile_same.py --old-figram F --old-engine E --new-figram F --new-engine E [--docs N]
 

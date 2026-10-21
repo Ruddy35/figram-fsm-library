@@ -6,10 +6,12 @@
 # $FIGRAM and $FIGRAM_ENGINE (default .lake/build/bin/figram and figram-engine).
 # Exit code 0 only if every run gave its expected exit code.
 # Expected: normal runs exit 0; every --break / mutant run exits 1.  The --strict
-# runs count rows of audit findings as failures: FC-01 (P-12), FC-06 (P-13) and
-# FC-03 (invalid UTF-8, P-18) are fixed, so they exit 0 now (they exited 1 on the
-# audit baseline).  f-parser-scaling (P-10) checks time/RSS budgets; f-parser-diff
-# runs only when FIGRAM_OLD names a baseline `figram` to compare with.
+# runs count the rows of the defects found during the audit as failures: FC-01 (an
+# exponent printed by `fmt` that the parser rejects), FC-06 (control bytes of document
+# names in diagnostics) and FC-03 (invalid UTF-8) are fixed, so they exit 0 now (they
+# exited 1 on the baseline: commit d69bbaf, the code before the audit fixes; audit
+# archive: commit 16c885a).  f-parser-scaling checks time/RSS budgets of the parser;
+# f-parser-diff runs only when FIGRAM_OLD names another `figram` to compare with.
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 abs() { case $1 in /*) echo "$1";; *) echo "$PWD/$1";; esac; }
