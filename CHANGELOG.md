@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file. The format is b
 snapshot formats, the engine protocol (operations, JSON field names, error `code` values), the CLI
 command names and the exit statuses; the texts of messages are for humans and may change.
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-10-21
 
 First release. It follows an independent audit and fix cycle; the audit reports, logs and
 harnesses are not part of the tree and are preserved at commit
