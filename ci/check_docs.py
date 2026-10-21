@@ -6,8 +6,8 @@
 Exit status 0 when the documentation agrees with the code, 1 when it does not (every problem is
 listed), 2 on a usage error. The checks:
 
-  paths      every relative link and every repository path mentioned in README.md and docs/*.md
-             exists (generated outputs such as .lake/ and ffi/out/ are exempt);
+  paths      every relative link and every repository path mentioned in the Markdown files at the
+             root and in docs/ exists (generated outputs such as .lake/ and ffi/out/ are exempt);
   theorems   the pinned theorems listed in docs/proofs.md equal tests/proofs/THEOREMS.expected,
              and every theorem name mentioned in the documentation exists in the Lean sources;
   codes      the error codes in docs/format.md equal the codes the engine produces
@@ -21,6 +21,16 @@ listed), 2 on a usage error. The checks:
              ffi/figram.h, which equal the functions exported by ffi/figram_ffi.c;
   numbers    numbers that the documentation states about the tests equal their sources;
   cyrillic   no Cyrillic text in the Markdown files at the root and in docs/;
+  refs       references such as `[x.md](x.md), section N`, `section N, "Title"`, `README, "Title"`
+             and a bare `section N` (of the document itself) name sections, decisions, headings or
+             bold labels that exist;
+  gates      the numbered steps of ./verify.sh in docs/testing.md match the steps of verify.sh,
+             every job and suite of ci.yml is described there, every job of release.yml is named
+             in docs/releasing.md;
+  build      the `lake build` command of ffi/build.sh and the documents of each release archive
+             (ci/package.sh) are the ones the documentation states;
+  licenses   LICENSE is the MIT license of "Figram contributors"; the license texts of
+             THIRD_PARTY_NOTICES.md are complete (pinned hashes of the verified texts);
   examples   runnable examples run and print what the documentation shows (skipped with --no-run):
                ```sh doctest      `$ ` starts a command, `> ` continues it, other lines are the
                                   expected stdout; `...` in a line matches any text, a line `...`
@@ -202,7 +212,7 @@ def path_like(token):
 
 
 def check_paths():
-    for path in DOC_PATHS:
+    for path in sorted(DOCS):
         d = DOCS[path]
         base = os.path.dirname(path)
         for n, line in d.prose:
@@ -769,10 +779,191 @@ def check_examples():
     notes.append(f"runnable examples: {n}")
 
 
+# ---------------------------------------------------------------- cross references
+
+def numbered_sections(text):
+    """{N: section text} for the headings `## N. Title`."""
+    out = {}
+    parts = re.split(r"^(## (\d+)\. .*)$", text, flags=re.M)
+    for i in range(1, len(parts) - 2, 3):
+        out[int(parts[i + 1])] = parts[i + 2]
+    return out
+
+
+def titles(text):
+    """Heading titles (without a leading `N. `) and bold paragraph labels (`**Title.**`)."""
+    found = {re.sub(r"^\d+\.\s+", "", m) for m in re.findall(r"^#+\s+(.*?)\s*$", text, re.M)}
+    found |= set(re.findall(r"\*\*([^*\n]+?)\.\*\*", text))
+    return found
+
+
+def check_refs():
+    """`[x.md](x.md), section N`, `section N, "Title"`, `[x.md](x.md), "Title"` and
+    `README, "Title"` point at a section or heading that exists; a bare `section N` refers to the
+    numbered sections of the document itself."""
+    for path in sorted(DOCS):
+        d = DOCS[path]
+        text = flat(d.prose_text())
+        base = os.path.dirname(path)
+        explicit = set()
+        rx = (r'\]\(([^)#\s]+\.md)\)[\w ,(]{0,12}?\bsection (\d+)(?:, decision (\d+))?(?:, "([^"]+)")?'
+              r'|\]\(([^)#\s]+\.md)\),? "([^"]+)"|\bREADME,? "([^"]+)"')
+        for m in re.finditer(rx, text):
+            target = m.group(1) or m.group(5)
+            tpath = "README.md" if m.group(7) else os.path.normpath(os.path.join(base, target))
+            if tpath not in DOCS:
+                continue          # a missing link target is reported by the paths check
+            ttext = DOCS[tpath].text
+            where = f"{path}: `{m.group(0)[:60]}`"
+            if m.group(2):
+                explicit.add(m.start(2))
+                secs = numbered_sections(ttext)
+                n = int(m.group(2))
+                if n not in secs:
+                    fail("refs", f"{where}: {tpath} has no section {n}")
+                    continue
+                if m.group(3) and not re.search(rf"^\s*{m.group(3)}\. ", secs[n], re.M):
+                    fail("refs", f"{where}: section {n} of {tpath} has no decision {m.group(3)}")
+                if m.group(4) and m.group(4) not in titles(secs[n]):
+                    fail("refs", f"{where}: section {n} of {tpath} has no heading or label '{m.group(4)}'")
+            else:
+                title = m.group(6) or m.group(7)
+                if title not in titles(ttext):
+                    fail("refs", f"{where}: {tpath} has no heading or label '{title}'")
+        own = numbered_sections(d.text)
+        for m in re.finditer(r'\bsection (\d+)(?:, "([^"]+)")?', text):
+            if m.start(1) in explicit:
+                continue
+            n = int(m.group(1))
+            if not own:
+                fail("refs", f"{path}: `{m.group(0)}` names no document, and {path} has no numbered sections")
+            elif n not in own:
+                fail("refs", f"{path}: `{m.group(0)}`: there is no section {n} in {path}")
+            elif m.group(2) and m.group(2) not in titles(own[n]):
+                fail("refs", f"{path}: `{m.group(0)}`: section {n} has no heading or label '{m.group(2)}'")
+
+
+# ---------------------------------------------------------------- gate steps, CI jobs, release
+
+def yaml_jobs(src):
+    """{job id: name} of a workflow file (`name:` of the job, or its id)."""
+    body = src.split("\njobs:\n", 1)[1] if "\njobs:\n" in src else ""
+    jobs = {}
+    for m in re.finditer(r"^  ([\w-]+):\n((?:    .*\n|\s*\n)*)", body, re.M):
+        nm = re.search(r"^    name: (.+)$", m.group(2), re.M)
+        jobs[m.group(1)] = nm.group(1).strip() if nm else m.group(1)
+    return jobs
+
+
+def check_gates():
+    # The numbered step list of docs/testing.md has one item per `step` of verify.sh.
+    t = doc("docs/testing.md")
+    if t is None:
+        return
+    sec = t.section("`./verify.sh`") or ""
+    items = [int(x) for x in re.findall(r"^(\d+)\. \*\*", sec.split("Steps, in order:", 1)[-1], re.M)]
+    steps = re.findall(r'^\s*step "([^"]+)"', read("verify.sh"), re.M)
+    if items != list(range(1, len(items) + 1)):
+        fail("gates", f"docs/testing.md: the steps of ./verify.sh are not numbered 1, 2, …: {items}")
+    if len(items) != len(steps):
+        fail("gates", f"docs/testing.md lists {len(items)} steps of ./verify.sh, verify.sh has {len(steps)}: "
+                      + "; ".join(steps))
+    # Every CI job and suite is described in docs/testing.md, "Continuous integration".
+    ci = read(".github/workflows/ci.yml")
+    cisec = flat(t.section("Continuous integration") or "")
+    if not cisec:
+        fail("gates", "docs/testing.md: no section 'Continuous integration'")
+    for job, name in yaml_jobs(ci).items():
+        if "${{" in name:
+            continue
+        if f"**{name}**" not in cisec:
+            fail("gates", f"docs/testing.md, 'Continuous integration': the ci.yml job '{name}' is not described")
+    for suite in re.findall(r"\{ suite: ([\w-]+),", ci):
+        if f"**suite {suite}**" not in cisec:
+            fail("gates", f"docs/testing.md, 'Continuous integration': the ci.yml suite '{suite}' is not described")
+    rel = doc("docs/releasing.md")
+    if rel is None:
+        return
+    rtext = flat(rel.text)
+    for job, name in yaml_jobs(read(".github/workflows/release.yml")).items():
+        if f"`{name}`" not in rtext:
+            fail("gates", f"docs/releasing.md does not describe the release.yml job `{name}`")
+    names = set(yaml_jobs(ci).values()) | set(yaml_jobs(read(".github/workflows/release.yml")).values())
+    for nm in re.findall(r"`([^`]+)` job", rtext):
+        if nm not in names:
+            fail("gates", f"docs/releasing.md names the job `{nm}`, the workflows have {sorted(names)}")
+
+
+def check_build():
+    # The lake build command of ffi/build.sh.
+    emb = doc("docs/embedding.md")
+    build = read("ffi/build.sh")
+    m = re.search(r"^(lake build [^\n#]+?)\s*$", build, re.M)
+    stated = re.search(r"`ffi/build.sh` runs `(lake build [^`]+)`", flat(emb.text)) if emb else None
+    if not m or not stated or stated.group(1) != m.group(1):
+        fail("build", f"docs/embedding.md: ffi/build.sh runs {stated.group(1) if stated else None!r}, "
+                      f"ffi/build.sh has {m.group(1) if m else None!r}")
+    # The documentation files of each release archive (docs/releasing.md, 'Release assets').
+    pkg = read("ci/package.sh")
+    shipped = {k: set(v.split()) for k, v in re.findall(r'^put_docs "\$(cli|lib)" (.+)$', pkg, re.M)}
+    rel = doc("docs/releasing.md")
+    sec = rel.section("Release assets") if rel else None
+    for kind, asset in (("cli", "figram-X.Y.Z-linux-x86_64.tar.gz"), ("lib", "libfigram-X.Y.Z-linux-x86_64.tar.gz")):
+        row = re.search(rf"^\| `{re.escape(asset)}` \|(.*)\|\s*$", sec or "", re.M)
+        listed = {x for x in re.findall(r"`([^`]+)`", row.group(1)) if x == "LICENSE" or x.endswith(".md")} if row else set()
+        if kind not in shipped or listed != shipped[kind]:
+            fail("build", f"docs/releasing.md lists the documents {sorted(listed)} in {asset}, "
+                          f"ci/package.sh ships {sorted(shipped.get(kind, ()))}")
+
+
+# ---------------------------------------------------------------- licenses
+
+# SHA-256 of each license text of THIRD_PARTY_NOTICES.md with whitespace collapsed. The texts were
+# compared with /usr/share/common-licenses (Apache-2.0, GPL-2, GPL-3, LGPL-2.1, LGPL-3), with the
+# LICENSES file of the Lean 4.35.0 release (LLVM exceptions, NCSA) and with LICENSE (MIT); a
+# truncated or edited text changes its hash.
+LICENSE_TEXTS = {
+    "MIT License": "fe2a9817987f862e",
+    "ISC License": "4829cc8e654be69d",
+    "Apache License 2.0": "0ffddef9e48f8a09",
+    "LLVM Exceptions to the Apache 2.0 License": "453a29d27b599de6",
+    "University of Illinois/NCSA Open Source License": "adf83ed2aae50079",
+    "GNU Lesser General Public License version 3": "690578875bea796f",
+    "GNU General Public License version 3": "972a178adadacfbd",
+    "GNU General Public License version 2": "29aca396a145fe07",
+    "GNU Lesser General Public License version 2.1": "749f03a5886beb4d",
+}
+
+
+def check_licenses():
+    import hashlib
+    lic = read("LICENSE")
+    if not lic.startswith("MIT License\n\nCopyright (c) 2026 Figram contributors\n"):
+        fail("licenses", "LICENSE does not start with the MIT title and 'Copyright (c) 2026 Figram contributors'")
+    tpn = read("THIRD_PARTY_NOTICES.md")
+    texts = re.findall(r"^### (.*?)\n\n```text\n(.*?)\n```", tpn, re.S | re.M)
+    seen = set()
+    for title, body in texts:
+        key = next((k for k in sorted(LICENSE_TEXTS, key=len, reverse=True) if title.startswith(k + " ")), None)
+        if key is None:
+            fail("licenses", f"THIRD_PARTY_NOTICES.md: no pinned text for '{title}' (add it to LICENSE_TEXTS)")
+            continue
+        seen.add(key)
+        h = hashlib.sha256(re.sub(r"\s+", " ", body).strip().encode()).hexdigest()[:16]
+        if h != LICENSE_TEXTS[key]:
+            fail("licenses", f"THIRD_PARTY_NOTICES.md: the text of '{title}' changed (sha256 {h}…, pinned "
+                             f"{LICENSE_TEXTS[key]}…): compare it with the license and update the pin")
+        if lic.split("\n\n", 2)[-1].split() != body.split() and key == "MIT License":
+            fail("licenses", "THIRD_PARTY_NOTICES.md: the MIT text differs from LICENSE")
+    for key in sorted(set(LICENSE_TEXTS) - seen):
+        fail("licenses", f"THIRD_PARTY_NOTICES.md: the text of '{key}' is missing")
+
+
 # ---------------------------------------------------------------- main
 
 CHECKS = [("paths", check_paths), ("theorems", check_theorems), ("codes", check_codes), ("cli", check_cli),
-          ("capi", check_capi), ("numbers", check_numbers), ("cyrillic", check_cyrillic)]
+          ("capi", check_capi), ("numbers", check_numbers), ("cyrillic", check_cyrillic), ("refs", check_refs),
+          ("gates", check_gates), ("build", check_build), ("licenses", check_licenses)]
 if not args.no_run:
     CHECKS.append(("examples", check_examples))
 for name, fn in CHECKS:

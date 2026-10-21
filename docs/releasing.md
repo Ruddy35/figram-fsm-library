@@ -131,7 +131,7 @@ For a release made by the workflow:
   the draft's target).
 * **Toolchain.** Lean is the official release archive whose SHA-256 is pinned in
   `ci/lean-toolchain.sha256`; GitHub Actions are pinned by commit SHA.
-* **Write access.** Only the `draft release` job, which runs no code of the repository, can write
+* **Write access.** Only the job `draft release`, which runs no code of the repository, can write
   to the repository; it uploads the archives whose `SHA256SUMS` it checked.
 * **Gate.** `verify.sh` (build without warnings, theorem gates, engine, protocol, client, C ABI and Go
   tests) exited 0 on a clean rebuild of that commit, and the rebuilt stripped binaries are

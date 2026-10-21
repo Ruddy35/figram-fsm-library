@@ -196,8 +196,8 @@ linked with the stock runtime start-up, in which the event-loop functions must b
 `python3 ci/check_docs.py` (Python 3, standard library only) checks the documentation against
 the repository and exits with status 0 when they agree:
 
-* every relative link and every repository path mentioned in `README.md` and `docs/*.md`
-  exists;
+* every relative link and every repository path mentioned in the Markdown files at the root and
+  in `docs/` exists;
 * the theorems listed in [proofs.md](proofs.md) equal the pinned list in
   `tests/proofs/THEOREMS.expected`, and every theorem name mentioned in the documentation exists
   in the Lean sources;
@@ -211,6 +211,15 @@ the repository and exits with status 0 when they agree:
   and prints the output shown, with `...` standing for any text;
 * the numbers the documentation states about the tests (pinned theorems, golden scenarios,
   minimum numbers of mutants and checks) equal their sources;
+* references to sections (`section N`, `section N, decision M`, a quoted heading) point at
+  sections, decisions and headings that exist;
+* the numbered steps of `./verify.sh` above match `verify.sh`, every job and suite of `ci.yml` is
+  described in "Continuous integration", and every job of `release.yml` in
+  [releasing.md](releasing.md);
+* the `lake build` command of `ffi/build.sh` and the documents of each release archive are the
+  ones stated in [embedding.md](embedding.md) and [releasing.md](releasing.md);
+* `LICENSE` is the MIT license of the Figram contributors, and the license texts in
+  `THIRD_PARTY_NOTICES.md` are complete (their hashes are pinned);
 * no Cyrillic text remains in the Markdown files at the root and in `docs/`.
 
 Options: `--bin DIR` (directory with `figram` and `figram-engine`, default `.lake/build/bin`),
