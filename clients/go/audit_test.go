@@ -1,9 +1,9 @@
 package main
 
-// Аудит обёртки Bot (ffi-go): Close против потока Request, неверный op,
-// NUL в строках, большие запросы, масштабирование и длительная нагрузка.
-// Длительные тесты включаются переменными окружения:
-//   FIGRAM_SCALING=секунд_на_замер  FIGRAM_SOAK=секунд  FIGRAM_SIGNALS=секунд
+// Edge cases of the Bot wrapper: Close during a stream of Requests, an invalid op,
+// NUL in strings, large requests, scaling and a soak test.
+// The long tests are enabled by environment variables:
+//   FIGRAM_SCALING=seconds_per_measurement  FIGRAM_SOAK=seconds  FIGRAM_SIGNALS=seconds
 
 import (
 	"encoding/json"
@@ -33,8 +33,8 @@ func auditDoc(t testing.TB) string {
 
 var stepReq = map[string]any{"op": "step", "snapshot": map[string]any{"at": "menu"}, "event": "btn:order"}
 
-// Close из нескольких горутин посреди потока Request: ни паники, ни гонки,
-// до Close — корректные ответы, после — только ошибка «автомат освобождён».
+// Close from several goroutines in the middle of a stream of Requests: no panic, no race;
+// correct replies before Close, only the "bot is closed" error after it.
 func TestAuditCloseRequestStorm(t *testing.T) {
 	doc := auditDoc(t)
 	var ok, closed, other atomic.Int64
@@ -59,7 +59,7 @@ func TestAuditCloseRequestStorm(t *testing.T) {
 					switch {
 					case err == nil && v == "result":
 						ok.Add(1)
-					case err != nil && err.Error() == "автомат освобождён":
+					case err != nil && err.Error() == "bot is closed":
 						closed.Add(1)
 					default:
 						other.Add(1)
@@ -94,8 +94,8 @@ func requestNoPanic(b *Bot, req map[string]any) (resp map[string]any, v string, 
 	return
 }
 
-// Request({"op":"hello"}) на ОТКРЫТОМ автомате: проверка в main.go «запрос после
-// Close не отвергнут» использует именно hello и потому не может покраснеть.
+// Request({"op":"hello"}) on an OPEN bot must succeed: otherwise the check "request after
+// Close was not rejected" in main.go, which uses hello, could never fail.
 func TestAuditHelloAlwaysError(t *testing.T) {
 	bot, err := Load(auditDoc(t))
 	if err != nil {
@@ -109,7 +109,7 @@ func TestAuditHelloAlwaysError(t *testing.T) {
 	}
 }
 
-// Request без op или с op не-строкой: движок отвечает error, обёртка не должна паниковать.
+// Request without op or with a non-string op: the engine replies with an error, the wrapper must not panic.
 func TestAuditRequestBadOp(t *testing.T) {
 	bot, err := Load(auditDoc(t))
 	if err != nil {
@@ -126,7 +126,7 @@ func TestAuditRequestBadOp(t *testing.T) {
 			t.Errorf("Request(%v) = %v %q %v, want error variant", req, resp, v, err)
 		}
 	}
-	// После паники (если была) RWMutex не должен остаться захваченным.
+	// After a panic (if any) the RWMutex must not stay locked.
 	done := make(chan struct{})
 	go func() { bot.Close(); close(done) }()
 	select {
@@ -136,8 +136,8 @@ func TestAuditRequestBadOp(t *testing.T) {
 	}
 }
 
-// Документ с NUL посередине: C.CString передаёт строку, а strlen в
-// lean_mk_string обрезает её — хвост молча игнорируется. CLI тот же текст отвергает.
+// A document with a NUL in the middle must be rejected, not cut at the NUL with the tail
+// silently ignored (as C.CString and strlen in lean_mk_string would do). The CLI rejects the same text.
 func TestAuditLoadNUL(t *testing.T) {
 	doc := auditDoc(t)
 	glued := doc + "\x00{\"this is\": garbage"
@@ -146,7 +146,7 @@ func TestAuditLoadNUL(t *testing.T) {
 		t.Errorf("Load accepted a document with NUL and trailing garbage (%d bytes, %d after NUL)",
 			len(glued), len(glued)-len(doc)-1)
 	}
-	// Тот же текст через CLI (если собран) — для сравнения.
+	// The same text through the CLI (if built), for comparison.
 	if cli := os.Getenv("FIGRAM_CLI"); cli != "" {
 		f := t.TempDir() + "/nul.json"
 		os.WriteFile(f, []byte(glued), 0o644)
@@ -155,7 +155,7 @@ func TestAuditLoadNUL(t *testing.T) {
 	}
 }
 
-// NUL внутри значений запроса: json.Marshal экранирует его (\u0000), до C он не доходит.
+// NUL inside request values: json.Marshal escapes it (\u0000), so it never reaches C.
 func TestAuditRequestNUL(t *testing.T) {
 	bot, err := Load(auditDoc(t))
 	if err != nil {
@@ -196,15 +196,15 @@ func hwmKB() int64 {
 	return 0
 }
 
-// Большие запросы: длинное событие и объект guards из многих ключей.
-// Фиксируются время и пик памяти (VmHWM), ответ обязан быть корректным.
+// Large requests: a long event and a guards object with many keys.
+// Time and peak memory (VmHWM) are logged; the reply must be correct.
 func TestAuditLargeRequests(t *testing.T) {
 	bot, err := Load(auditDoc(t))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer bot.Close()
-	// Предел размера запроса (1 МиБ по умолчанию) снят: замеряется сам движок.
+	// The request size limit (1 MiB by default) is lifted: this measures the engine itself.
 	defer SetMaxRequest(SetMaxRequest(0))
 	for _, mb := range []int{1, 8, 32} {
 		ev := "btn:" + strings.Repeat("x", mb<<20)
@@ -227,7 +227,7 @@ func TestAuditLargeRequests(t *testing.T) {
 	}
 }
 
-// Пропускная способность 1/2/4 горутин: один общий автомат против отдельного на горутину.
+// Throughput of 1/2/4 goroutines: one shared bot versus one bot per goroutine.
 func TestAuditScaling(t *testing.T) {
 	secs, _ := strconv.ParseFloat(os.Getenv("FIGRAM_SCALING"), 64)
 	if secs <= 0 {
@@ -280,7 +280,7 @@ func TestAuditScaling(t *testing.T) {
 	}
 }
 
-// Длительная нагрузка: общий автомат + циклы Load/Close других; RSS каждые 10 с.
+// Soak test: a shared bot plus Load/Close cycles of others; RSS every 10 s.
 func TestAuditSoak(t *testing.T) {
 	secs, _ := strconv.Atoi(os.Getenv("FIGRAM_SOAK"))
 	if secs <= 0 {
@@ -333,7 +333,7 @@ func TestAuditSoak(t *testing.T) {
 				if _, v, err := b.Request(map[string]any{"op": "start"}); err != nil || v != "result" {
 					bad.Add(1)
 				}
-				if noClose == "" { // FIGRAM_SOAK_NOCLOSE=1 — контроль: утечка обязана быть замечена
+				if noClose == "" { // FIGRAM_SOAK_NOCLOSE=1 is the control: the leak must be noticed
 					b.Close()
 				}
 				cycles.Add(1)
@@ -371,8 +371,8 @@ func TestAuditSoak(t *testing.T) {
 	}
 }
 
-// Сигналы: профилировщик шлёт SIGPROF всем потокам, пока горутины работают
-// внутри Lean (поток, вызвавший figram_init, получил sigaltstack от Lean).
+// Signals: the profiler sends SIGPROF to all threads while goroutines run
+// inside Lean code.
 func TestAuditSignals(t *testing.T) {
 	secs, _ := strconv.Atoi(os.Getenv("FIGRAM_SIGNALS"))
 	if secs <= 0 {
@@ -400,7 +400,7 @@ func TestAuditSignals(t *testing.T) {
 					bad.Add(1)
 				}
 				n.Add(1)
-				_ = make([]byte, 1024) // давление на GC
+				_ = make([]byte, 1024) // GC pressure
 			}
 		}()
 	}
@@ -412,7 +412,7 @@ func TestAuditSignals(t *testing.T) {
 	}
 }
 
-// Одновременный figram_init из многих потоков в свежем процессе.
+// Concurrent figram_init from many threads in a fresh process.
 func TestAuditInitRace(t *testing.T) {
 	if os.Getenv("FIGRAM_INIT_RACE_CHILD") == "1" {
 		return
@@ -439,8 +439,8 @@ func TestAuditInitRace(t *testing.T) {
 	}
 }
 
-// Сколько потоков ОС создаёт Go при 1000 горутинах, одновременно вызывающих C:
-// каждый поток один раз проходит lean_initialize_thread (enter_thread).
+// How many OS threads Go creates for 1000 goroutines calling C at once:
+// each thread goes through lean_initialize_thread once (enter_thread).
 func TestAuditThreadCount(t *testing.T) {
 	bot, err := Load(auditDoc(t))
 	if err != nil {
@@ -488,8 +488,8 @@ func TestAuditThreadCount(t *testing.T) {
 	}
 }
 
-// figram_init делает signal(SIGPIPE, SIG_IGN) для всего процесса-хоста. Сравниваем
-// поведение Go при записи в закрытый stdout с init и без.
+// The Lean runtime sets SIGPIPE to SIG_IGN during figram_init, and the shim restores it.
+// Compares the behaviour of Go when writing to a closed stdout with and without init.
 func TestAuditSIGPIPE(t *testing.T) {
 	if os.Getenv("FIGRAM_SIGPIPE_CHILD") != "" {
 		return
@@ -504,7 +504,7 @@ func TestAuditSIGPIPE(t *testing.T) {
 			t.Fatal(err)
 		}
 		buf := make([]byte, 6)
-		out.Read(buf) // дождаться «ready\n»
+		out.Read(buf) // wait for "ready\n"
 		out.Close()
 		err := cmd.Wait()
 		t.Logf("mode=%s: child exit: %v; stderr: %.200s", mode, err, stderr.String())
