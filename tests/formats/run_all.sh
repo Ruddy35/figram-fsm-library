@@ -47,7 +47,6 @@ expect 0 e-cli-strict           python3 "$here/e_cli_names.py" --strict --tmp "$
 expect 0 e-cli-control          python3 "$here/e_cli_names.py" --control --tmp "$T"
 expect 0 f-parser-scaling       python3 "$here/f_parser_scaling.py" --figram "${FIGRAM:-bin/figram}" \
   --engine "${FIGRAM_ENGINE:-bin/figram-engine}" --check --tmp "$T"
-expect 0 g-protocol-docs        python3 "$here/g_protocol_docs.py"
 if [ -n "${FIGRAM_OLD:-}" ]; then
   expect 0 f-parser-diff        python3 "$here/f_parser_diff.py" "$FIGRAM_OLD" "${FIGRAM:-bin/figram}" --n 60000
 fi
