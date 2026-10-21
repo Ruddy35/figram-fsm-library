@@ -309,10 +309,13 @@ partial def J.keysUnique : J → Bool
   | .arr xs => xs.all J.keysUnique
   | _ => true
 
-/-- The check of the extra keys of one object. -/
+/-- The check of the extra keys of one object. An extra key must start with `x-`:
+a misspelt format key (`iff`, `tiemrs`) is an error, not an annotation. -/
 def extErrors (whereStr : String) (known : List String) (ext : Obj) : List String :=
   (ext.filterMap fun p =>
     if p.1 ∈ known then some s!"{whereStr}: extra key `{p.1}` collides with a format key"
+    else if !p.1.startsWith "x-" then
+      some s!"{whereStr}: unknown key `{p.1}` (annotation keys start with `x-`)"
     else if !(J.keysUnique p.2) then some s!"{whereStr}: duplicate keys in the value of `{p.1}`"
     else none)
   ++ (dups (ext.map (·.1))).map fun k => s!"{whereStr}: duplicate key `{k}`"

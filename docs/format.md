@@ -53,7 +53,8 @@ minimal: whatever the shape of the data can make impossible, it does.
 
 **C5. Extensibility.**
 (a) Unknown keys are read, kept, and do not affect behaviour. *Proved:* `toChart_strip`;
-keeping them is a special case of C1.
+keeping them is a special case of C1. An unknown key must start with `x-` (an annotation):
+`figram check` and the engine reject a document with any other unknown key (section 5).
 (b) An extension that changes meaning is declared in `requires`; a reader that does not know
 it rejects the whole document instead of misreading it. *Proved:* `decode_requires`.
 (c) A new field has a default value equal to the old behaviour, so old documents mean the
@@ -111,11 +112,11 @@ After decisions 1–12, five semantic conditions remain, and `figram check` chec
 
 In addition, `check` verifies what holds automatically for JSON text but can be violated by a
 document built programmatically (names in maps are non-empty and unique, annotations do not
-collide with format keys), the value ranges of integer fields (a timer delay at most
-2^53 − 1), and, as its last step, that the chart compiles to a well-formed machine
-(section 7). A document that passes `check` is guaranteed to be encoded into the JSON model `J`
-and decoded back (theorem `check_roundtrip`); the round trip through text (`print`/`parse`) is
-not proved and is covered by tests.
+collide with format keys), that every unknown key starts with `x-` (section 5), the value
+ranges of integer fields (a timer delay at most 2^53 − 1), and, as its last step, that the
+chart compiles to a well-formed machine (section 7). A document that passes `check` is
+guaranteed to be encoded into the JSON model `J` and decoded back (theorem `check_roundtrip`);
+the round trip through text (`print`/`parse`) is not proved and is covered by tests.
 
 **Warnings.** For a document without errors, `figram check` also looks for probable designer
 mistakes and prints them to stderr, one per line; the exit status stays 0 and the document
@@ -201,11 +202,17 @@ so maps carry no annotations. Format keys never start with `x-`, so annotations 
 with future format fields. A reader that rewrites a document must keep all unknown keys.
 Example: [`examples/annotations.bot.json`](../examples/annotations.bot.json).
 
-Unknown keys without the `x-` prefix are accepted and kept as well (C5a); neither the decoder,
-`figram check` nor the schema reports them. A misspelt optional field is therefore not an
-error: `"tiemrs"` in a message is kept as an unknown key and the message has no timers, and
-`"iff"` in a variant is kept and the variant has no condition. Use the `x-` prefix for
-annotations and check documents written by hand for such typos.
+An unknown key without the `x-` prefix is an error of the document. The decoder still reads
+and keeps it (C1: `figram fmt` prints it back), but `figram check` and the engine reject the
+document with the error ``unknown key `…` (annotation keys start with `x-`)``; the schema
+([`schemas/figram.schema.json`](../schemas/figram.schema.json)) allows only `x-` keys besides
+the format keys. A misspelt optional field is therefore reported instead of silently changing
+the bot: without this rule `"tiemrs"` in a message would leave the message without timers and
+`"iff"` in a variant would leave the variant without a condition. The rule covers the
+document, sections, messages and variants; inside the value of an annotation any keys are
+allowed. A key in `children` is a node name, not an annotation: `"x-ui": {}` there is a new
+message named `x-ui`. A reader that does not know a format field added later rejects a document
+that uses it.
 
 **Semantic extension** — a new field or value that changes the bot's behaviour. It is added
 as follows:
@@ -246,6 +253,8 @@ Not covered by proofs:
 - agreement of the schemas with the decoder: checked on the examples and by the table in
   `tests/formats/c_schema_table.py`; the schema is wider than the decoder for doubles
   (section 3, "Numbers") and does not express the nesting limit (section 4);
+- the rule that an unknown key starts with `x-` (section 5): checked by `#guard`s in
+  `Figram/Examples.lean` and by the formats suite;
 - C3 and C4: these are properties of the derivation above, not theorems.
 
 ## 7. Execution semantics

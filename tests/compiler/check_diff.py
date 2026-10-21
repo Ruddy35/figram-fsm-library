@@ -113,6 +113,13 @@ def inject(rng, d, kind):
     if kind == "unknown_key":
         rng.choice(ns)[1]["foo"] = {"bar": 1}
         return True
+    if kind == "x_key":
+        rng.choice(ns)[1]["x-foo"] = {"bar": 1}
+        return True
+    if kind == "misspelt_if" and arrows:
+        v = rng.choice(arrows)[3]
+        v["iff"] = v.pop("if", "c1")
+        return True
     if kind == "timer_named_like_event":
         m = rng.choice(msgs)
         m[1].setdefault("timers", {})["a:b"] = 3
@@ -128,8 +135,8 @@ KINDS = ["none", "dup_node", "initial_grandchild", "initial_missing", "to_missin
          "resume_to_message", "undeclared_if", "undeclared_do", "timer_event_no_timer",
          "empty_event", "empty_timer", "empty_if", "empty_cond_key", "section_timers",
          "message_initial", "requires", "requires_empty", "big_delay", "max_delay", "frac_delay",
-         "resume_false_explicit", "resume_not_bool", "unknown_key", "timer_named_like_event",
-         "node_named_bot"]
+         "resume_false_explicit", "resume_not_bool", "unknown_key", "x_key", "misspelt_if",
+         "timer_named_like_event", "node_named_bot"]
 
 
 def main():

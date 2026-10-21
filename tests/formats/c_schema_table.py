@@ -12,7 +12,8 @@ Every row carries the handwritten expected verdicts and a classification:
              schema cannot express (docs/format.md, section 3, "What remains in V", and section 6);
   struct     schema rejects, decoder accepts, check rejects: the schema is
              stricter than the decoder but check catches it (empty names,
-             empty children, 2^53 delays) — consistent at the check level;
+             empty children, 2^53 delays, keys without x-) — consistent at the
+             check level;
   dev        documented text-layer deviation (duplicate keys, lone
              surrogates, |exponent| > 1000, depth > 256): Python accepts;
   prec       schema validator works on binary floats (Python/ajv), decoder is
@@ -76,11 +77,15 @@ DOCS = [
     ("x-keys-everywhere", '{"figram":1,"x-ui":{"z":1.5},"bot":{"initial":"a","x-ui":[],"children":'
      '{"a":{"x-content":{"text":"hi"},"on":{"btn:x":[{"to":"a","x-note":"n"}]}}}}}', 1, 1, 1, "agree", ""),
     ("non-x-unknown-keys", '{"figram":1,"foo":1,"bot":{"initial":"a","Bar":null,"children":'
-     '{"a":{"zz":[],"on":{"btn:x":[{"to":"a","note":"n"}]}}}}}', 1, 1, 1, "agree",
-     "C5a: any unknown key kept; x- is only a convention"),
-    ("future-key-unless", VAR('{"unless":"c","to":"a"}'), 1, 1, 1, "footgun",
-     "looks like a guard, silently ignored unless declared in requires (C5b)"),
-    ("x-ui-in-children", D('{"a":{},"x-ui":{"pos":[1,2]}}'), 1, 1, 1, "footgun",
+     '{"a":{"zz":[],"on":{"btn:x":[{"to":"a","note":"n"}]}}}}}', 0, 1, 0, "struct",
+     "kept by the decoder (C1), an error of check: extra keys start with x- (section 5)"),
+    ("misspelt-if", VAR('{"iff":"c","to":"a"}'), 0, 1, 0, "struct", "a typo is not silently ignored"),
+    ("misspelt-timers", M('{"tiemrs":{"t":5}}'), 0, 1, 0, "struct", "a typo is not silently ignored"),
+    ("future-key-unless", VAR('{"unless":"c","to":"a"}'), 0, 1, 0, "struct",
+     "looks like a guard: an error, not ignored (a new field comes with requires, C5b)"),
+    ("x-ui-in-children", D('{"a":{},"x-ui":{"pos":[1,2]}}'), 0, 1, 0, "struct",
+     "annotation key inside children = a new message node 'x-ui'; here its key `pos` is an error"),
+    ("x-ui-in-children-empty", D('{"a":{},"x-ui":{}}'), 1, 1, 1, "footgun",
      "annotation key inside children = a new message node 'x-ui' (docs/format.md, section 5, says so)"),
     ("timer-7.2e6", M('{"timers":{"t":7.2e6}}'), 1, 1, 1, "agree", "decision 12"),
     ("timer-7200000.0", M('{"timers":{"t":7200000.0}}'), 1, 1, 1, "agree", ""),
@@ -230,7 +235,7 @@ def main():
         why = (err_f.decode().strip() or out_c.decode().strip()).replace("\n", " | ")[:90]
         print(f"{'' if ok else 'DIFF '}{rid:28s} {s:6d} {d:6d} {c:5d} | {es}{ed}{ec}      | {cls:8s} {note}"
               + (f"  [{why}]" if not c else ""))
-        if rid == "x-ui-in-children":
+        if rid == "x-ui-in-children-empty":
             print("    stats:", run([FIGRAM, "stats", tmp])[1].decode().strip(),
                   "(base has states=1)")
     # snapshots

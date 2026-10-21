@@ -9,10 +9,11 @@ of examples/*.bot.json) we build non-canonical variants of the SAME document:
   V2  known keys shuffled inside fixed-key objects, explicit defaults
       (resume:false, do:[], on:{}, timers:{}, requires:[], variables:{}),
       timer delays rewritten as 7.2e3 / 7200.0 / 72e2 / 7200000e-3 / -0
-  V3  annotations: x-… and other unknown keys with small random JSON values
+  V3  annotations: x-… keys with small random JSON values
       (unicode, escapes, control chars, numbers with fractions/exponents,
       nested arrays/objects, empty containers) in doc/section/message/variant
   V4  V2 + V3 + random whitespace (space, tab, CR, LF)
+  V5  V3 with unknown keys without the x- prefix as well (at least one)
 
 and check, for every variant x:
 
@@ -23,7 +24,9 @@ and check, for every variant x:
   P3  python json.loads(fmt x, object_pairs_hook) == oracle model (structure)
   P4  `figram check x` prints ok, `figram stats x` and
       `figram trace x 3 8 <seed>` are byte-identical to the base document
-      (C5a: annotations / defaults / number spelling do not change behaviour)
+      (C5a: annotations / defaults / number spelling do not change behaviour);
+      for V5, `figram check x` and `figram stats x` reject the document with
+      "unknown key" (docs/format.md, section 5)
 
 Rows of a fixed defect (FC-01) are run separately (see EDGE below); they
 FAIL on the baseline (commit d69bbaf); use --strict to make them count.
@@ -89,10 +92,14 @@ def rand_value(r, depth=0):
     return Obj((kk, rand_value(r, depth + 1)) for kk in keys)
 
 
-def ann_key(r, known):
+ANN_KEYS = ["x-ui", "x-note", "x-content", "x-", "x-ui2"]
+UNKNOWN_KEYS = ["note", "Bot", "TO", "initial2", "zz", "_id", "X-ui", "x_ui"]
+
+
+def ann_key(r, known, plain):
+    """An annotation key not in `known`; with `plain`, unknown keys without x- too."""
     while True:
-        k = r.choice(["x-ui", "x-note", "x-content", "x-", "x-" + rand_str(r), "note", "Bot", "TO",
-                      "initial2", "x-ui2", "zz", "_id"])
+        k = r.choice(ANN_KEYS + ["x-" + rand_str(r)] + (UNKNOWN_KEYS + [rand_str(r)] if plain else []))
         if k not in known:
             return k
 
@@ -101,7 +108,7 @@ def insert_at(r, obj, pair):
     obj.insert(r.randint(0, len(obj)), pair)
 
 
-def transform(j, r, shuffle, defaults, annotate, numbers):
+def transform(j, r, shuffle, defaults, annotate, numbers, plain=False):
     """Walk the document J and produce a variant of the same document."""
 
     def var(v):
@@ -112,7 +119,7 @@ def transform(j, r, shuffle, defaults, annotate, numbers):
                     insert_at(r, v, (k, d))
         if annotate:
             for _ in range(r.randint(0, 2)):
-                k = ann_key(r, [kk for kk, _ in v] + ["if", "to", "resume", "do"])
+                k = ann_key(r, [kk for kk, _ in v] + ["if", "to", "resume", "do"], plain)
                 insert_at(r, v, (k, rand_value(r)))
         if shuffle:
             v = shuffle_known(v, ["if", "to", "resume", "do"])
@@ -140,7 +147,7 @@ def transform(j, r, shuffle, defaults, annotate, numbers):
                     insert_at(r, out, (k, d))
         if annotate:
             for _ in range(r.randint(0, 2)):
-                k = ann_key(r, [kk for kk, _ in out] + ["initial", "children", "on", "timers"])
+                k = ann_key(r, [kk for kk, _ in out] + ["initial", "children", "on", "timers"], plain)
                 insert_at(r, out, (k, rand_value(r)))
         if shuffle:
             out = shuffle_known(out, ["initial", "children", "on", "timers"])
@@ -183,8 +190,11 @@ def transform(j, r, shuffle, defaults, annotate, numbers):
                 insert_at(r, out, (k, dflt))
     if annotate:
         for _ in range(r.randint(0, 3)):
-            k = ann_key(r, [kk for kk, _ in out] + ["figram", "requires", "conditions", "calls", "variables", "bot"])
+            k = ann_key(r, [kk for kk, _ in out] + ["figram", "requires", "conditions", "calls", "variables", "bot"],
+                        plain)
             insert_at(r, out, (k, rand_value(r)))
+    if plain:
+        insert_at(r, out, (r.choice([k for k in UNKNOWN_KEYS if not out.has(k)]), rand_value(r)))
     if shuffle:
         out = shuffle_known(out, ["figram", "requires", "conditions", "calls", "variables", "bot"])
     return out
@@ -200,6 +210,7 @@ def variants(base_text, seed):
     out.append(("V3", write(transform(j, r, False, False, True, False), ascii_=r.random() < 0.5)))
     out.append(("V4", write(transform(j, r, True, True, True, True), ws=lambda: r.choice(ws_pool),
                             ascii_=r.random() < 0.5)))
+    out.append(("V5", write(transform(j, r, False, False, True, False, plain=True))))
     return out
 
 
@@ -247,9 +258,14 @@ def check_doc(name, base_text, seed, tmp, brk, stats, fails):
         if load_j(out.decode()) != model:
             fails.append((name, vname, "P3 python reload != oracle model"))
             continue
-        # P4 behaviour unchanged
+        # P4 behaviour unchanged; a key without x- is an error of the document
         rc, ck, _ = run([FIGRAM, "check", p])
         rc_s, st, _ = run([FIGRAM, "stats", p])
+        if vname == "V5":
+            stats["P4-reject"] += 1
+            if rc == 0 or b"unknown key" not in ck or rc_s == 0:
+                fails.append((name, vname, "P4 unknown key not rejected", rc, ck[:200], rc_s))
+            continue
         rc_t, tr, _ = run([FIGRAM, "trace", p, "3", "8", str(seed)])
         stats["P4"] += 1
         if rc or ck != b"ok\n" or rc_s or st != base_stats or rc_t or tr != base_trace:
@@ -280,7 +296,7 @@ def main():
     tmpdir = os.path.join(a.tmp, f"fc-a-{os.getpid()}")
     os.makedirs(tmpdir, exist_ok=True)
     tmp = Tmp(tmpdir)
-    stats = {"docs": 0, "variants": 0, "P1": 0, "P2": 0, "P3": 0, "P4": 0}
+    stats = {"docs": 0, "variants": 0, "P1": 0, "P2": 0, "P3": 0, "P4": 0, "P4-reject": 0}
     fails = []
     docs = []
     for seed in range(a.seeds):
@@ -311,9 +327,9 @@ def main():
     for f in fails[:15]:
         print("FAIL", f)
     print(f"docs={stats['docs']} variants={stats['variants']} P1={stats['P1']} P2={stats['P2']} "
-          f"P3={stats['P3']} P4={stats['P4']} failures={len(fails)} edge_fail={edge_fail}/{len(EDGE)}"
+          f"P3={stats['P3']} P4={stats['P4']} P4-reject={stats['P4-reject']} failures={len(fails)} edge_fail={edge_fail}/{len(EDGE)}"
           f" break={a.brk}")
-    if stats["P4"] == 0:
+    if stats["P4"] == 0 or (stats["P4-reject"] == 0 and not fails):
         print("no comparisons made")
         sys.exit(2)
     bad = len(fails) + (edge_fail if a.strict else 0)
