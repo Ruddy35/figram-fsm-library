@@ -22,7 +22,7 @@ a **draft**; a maintainer reviews the draft and publishes it.
      `gh workflow run release.yml --ref BRANCH -f version=X.Y.Z` with that branch; or
    * by pushing a tag at the commit to release: `git tag -a vX.Y.Z -m "Figram X.Y.Z" COMMIT && git push
      origin vX.Y.Z`.
-6. The workflow (a single job):
+6. The workflow has two jobs. The job `build, verify and package` runs with a read-only token:
    * checks the version format, that it equals `lakefile.lean`, and that `CHANGELOG.md` has its section;
    * if the tag `vX.Y.Z` already exists, checks that it points at the commit being built;
    * installs Lean with `ci/install-lean.sh` (release archive, SHA-256 pinned in
@@ -36,13 +36,18 @@ a **draft**; a maintainer reviews the draft and publishes it.
    * runs `ci/test-bundle.sh`: checksums, the extracted CLI and engine, and C and Go programs built
      against nothing but the extracted library archive;
    * runs `./verify-prebuilt.sh` on the binaries extracted from the CLI archive;
-   * writes the release notes (the CHANGELOG section, a downloads table, a provenance block and the
-     checksums), uploads the archives, checksums and notes as a workflow artifact, and creates the draft
-     release `vX.Y.Z` targeting the commit, or updates the existing draft of that tag (notes, target
-     commit and assets; stale assets are removed).
+   * writes the release notes (the CHANGELOG section, with its relative links pointing at the sources
+     of the commit, a downloads table, a provenance block and the checksums) and uploads the
+     archives, checksums and notes as a workflow artifact.
 
-   It never publishes a release, never deletes one, and stops if a **published** release `vX.Y.Z`
-   already exists or if several releases carry that tag.
+   Then the job `draft release`, the only one with write access (`contents: write`), checks out
+   nothing and runs no code of the repository: it downloads that artifact, checks `SHA256SUMS`, and
+   creates the draft release `vX.Y.Z` targeting the commit, or updates the existing draft of that tag
+   (notes, target commit and assets; stale assets are removed), checking before and after each change
+   that the release is still a draft.
+
+   The workflow never publishes a release, never deletes one, and stops if a **published** release
+   `vX.Y.Z` already exists or if several releases carry that tag.
 7. Review the draft on the Releases page: the notes, the provenance block (commit, toolchain, workflow
    run), the four assets. Optionally download them and check them as described below.
 8. Publish the draft (**Edit → Publish release**, or `gh release edit vX.Y.Z --draft=false`). If the tag
@@ -126,6 +131,8 @@ For a release made by the workflow:
   the draft's target).
 * **Toolchain.** Lean is the official release archive whose SHA-256 is pinned in
   `ci/lean-toolchain.sha256`; GitHub Actions are pinned by commit SHA.
+* **Write access.** Only the `draft release` job, which runs no code of the repository, can write
+  to the repository; it uploads the archives whose `SHA256SUMS` it checked.
 * **Gate.** `verify.sh` (build without warnings, theorem gates, engine, protocol, client, C ABI and Go
   tests) exited 0 on a clean rebuild of that commit, and the rebuilt stripped binaries are
   byte-identical to the released ones.
