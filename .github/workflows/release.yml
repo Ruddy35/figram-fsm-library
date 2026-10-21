@@ -1,0 +1,208 @@
+# Release: build with the official Lean release named by lean-toolchain, package (ci/package.sh),
+# prove that the packaged binaries come from these sources and pass the full gate (clean rebuild +
+# verify.sh against their checksums, byte-identical repackaging, verify-prebuilt.sh on the extracted
+# archive, self-contained library archive), then create or update a DRAFT GitHub Release v<version>
+# at the built commit. Publishing the draft is left to a maintainer (docs/releasing.md); this workflow
+# never publishes, deletes or changes a published release.
+# Start: Actions -> release -> Run workflow (version, e.g. 0.1.0) on the commit to release, or push a
+# tag v<version>. The version must equal `version` in lakefile.lean and have a CHANGELOG.md section.
+# Actions are pinned by commit SHA; the tag in the comment is for updating them.
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v prefix, e.g. 0.1.0 (must equal version in lakefile.lean)"
+        required: true
+        type: string
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash                     # bash --noprofile --norc -eo pipefail {0}
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      INPUT_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
+      - name: Version, CHANGELOG section, commit
+        run: |
+          case "$GITHUB_EVENT_NAME" in
+            workflow_dispatch) v=$INPUT_VERSION;;
+            push) v=${GITHUB_REF_NAME#v};;
+            *) echo "::error::unexpected event $GITHUB_EVENT_NAME"; exit 1;;
+          esac
+          if ! [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version '$v' is not of the form X.Y.Z or X.Y.Z-suffix"; exit 1
+          fi
+          lake_v=$(sed -n 's/^[[:space:]]*version[[:space:]]*:=[[:space:]]*v!"\([^"]*\)".*$/\1/p' lakefile.lean)
+          if [ "$v" != "$lake_v" ]; then
+            echo "::error::version $v differs from lakefile.lean ($lake_v): bump lakefile.lean and CHANGELOG.md first"; exit 1
+          fi
+          # The CHANGELOG section of this version ("## [X.Y.Z] ..." or "## X.Y.Z ..."), without link
+          # reference definitions; it becomes the top of the release notes.
+          awk -v v="$v" '
+            /^## / { if (found) exit
+                     h = $0; sub(/^## +\[?v?/, "", h)
+                     if (substr(h, 1, length(v)) == v && substr(h, length(v) + 1, 1) ~ /^([] ]|$)/) { found = 1; next } }
+            found && !/^\[[^]]+\]: / { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' > "$RUNNER_TEMP/changelog.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/changelog.md"; then
+            echo "::error::CHANGELOG.md has no non-empty section for $v"; exit 1
+          fi
+          commit=$(git rev-parse HEAD)
+          [ "$commit" = "$GITHUB_SHA" ] || echo "::notice::HEAD $commit, GITHUB_SHA $GITHUB_SHA: releasing HEAD"
+          { echo "VERSION=$v"; echo "TAG=v$v"; echo "COMMIT=$commit"; echo "DIST=$RUNNER_TEMP/dist"; } >> "$GITHUB_ENV"
+          echo "release v$v of $commit"
+      - name: An existing tag v<version> points at this commit
+        run: |
+          refs=$(git ls-remote --tags origin "refs/tags/$TAG" "refs/tags/$TAG^{}")
+          if [ -n "$refs" ]; then
+            # Annotated tags list the tagged commit as refs/tags/TAG^{}.
+            tagged=$(printf '%s\n' "$refs" | awk -v r="refs/tags/$TAG^{}" '$2 == r { print $1 }')
+            [ -n "$tagged" ] || tagged=$(printf '%s\n' "$refs" | awk '{ print $1 }')
+            if [ "$tagged" != "$COMMIT" ]; then
+              echo "::error::tag $TAG already exists at $tagged, not at $COMMIT"; exit 1
+            fi
+            echo "tag $TAG exists at $COMMIT"
+          else
+            echo "tag $TAG does not exist yet: it is created at $COMMIT when the draft is published"
+          fi
+      - name: Lean from lean-toolchain (release archive, sha256 from ci/lean-toolchain.sha256)
+        run: ci/install-lean.sh
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff   # v5
+        with: { go-version: "1.23", cache: false }
+      - name: Python jsonschema
+        run: python3 -c "import jsonschema" || pip install jsonschema
+      - name: Build
+        run: |
+          lake build figram figram-engine
+          bash ffi/build.sh
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+            git status --short --untracked-files=no
+            echo "::error::the build changed tracked files"; exit 1
+          fi
+      - name: Package (ci/package.sh)
+        run: ci/package.sh "$VERSION" "$DIST"
+      - name: Clean rebuild and verify.sh against the packaged binaries
+        # verify.sh rebuilds everything from scratch and requires its stripped figram and figram-engine
+        # to equal SHA256SUMS.binaries of the packages; exit 0 only (3 = waivers is a failure too).
+        run: |
+          rm -rf .lake ffi/out
+          FIGRAM_SHA256SUMS="$DIST/SHA256SUMS.binaries" ./verify.sh 2>&1 | tee verify-full.log
+          mv verify-logs verify-logs-full     # verify-prebuilt.sh below rewrites verify-logs/
+      - name: The clean rebuild packages to byte-identical archives
+        run: |
+          ci/package.sh "$VERSION" "$RUNNER_TEMP/dist-rebuild" > /dev/null
+          diff "$DIST/SHA256SUMS" "$RUNNER_TEMP/dist-rebuild/SHA256SUMS"
+          diff "$DIST/SHA256SUMS.binaries" "$RUNNER_TEMP/dist-rebuild/SHA256SUMS.binaries"
+          echo "byte-identical archives from two independent builds"
+      - name: Archives are self-contained (ci/test-bundle.sh)
+        run: ci/test-bundle.sh "$DIST" "$VERSION" "$RUNNER_TEMP/bundle" 2>&1 | tee test-bundle.log
+      - name: verify-prebuilt.sh on the binaries of the extracted CLI archive
+        run: ./verify-prebuilt.sh "$RUNNER_TEMP/bundle/figram-$VERSION-linux-x86_64/bin" 2>&1 | tee verify-prebuilt.log
+      - name: Release notes (CHANGELOG section and provenance)
+        run: |
+          pin=$(cat ci/lean-toolchain.sha256)
+          last() { grep . "$1" | tail -1; }
+          runner="image ${ImageOS:-unknown} ${ImageVersion:-unknown}, $(. /etc/os-release && echo "$PRETTY_NAME"), $(uname -sr), $RUNNER_ARCH"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT"
+          src="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$COMMIT"
+          {
+            cat "$RUNNER_TEMP/changelog.md"
+            echo
+            echo "## Downloads"
+            echo
+            echo "| File | Contents |"
+            echo "|---|---|"
+            echo "| \`figram-$VERSION-linux-x86_64.tar.gz\` | \`figram\` CLI and \`figram-engine\` (Linux x86_64, glibc), docs, examples |"
+            echo "| \`libfigram-$VERSION-linux-x86_64.tar.gz\` | static C ABI library: \`figram.h\`, \`libfigram.a\` with the Lean runtime archives, \`figram.pc\`, \`LDFLAGS\` |"
+            echo "| \`SHA256SUMS\` | SHA-256 of both archives: \`sha256sum -c SHA256SUMS\` |"
+            echo "| \`SHA256SUMS.binaries\` | SHA-256 of the stripped \`figram\` and \`figram-engine\` |"
+            echo
+            echo "How to verify and reproduce: [docs/releasing.md]($src/docs/releasing.md)."
+            echo "Third-party licenses: [THIRD_PARTY_NOTICES.md]($src/THIRD_PARTY_NOTICES.md)."
+            echo
+            echo "## Provenance"
+            echo
+            echo "- Commit: \`$COMMIT\` (tag \`$TAG\` at this commit when the release is published)"
+            echo "- Lean toolchain: \`$(cat lean-toolchain)\`, \`$(lean --version)\`; archive SHA-256 \`$pin\` (ci/lean-toolchain.sha256)"
+            echo "- Runner: $runner"
+            echo "- Tools: $(gcc --version | head -1); $(strip --version | head -1); $(tar --version | head -1); $(gzip --version | head -1); $(go version)"
+            echo "- Workflow run: $run_url"
+            echo "- \`verify.sh\` on a clean rebuild of this commit, with \`FIGRAM_SHA256SUMS=SHA256SUMS.binaries\`: exit 0, \`$(last verify-full.log)\`"
+            echo "- Reproducibility: the clean rebuild packaged to byte-identical archives"
+            echo "- \`verify-prebuilt.sh\` on the extracted CLI archive: exit 0, \`$(last verify-prebuilt.log)\`"
+            echo "- \`ci/test-bundle.sh\`: C and Go programs built only against the extracted library archive: \`$(last test-bundle.log)\`"
+            echo
+            echo '```'
+            cat "$DIST/SHA256SUMS" "$DIST/SHA256SUMS.binaries"
+            echo '```'
+          } > "$RUNNER_TEMP/notes.md"
+          cp "$RUNNER_TEMP/notes.md" "$DIST/RELEASE_NOTES.md"
+          cat "$RUNNER_TEMP/notes.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload archives, checksums and notes
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: release-${{ env.TAG }}-${{ github.run_attempt }}
+          path: ${{ env.DIST }}/
+          if-no-files-found: error
+      - name: Create or update the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          assets=("$DIST/figram-$VERSION-linux-x86_64.tar.gz" "$DIST/libfigram-$VERSION-linux-x86_64.tar.gz"
+                  "$DIST/SHA256SUMS" "$DIST/SHA256SUMS.binaries")
+          title="Figram $TAG"
+          pre=false; case "$VERSION" in *-*) pre=true;; esac
+          # Releases with this tag, drafts included (the tag lookup endpoint does not return drafts).
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq ".[] | select(.tag_name == \"$TAG\") | \"\(.id) \(.draft)\"" > "$RUNNER_TEMP/releases.txt"
+          case "$(wc -l < "$RUNNER_TEMP/releases.txt")" in
+            0)
+              gh release create "$TAG" --draft --prerelease="$pre" --target "$COMMIT" --title "$title" \
+                --notes-file "$RUNNER_TEMP/notes.md" "${assets[@]}"
+              echo "created draft release $TAG";;
+            1)
+              read -r id draft < "$RUNNER_TEMP/releases.txt"
+              if [ "$draft" != true ]; then
+                echo "::error::release $TAG is already published; this workflow never changes a published release"; exit 1
+              fi
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=true -F prerelease="$pre" \
+                -f target_commitish="$COMMIT" -f name="$title" -F body=@"$RUNNER_TEMP/notes.md" > /dev/null
+              # Assets of an earlier run that this run does not produce are removed from the draft.
+              keep=" $(for a in "${assets[@]}"; do printf '%s ' "$(basename "$a")"; done)"
+              gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$id/assets?per_page=100" --jq '.[] | "\(.id) \(.name)"' |
+                while read -r aid name; do
+                  case "$keep" in
+                    *" $name "*) ;;
+                    *) gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$aid"; echo "removed stale asset $name";;
+                  esac
+                done
+              gh release upload "$TAG" --clobber "${assets[@]}"
+              echo "updated draft release $TAG";;
+            *)
+              echo "::error::several releases carry the tag $TAG; delete the extra drafts and run again"; exit 1;;
+          esac
+          url=$(gh release view "$TAG" --json url --jq .url)
+          echo "Draft release: $url" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: release-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            verify-full.log
+            verify-logs-full/
+            test-bundle.log
+            verify-prebuilt.log
+            verify-logs/
+          if-no-files-found: warn

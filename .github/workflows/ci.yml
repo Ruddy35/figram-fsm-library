@@ -1,0 +1,170 @@
+# Continuous integration: the full gate (verify.sh) and every test suite of the repository, built with
+# the official Lean release named by lean-toolchain (archive sha256 pinned in ci/lean-toolchain.sha256).
+# Actions are pinned by commit SHA; the tag in the comment is for updating them.
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  # A newer push cancels the running check of the same ref, except on the default branch,
+  # where every commit gets a complete verdict.
+  cancel-in-progress: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
+defaults:
+  run:
+    shell: bash                     # bash --noprofile --norc -eo pipefail {0}
+jobs:
+  verify:
+    name: verify.sh
+    runs-on: ubuntu-latest          # 4 cores
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
+      - name: Lean from lean-toolchain (release archive, sha256 from ci/lean-toolchain.sha256)
+        run: ci/install-lean.sh
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff   # v5
+        with: { go-version: "1.23", cache: false }
+      - name: Python jsonschema
+        run: python3 -c "import jsonschema" || pip install jsonschema
+      - name: verify.sh
+        # Exit 0 only: 1 is a failure and 3 (passed with explicit waivers) fails the job as well.
+        # The full output is kept as an artifact, so the log is tied to the commit of the run.
+        run: ./verify.sh 2>&1 | tee verify-full.log
+      - name: Go, long parallel run on all cores
+        run: |
+          nproc
+          .lake/build/bin/figram trace examples/pizza.bot.json 2000 40 11 > "$RUNNER_TEMP/long.jsonl"
+          cd clients/go
+          GOMAXPROCS=$(nproc) ./gofig-race -rounds 5 -bots 8 ../../examples/pizza.bot.json "$RUNNER_TEMP/long.jsonl"
+          GOMAXPROCS=$(nproc) ./gofig -rounds 50 -bots 8 ../../examples/pizza.bot.json "$RUNNER_TEMP/long.jsonl"
+      - name: Upload verify logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: verify-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            verify-full.log
+            verify-logs/
+          if-no-files-found: warn
+
+  suites:
+    name: suite ${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { suite: formats, timeout: 30 }    # text layer, schema, requests, CLI names, parser budgets
+          - { suite: compiler, timeout: 45 }   # independent oracle, differential/metamorphic, mutants (~9 min)
+          - { suite: capi, timeout: 30 }       # C ABI under ASan/UBSan and TSan, mutants of the C layer
+          - { suite: go, timeout: 30 }         # go test of the Go wrapper, plain and -race
+          - { suite: proofs, timeout: 30 }     # strict proof gate leaves tracked files untouched
+          - { suite: docs, timeout: 20 }       # documentation matches the code
+          - { suite: faults-prebuilt, timeout: 60 }  # verify-prebuilt.sh turns red on every injected fault
+          - { suite: faults-full, timeout: 120 }     # verify.sh turns red on every injected fault
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
+      - name: Lean from lean-toolchain (release archive, sha256 from ci/lean-toolchain.sha256)
+        run: ci/install-lean.sh
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff   # v5
+        with: { go-version: "1.23", cache: false }
+      - name: Python jsonschema
+        run: python3 -c "import jsonschema" || pip install jsonschema
+      - name: Build (lake build, ffi/build.sh)
+        run: |
+          lake build
+          bash ffi/build.sh
+      - name: Run the ${{ matrix.suite }} suite
+        env:
+          SUITE: ${{ matrix.suite }}
+        run: |
+          L=$RUNNER_TEMP/suite-logs
+          mkdir -p "$L"
+          F=$PWD/.lake/build/bin/figram
+          E=$PWD/.lake/build/bin/figram-engine
+          case "$SUITE" in
+            formats)
+              FIGRAM=$F FIGRAM_ENGINE=$E FIGRAM_REAL=$F tests/formats/run_all.sh "$L" 2>&1 | tee "$L/summary.txt";;
+            compiler)
+              tests/compiler/run_all.sh "$E" "$F" "$L" 2>&1 | tee "$L/summary.txt";;
+            capi)
+              # GCC's ThreadSanitizer aborts ("unexpected memory mapping") with 32 bits of mmap ASLR
+              # entropy, which recent Ubuntu kernels may use; it works with 28.
+              sudo sysctl -w vm.mmap_rnd_bits=28
+              bash tests/capi/build.sh
+              bash tests/capi/sanitizers.sh 2>&1 | tee "$L/sanitizers.txt"
+              bash tests/capi/mutants.sh 2>&1 | tee "$L/mutants.txt"
+              bash tests/capi/build_check.sh 2>&1 | tee "$L/build_check.txt";;
+            go)
+              cd clients/go
+              go vet ./...
+              go test -count=1 -v ./... 2>&1 | tee "$L/go-test.txt"
+              go test -race -count=1 -v ./... 2>&1 | tee "$L/go-test-race.txt";;
+            proofs)
+              bash tests/proofs/test_strict_gate_clean.sh 2>&1 | tee "$L/test_strict_gate_clean.txt";;
+            docs)
+              python3 ci/check_docs.py 2>&1 | tee "$L/check_docs.txt"
+              bash tests/capi/doc_check.sh 2>&1 | tee "$L/doc_check.txt";;
+            faults-prebuilt)
+              FAULT_LOGS=$L ./verify-faults.sh prebuilt;;
+            faults-full)
+              FAULT_LOGS=$L ./verify-faults.sh full;;
+            *)
+              echo "::error::unknown suite $SUITE"; exit 1;;
+          esac
+      - name: Upload suite logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: suite-${{ matrix.suite }}-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/suite-logs/
+          if-no-files-found: warn
+
+  package:
+    # Release dry run on every push: the packaging, its reproducibility and the self-containment of the
+    # archives are checked long before a release is cut (.github/workflows/release.yml does the same).
+    name: release dry run
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
+      - name: Lean from lean-toolchain (release archive, sha256 from ci/lean-toolchain.sha256)
+        run: ci/install-lean.sh
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff   # v5
+        with: { go-version: "1.23", cache: false }
+      - name: Python jsonschema
+        run: python3 -c "import jsonschema" || pip install jsonschema
+      - name: Build
+        run: |
+          lake build figram figram-engine
+          bash ffi/build.sh
+      - name: Package (ci/package.sh)
+        run: |
+          v=$(sed -n 's/^[[:space:]]*version[[:space:]]*:=[[:space:]]*v!"\([^"]*\)".*$/\1/p' lakefile.lean)
+          echo "VERSION=$v" >> "$GITHUB_ENV"
+          ci/package.sh "$v" "$RUNNER_TEMP/dist"
+      - name: Clean rebuild packages to byte-identical archives
+        run: |
+          rm -rf .lake ffi/out
+          lake build figram figram-engine
+          bash ffi/build.sh
+          ci/package.sh "$VERSION" "$RUNNER_TEMP/dist-rebuild" > /dev/null
+          diff "$RUNNER_TEMP/dist/SHA256SUMS" "$RUNNER_TEMP/dist-rebuild/SHA256SUMS"
+          diff "$RUNNER_TEMP/dist/SHA256SUMS.binaries" "$RUNNER_TEMP/dist-rebuild/SHA256SUMS.binaries"
+          echo "two independent builds give byte-identical archives:"
+          cat "$RUNNER_TEMP/dist/SHA256SUMS"
+          { echo "Release dry run of $VERSION: two independent builds give byte-identical archives"
+            echo '```'; cat "$RUNNER_TEMP/dist/SHA256SUMS" "$RUNNER_TEMP/dist/SHA256SUMS.binaries"; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Archives are self-contained (ci/test-bundle.sh)
+        run: ci/test-bundle.sh "$RUNNER_TEMP/dist" "$VERSION" "$RUNNER_TEMP/bundle"
+      - name: verify-prebuilt.sh on the binaries of the extracted CLI archive
+        run: ./verify-prebuilt.sh "$RUNNER_TEMP/bundle/figram-$VERSION-linux-x86_64/bin"
+      - name: Upload verify-prebuilt logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: dry-run-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: verify-logs/
+          if-no-files-found: ignore
