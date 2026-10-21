@@ -1,9 +1,10 @@
 /* figram.h — C ABI of the embeddable Figram engine (libfigram.a, built by ffi/build.sh).
  *
  * JSON strings in and out; the request protocol is version 1 of docs/format.md, section 8.
- * Build: ffi/build.sh → ffi/out/libfigram.a, linker flags in ffi/out/LDFLAGS:
- *     cc host.c -I ffi $(cat ffi/out/LDFLAGS)
- *     CGO_LDFLAGS="$(cat ffi/out/LDFLAGS)" go build
+ * Build: ffi/build.sh → ffi/out/libfigram.a, linker flags in ffi/out/LDFLAGS; with F the
+ * repository root:
+ *     cc host.c -I "$F/ffi" $(cat "$F/ffi/out/LDFLAGS")
+ *     CGO_CFLAGS="-I$F/ffi" CGO_LDFLAGS="$(cat "$F/ffi/out/LDFLAGS")" go build
  * Only static linking into an executable is supported: libleanrt.a is compiled with
  * -ftls-model=local-exec, so a shared object (.so, Go -buildmode=c-shared, plugins) cannot be
  * built (R_X86_64_TPOFF32). The guide is docs/embedding.md.
@@ -31,16 +32,18 @@
  *   libuv event loop and without the stack overflow handler (ffi/figram_init.cpp): figram_init
  *   creates no threads (neither the libuv loop thread nor an io_uring kernel thread), no file
  *   descriptors and no signal handlers, does not touch sigaltstack, and reserves less than 1 MiB
- *   of address space. The only change to the process is the disposition of SIGPIPE (the runtime
- *   sets it to SIG_IGN): the shim saves and restores it; if another host thread changes SIGPIPE
- *   concurrently with the initialization, that change may be lost. A stack overflow in Lean code
- *   is an ordinary SIGSEGV of the host process.
+ *   of address space (measured; the C ABI tests allow at most 8 MiB). The only change to the
+ *   process is the disposition of SIGPIPE (the runtime sets it to SIG_IGN): the shim saves and
+ *   restores it; if another host thread changes SIGPIPE concurrently with the initialization,
+ *   that change may be lost. A stack overflow in Lean code is an ordinary SIGSEGV of the host
+ *   process.
  *
  * MEMORY AND RLIMIT_AS. By default the mimalloc allocator of the Lean runtime reserves a 1 GiB
  *   arena of address space; before the runtime starts, figram_init disables the reservation
  *   (ffi/figram_rt.c: memory is taken from the OS as needed; an explicit MIMALLOC_ARENA_RESERVE
  *   takes precedence). The runtime therefore starts under RLIMIT_AS (ulimit -v, systemd LimitAS=)
- *   with little headroom (the tests start it with 2 MiB of address space above the current usage).
+ *   with little headroom (the tests start it with 2 MiB to 1 GiB of address space above the
+ *   current usage).
  *   figram_init code 2 is a C++ exception of the runtime during start-up, caught by the shim
  *   (Lean 4.35 has no known cause for it). The recursion depth of Lean code is bounded by the
  *   stack of the calling thread (for Go threads, the system thread stack size).
