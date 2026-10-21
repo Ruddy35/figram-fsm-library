@@ -11,11 +11,11 @@ section 8). The contract is the header [`ffi/figram.h`](../ffi/figram.h); this p
 bash ffi/build.sh
 ```
 
-`ffi/build.sh` runs `lake build Figram FigramApi:static` and writes:
+`ffi/build.sh` runs `lake build Figram:static FigramApi:static` and writes:
 
 | Output | Contents |
 |---|---|
-| `ffi/out/libfigram.a` | the compiled Figram modules and the C shim (`ffi/figram_ffi.c`, `figram_guard.cpp`, `figram_rt.c`, `figram_init.cpp`) |
+| `ffi/out/libfigram.a` | the compiled Figram modules that the engine needs (`Core`, `Chart`, `Compile`, `Lint`, `Format`, `FormatIO`, `Engine`, `Api`) and the C shim (`ffi/figram_ffi.c`, `figram_guard.cpp`, `figram_rt.c`, `figram_init.cpp`) |
 | `ffi/out/lean/` | the static archives of the Lean runtime and of its dependencies (see below) |
 | `ffi/out/LDFLAGS` | linker flags for a host (absolute paths) |
 | `ffi/out/LDFLAGS.runtime` | the same flags without `libfigram.a` |
@@ -40,8 +40,8 @@ cc host.c -I ffi $(cat ffi/out/LDFLAGS)
 ```
 
 The release archive `libfigram-<version>-linux-x86_64.tar.gz` contains the header, `libfigram.a`
-and the runtime archives, built with the official toolchain; [releasing.md](releasing.md) describes its layout and how to link
-against it.
+and the runtime archives, built with the official toolchain; [releasing.md](releasing.md)
+describes its layout and how to link against it.
 
 A minimal host that loads [`examples/pizza.bot.json`](../examples/pizza.bot.json) and sends two
 requests:
@@ -113,7 +113,7 @@ Functions (all declared in [`ffi/figram.h`](../ffi/figram.h)):
 | `figram_init` | initialize the runtime (optional; every other function does it on first use) |
 | `figram_last_error` | text of the last error detected in the calling thread |
 | `figram_set_max_request` | request size limit in bytes for the whole process (0 — none) |
-| `figram_check_json`, `figram_check_json_n` | check a document: `"ok"` or the errors separated by newlines |
+| `figram_check_json`, `figram_check_json_n` | check a document: `"ok"` or the errors separated by newlines (the warnings of `figram check` are not reported) |
 | `figram_fmt_json`, `figram_fmt_json_n` | canonical form of a document, or `"error: …"` |
 | `figram_load_doc`, `figram_load_doc_n`, `figram_load_doc_ex`, `figram_load_doc_ex_n` | load a document and return a machine handle (or NULL) |
 | `figram_request_json`, `figram_request_json_n` | one protocol request to a loaded machine; the reply is one JSON line |
@@ -183,8 +183,9 @@ handler**:
 
 * `figram_init` creates no threads (neither the libuv loop thread nor an io_uring kernel
   thread), no file descriptors and no signal handlers, and does not touch `sigaltstack`;
-* it reserves less than 1 MiB of address space (measured: +768 KiB of `VmSize`, by the C ABI test
-  `host_state`, see below);
+* it reserves less than 1 MiB of address space (measured: +768 KiB of `VmSize` with a Lean built
+  from source, +832 KiB with the official release, by the subtest `host_state` of
+  `tests/capi/contract.c`, which fails above 8 MiB);
 * the only change to the process is the disposition of `SIGPIPE`: the runtime sets it to
   `SIG_IGN`, and the shim saves and restores it. If another host thread changes `SIGPIPE`
   concurrently with the initialization, that change may be lost;
@@ -227,7 +228,7 @@ with `tests/engine/engine_memory.py` after 2000 requests on `examples/pizza.bot.
 
 | Build | Address space (`VmSize`) | Resident (`VmRSS`) | Threads |
 |---|---|---|---|
-| official Lean 4.35.0 release | 10 MiB | 4 MiB | 1 |
+| official Lean 4.35.0 release | 10 MiB | 4–5 MiB | 1 |
 | Lean 4.35.0 built from source (gcc) | 12 MiB | 6 MiB | 1 |
 
 ```sh
@@ -243,8 +244,9 @@ threads, the system thread stack size).
 
 The reference wrapper lives in [`clients/go`](../clients/go). It is a cgo wrapper (`Init`,
 `SetMaxRequest`, `Load`, `Bot.Request`, `Bot.Close`) together with the `gofig` test driver that
-replays reference scenarios from many goroutines; it is meant to be copied into your own module
-(a standalone Go module is planned).
+replays reference scenarios from many goroutines. Both are one `main` package (module `gofig`):
+to use the wrapper, copy its part of `main.go` into your own package (a standalone Go module is
+planned).
 
 * `Load(doc)` initializes the runtime on first use (`sync.Once`) and returns a `*Bot`, or an
   error with the reason of the failed load (`figram_load_doc_ex_n`).
@@ -258,10 +260,12 @@ replays reference scenarios from many goroutines; it is meant to be copied into 
 * `figram_last_error()` is thread-local; the wrapper reads it in the same C call, because a
   goroutine may move to another OS thread between two cgo calls.
 
-To use the wrapper in your own module, link it with the flags from `ffi/out/LDFLAGS`:
+To use the wrapper in your own module, pass the directory of `figram.h` and the flags from
+`ffi/out/LDFLAGS` in the environment (its `#cgo CFLAGS` line points into this repository; cgo
+accepts `-Wl,--gc-sections` from the environment):
 
 ```sh
-CGO_LDFLAGS="$(cat /path/to/figram/ffi/out/LDFLAGS)" go build
+CGO_CFLAGS="-I/path/to/figram/ffi" CGO_LDFLAGS="$(cat /path/to/figram/ffi/out/LDFLAGS)" go build
 ```
 
 In this repository `clients/go` builds with plain `go build` thanks to the generated

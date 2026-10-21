@@ -215,12 +215,14 @@ distinguishes a failure of one call from a failure of the process.
   by reply order ([format.md](format.md), section 8), to the oldest unanswered request and fails
   only that request; the process is not replaced.
 * **Restart with backoff.** If the processes of a slot keep crashing without answering a single
-  request (the document does not load, the binary is broken), each next start is delayed twice
-  as long: 0.1 s, 0.2 s, … up to 30 s (`restart_backoff`). During the pause calls fail at once
+  request (the document does not load, the binary is broken), the first replacement starts at
+  once and each further one is delayed twice as long as the previous: 0.1 s, 0.2 s, … up to
+  30 s (`restart_backoff`). During the pause calls fail at once
   with the reason of the last failure — the exit status and the tail of the engine's stderr. A
   process that answered at least one request is replaced immediately after a failure.
 
-Every client failure is an `EngineError`. `retryable = True` means a process failure or a
+Every client failure is an `EngineError` (an exception raised by the host's own `guards`
+function propagates unchanged). `retryable = True` means a process failure or a
 timeout: the host repeats such requests under the rules of section 1 (an engine step is a pure
 function; repeating it is safe while the transaction is not committed), with a pause between
 attempts. Limit retries after timeouts (for example to three): the process is single-threaded,
@@ -254,7 +256,9 @@ concurrently, with one shared `timeout`.
 
 * Load the new document version into the engine as a whole; user snapshots are not migrated.
 * If the snapshot's message no longer exists, the engine starts the user over and replies
-  `"recovered": true` — worth logging.
+  `"recovered": true` — worth logging. The event of that request is not processed: the user
+  lands on the bot's initial message, and the host decides whether to tell the user or to
+  deliver the event again from the new snapshot.
 * If a remembered place no longer exists, "resume" leads to the section's initial message.
 * The engine rejects a snapshot with an unknown field or version: such a snapshot was written
   by a newer engine, so the engine must not be rolled back without rolling back the snapshots.

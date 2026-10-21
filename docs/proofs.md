@@ -53,7 +53,7 @@ document (`Figram/Format.lean`), `J` is the JSON *model* (a Lean datatype, not t
 | `Figram.Engine.handle_step` | A `step` request already decoded into the model (`handleObj`) — with a decodable snapshot, event and guards, no missing conditions and no `seq` overflow — replies exactly with the result of the proved `Machine.step`. |
 | `Figram.Engine.reply_readable` | Under the hypotheses of `step_snapOK`, the snapshot in a `step` reply is read back by the engine unchanged. |
 | `Figram.Engine.guards_irrelevant` | Conditions in `guards` that are not in `requiredGuards` do not affect the step. |
-| `Figram.Engine.missing_nil_step` | If the engine asks for no conditions (`missing` is empty), the values of conditions that were not passed do not affect the step: `need` lists only conditions that can change the choice. |
+| `Figram.Engine.missing_nil_step` | If the engine asks for no conditions (`missing` is empty), the values of conditions that were not passed do not affect the step: answering `need` with exactly the listed conditions is enough. (That `need` lists no condition that cannot change the choice is a property of the algorithm, not a theorem.) |
 | `Figram.Engine.startAt_snapOK` | For a well-formed machine with non-empty names, `start` with `seq` n yields an admissible snapshot whenever n + 1 does not exceed 2^53 − 1. |
 
 The exact statements are in [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected).
@@ -79,8 +79,9 @@ The exact statements are in [`tests/proofs/THEOREMS.expected`](../tests/proofs/T
 ### Supplementary lemmas
 
 [`tests/proofs/FigramAudit/Glue.lean`](../tests/proofs/FigramAudit/Glue.lean) (library
-`FigramAudit`, built with `lake build FigramAudit`; not part of `./verify.sh`) connects the
-product theorems end to end, among others:
+`FigramAudit`, built with `lake build FigramAudit`; not part of `./verify.sh`, built by the CI
+suite `proofs`)
+connects the product theorems end to end, among others:
 
 * `Figram.Audit.check_compile_correct` — a document that passed `check` is compiled correctly,
   without a separate `wf` hypothesis;
@@ -122,18 +123,38 @@ product theorems end to end, among others:
      kernel, which catches environment manipulation that `#print axioms` cannot see.
 
 `tests/proofs/test_strict_gate_clean.sh` checks that the strict gate never rewrites tracked files
-and that the tracked theorem list acts as a pin. The files `StatementsNegative.lean` and
-`CounterexamplesNegative.lean` are negative controls: the theorems without their hypotheses must
-be rejected. [`tests/proofs/Counterexamples.lean`](../tests/proofs/Counterexamples.lean) shows
-concrete charts and documents on which the theorems' conclusions fail once a hypothesis is
-dropped, and where the proved model differs from the text and protocol layers.
+and that the tracked theorem list acts as a pin (CI runs it).
+
+The other files in `tests/proofs/` are not part of `./verify.sh`; the CI suite `proofs` runs them
+after `test_strict_gate_clean.sh`, each with its expected outcome:
+
+* [`tests/proofs/Counterexamples.lean`](../tests/proofs/Counterexamples.lean) shows concrete
+  charts and documents on which the theorems' conclusions fail once a hypothesis is dropped, and
+  where the proved model differs from the text and protocol layers; `StatementsNegative.lean` and
+  `CounterexamplesNegative.lean` are negative controls that Lean must reject with the number of
+  errors stated in their header (the theorems without their hypotheses, the opposite claims);
+* `TextRoundTrip.lean` checks with `#guard` that documents with extreme numbers in annotations
+  are printed into text that reads back as the same document;
+* `GlueAxioms.lean` prints the axioms of the supplementary lemmas (only the three standard axioms
+  are allowed) and `OpaqueDeps.lean` lists the theorem statements that depend on `partial`
+  definitions; both need the `FigramAudit` library.
+
+By hand:
+
+```sh
+lake build FigramAudit
+for f in Counterexamples TextRoundTrip GlueAxioms OpaqueDeps; do lake env lean tests/proofs/$f.lean; done
+lake env lean tests/proofs/StatementsNegative.lean       # must fail with 2 errors
+lake env lean tests/proofs/CounterexamplesNegative.lean  # must fail with 4 errors
+```
 
 ## What the proofs do not cover
 
 * **The JSON text layer** (`Figram/FormatIO.lean`: `parse`, `print`, `renderCompact`). These are
   `partial` definitions, opaque to the logic; all format and protocol theorems are stated on the
-  JSON model `J`, not on text. The text round trip is tested (`tests/proofs/TextRoundTrip.lean`,
-  differential fuzzing against Python `json`, the formats suite).
+  JSON model `J`, not on text. The text round trip is tested: by differential fuzzing against
+  Python `json` in `./verify.sh`, by the formats suite, and by `tests/proofs/TextRoundTrip.lean`
+  (CI suite `proofs`).
 * **The string-level request handler** `Engine.handle`: the strict field check, the size limit
   and UTF-8 validation run before the proved `handleObj` and can only reject requests; they are
   tested by `tests/engine/protocol_edges.py` and the formats suite.

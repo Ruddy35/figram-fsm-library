@@ -18,8 +18,8 @@ parts it uses.
 | mimalloc (compiled into `libleanrt.a`) | 3.4.5 | executables, archive | `MIT` | <https://github.com/microsoft/mimalloc> |
 | libuv (`libuv.a`) | 1.48.0 | executables, archive | `MIT`, a few files `ISC` | <https://github.com/libuv/libuv> |
 | GNU MP (`libgmp.a`) | 6.3.0 | executables, archive | `LGPL-3.0-or-later OR GPL-2.0-or-later` | <https://gmplib.org/> |
-| LLVM libc++ and libc++abi (`libc++.a`, `libc++abi.a`) | 23.1.0 | executables, archive | `Apache-2.0 WITH LLVM-exception` | <https://github.com/llvm/llvm-project> |
-| LLVM libunwind (`libunwind.a`) and compiler-rt start-up objects (`clang_rt.crtbegin.o`, `clang_rt.crtend.o`) | 23.1.0 | executables | `Apache-2.0 WITH LLVM-exception` | <https://github.com/llvm/llvm-project> |
+| LLVM libc++ and libc++abi (`libc++.a`, `libc++abi.a`) | 23.1.0 | executables, archive | `Apache-2.0 WITH LLVM-exception`; code not yet relicensed: `NCSA` | <https://github.com/llvm/llvm-project> |
+| LLVM libunwind (`libunwind.a`) and compiler-rt start-up objects (`clang_rt.crtbegin.o`, `clang_rt.crtend.o`) | 23.1.0 | executables | `Apache-2.0 WITH LLVM-exception`; code not yet relicensed: `NCSA` | <https://github.com/llvm/llvm-project> |
 | GNU C Library start-up objects (`Scrt1.o`, `crti.o`, `crtn.o`) and `libc_nonshared.a`, `libpthread_nonshared.a`, as shipped with the Lean toolchain | — | executables | `LGPL-2.1-or-later` | <https://www.gnu.org/software/libc/> |
 
 The C library itself (`libc.so.6`, `libm.so.6`, `libpthread.so.0`, `libdl.so.2`, `librt.so.1`) is
@@ -51,7 +51,10 @@ this way.
 * **GNU MP** — Copyright (c) Free Software Foundation, Inc. GNU LGPL version 3 or later, or GNU GPL
   version 2 or later.
 * **LLVM** (libc++, libc++abi, libunwind, compiler-rt) — Copyright (c) the LLVM Project
-  contributors. Apache License 2.0 with LLVM Exceptions.
+  contributors. Apache License 2.0 with LLVM Exceptions; code contributed before the LLVM
+  relicensing remains under the legacy LLVM license: Copyright (c) 2003-2019 University of
+  Illinois at Urbana-Champaign, University of Illinois/NCSA Open Source License (the Lean release
+  bundles the same notice in its `LICENSES` file).
 * **GNU C Library** — Copyright (c) Free Software Foundation, Inc. GNU LGPL version 2.1 or later.
 
 ## License texts
@@ -318,6 +321,52 @@ court of competent jurisdiction determines that the patent provision (Section
 conflicts with the conditions of the GPLv2, you may retroactively and
 prospectively choose to deem waived or otherwise exclude such Section(s) of
 the License, but only in their entirety and only with respect to the Combined
+Software.
+```
+
+### University of Illinois/NCSA Open Source License (legacy LLVM license)
+
+```text
+University of Illinois/NCSA
+Open Source License
+
+Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign.
+All rights reserved.
+
+Developed by:
+
+    LLVM Team
+
+    University of Illinois at Urbana-Champaign
+
+    http://llvm.org
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal with
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimers.
+
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimers in the
+      documentation and/or other materials provided with the distribution.
+
+    * Neither the names of the LLVM Team, University of Illinois at
+      Urbana-Champaign, nor the names of its contributors may be used to
+      endorse or promote products derived from this Software without specific
+      prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE
+SOFTWARE.
 ```
 
 ### GNU Lesser General Public License version 3 (GNU MP)

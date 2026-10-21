@@ -9,11 +9,12 @@ its compiler, document format and engine protocol.
 
 ## Overview
 
-A designer draws a bot in an editor; the editor saves it as a JSON document
-(`examples/*.bot.json`, schema [`schemas/figram.schema.json`](schemas/figram.schema.json)); the
-engine executes the document. The document describes messages, events, arrows with ordered
-variants guarded by named conditions, actions, nested sections, "resume where the user left
-off" arrows, and timers ([docs/format.md](docs/format.md)).
+A bot is one JSON document (`examples/*.bot.json`, schema
+[`schemas/figram.schema.json`](schemas/figram.schema.json)), meant to be written by a visual
+editor (not part of this repository) or by hand; the engine executes the document. The document
+describes messages, events, arrows with ordered variants guarded by named conditions, actions,
+nested sections, "resume where the user left off" arrows, and timers
+([docs/format.md](docs/format.md)).
 
 The engine is **stateless**. It loads and compiles a document once and then answers requests:
 given a user's snapshot and an event, it returns the new snapshot and the actions to perform
@@ -28,8 +29,9 @@ things, that the compiled machine takes exactly the steps of the chart for every
 and condition values, that a checked document is encoded and decoded back unchanged, and that a
 `step` request runs exactly the proved step and returns a snapshot the engine can read back. All
 theorems use only the standard axioms `propext`, `Quot.sound` and `Classical.choice`, and the
-Lean kernel re-checks every declaration of the project (`leanchecker`). The JSON text layer, the CLI, the C shim and the clients are
-not proved; they are tested ([docs/proofs.md](docs/proofs.md), [docs/testing.md](docs/testing.md)).
+Lean kernel re-checks every declaration of the `Figram` library (`leanchecker`). The JSON text
+layer, the string-level request handler, the CLI, the C shim and the clients are not proved;
+they are tested ([docs/proofs.md](docs/proofs.md), [docs/testing.md](docs/testing.md)).
 
 The proved Lean code is what runs: it is compiled into
 
@@ -40,17 +42,18 @@ The proved Lean code is what runs: it is compiled into
 
 ## Features
 
-* One JSON document per bot, with a strict decoder, a canonical form (`figram fmt`) and
-  extension rules: annotations under `x-` keys are kept and never change behaviour; semantic
-  extensions must be declared in `requires`.
-* `figram check` reports the errors that the structure cannot rule out and warns about variants
-  that can never fire, unreachable messages and self-defeating timer loops.
+* One JSON document per bot, with a strict JSON parser, a canonical form (`figram fmt`) and
+  extension rules: annotations under `x-` keys (and any other unknown keys) are kept and never
+  change behaviour; semantic extensions must be declared in `requires`.
+* `figram check` reports the errors that the structure cannot rule out and warns about probable
+  mistakes, such as variants that can never fire, unreachable messages and self-defeating timer
+  loops.
 * A versioned, strict engine protocol: replies in request order, machine-readable error `code`s,
   a request size limit, strict UTF-8.
 * Conditions are evaluated by the host only when the engine needs them (`need`), and only the
   conditions that can change the choice are requested.
-* Timers carry tokens, so a stale firing is ignored; the `seq` counter gives the host stable
-  idempotency keys.
+* Timers carry tokens, so a stale firing is ignored; the `seq` transition counter is the basis of
+  the host's idempotency keys.
 * Embedding with minimal side effects on the host process: initialization creates no threads,
   file descriptors or signal handlers (the `SIGPIPE` disposition that the Lean runtime changes is
   restored), and works under `RLIMIT_AS` ([docs/embedding.md](docs/embedding.md)).
@@ -64,10 +67,11 @@ Releases are published on the [releases page](https://github.com/Ruddy35/figram-
 for Linux x86_64:
 
 * `figram-<version>-linux-x86_64.tar.gz` — the `figram` and `figram-engine` executables, the
-  example documents and the documentation;
+  example documents, this README, `docs/format.md`, `LICENSE` and `THIRD_PARTY_NOTICES.md`;
 * `libfigram-<version>-linux-x86_64.tar.gz` — `figram.h`, `libfigram.a` and the Lean runtime
   archives needed to link it;
-* `SHA256SUMS` — the checksums of both archives.
+* `SHA256SUMS` — the checksums of both archives; `SHA256SUMS.binaries` — the checksums of the two
+  executables.
 
 ```sh
 VERSION=0.1.0
@@ -79,7 +83,8 @@ cd "figram-$VERSION-linux-x86_64"
 bin/figram check examples/pizza.bot.json
 ```
 
-The executables depend only on the system C library. [docs/releasing.md](docs/releasing.md)
+The executables need Linux x86_64 with glibc and depend on no other shared library.
+[docs/releasing.md](docs/releasing.md)
 describes how releases are built and how to check that they were built from the sources.
 
 ### Build from source
@@ -99,16 +104,17 @@ The examples below assume that `figram` and `figram-engine` are on `PATH`
 | Command | Description |
 |---|---|
 | `figram example` | print the example pizza-shop document |
-| `figram check <bot.json>` | check a document: prints `ok`, or the errors one per line (exit 1); warnings go to stderr with exit 0 |
-| `figram fmt <bot.json>` | print the canonical form of a document |
+| `figram check <bot.json>` | check a document: prints `ok`, or the errors one per line (exit 1); warnings go to stderr with the prefix `warning:` and exit 0; a document that cannot be parsed or decoded is reported on stderr (exit 1) |
+| `figram fmt <bot.json>` | print the canonical form of a document (the document is decoded, not checked) |
 | `figram stats <bot.json>` | print the size of the compiled machine |
 | `figram trace <bot.json> <count> <length> <seed>` | print `count` random reference scenarios (JSON Lines) computed from the proved chart semantics; the coverage of arrow variants goes to stderr |
 | `figram random <seed> <messages>` | print a random valid document |
 | `figram golden <dir>` | write the fixed reference scenarios and their documents into `dir` |
 
-`figram` exits with status 0 on success and 1 on any error, including invalid arguments. The
-hidden command `figram json` parses lines of stdin with the JSON text layer; it exists for the
-differential tests.
+`figram` exits with status 0 on success and 1 on any error, including invalid arguments; the
+reason goes to stderr. Use `/dev/stdin` as the file name to read a document from standard input.
+The hidden command `figram json` parses lines of stdin with the JSON text layer; it exists for
+the differential tests.
 
 ```sh doctest
 $ figram check examples/pizza.bot.json
@@ -154,7 +160,9 @@ figram-engine [--max-request BYTES] <bot.json>
 The engine loads and compiles the document, then reads one JSON request per line from stdin and
 writes one JSON reply per line to stdout, strictly in request order. It exits with status 0 at
 the end of input, 1 if the document cannot be loaded (the reasons go to stderr), and 2 on invalid
-arguments. `--max-request` sets the request size limit (default 1 MiB, 0 — no limit).
+arguments. `--max-request` sets the request size limit (default 1 MiB, 0 — no limit). The
+process is single-threaded and serves one request at a time; run several processes for
+parallelism.
 
 ```sh doctest
 $ printf '%s\n' '{"id":1,"op":"start"}' '{"id":2,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}' \
@@ -239,7 +247,7 @@ bad_snapshot False
 
 ## Building from source
 
-Requirements (Linux x86_64):
+Requirements (Linux x86_64 only):
 
 * **Lean 4.35.0.** With [elan](https://github.com/leanprover/elan), `lake build` uses the
   version pinned in `lean-toolchain` (`leanprover/lean4:v4.35.0`). Without elan,
@@ -249,8 +257,8 @@ Requirements (Linux x86_64):
   source with gcc also works; then `ffi/build.sh` needs the static `libuv` and `libgmp`
   (Debian/Ubuntu: `apt install libuv1-dev libgmp-dev`).
 * **For the tests:** Python 3 with the `jsonschema` package, Go 1.23 or newer (`clients/go`),
-  a C compiler (gcc) with AddressSanitizer and ThreadSanitizer, binutils (`objdump`, `readelf`,
-  `nm`, `c++filt`) and `prlimit`.
+  gcc and g++ with AddressSanitizer and ThreadSanitizer, binutils (`objdump`, `readelf`, `nm`,
+  `c++filt`, `strip`) and `prlimit`.
 
 ```sh
 lake build                 # figram, figram-engine and the Lean library, without warnings
@@ -267,21 +275,25 @@ bash ffi/build.sh          # libfigram.a, ffi/out/LDFLAGS, clients/go/zz_figram_
 the strict proof gate, golden and random scenarios against the engine, mutation testing, the host
 contract, the protocol edge cases, differential fuzzing of the JSON text layer, the C ABI, the
 reachability of the libuv event loop, the Python client and the Go wrapper. It exits with 0 when
-every step passed. The formats suite, the compiler oracle suite, the C ABI sanitizer and mutant
-suites and the Go tests run separately; [docs/testing.md](docs/testing.md) describes all of them,
-and CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of them with the
-official Lean release.
+every step passed (about 5 minutes on 4 cores). The formats suite, the compiler oracle suite, the
+C ABI sanitizer and mutant suites and the Go tests run separately;
+[docs/testing.md](docs/testing.md) describes all of them, and CI
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of them with the official Lean
+release.
 
 ## Project layout
 
 ```text
 Figram/                 Lean sources: semantics (Chart), core machine (Core), compiler (Compile),
                         format (Format, FormatIO), checks (Lint, Warnings), engine (Engine, Api),
-                        scenarios and mutants (Run, Trace, RandomDoc, Mutate), proofs (*Proofs, Correct)
+                        examples, scenarios and mutants (Examples, Run, Trace, RandomDoc, Mutate),
+                        proofs (*Proofs, Correct)
 Main.lean               the figram CLI
 EngineMain.lean         the figram-engine process
+lakefile.lean           the Lake build (version, targets)
 ffi/                    the C ABI: figram.h, the shim (figram_ffi.c, figram_guard.cpp,
-                        figram_init.cpp, figram_rt.c, figram_exe.c), build.sh
+                        figram_init.cpp, figram_rt.c), figram_exe.c (start-up of the
+                        executables), build.sh
 clients/python/         reference Python client (figram_client.py, protocol.py)
 clients/go/             reference Go wrapper and the gofig test driver
 schemas/                JSON schemas of the document and of the snapshot
@@ -291,10 +303,14 @@ tests/engine/           protocol, conformance, host contract and client suites (
 tests/capi/             C ABI tests
 tests/formats/          formats suite
 tests/compiler/         compiler oracle suite
-tests/proofs/           proof gates and pinned theorem statements
-ci/                     install-lean.sh, reach.py, package.sh, check_docs.py
+tests/proofs/           proof gates, pinned theorem statements, supplementary lemmas
+tests/lib/              shared test helpers
+ci/                     install-lean.sh, lean-toolchain.sha256, reach.py, package.sh,
+                        test-bundle.sh, check_docs.py
+.github/workflows/      ci.yml (every push), release.yml (draft releases)
 verify.sh               the full gate
 verify-prebuilt.sh      checks prebuilt binaries without Lean
+verify-faults.sh        checks that the gates detect injected faults
 ```
 
 ## Contributing

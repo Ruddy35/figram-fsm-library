@@ -10,18 +10,19 @@ a **draft**; a maintainer reviews the draft and publishes it.
 1. Choose the version `X.Y.Z` (semantic versioning; a pre-release suffix such as `0.2.0-rc.1` is
    allowed and marks the GitHub Release as a pre-release).
 2. Set it in `lakefile.lean`: `version := v!"X.Y.Z"`.
-3. Add a section for it to `CHANGELOG.md`, headed `## [X.Y.Z] - YYYY-MM-DD` (`## X.Y.Z` also works).
-   This section becomes the top of the release notes; the workflow refuses a version without one.
+3. Add a section for it to `CHANGELOG.md`, headed `## [X.Y.Z] - YYYY-MM-DD` (`## X.Y.Z` also works;
+   in a section prepared as `## [X.Y.Z] - Unreleased`, put in the date). The body of this section
+   becomes the top of the release notes; the workflow refuses a version without one.
 4. Merge to the default branch and wait for `ci` to pass. Its `release dry run` job already packages
    the commit, checks that two independent builds give byte-identical archives and that the archives
    are self-contained, and runs `verify-prebuilt.sh` on the packaged binaries.
 5. Start the release workflow, either
    * from the Actions tab: **release → Run workflow**, pick the branch (usually the default branch;
-     its head commit is released) and enter the version without `v`, or `gh workflow run release.yml
-     --ref main -f version=X.Y.Z`; or
+     its head commit is released) and enter the version without `v`, or
+     `gh workflow run release.yml --ref BRANCH -f version=X.Y.Z` with that branch; or
    * by pushing a tag at the commit to release: `git tag -a vX.Y.Z -m "Figram X.Y.Z" COMMIT && git push
      origin vX.Y.Z`.
-6. The workflow (a single job):
+6. The workflow has two jobs. The job `build, verify and package` runs with a read-only token:
    * checks the version format, that it equals `lakefile.lean`, and that `CHANGELOG.md` has its section;
    * if the tag `vX.Y.Z` already exists, checks that it points at the commit being built;
    * installs Lean with `ci/install-lean.sh` (release archive, SHA-256 pinned in
@@ -35,13 +36,18 @@ a **draft**; a maintainer reviews the draft and publishes it.
    * runs `ci/test-bundle.sh`: checksums, the extracted CLI and engine, and C and Go programs built
      against nothing but the extracted library archive;
    * runs `./verify-prebuilt.sh` on the binaries extracted from the CLI archive;
-   * writes the release notes (the CHANGELOG section, a downloads table, a provenance block and the
-     checksums), uploads the archives, checksums and notes as a workflow artifact, and creates the draft
-     release `vX.Y.Z` targeting the commit, or updates the existing draft of that tag (notes, target
-     commit and assets; stale assets are removed).
+   * writes the release notes (the CHANGELOG section, with its relative links pointing at the sources
+     of the commit, a downloads table, a provenance block and the checksums) and uploads the
+     archives, checksums and notes as a workflow artifact.
 
-   It never publishes a release, never deletes one, and stops if a **published** release `vX.Y.Z`
-   already exists or if several releases carry that tag.
+   Then the job `draft release`, the only one with write access (`contents: write`), checks out
+   nothing and runs no code of the repository: it downloads that artifact, checks `SHA256SUMS`, and
+   creates the draft release `vX.Y.Z` targeting the commit, or updates the existing draft of that tag
+   (notes, target commit and assets; stale assets are removed), checking before and after each change
+   that the release is still a draft.
+
+   The workflow never publishes a release, never deletes one, and stops if a **published** release
+   `vX.Y.Z` already exists or if several releases carry that tag.
 7. Review the draft on the Releases page: the notes, the provenance block (commit, toolchain, workflow
    run), the four assets. Optionally download them and check them as described below.
 8. Publish the draft (**Edit → Publish release**, or `gh release edit vX.Y.Z --draft=false`). If the tag
@@ -125,6 +131,8 @@ For a release made by the workflow:
   the draft's target).
 * **Toolchain.** Lean is the official release archive whose SHA-256 is pinned in
   `ci/lean-toolchain.sha256`; GitHub Actions are pinned by commit SHA.
+* **Write access.** Only the job `draft release`, which runs no code of the repository, can write
+  to the repository; it uploads the archives whose `SHA256SUMS` it checked.
 * **Gate.** `verify.sh` (build without warnings, theorem gates, engine, protocol, client, C ABI and Go
   tests) exited 0 on a clean rebuild of that commit, and the rebuilt stripped binaries are
   byte-identical to the released ones.
@@ -149,6 +157,7 @@ Limits:
 
 Figram is MIT-licensed (`LICENSE`). The binaries and the library archive also contain statically linked
 third-party code: the Lean 4 runtime and core library (`libleanrt.a`, `libInit.a`; they include the
-mimalloc allocator), libuv, GMP and, with the official Lean toolchain, LLVM libc++ and libc++abi. Their
-licenses and the obligations that come with distributing programs linked against them are listed in
+mimalloc allocator), libuv, GMP, LLVM libc++ and libc++abi, and in the executables also LLVM libunwind,
+compiler-rt start-up objects and glibc start-up objects. Their licenses and the obligations that come
+with distributing programs linked against them are listed in
 [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md), which ships in both archives.

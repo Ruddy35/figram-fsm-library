@@ -39,8 +39,10 @@ CI runs all of them on every push and pull request.
 * **Proofs.** No `sorry`, `admit`, `axiom`, `native_decide`, `implemented_by` or `@[extern]` in the
   Lean sources; theorems may use only `propext`, `Quot.sound` and `Classical.choice`. Changing the
   statement of a pinned theorem means updating `tests/proofs/THEOREMS.expected` (and
-  `tests/proofs/Statements.lean`) in the same commit, deliberately. Adding, removing or renaming a
-  theorem means regenerating the tracked list:
+  `tests/proofs/Statements.lean`) in the same commit, deliberately; pinning another theorem means
+  adding it to `tests/proofs/theorems.lean`, `tests/proofs/THEOREMS.expected` and the table of
+  `docs/proofs.md`. Adding, removing or renaming a theorem means regenerating the tracked list
+  (and updating the theorem count in `docs/`, which `ci/check_docs.py` reports):
   `python3 -I tests/proofs/gen_axioms.py . tests/proofs/AllAxioms.lean tests/proofs/theorems.txt`.
 * **Tests.** A fix comes with a test that fails without it. Test suites must stay sensitive: they
   run deliberately broken variants and expect them to fail.

@@ -7,8 +7,10 @@ This document specifies two formats:
 * the **user snapshot and the engine protocol** (section 8): what a host stores per user and
   the line-delimited JSON protocol of `figram-engine` and of the embedded library.
 
-Properties marked *proved* are theorems of the Lean sources (`Figram/FormatProofs.lean`,
-`Figram/EngineProofs.lean`); [proofs.md](proofs.md) lists them with their exact statements.
+Properties marked *proved* and the theorems named below are theorems of the Lean sources
+(`Figram/FormatProofs.lean`, `Figram/EngineProofs.lean`, `Figram/Correct.lean`,
+`Figram/LintProofs.lean`); [proofs.md](proofs.md) lists the main ones with their exact
+statements.
 Machine-readable schemas: [`schemas/figram.schema.json`](../schemas/figram.schema.json) and
 [`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) (JSON Schema 2020-12).
 
@@ -40,9 +42,10 @@ key order of maps (`children`, `on`, `conditions`, …) is kept so that the desi
 not lost. Two documents that differ only in the key order of a map are therefore encoded
 differently. Key order does not affect the bot's behaviour except for `timers`: the order of a
 message's timers is the order of the `start_timer` and `cancel_timer` actions in an engine
-reply, and therefore of the action positions used in a host's idempotency keys ([host-contract.md](host-contract.md), section 1). For hashing or
-"semantic" comparison, sort the maps by key first — all maps except `timers` if the action
-order matters. `figram fmt` does not sort.
+reply, and therefore of the action positions used in a host's idempotency keys
+([host-contract.md](host-contract.md), section 1). For hashing or "semantic" comparison, sort
+the maps by key first — all maps except `timers` if the action order matters. `figram fmt`
+does not sort.
 
 **C4. Structural correctness.** Let `V` be the correctness conditions that the JSON structure
 does not enforce and that must be checked separately. The format is chosen to make `V`
@@ -98,7 +101,7 @@ not the schema, is authoritative.
 
 ### What remains in `V`, and why it cannot be smaller
 
-After decisions 1–12, five semantic conditions remain; `figram check` checks exactly these:
+After decisions 1–12, five semantic conditions remain, and `figram check` checks them:
 
 - **V1.** Node names are unique in the whole tree and non-empty.
 - **V2.** The `initial` of a section is a direct child of that section.
@@ -107,10 +110,12 @@ After decisions 1–12, five semantic conditions remain; `figram check` checks e
 - **V5.** An event `timer:<name>` refers to an existing timer.
 
 In addition, `check` verifies what holds automatically for JSON text but can be violated by a
-document built programmatically: names in maps are non-empty and unique, and annotations do
-not collide with format keys. A document that passes `check` is therefore guaranteed to be
-encoded into the JSON model `J` and decoded back (theorem `check_roundtrip`); the round trip
-through text (`print`/`parse`) is not proved and is covered by tests.
+document built programmatically (names in maps are non-empty and unique, annotations do not
+collide with format keys), the value ranges of integer fields (a timer delay at most
+2^53 − 1), and, as its last step, that the chart compiles to a well-formed machine
+(section 7). A document that passes `check` is guaranteed to be encoded into the JSON model `J`
+and decoded back (theorem `check_roundtrip`); the round trip through text (`print`/`parse`) is
+not proved and is covered by tests.
 
 **Warnings.** For a document without errors, `figram check` also looks for probable designer
 mistakes and prints them to stderr, one per line; the exit status stays 0 and the document
@@ -196,6 +201,12 @@ so maps carry no annotations. Format keys never start with `x-`, so annotations 
 with future format fields. A reader that rewrites a document must keep all unknown keys.
 Example: [`examples/annotations.bot.json`](../examples/annotations.bot.json).
 
+Unknown keys without the `x-` prefix are accepted and kept as well (C5a); neither the decoder,
+`figram check` nor the schema reports them. A misspelt optional field is therefore not an
+error: `"tiemrs"` in a message is kept as an unknown key and the message has no timers, and
+`"iff"` in a variant is kept and the variant has no condition. Use the `x-` prefix for
+annotations and check documents written by hand for such typos.
+
 **Semantic extension** — a new field or value that changes the bot's behaviour. It is added
 as follows:
 
@@ -229,9 +240,9 @@ theorem `wfOK_sound`).
 
 Not covered by proofs:
 
-- the text layer (`Figram/FormatIO.lean`): JSON parsing and printing. It is small, rejects
-  duplicate keys, leading zeros and trailing commas, and is tested differentially against
-  Python `json` (see [testing.md](testing.md));
+- the text layer (`Figram/FormatIO.lean`, about 360 lines): JSON parsing and printing. It
+  rejects duplicate keys, leading zeros and trailing commas, and is tested differentially
+  against Python `json` (see [testing.md](testing.md));
 - agreement of the schemas with the decoder: checked on the examples and by the table in
   `tests/formats/c_schema_table.py`; the schema is wider than the decoder for doubles
   (section 3, "Numbers") and does not express the nesting limit (section 4);
@@ -253,7 +264,10 @@ actions:
 * **timers** — a timer on a message.
 
 "Resume" is an operation of the core: the place is read from the snapshot during the step, so
-the size of the compiled machine grows linearly with the chart.
+"resume" adds one entry per section to the compiled machine instead of a copy of the section for
+every remembered place. The arrows of a section are copied into every message inside it, so
+the number of machine rows can reach the number of messages times the number of section
+events ([testing.md](testing.md), "Performance").
 
 Decisions of the specification:
 
@@ -281,8 +295,8 @@ Decisions of the specification:
 8. **Recovery.** If the snapshot's message no longer exists in the document (or `at` names a
    section), the user starts the bot again: the timers of the old place are cancelled and the
    remembered places are kept, except those overwritten by the entry into the initial
-   message (decision 4). Recovery happens before the event is processed, including before the
-   timer token check.
+   message (decision 4). Recovery replaces the step: the event itself is not processed, and
+   recovery happens for any event, including a timer event with a stale token.
 
 The correctness theorems assume `c.compile.wf`. `figram check` establishes it on the chart,
 without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
@@ -311,8 +325,8 @@ Snapshot = { "v"?:      1,                       (version; absent — 1)
              "seq"?:    Integer }                (number of the last transition; absent — 0)
 ```
 
-Tokens and `seq` are integers from 0 to 2^53 − 1; names and values in `at`, `resume` and
-`timers` are non-empty strings. The snapshot is strict: the engine accepts exactly what
+Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, the keys and values of `resume` and
+the keys of `timers` are non-empty strings. The snapshot is strict: the engine accepts exactly what
 [`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows; an unknown field or
 an unknown version is an error (such a snapshot was written by a newer engine). `seq` grows by
 1 with every transition; it is the token of the timers started in that transition and the
@@ -333,7 +347,7 @@ returned by value (`-0` becomes `0`); a request without `id` gets a reply with `
 
 | Request | Reply |
 |---|---|
-| `{"op": "hello"}` | `{"protocol": 1, "states": N}` |
+| `{"op": "hello"}` | `{"protocol": 1, "states": N}` — N is the number of messages of the loaded document |
 | `{"op": "start", "seq"?: N}` | `{"snapshot": …, "actions": […]}` — first entry; the first transition gets `seq` N + 1 (without `seq` — 1) |
 | `{"op": "restart", "snapshot": …}` | `{"snapshot": …, "actions": […]}` — start over without resetting the counter |
 | `{"op": "step", "snapshot": …, "event": "btn:x", "guards"?: {…}}` | `{"snapshot": …, "actions": […], "recovered"?: true}` or `{"need": [conditions]}` |
@@ -372,7 +386,8 @@ Rules of a step:
 
 1. If the snapshot's message is not in the document, the user starts the bot again: all of the
    user's timers are cancelled, then the first-entry actions follow; the reply carries
-   `"recovered": true`. Remembered places are kept.
+   `"recovered": true`. Remembered places are kept. The event of the request is not processed
+   (decision 8 of section 7); `need` is never asked in this case.
 2. A timer event is ignored (the snapshot does not change, no actions) if its token differs
    from the current one or if the timer does not belong to the current message (this happens
    only with a snapshot written under a previous document version). Leaving a message cancels
@@ -408,8 +423,8 @@ user over with `start` passes in `seq` the user's persistent high-water mark —
 ### Errors
 
 A request error is `{"id": …, "error": "text", "code": "code"}` with exactly these three
-fields; the snapshot is not changed. The text is for humans and may change between versions; hosts decide
-by `code`:
+fields; the snapshot is not changed. The text is for humans and may change between versions;
+hosts decide by `code`:
 
 | `code` | When |
 |---|---|
@@ -453,7 +468,9 @@ reply). The library produces these three errors itself, before parsing, always w
 
 ### Test mode
 
-A deliberately broken engine for measuring test strength (`figram-engine --mutants`,
-`--mutate <mutation>`) starts only with `FIGRAM_ALLOW_MUTANTS=1` in the environment. It prints
-a warning to stderr, rejects a mutation whose number or name does not exist in the machine,
-and its `hello` reply carries the field `"mutant": "<mutation>"`.
+The test mode measures the strength of the tests: `figram-engine --mutants <bot.json>` lists
+the mutations of the compiled machine, and `figram-engine --mutate <mutation> <bot.json>` runs a
+deliberately broken engine. Both start only with `FIGRAM_ALLOW_MUTANTS=1` in the environment
+(otherwise exit status 2). The broken engine prints a warning to stderr, rejects a mutation
+whose number or name does not exist in the machine (exit status 2), and its `hello` reply
+carries the field `"mutant": "<mutation>"`.
