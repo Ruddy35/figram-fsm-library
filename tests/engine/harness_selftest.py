@@ -1,8 +1,8 @@
-"""Самопроверка тестовой обвязки: каждая порча движка обязана сделать
-соответствующий тест красным (V3-02 … V3-05, V3-08).
+"""Self-test of the test harness: every corruption of the engine must make the
+corresponding test red.
 
-Подставные движки — посредники к настоящему движку, которые портят ответы,
-отвечают не на всё, не дают мутаций или зависают.
+The fake engines are proxies to the real engine that corrupt replies, do not
+answer everything, offer no mutations or hang.
 
     python3 harness_selftest.py ENGINE pizza.bot.json traces.jsonl FEATURES_TRACES.jsonl
 """
@@ -34,37 +34,38 @@ for line in sys.stdin:
         print(o, flush=True)
 """
 
-# Каждая порча: код, который превращает ответ r в список строк вывода `out`.
+# Each corruption: code that turns the reply r into the list of output lines `out`.
 EMIT = 'out.append("{oops" if r is None else json.dumps(r))'
 CORRUPT = {
-    "снимок": f'if n % 7 == 3 and "snapshot" in r: r["snapshot"] = {{"at": "nowhere"}}\n    {EMIT}',
+    "snapshot": f'if n % 7 == 3 and "snapshot" in r: r["snapshot"] = {{"at": "nowhere"}}\n    {EMIT}',
     "id": f'if n % 7 == 3: r["id"] = -999\n    {EMIT}',
-    "id сдвинут": f'if n % 7 == 3: r["id"] += 1\n    {EMIT}',
-    "не JSON": f'if n % 7 == 3: r = None\n    {EMIT}',
+    "id shifted": f'if n % 7 == 3: r["id"] += 1\n    {EMIT}',
+    "not JSON": f'if n % 7 == 3: r = None\n    {EMIT}',
     "seq = true": f'if "snapshot" in r and n % 3 == 1: r["snapshot"]["seq"] = True\n    {EMIT}',
-    "жетон = true": f'[a.update(token=True) for a in r.get("actions", []) if "start_timer" in a]\n    {EMIT}',
+    "token = true": f'[a.update(token=True) for a in r.get("actions", []) if "start_timer" in a]\n    {EMIT}',
     "need + error": f'if "need" in r: r["error"] = "contradictory"\n    {EMIT}',
     "need + snapshot": f'if "need" in r: r["snapshot"] = {{"at": "a"}}\n    {EMIT}',
-    "результат + error": f'if "snapshot" in r and n % 5 == 2: r["error"] = "x"\n    {EMIT}',
-    "error без code": f'if "error" in r: r.pop("code", None)\n    {EMIT}',
-    "неизвестный code": f'if "error" in r: r["code"] = "oops"\n    {EMIT}',
-    "пропуск ответа": f'if n != 3: {EMIT}',
-    "дубль ответа": f'{EMIT}\n    if n == 3: {EMIT}',
+    "result + error": f'if "snapshot" in r and n % 5 == 2: r["error"] = "x"\n    {EMIT}',
+    "error without code": f'if "error" in r: r.pop("code", None)\n    {EMIT}',
+    "unknown code": f'if "error" in r: r["code"] = "oops"\n    {EMIT}',
+    "skipped reply": f'if n != 3: {EMIT}',
+    "duplicate reply": f'{EMIT}\n    if n == 3: {EMIT}',
 }
 TOOLS = {
     "conformance": lambda fake: [fake, f"{doc}={traces}"],
     "loadtest": lambda fake: [fake, doc, traces, "8", "1"],
     "snapshot_fixtures": lambda fake: [fake, features, schema],
 }
-# Порчи, которые к инструменту не относятся: в snapshot_fixtures нет need и
-# таймеров; loadtest через клиент ловит пропуск таймаутом (проверено в client_faults).
-# Ошибок (и поля code) в ответах conformance и loadtest нет: порча кода ошибки проверяется
-# на snapshot_fixtures, где снимки отвергаются.
-SKIP = {("loadtest", "пропуск ответа"), ("loadtest", "дубль ответа"),
+# Corruptions that do not apply to a tool: snapshot_fixtures has no need and no
+# timers; loadtest goes through the client, which catches a skipped reply by a timeout
+# (checked in client_faults). The replies of conformance and loadtest contain no errors
+# (and no code field): corrupting the error code is checked on snapshot_fixtures, where
+# snapshots are rejected.
+SKIP = {("loadtest", "skipped reply"), ("loadtest", "duplicate reply"),
         ("snapshot_fixtures", "need + error"), ("snapshot_fixtures", "need + snapshot"),
-        ("snapshot_fixtures", "жетон = true"),
-        ("conformance", "error без code"), ("conformance", "неизвестный code"),
-        ("loadtest", "error без code"), ("loadtest", "неизвестный code")}
+        ("snapshot_fixtures", "token = true"),
+        ("conformance", "error without code"), ("conformance", "unknown code"),
+        ("loadtest", "error without code"), ("loadtest", "unknown code")}
 
 ok = True
 
@@ -75,8 +76,8 @@ LAST = {"out": ""}
 def report(good, text):
     global ok
     ok &= good
-    print(f"{'ok ' if good else 'НЕТ'} {text}", flush=True)
-    if not good:   # подробности отказа: хвост вывода проверяемого инструмента
+    print(f"{'ok  ' if good else 'FAIL'} {text}", flush=True)
+    if not good:   # details of the failure: the tail of the output of the tool under test
         for line in LAST["out"].strip().splitlines()[-8:]:
             print(f"      | {line}", flush=True)
 
@@ -89,21 +90,21 @@ def run_tool(tool, args, env=None, timeout=600):
     return r.returncode, time.monotonic() - t0
 
 
-# Только сообщения о НАРУШЕНИИ: строки успешного итога («расхождений 0», «ответов 24») не подходят.
-DETECTED = re.compile(r"расхождений [1-9]|расходятся|РАСХОЖДЕНИЕ|нарушает протокол|ответов \d+ из \d+|"
-                      r"ответ \d+:|ошибка потока|выполнено шагов \d+ из|граница seq: НЕТ|шаг \d+:|: start$")
+# Only messages about a VIOLATION: lines of a successful summary ("mismatches 0", "replies 24") do not match.
+DETECTED = re.compile(r"mismatches [1-9]|disagree:|MISMATCH|violates the protocol|replies \d+ of \d+|"
+                      r"reply \d+:|thread error|steps done \d+ of|seq boundary: FAIL|step \d+:|: start$")
 
 
 def caught():
-    """Порча поймана, только если инструмент сообщил о нарушении или расхождении
-    и не упал с трассировкой по посторонней причине."""
+    """The corruption is caught only if the tool reported a violation or a mismatch
+    and did not crash with a traceback for an unrelated reason."""
     out = LAST["out"]
     return "Traceback" not in out and bool(DETECTED.search(out))
 
 
 def alive_after(pids, limit=5.0):
-    """Живые (не зомби) процессы из списка; ждём до `limit` секунд — в медленных
-    песочницах доставка SIGKILL и смена состояния занимают время."""
+    """Live (not zombie) processes from the list; waits up to `limit` seconds: in slow
+    sandboxes delivering SIGKILL and the state change take time."""
     deadline = time.monotonic() + limit
     while True:
         alive = []
@@ -134,37 +135,37 @@ with tempfile.TemporaryDirectory() as d:
                 continue
             rc, took = run_tool(tool, args(fake))
             report(rc != 0 and caught(),
-                   f"{tool}, порча «{name}»: код выхода {rc}, распознана {caught()} ({took:.1f} с)")
+                   f"{tool}, corruption '{name}': exit code {rc}, recognized {caught()} ({took:.1f} s)")
 
-    # Ноль мутаций — провал, а не 100%.
+    # Zero mutations is a failure, not 100%.
     fake = write("nomut.sh", f'#!/bin/sh\nif [ "$1" = "--mutants" ]; then exit 0; fi\nexec {engine} "$@"\n')
     rc, _ = run_tool("mutation", [fake, f"{doc}={traces}"])
-    report(rc != 0 and "меньше минимума" in LAST["out"] and "Traceback" not in LAST["out"],
-           f"mutation, движок без мутаций: код выхода {rc}")
+    report(rc != 0 and "below the minimum" in LAST["out"] and "Traceback" not in LAST["out"],
+           f"mutation, engine without mutations: exit code {rc}")
 
-    # Зависший движок (без него проверка висела бы ~1000 с): проверка обязана
-    # завершиться ошибкой ИМЕННО по сроку, намного раньше, без живых процессов.
-    # Порог времени щедрый: смысл в «не висит», а не в скорости среды.
+    # A hung engine (without the deadline the check would hang for ~1000 s): the check
+    # must fail BECAUSE of the deadline, much earlier, leaving no live processes.
+    # The time threshold is generous: the point is "does not hang", not the speed of the machine.
     pidfile = os.path.join(d, "pid")
     fake = write("hang.sh", f"#!/bin/sh\necho $$ > {pidfile}\nsleep 1000 &\necho $! >> {pidfile}\nwait\n")
     env = dict(os.environ, FIGRAM_TEST_TIMEOUT="2")
     for tool, args in [("conformance", [fake, f"{doc}={traces}"]),
                        ("snapshot_fixtures", [fake, features, schema])]:
         rc, took = run_tool(tool, args, env=env, timeout=300)
-        by_deadline = "не завершился за" in LAST["out"]
+        by_deadline = "did not finish within" in LAST["out"]
         alive = alive_after(open(pidfile).read().split())
         report(rc != 0 and by_deadline and took < 120 and not alive,
-               f"{tool}, зависший движок: код {rc}, прерван по сроку {by_deadline}, {took:.1f} с, "
-               f"живых процессов {len(alive)}")
+               f"{tool}, hung engine: exit code {rc}, stopped by the deadline {by_deadline}, {took:.1f} s, "
+               f"live processes {len(alive)}")
 
-    # Положительный контроль: настоящий движок проходит все проверки.
+    # Positive control: the real engine passes all checks.
     for tool, args in TOOLS.items():
         rc, took = run_tool(tool, args(engine))
-        report(rc == 0, f"{tool}, настоящий движок: код выхода {rc} ({took:.1f} с)")
+        report(rc == 0, f"{tool}, real engine: exit code {rc} ({took:.1f} s)")
     golden = os.path.join(os.path.dirname(doc), "golden.jsonl")
     rc, took = run_tool("mutation", [engine, "--golden", golden, f"{doc}={traces}",
                                      f"{features}={ftraces}"], timeout=1800)
-    report(rc == 0, f"mutation, настоящий движок на полном корпусе: код выхода {rc} ({took:.1f} с)")
+    report(rc == 0, f"mutation, real engine on the full corpus: exit code {rc} ({took:.1f} s)")
 
-print("обвязка ловит порчу" if ok else "ОБВЯЗКА ПРОПУСКАЕТ ПОРЧУ (см. строки «НЕТ» выше)")
+print("the harness catches corruption" if ok else "THE HARNESS MISSES CORRUPTION (see the FAIL lines above)")
 sys.exit(0 if ok else 1)

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 # Checks prebuilt binaries without Lean (Linux x86_64, they depend on libc).
-# Покрывает движок, утилиту, клиент, обвязку, контракт хоста, текстовый JSON.
-# НЕ покрывает: сборку, теоремы, C-прослойку и Go — для них нужен ./verify.sh с Lean 4.35.0.
+# Covers the engine, the CLI, the client, the test harness, the host contract, the JSON text layer.
+# Does NOT cover the build, the theorems, the C shim and Go: they need ./verify.sh with Lean 4.35.0.
 # That the binaries were built from these sources is shown only by ./verify.sh with
 # FIGRAM_SHA256SUMS (the build is reproducible).
 #
-#   ./verify-prebuilt.sh DIR          полная проверка (~90 с на одном ядре)
-#   ./verify-prebuilt.sh --quick DIR  сокращённая (~30 с): меньше документов и фаззинга,
-#                                     без мутаций и самопроверки обвязки — НЕ замена полной
+#   ./verify-prebuilt.sh DIR          the full check (~90 s on one core)
+#   ./verify-prebuilt.sh --quick DIR  a shortened check (~30 s): fewer documents and fuzzing cases,
+#                                     no mutations and no harness self-test; NOT a replacement
 # DIR (or FIGRAM_BIN=DIR) is the directory with `figram` and `figram-engine`, e.g. an unpacked
 # release or .lake/build/bin. If DIR/SHA256SUMS exists, `sha256sum -c` must accept it.
 #
-# Код выхода: 0 — полная проверка прошла; 1 — провал; 3 — сокращённая (--quick) прошла:
-# это не полная проверка, CI обязан считать код 3 провалом. 2 — usage error.
+# Exit status: 0 — the full check passed; 1 — failure; 3 — the shortened check (--quick) passed:
+# this is not the full check, CI must treat exit status 3 as a failure; 2 — usage error.
 set -euo pipefail
 shopt -s inherit_errexit
-fail() { echo "НЕТ: $*"; exit 1; }
+fail() { echo "FAIL: $*"; exit 1; }
 usage() {
   echo "usage: $0 [--quick] DIR   (DIR contains figram and figram-engine; or set FIGRAM_BIN=DIR)" >&2
   [ $# = 0 ] || echo "$0: $*" >&2
@@ -34,8 +34,8 @@ BIN=${BIN:-${FIGRAM_BIN:-}}
 for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an executable file"; done
 BIN=$(cd "$BIN" && pwd)
 cd "$(dirname "$0")"
-MIN_MUTANTS=107        # мутаций в двух документах примеров (уменьшение — провал)
-MIN_SELFTEST_OK=37     # пройденных проверок самопроверки обвязки
+MIN_MUTANTS=107        # mutations in the two example documents (fewer is a failure)
+MIN_SELFTEST_OK=37     # passed checks of the harness self-test
 F=$BIN/figram
 E=$BIN/figram-engine
 P=tests/engine
@@ -45,23 +45,23 @@ if [ -f "$BIN/SHA256SUMS" ]; then
 else
   echo "no $BIN/SHA256SUMS: checksum check skipped"
 fi
-python3 -c "import jsonschema" 2>/dev/null || fail "нужен Python-пакет jsonschema: pip install jsonschema"
+python3 -c "import jsonschema" 2>/dev/null || fail "the Python package jsonschema is required: pip install jsonschema"
 T=$(mktemp -d)
 trap 'rm -rf "$T"' EXIT
 LOGS="$(pwd)/verify-logs"
 rm -rf "$LOGS"; mkdir -p "$LOGS"
-# logged ИМЯ КОМАНДА…: полный вывод шага — в verify-logs/ИМЯ.log; при успехе
-# печатается итог (последние строки), при отказе — все строки «НЕТ» и хвост журнала.
-# clean ИМЯ КОМАНДА…: как logged, но stderr отдельно и обязан быть пустым.
+# logged NAME COMMAND…: the full output of the step goes to verify-logs/NAME.log; on success
+# the summary (the last lines) is printed, on failure all FAIL lines and the tail of the log.
+# clean NAME COMMAND…: like logged, but stderr is kept separately and must be empty.
 clean() {
   local name=$1; shift
   if ! "$@" > "$LOGS/$name.log" 2> "$LOGS/$name.err"; then
-    echo "ОТКАЗ шага «$name», журнал: verify-logs/$name.log"
-    grep -E "^НЕТ" "$LOGS/$name.log" | head -40 || true
+    echo "FAIL: step '$name' failed, log: verify-logs/$name.log"
+    grep -E "^ *FAIL" "$LOGS/$name.log" | head -40 || true
     tail -25 "$LOGS/$name.log"; tail -10 "$LOGS/$name.err"; exit 1
   fi
   if [ -s "$LOGS/$name.err" ]; then
-    echo "НЕТ: шаг «$name» печатает в stderr:"; head -10 "$LOGS/$name.err"; exit 1
+    echo "FAIL: step '$name' prints to stderr:"; head -10 "$LOGS/$name.err"; exit 1
   fi
   tail -1 "$LOGS/$name.log"
 }
@@ -71,16 +71,17 @@ logged() {
     tail -${SHOW:-1} "$LOGS/$name.log"
   else
     local rc=$?
-    echo "ОТКАЗ шага «$name» (код $rc), журнал: verify-logs/$name.log"
-    grep -E "^НЕТ|РАСХОЖДЕНИЕ|Traceback|ОТКАЗ|выжила" "$LOGS/$name.log" | head -40 || true
-    echo "--- хвост журнала:"; tail -25 "$LOGS/$name.log"
+    echo "FAIL: step '$name' failed (exit code $rc), log: verify-logs/$name.log"
+    grep -E "^ *FAIL|MISMATCH|Traceback|survived:|disagree:" "$LOGS/$name.log" | head -40 || true
+    echo "--- log tail:"; tail -25 "$LOGS/$name.log"
     exit 1
   fi
 }
 LAST=$SECONDS
-step() { echo "   ($(( SECONDS - LAST )) с)"; LAST=$SECONDS; echo; echo "== $*"; }
-# expect ФАЙЛ РЕГВЫР УСЛОВИЕ ОПИСАНИЕ: в файле есть строка по регулярному выражению,
-# и условие (выражение Python над числами групп g[0], g[1], …) истинно. Иначе — провал.
+step() { echo "   ($(( SECONDS - LAST )) s)"; LAST=$SECONDS; echo; echo "== $*"; }
+# expect FILE REGEX CONDITION DESCRIPTION: the file has a line matching the regular expression
+# and the condition (a Python expression over the numbers of the groups g[0], g[1], …) holds;
+# otherwise the check fails.
 expect() {
   python3 - "$@" <<'PY' || exit 1
 import re, sys
@@ -88,91 +89,91 @@ path, rx, cond, what = sys.argv[1:5]
 text = open(path, encoding="utf-8", errors="replace").read()
 m = re.search(rx, text, re.M)
 if not m:
-    print(f"НЕТ: {what}: в выводе нет строки вида «{rx}»"); sys.exit(1)
+    print(f"FAIL: {what}: no line matching '{rx}' in the output"); sys.exit(1)
 g = [int(re.sub(r"[^0-9-]", "", x)) for x in m.groups()]
 if not eval(cond, {}, {"g": g}):
-    print(f"НЕТ: {what}: «{m.group(0)}» не удовлетворяет {cond}"); sys.exit(1)
+    print(f"FAIL: {what}: '{m.group(0)}' does not satisfy {cond}"); sys.exit(1)
 PY
 }
 
-step "Фиксированные сценарии совпадают с сохранёнными"
+step "Golden scenarios match the committed files"
 $F golden "$T/golden" > "$T/golden.out"
-expect "$T/golden.out" '^scenarios: (\d+)$' "g[0] > 0 and g[0] == $(grep -c . examples/golden.jsonl)" "фиксированные сценарии"
+expect "$T/golden.out" '^scenarios: (\d+)$' "g[0] > 0 and g[0] == $(grep -c . examples/golden.jsonl)" "golden scenarios"
 for f in golden.jsonl pizza.bot.json features.bot.json; do
-  cmp "$T/golden/$f" "examples/$f" || fail "examples/$f не совпадает с выводом figram golden"
+  cmp "$T/golden/$f" "examples/$f" || fail "examples/$f differs from the output of figram golden"
 done
 echo "ok ($(cat "$T/golden.out"))"
 
-step "Соответствие движка"
+step "Engine conformance"
 for d in pizza features; do
   $F trace examples/$d.bot.json 200 40 7 > "$T/$d.jsonl" 2> "$T/$d.cov"
   cat "$T/$d.cov"
-  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "покрытие $d"
+  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "coverage $d"
 done
 python3 $P/conformance.py $E --golden examples/golden.jsonl \
   examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl" | tee "$T/conf.out"
-expect "$T/conf.out" '^запросов (\d+), расхождений (\d+)$' 'g[0] > 0 and g[1] == 0' "соответствие"
+expect "$T/conf.out" '^requests (\d+), mismatches (\d+)$' 'g[0] > 0 and g[1] == 0' "conformance"
 NDOCS=$([ $QUICK = 1 ] && echo 20 || echo 100)
 logged random_docs python3 $P/random_docs.py $F $E $NDOCS 12
-expect "$LOGS/random_docs.log" '^документов (\d+), запросов (\d+), документов с расхождениями (\d+)$' \
-  "g[0] == $NDOCS and g[1] > 0 and g[2] == 0" "случайные документы"
+expect "$LOGS/random_docs.log" '^documents (\d+), requests (\d+), documents with mismatches (\d+)$' \
+  "g[0] == $NDOCS and g[1] > 0 and g[2] == 0" "random documents"
 
 if [ $QUICK = 0 ]; then
-  step "Мутационное тестирование"
-  # --mutants/--mutate — тестовый режим движка, только при FIGRAM_ALLOW_MUTANTS=1 (mutation.py ставит и сам).
+  step "Mutation testing"
+  # --mutants/--mutate are the test mode of the engine, only with FIGRAM_ALLOW_MUTANTS=1 (mutation.py sets it).
   SHOW=3 logged mutation env FIGRAM_ALLOW_MUTANTS=1 python3 $P/mutation.py $E --golden examples/golden.jsonl \
     examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl"
-  expect "$LOGS/mutation.log" '^обнаружено (\d+) из (\d+) мутаций' "g[1] >= $MIN_MUTANTS and g[0] == g[1]" "мутации"
+  expect "$LOGS/mutation.log" '^detected (\d+) of (\d+) mutations' "g[1] >= $MIN_MUTANTS and g[0] == g[1]" "mutations"
 fi
 
-step "Память, потоки и переполнение стека движка (P-09, P-22)"
+step "Engine memory, threads and stack overflow"
 logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
-expect "$LOGS/engine_memory.log" '^память движка: резерв адресов (\d+) МБ, занято (\d+) МБ, потоков (\d+)$' \
-  'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "память и потоки движка"
-expect "$LOGS/engine_memory.log" '^ok  ulimit -v 32 МБ: код 0, ответов 2$' 'True' "движок под ulimit -v 32 МБ"
+expect "$LOGS/engine_memory.log" '^engine memory: address space (\d+) MiB, in use (\d+) MiB, threads (\d+)$' \
+  'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
+expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2$' 'True' "engine under ulimit -v 32 MiB"
 
-step "Снимок и текстовый JSON"
+step "Snapshots, protocol edges and the JSON text layer"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
-expect "$LOGS/snapshots.log" '^снимков (\d+), ответов (\d+), расхождений схемы и движка (\d+)$' \
-  'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "снимки"
-expect "$LOGS/snapshots.log" '^граница seq: ok$' 'True' "граница seq"
+expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
+  'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "snapshots"
+expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
-expect "$LOGS/protocol_edges.log" '^граничных случаев протокола (\d+), ответов (\d+), расхождений (\d+)$' \
-  'g[0] >= 106 and g[0] == g[1] and g[2] == 0' "граничные случаи протокола"
+expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
+  'g[0] >= 106 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
 NFUZZ=$([ $QUICK = 1 ] && echo 5000 || echo 30000)
 logged json_fuzz python3 $P/json_fuzz.py $F $NFUZZ 1
-expect "$LOGS/json_fuzz.log" '^случаев (\d+): принято обоими (\d+), отвергнуто обоими (\d+), расхождений (\d+), записей не читается обратно (\d+) из (\d+)$' \
-  "g[0] == $NFUZZ and g[1] > 0 and g[2] > 0 and g[1] + g[2] == g[0] and g[3] == 0 and g[4] == 0 and g[5] == g[1]" "фаззинг JSON"
+expect "$LOGS/json_fuzz.log" '^cases (\d+): accepted by both (\d+), rejected by both (\d+), mismatches (\d+), outputs not read back (\d+) of (\d+)$' \
+  "g[0] == $NFUZZ and g[1] > 0 and g[2] > 0 and g[1] + g[2] == g[0] and g[3] == 0 and g[4] == 0 and g[5] == g[1]" "JSON fuzzing"
 
-step "Клиент Python"
+step "Python client"
 clean client_faults python3 $P/client_faults.py $E examples/pizza.bot.json
 clean client_contract python3 $P/client_contract.py $E examples/features.bot.json
 clean client_robustness python3 $P/client_robustness.py $E examples/pizza.bot.json examples/features.bot.json
 
 if [ $QUICK = 0 ]; then
-  step "Самопроверка обвязки"
+  step "Harness self-test"
   logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl"
   n_ok=$(grep -c '^ok ' "$LOGS/selftest.log" || true)
-  n_bad=$(grep -c '^НЕТ' "$LOGS/selftest.log" || true)
+  n_bad=$(grep -c '^FAIL' "$LOGS/selftest.log" || true)
   [ "$n_ok" -ge "$MIN_SELFTEST_OK" ] && [ "$n_bad" -eq 0 ] \
-    || fail "самопроверка обвязки: пройдено $n_ok (нужно не меньше $MIN_SELFTEST_OK), провалено $n_bad"
+    || fail "harness self-test: passed $n_ok (at least $MIN_SELFTEST_OK needed), failed $n_bad"
 fi
 
-step "Контракт хоста и нагрузка"
+step "Host contract and load test"
 logged host python3 $P/host_sim.py $E examples/pizza.bot.json
-expect "$LOGS/host.log" '^  пользователей (\d+): итог как ожидалось \(.*\) у (\d+), заказов в CRM (\d+), обработано событий (\d+) из (\d+) .*потерянных обновлений (\d+), невыполненных действий (\d+)$' \
-  'g[0] > 0 and g[0] == g[1] and 0 < g[2] <= g[0] and g[3] == g[4] and g[5] == 0 and g[6] == 0' "контракт хоста"
-expect "$LOGS/host.log" '^  тест ловит нарушение: да(?: \(попыток контроля: \d+\))?$' 'True' "контрольный хост без контракта"
+expect "$LOGS/host.log" '^  users (\d+): outcome as expected \(.*\) for (\d+), orders in the CRM (\d+), events processed (\d+) of (\d+) .*lost updates (\d+), actions not run (\d+)$' \
+  'g[0] > 0 and g[0] == g[1] and 0 < g[2] <= g[0] and g[3] == g[4] and g[5] == 0 and g[6] == 0' "host contract"
+expect "$LOGS/host.log" '^  the test catches the violation: yes(?: \(control attempts: \d+\))?$' 'True' "control host without the contract"
 logged load python3 $P/loadtest.py $E examples/pizza.bot.json "$T/pizza.jsonl" 64 2
-expect "$LOGS/load.log" '^потоков +(\d+), процессов (\d+): шагов (\d+) .*расхождений (\d+),' \
-  'g[0] == 64 and g[2] > 0 and g[3] == 0' "нагрузка"
-echo "   ($(( SECONDS - LAST )) с)"
+expect "$LOGS/load.log" '^threads +(\d+), processes (\d+): steps (\d+) .*mismatches (\d+),' \
+  'g[0] == 64 and g[2] > 0 and g[3] == 0' "load"
+echo "   ($(( SECONDS - LAST )) s)"
 
 echo
 if [ $QUICK = 1 ]; then
-  echo "СОКРАЩЁННАЯ ПРОВЕРКА ПРОЙДЕНА: пропущены мутации и самопроверка обвязки, 20 документов вместо 100,"
-  echo "5000 случаев фаззинга вместо 30000. Это не замена полной проверки (код выхода 3)."
+  echo "QUICK CHECK PASSED: mutations and the harness self-test skipped, 20 documents instead of 100,"
+  echo "5000 fuzzing cases instead of 30000. This does not replace the full check (exit status 3)."
   exit 3
 else
-  echo "ПРОВЕРКА БЕЗ LEAN ПРОЙДЕНА (сборка, теоремы, C и Go не проверялись — см. ./verify.sh)"
+  echo "PREBUILT CHECK PASSED (the build, the theorems, C and Go were not checked: see ./verify.sh)"
 fi

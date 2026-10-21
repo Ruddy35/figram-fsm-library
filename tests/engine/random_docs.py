@@ -1,6 +1,6 @@
-"""Соответствие движка эталону на случайных документах.
+"""Conformance of the engine to the reference on random documents.
 
-    python3 random_docs.py FIGRAM ENGINE <документов> <сообщений>
+    python3 random_docs.py FIGRAM ENGINE <documents> <messages>
 """
 
 import os
@@ -14,7 +14,7 @@ from protocol import default_timeout
 
 figram, engine, count, size = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
 if count < 1:
-    raise SystemExit("число документов должно быть положительным")
+    raise SystemExit("the number of documents must be positive")
 T = default_timeout()
 total = bad_docs = done = 0
 with tempfile.TemporaryDirectory() as d:
@@ -32,6 +32,6 @@ with tempfile.TemporaryDirectory() as d:
         if bad:
             bad_docs += 1
             print(f"seed {seed}: {bad[0][:300]}")
-# Печатается фактическое число проверенных документов, а не аргумент.
-print(f"документов {done}, запросов {total}, документов с расхождениями {bad_docs}")
+# Prints the actual number of checked documents, not the argument.
+print(f"documents {done}, requests {total}, documents with mismatches {bad_docs}")
 sys.exit(1 if bad_docs or total == 0 or done != count else 0)
