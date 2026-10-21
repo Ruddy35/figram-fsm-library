@@ -16,9 +16,8 @@ separately and in CI.
 | Documentation | `python3 ci/check_docs.py` | the documentation against the code (below) |
 
 Run `lake build` and `bash ffi/build.sh` before the suites that need the binaries or the
-library. Suites that print `PASS`/`FAIL` or `ok`/`WRONG` lines also run deliberately broken
-variants of their own oracles and expect those to fail, so a suite that checks nothing is
-detected.
+library. Most suites also run deliberately broken variants of their own oracles (or of the
+code under test) and expect those to fail, so a suite that checks nothing is detected.
 
 ## `./verify.sh`
 
@@ -175,14 +174,14 @@ the repository and exits with status 0 when they agree:
 * the CLI commands documented in the README equal the commands of the usage text in `Main.lean`;
 * the functions documented in [embedding.md](embedding.md) equal those declared in
   `ffi/figram.h`, which equal those exported by `ffi/figram_ffi.c`;
-* every runnable example (fenced blocks marked `sh doctest`, `c doctest`) runs and prints the
-  output shown, with `...` standing for any text;
+* every runnable example (fenced blocks marked `sh doctest`, `c doctest`, `python doctest`) runs
+  and prints the output shown, with `...` standing for any text;
 * the numbers the documentation states about the tests (pinned theorems, golden scenarios,
   minimum numbers of mutants and checks) equal their sources;
 * no Cyrillic text remains in the Markdown files at the root and in `docs/`.
 
 Options: `--bin DIR` (directory with `figram` and `figram-engine`, default `.lake/build/bin`),
-`--no-run` (skip the runnable examples).
+`--no-run` (skip the runnable examples), `--repo DIR` (repository root).
 
 ## Performance
 

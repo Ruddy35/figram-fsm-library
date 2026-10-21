@@ -176,6 +176,8 @@ def repo_basenames():
 
 def check_path(where, token):
     token = token.rstrip(".,;:)")
+    if token.startswith("./"):
+        token = token[2:]
     if not token or token.startswith(GENERATED) or os.path.basename(token.rstrip("/")) in GENERATED:
         return
     if "*" in token:
@@ -190,6 +192,8 @@ def check_path(where, token):
 
 
 def path_like(token):
+    if token.startswith("./"):
+        token = token[2:]
     if not re.fullmatch(r"[A-Za-z0-9_.][A-Za-z0-9_./*+-]*", token) or token.startswith("."):
         return token.startswith(".github/")
     if token.startswith(TOP):

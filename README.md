@@ -28,7 +28,7 @@ things, that the compiled machine takes exactly the steps of the chart for every
 and condition values, that a checked document is encoded and decoded back unchanged, and that a
 `step` request runs exactly the proved step and returns a snapshot the engine can read back. All
 theorems use only the standard axioms `propext`, `Quot.sound` and `Classical.choice`, and the
-kernel re-checks every declaration. The JSON text layer, the CLI, the C shim and the clients are
+Lean kernel re-checks every declaration of the project (`leanchecker`). The JSON text layer, the CLI, the C shim and the clients are
 not proved; they are tested ([docs/proofs.md](docs/proofs.md), [docs/testing.md](docs/testing.md)).
 
 The proved Lean code is what runs: it is compiled into
@@ -51,8 +51,9 @@ The proved Lean code is what runs: it is compiled into
   conditions that can change the choice are requested.
 * Timers carry tokens, so a stale firing is ignored; the `seq` counter gives the host stable
   idempotency keys.
-* Embedding without side effects on the host process: initialization creates no threads, file
-  descriptors or signal handlers, and works under `RLIMIT_AS` ([docs/embedding.md](docs/embedding.md)).
+* Embedding with minimal side effects on the host process: initialization creates no threads,
+  file descriptors or signal handlers (the `SIGPIPE` disposition that the Lean runtime changes is
+  restored), and works under `RLIMIT_AS` ([docs/embedding.md](docs/embedding.md)).
 * Reference clients: a Python client with a pool of engine processes, and a Go cgo wrapper.
 
 ## Quick start
