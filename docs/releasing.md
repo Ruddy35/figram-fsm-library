@@ -47,11 +47,14 @@ a **draft**; a maintainer reviews the draft and publishes it.
    that the release is still a draft.
 
    The workflow never publishes a release, never deletes one, and stops if a **published** release
-   `vX.Y.Z` already exists or if several releases carry that tag.
+   `vX.Y.Z` already exists (a run started by the tag of that release only compares the archives,
+   step 8) or if several releases carry that tag.
 7. Review the draft on the Releases page: the notes, the provenance block (commit, toolchain, workflow
    run), the four assets. Optionally download them and check them as described below.
 8. Publish the draft (**Edit → Publish release**, or `gh release edit vX.Y.Z --draft=false`). If the tag
-   does not exist yet, GitHub creates it at the draft's target commit.
+   does not exist yet, GitHub creates it at the draft's target commit. The new tag starts the workflow
+   once more: it rebuilds the tag, runs the same checks and compares its `SHA256SUMS` with the
+   published one; it does not change the release, and it fails if the archives differ.
 
 Running the workflow again for the same version replaces the assets and notes of the draft. A published
 version is final: fix problems with a new version.

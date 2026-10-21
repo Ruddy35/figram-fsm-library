@@ -3,7 +3,8 @@
 # verify.sh against their checksums, byte-identical repackaging, verify-prebuilt.sh on the extracted
 # archive, self-contained library archive), then create or update a DRAFT GitHub Release v<version>
 # at the built commit. Publishing the draft is left to a maintainer (docs/releasing.md); this workflow
-# never publishes, deletes or changes a published release.
+# never publishes, deletes or changes a published release. Publishing creates the tag, and the run it
+# starts only checks that the rebuild reproduces the published archives.
 # Two jobs: `build` builds, tests and packages with a read-only token; only `draft`, which checks out
 # nothing and runs no code of the repository, gets `contents: write` to create or update the draft.
 # Start: Actions -> release -> Run workflow (version, e.g. 0.1.0) on the commit to release, or push a
@@ -225,7 +226,20 @@ jobs:
                 --notes-file "$notes" "${assets[@]}"
               echo "created draft release $TAG";;
             1)
-              read -r id _ < "$RUNNER_TEMP/releases.txt"
+              read -r id draft < "$RUNNER_TEMP/releases.txt"
+              if [ "$draft" = false ] && [ "$GITHUB_EVENT_NAME" = push ]; then
+                # Publishing the draft creates the tag, and the tag starts this workflow again. Such a
+                # run changes nothing: it checks that the rebuild reproduces the published archives.
+                gh release download "$TAG" -p SHA256SUMS -O "$RUNNER_TEMP/published-SHA256SUMS"
+                if ! cmp -s "$RUNNER_TEMP/published-SHA256SUMS" "$DIST/SHA256SUMS"; then
+                  echo "::error::the rebuild of $TAG differs from the published archives"
+                  diff "$RUNNER_TEMP/published-SHA256SUMS" "$DIST/SHA256SUMS" || true
+                  exit 1
+                fi
+                echo "Release $TAG is published; the rebuild of the tag reproduces its archives byte for byte" \
+                  | tee -a "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
               still_draft() {  # checked again around every change of the release
                 [ "$(releases)" = "$id true" ] \
                   || { echo "::error::release $TAG is published (not a draft); this workflow never changes a published release"; exit 1; }
