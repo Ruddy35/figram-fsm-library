@@ -7,10 +7,11 @@ separately and in CI.
 | Suite | Command | What it covers |
 |---|---|---|
 | Full gate | `./verify.sh` | build, proofs, engine, host contract, client, C ABI, Go (below) |
-| Prebuilt binaries | `./verify-prebuilt.sh DIR` | released `figram` and `figram-engine` in `DIR`, without Lean |
-| Formats | `tests/formats/run_all.sh LOGDIR` | JSON text layer, schemas, engine requests, CLI output, parser budgets |
-| Compiler | `tests/compiler/run_all.sh ENGINE FIGRAM LOGDIR` | an independent oracle of the semantics, differential, metamorphic and mutation tests |
-| C ABI | `tests/capi/build.sh`, then `tests/capi/sanitizers.sh` and `tests/capi/mutants.sh` | the shim under ASan/UBSan and TSan; mutants of the shim |
+| Prebuilt binaries | `./verify-prebuilt.sh [--quick] DIR` | released `figram` and `figram-engine` in `DIR`, without Lean |
+| Gate self-test | `./verify-faults.sh prebuilt` or `./verify-faults.sh full` | every injected fault makes `./verify-prebuilt.sh` or `./verify.sh` fail |
+| Formats | `tests/formats/run_all.sh [LOGDIR [SEEDS]]` | JSON text layer, schemas, engine requests, CLI output, parser budgets |
+| Compiler | `tests/compiler/run_all.sh [ENGINE FIGRAM [LOGDIR]]` | an independent oracle of the semantics, differential, metamorphic and mutation tests |
+| C ABI | `tests/capi/build.sh`, then `tests/capi/sanitizers.sh` and `tests/capi/mutants.sh`; `tests/capi/build_check.sh` | the shim under ASan/UBSan and TSan; mutants of the shim; the product build of `ffi/build.sh` on this toolchain |
 | Go | `cd clients/go && go test ./...` and `go test -race ./...` | the Go wrapper |
 | Proof gate regression | `tests/proofs/test_strict_gate_clean.sh` | the strict proof gate never rewrites tracked files |
 | Documentation | `python3 ci/check_docs.py` | the documentation against the code (below) |
@@ -21,16 +22,16 @@ code under test) and expect those to fail, so a suite that checks nothing is det
 
 ## `./verify.sh`
 
-`./verify.sh` runs from any directory, writes the full output of every step to `verify-logs/`
-and prints a summary per step. Exit status: 0 — every step ran and passed; 1 — a failure;
+`./verify.sh` runs from any directory, writes the full output of the longer steps to
+`verify-logs/` in the repository root and prints a summary per step. Exit status: 0 — every step ran and passed; 1 — a failure;
 3 — every step that ran passed, but an explicitly allowed deviation was used
 (`FIGRAM_WAIVE=go`: Go is not installed and the Go steps were skipped). CI treats 3 as a
 failure. On a 4-core machine with a warm Lake cache it takes about 4–5 minutes.
 
 Steps, in order:
 
-1. **Provenance** — date, commit, number of modified files, versions of Lean, Python,
-   `jsonschema` and Go.
+1. **Provenance** — date, number of cores, commit, number of modified tracked files, the
+   SHA-256 of `verify.sh`, versions of Lean, Python, `jsonschema` and Go.
 2. **Build without warnings** — `lake build` must succeed and print no warning.
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
@@ -98,36 +99,67 @@ Steps, in order:
     handling) and `TestFixInitUnderRlimitAS` (the runtime starts under `RLIMIT_AS`); a corrupted
     scenario file must fail.
 
-`./verify-faults.sh` checks the gate itself: every injected fault (a truncated golden file, a
-custom axiom, `native_decide`, a weakened theorem, a build warning, a missing Go, …) must make
-`./verify.sh` or `./verify-prebuilt.sh` fail.
+`./verify-faults.sh full` checks the gate itself: every injected fault (a truncated golden file,
+tampered checksums, a custom axiom, `native_decide`, a weakened theorem, a build warning, a
+missing Go, …) must make `./verify.sh` fail, each in its own copy of the tree.
+`./verify-faults.sh prebuilt` does the same for `./verify-prebuilt.sh` (truncated or shrunk
+fixtures, swapped binaries). Logs go to `verify-logs/faults/` (`FAULT_LOGS` overrides it).
+
+`./verify-prebuilt.sh DIR` runs the engine, CLI, client, harness, host-contract and text-layer
+steps of `./verify.sh` on the binaries in `DIR` without Lean (about 3 minutes); it does not
+cover the build, the proofs, the C ABI and Go. Exit status: 0 — passed; 1 — a failure;
+3 — the shortened `--quick` check passed, which does not count as a pass; 2 — a usage error.
 
 ## Other suites
 
-**Formats** (`tests/formats/run_all.sh LOGDIR [SEEDS]`, about 1.5 minutes): round trips of
+**Formats** (`tests/formats/run_all.sh [LOGDIR [SEEDS]]`, about 1.5 minutes): round trips of
 generated documents through `figram fmt`/`check`, an RFC 8259 table and random inputs against
 the text parser, a table of documents and snapshots against both JSON schemas, engine requests,
 control bytes in CLI diagnostics, and time and memory budgets of the parser on large inputs.
 Most tests also run with a deliberately broken oracle or a mutant `figram`, which must fail.
-Set `FIGRAM` and `FIGRAM_ENGINE` to the binaries under test.
+`FIGRAM` and `FIGRAM_ENGINE` name the binaries under test (default: `.lake/build/bin`); the logs
+go to `LOGDIR` (default `tests/formats/logs`).
 
-**Compiler** (`tests/compiler/run_all.sh ENGINE FIGRAM LOGDIR`, about 7 minutes): an
+**Compiler** (`tests/compiler/run_all.sh [ENGINE FIGRAM [LOGDIR]]`, about 8 minutes): an
 independent oracle written from the prose of [format.md](format.md) and
 [host-contract.md](host-contract.md) (not from `Figram/Chart.lean`), directed and random
 differential tests, document upgrades, mutants, metamorphic tests, and red runs of the oracle
 itself with deliberately wrong readings.
 `tests/compiler/perf_scale.py` measures load and step time on large documents (below).
 
-**C ABI** (`tests/capi/build.sh`, `tests/capi/sanitizers.sh`, `tests/capi/mutants.sh`, about
-30 seconds): the regression subtests built with ASan+UBSan and with TSan, and a mutant per fix
+**C ABI** (`tests/capi/build.sh`, `tests/capi/sanitizers.sh`, `tests/capi/mutants.sh`, under a
+minute): the regression subtests built with ASan+UBSan and with TSan, and a mutant per fix
 of the shim (each fix reverted in a copy of `ffi/figram_ffi.c` or by replacing
 `ffi/figram_init.cpp`) that the corresponding subtest must catch. ASan, valgrind and TSan do not
 see the Lean heap (mimalloc); the functional stress test `tests/capi/stress.c` that checks every
 reply is the working oracle for concurrency ([embedding.md](embedding.md)).
+`tests/capi/build_check.sh` checks the product build itself: `ffi/build.sh` on this toolchain,
+a C host linked with only the flags of `ffi/out/LDFLAGS`, and a plain `go build` of
+`clients/go`.
 
 **Go** (`cd clients/go && go test ./...`, `go test -race ./...`): the wrapper's regression
 tests, including the protocol checks of `checkReply`, lazy initialization, `RLIMIT_AS` and
 concurrent use.
+
+## Continuous integration
+
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs on every push and pull request,
+with the official Lean release of `lean-toolchain` (installed by `ci/install-lean.sh`), Go 1.23
+and Python `jsonschema` on `ubuntu-latest`:
+
+* **verify.sh** — `./verify.sh` (exit status 0 only), then a long parallel run of the Go driver
+  (`gofig` and `gofig-race` on 2000 scenarios from all cores);
+* **suite formats**, **suite compiler**, **suite capi** (`tests/capi/build.sh`,
+  `sanitizers.sh`, `mutants.sh`, `build_check.sh`), **suite go** (`gofmt`, `go vet`,
+  `go test` plain and `-race`), **suite proofs** (`tests/proofs/test_strict_gate_clean.sh`),
+  **suite docs** (`python3 ci/check_docs.py`), **suite faults-prebuilt** and
+  **suite faults-full** (`./verify-faults.sh`);
+* **release dry run** — packages the commit with `ci/package.sh`, repackages a clean rebuild and
+  requires byte-identical archives, runs `ci/test-bundle.sh` and `./verify-prebuilt.sh` on the
+  extracted archives ([releasing.md](releasing.md)).
+
+The verify and suite jobs upload their logs as workflow artifacts; the release dry run uploads
+its logs when it fails.
 
 ## Reachability
 
