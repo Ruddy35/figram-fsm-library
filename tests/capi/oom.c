@@ -1,6 +1,6 @@
-// Аудит: отказ malloc в dup() (figram_ffi.c). Собирается с -Wl,--wrap=malloc:
-// вызовы malloc из всех объектов (и libfigram.a) идут через __wrap_malloc,
-// который один раз отказывает на запросе ровно заданного размера.
+// A malloc failure when the result string is copied (take_string in ffi/figram_ffi.c). Built
+// with -Wl,--wrap=malloc: malloc calls from all objects (libfigram.a included) go through
+// __wrap_malloc, which fails once for a request of exactly the given size.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +24,7 @@ int main(void) {
   size_t n = strlen(r);
   printf("baseline: check({}) → %zu bytes: %s\n", n, r);
   figram_free(r);
-  fail_size = n + 1;  /* ровно размер буфера dup() */
+  fail_size = n + 1;  /* exactly the size of the result copy */
   r = figram_check_json("{}");
   printf("with malloc(%zu) failing (injected=%d): returned %p\n", n + 1, failed, (void*)r);
   if (r == NULL) { printf("controlled: NULL returned\n"); return 0; }

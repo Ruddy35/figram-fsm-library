@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# ASan/UBSan и TSan варианты регрессионных подтестов (сначала tests/capi/build.sh).
-# Ограничение (T-12/FFI-15): куча Lean — mimalloc, ASan/valgrind её не видят; под TSan
-# одновременные загрузки дают сотни ложных «гонок» из-за переиспользования страниц mimalloc
-# (неинструментированный аллокатор), поэтому под TSan не запускаются lazy_race и стресс с
-# потоками загрузки. Настоящий оракул — функциональный стресс со сверкой ответов (stress.c).
-# Ленивая инициализация замкнутых термов (lean_obj_once) публикуется неинструментированным
-# рантаймом — такие ложные отчёты подавлены в tests/capi/tsan.supp (только они).
+# ASan/UBSan and TSan variants of the regression subtests (run tests/capi/build.sh first).
+# Limitation: the Lean heap is mimalloc, which ASan/valgrind do not see; under TSan concurrent
+# loads produce hundreds of false "races" because mimalloc reuses pages (the allocator is not
+# instrumented), so lazy_race and the stress test with loader threads do not run under TSan.
+# The real oracle is the functional stress test that checks every reply (stress.c).
+# The lazy initialization of closed terms (lean_obj_once) is published by the uninstrumented
+# runtime; those false reports (and only those) are suppressed in tests/capi/tsan.supp.
 cd "$(dirname "$0")/../.."
 B=tests/capi/out; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0
 run() { local name=$1; shift; out=$(ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1 TSAN_OPTIONS="halt_on_error=1 suppressions=$PWD/tests/capi/tsan.supp" timeout 300 "$@" 2>&1); rc=$?

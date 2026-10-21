@@ -1,23 +1,24 @@
-// Системные размеры для рантайма Lean (P-09). По умолчанию рантайм резервирует под стек каждого
-// своего потока 1 ГиБ адресов, а распределитель mimalloc — арену 1 ГиБ; реально занято ≈10 МБ,
-// но под `ulimit -v` (RLIMIT_AS) такой резерв не помещается. Служебных потоков рантайм Figram не
-// запускает (ffi/figram_init.cpp); поток со стеком рантайма бывает, только если пользователь задаст
-// LEAN_MAIN_USE_THREAD=1 исполняемому файлу. Здесь стек потоков рантайма
-// становится таким же, как у любого потока процесса (RLIMIT_STACK, `ulimit -s`), а mimalloc не
-// резервирует арену заранее (arena_reserve = 0: память берётся у ОС по мере надобности; любой
-// ненулевой резерв mimalloc округляет до 64 МиБ, и при таком же запасе адресов рантайм падал бы
-// с «INTERNAL PANIC: out of memory»). Явно заданные LEAN_STACK_SIZE_KB и MIMALLOC_ARENA_RESERVE главнее.
-// Вызывать до lean_initialize_runtime_module(): figram_init (ffi/figram_ffi.c) и конструктор
-// исполняемых файлов (ffi/figram_exe.c).
+// System sizes for the Lean runtime. By default the runtime reserves 1 GiB of address space for
+// the stack of each of its threads and the mimalloc allocator reserves a 1 GiB arena; about 10 MB
+// is actually used, but such reservations do not fit under `ulimit -v` (RLIMIT_AS). The Figram
+// runtime starts no service threads (ffi/figram_init.cpp); a thread with a runtime stack exists
+// only if the user sets LEAN_MAIN_USE_THREAD=1 for an executable. Here the runtime thread stack
+// becomes the same as that of any thread of the process (RLIMIT_STACK, `ulimit -s`), and mimalloc
+// reserves no arena in advance (arena_reserve = 0: memory is taken from the OS as needed; mimalloc
+// rounds any non-zero reservation up to 64 MiB, and with a few MiB of headroom the runtime would
+// die with "INTERNAL PANIC: out of memory"). Explicit LEAN_STACK_SIZE_KB and MIMALLOC_ARENA_RESERVE
+// take precedence.
+// Call before lean_initialize_runtime_module(): figram_init (ffi/figram_ffi.c) and the constructor
+// of the executables (ffi/figram_exe.c).
 #include <lean/mimalloc.h>
 
-/* Объявления из libc и рантайма: leanc официального релиза Lean компилирует с -nostdinc. */
+/* Declarations from libc and the runtime: leanc of the official Lean release compiles with -nostdinc. */
 char* getenv(const char* name);
 int getrlimit(int resource, void* rlim);
 void* lean_internal_set_thread_stack_size(size_t sz);
 #define FG_RLIMIT_STACK 3
 
-#define FG_DEFAULT_STACK (8ul << 20)    /* как у glibc, если RLIMIT_STACK не задан */
+#define FG_DEFAULT_STACK (8ul << 20)    /* as in glibc when RLIMIT_STACK is not set */
 #define FG_ARENA_RESERVE_KIB 0
 
 void figram_rt_defaults(void) {

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Контроль чувствительности регрессионных тестов fix-ffi: каждое исправление по очереди
-# «откатывается» в копии figram_ffi.c (или подменой ffi/figram_init.cpp), и соответствующий подтест
-# обязан покраснеть.
-#   tests/capi/mutants.sh   (после ffi/build.sh)   — код 0, если каждый мутант пойман.
+# Sensitivity control of the C ABI regression subtests: each protection of the shim in turn is
+# reverted in a copy of figram_ffi.c (or by replacing ffi/figram_init.cpp), and the matching
+# subtest must fail.
+#   tests/capi/mutants.sh   (after ffi/build.sh)   — exit code 0 if every mutant is caught.
 set -u
 cd "$(dirname "$0")/../.."
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
@@ -11,11 +11,11 @@ O=.lake/build/ir/Figram
 OBJS=""; for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
 D=examples/pizza.bot.json; D2=examples/features.bot.json
 ok=1
-# mutant ИМЯ "СТАРОЕ" "НОВОЕ" ПОДТЕСТ… — ПОДТЕСТ на мутанте обязан дать код ≠ 0. INIT_O — объект
-# с lean_initialize_runtime_module (по умолчанию ffi/out/figram_init.o; пусто — штатный из libleanrt.a).
+# mutant NAME "OLD" "NEW" SUBTEST… — SUBTEST on the mutant must exit with a code ≠ 0. INIT_O is the
+# object with lean_initialize_runtime_module (default ffi/out/figram_init.o; empty — the stock one from libleanrt.a).
 mutant() {
   local name=$1 old=$2 new=$3; shift 3
-  python3 - "$old" "$new" "$T/m.c" <<'PY' || { echo "НЕТ $name: замена не применилась"; ok=0; return; }
+  python3 - "$old" "$new" "$T/m.c" <<'PY' || { echo "FAIL $name: the replacement did not apply"; ok=0; return; }
 import sys
 old, new, out = sys.argv[1:4]
 s = open("ffi/figram_ffi.c", encoding="utf-8").read()
@@ -26,47 +26,47 @@ PY
   if ! leanc -c -fexceptions -o "$T/m.o" "$T/m.c" 2> "$T/cc.log" || \
      ! gcc -g -O1 -pthread -I"$P/include" -o "$T/contract" tests/capi/contract.c "$T/m.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ${INIT_O-ffi/out/figram_init.o} $OBJS \
          $(cat ffi/out/LDFLAGS.runtime) 2>> "$T/cc.log"; then
-    echo "НЕТ $name: мутант не собирается"; grep -m3 error "$T/cc.log"; ok=0; return
+    echo "FAIL $name: the mutant does not build"; grep -m3 error "$T/cc.log"; ok=0; return
   fi
   out=$(timeout 120 "$@" 2>&1); rc=$?
-  if [ $rc -ne 0 ]; then echo "ok   $name пойман: $(printf '%s\n' "$out" | grep -m1 -E '^FAIL|PANIC|terminate|figram_init=|Segmentation' | cut -c1-120)"
-  else echo "НЕТ $name НЕ пойман"; ok=0; fi
+  if [ $rc -ne 0 ]; then echo "ok   $name caught: $(printf '%s\n' "$out" | grep -m1 -E '^FAIL|PANIC|terminate|figram_init=|Segmentation' | cut -c1-120)"
+  else echo "FAIL $name NOT caught"; ok=0; fi
 }
 C="$T/contract"
-mutant "P-09 без системных размеров рантайма (арена mimalloc 1 ГиБ)" \
+mutant "no runtime size defaults (1 GiB mimalloc arena)" \
   'figram_rt_defaults();
   lean_initialize_runtime_module();' 'lean_initialize_runtime_module();' \
   "$C" host_state $D
-INIT_O= mutant "P-22 штатный запуск рантайма (поток libuv, io_uring, дескрипторы)" \
+INIT_O= mutant "stock runtime start-up (libuv thread, io_uring, descriptors)" \
   'figram_rt_defaults();' 'figram_rt_defaults();' \
   "$C" host_state $D
 leanc -c -DFIGRAM_STACK_GUARD -o "$T/init_guard.o" ffi/figram_init.cpp
-INIT_O="$T/init_guard.o" mutant "P-22 обработчик SIGSEGV/SIGBUS во встроенном режиме" \
+INIT_O="$T/init_guard.o" mutant "SIGSEGV/SIGBUS handler in the embedded library" \
   'figram_rt_defaults();' 'figram_rt_defaults();' \
   "$C" signals default
-mutant "P-21 без ленивой инициализации" \
+mutant "no lazy initialization" \
   'if (__atomic_load_n(&init_state, __ATOMIC_ACQUIRE) == 2) return 0;
   return figram_init();' 'return 0;' \
   "$C" lazy $D
-mutant "P-21 без проверки NULL запроса" \
-  'if (line == NULL && !(have_len && len == 0)) return err_reply("bad_request", "запрос — NULL", 0, NULL);' '' \
+mutant "no NULL check of the request" \
+  'if (line == NULL && !(have_len && len == 0)) return err_reply("bad_request", "request is NULL", 0, NULL);' '' \
   "$C" null_safe $D
-mutant "P-21 без обнаружения повторной выгрузки" \
+mutant "no double-unload detection" \
   'if (!__atomic_compare_exchange_n(&s->state, &live, FG_DEAD, 0, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {' \
   'if (__atomic_store_n(&s->state, FG_DEAD, __ATOMIC_RELEASE), 0) {' \
   "$C" lifetime $D $D2
-mutant "P-21 _n без проверки NUL" \
+mutant "_n variants without the NUL check" \
   'const char* z = have_len ? (const char*)memchr(line, 0, len) : NULL;' 'const char* z = NULL;' \
   "$C" lengths $D
-mutant "P-18 без проверки UTF-8 запроса" \
+mutant "no UTF-8 check of the request" \
   'if (!utf8_ok((const unsigned char*)line, len, &chars, &bad))
     return' 'if (!utf8_ok((const unsigned char*)line, len, &chars, &bad) && 0)
     return' \
   "$C" utf8_strict $D
-mutant "P-18 без предела размера" \
+mutant "no request size limit" \
   'if (max != 0 && len > max)' 'if (0)' \
   "$C" limit $D
-mutant "P-22 без восстановления SIGPIPE" \
+mutant "SIGPIPE not restored" \
   'if (have_pipe) sigaction(SIGPIPE, pipe_old.b, (void*)0);' '' \
   "$C" signals custom
-[ $ok = 1 ] && echo "все мутанты пойманы" || { echo "НЕТ: есть непойманные мутанты"; exit 1; }
+[ $ok = 1 ] && echo "all mutants caught" || { echo "FAIL: some mutants were not caught"; exit 1; }

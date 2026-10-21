@@ -1,8 +1,8 @@
-// Аудит C-ABI: T потоков × N запросов к ОДНОМУ автомату одновременно с потоками,
-// которые загружают, опрашивают и выгружают ДРУГИЕ автоматы (и вызывают check/fmt).
-// Каждый ответ сверяется с эталоном, вычисленным заранее в одном потоке.
-//   ./stress DOC T N L        — проверка (для ASan/UBSan/TSan/valgrind)
-//   ./stress bench DOC T N shared|separate — пропускная способность
+// C ABI stress test: T threads × N requests to ONE machine, concurrently with L threads that
+// load, query and unload OTHER machines (and call check/fmt).
+// Every reply is compared with a reference computed beforehand in one thread.
+//   ./stress DOC T N L        — the check (also for ASan/UBSan/TSan/valgrind)
+//   ./stress bench DOC T N shared|separate — throughput
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <stdio.h>
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
   bot = figram_load_doc(doc);
   if (!bot) { printf("doc not loaded\n"); return 1; }
   for (unsigned k = 0; k < NREQ; k++) want[k] = figram_request_json(bot, REQS[k]);
-  /* Самопроверка чувствительности: испорченный эталон обязан дать расхождения. */
+  /* Sensitivity self-check: a corrupted reference must produce mismatches. */
   if (getenv("FIGRAM_STRESS_SELFTEST")) want[2][2] = 'X';
   want_check = figram_check_json(doc);
   want_fmt = figram_fmt_json(doc);

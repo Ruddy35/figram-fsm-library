@@ -1,7 +1,7 @@
-// Аудит C-ABI figram_ffi.c: граничные случаи контракта.
-// Каждый подтест — отдельный запуск процесса: ./contract <подтест> [аргументы].
-// Аварийные подтесты (NULL, вызов до init, двойная выгрузка) ожидаемо падают;
-// их результат (код выхода / сигнал) фиксирует вызывающий скрипт.
+// Edge cases of the C ABI contract (ffi/figram.h, ffi/figram_ffi.c).
+// Each subtest is a separate process run: ./contract <subtest> [arguments].
+// The exploratory subtests (NULL, calls before init, double unload, ...) only print what
+// happens; the calling script (tests/capi/regress.sh) checks the exit code or the output.
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <signal.h>
@@ -19,8 +19,8 @@ void* figram_load_doc(const char*);
 char* figram_request_json(void*, const char*);
 void figram_unload(void*);
 void figram_free(char*);
-/* Функции, добавленные исправлениями P-09/P-18/P-21 (fix-ffi). Слабые объявления:
-   тест собирается и со старой библиотекой и сообщает «MISSING» вместо ошибки компоновки. */
+/* Weak declarations of the later additions to the ABI: the test also builds against an older
+   library and reports "MISSING" instead of a link error. */
 #define WEAK __attribute__((weak))
 WEAK const char* figram_last_error(void);
 WEAK void* figram_load_doc_ex(const char*, char**);
@@ -81,7 +81,7 @@ static void* init_worker(void* arg) {
   if (m) figram_unload(m);
   return (void*)ok;
 }
-/* Два потока одновременно вызывают figram_init и сразу работают с автоматом. */
+/* Two threads call figram_init at once and immediately use a machine. */
 static int t_init_race(const char* path) {
   g_doc = read_all(path);
   pthread_t a, b;
@@ -94,7 +94,7 @@ static int t_init_race(const char* path) {
   return !(ra && rb);
 }
 
-/* ---------- до init ---------- */
+/* ---------- before init ---------- */
 
 static int t_before_init(const char* what, const char* path) {
   fprintf(stderr, "calling %s before figram_init\n", what);
@@ -121,15 +121,15 @@ static int t_null(const char* what, const char* path) {
   else if (!strcmp(what, "handle")) figram_request_json(NULL, HELLO);
   else if (!strcmp(what, "unload")) figram_unload(NULL);
   else if (!strcmp(what, "free")) figram_free(NULL);
-  /* Типичный код C: загрузка не удалась, выгрузка без проверки. */
+  /* Typical C code: the load failed, unloaded without a check. */
   else if (!strcmp(what, "unload_failed_load")) figram_unload(figram_load_doc("{\"figram\":1}"));
   printf("NULL case %s: returned normally\n", what);
   return 0;
 }
 
-/* ---------- время жизни ---------- */
+/* ---------- lifetime ---------- */
 
-/* Двойная выгрузка. Затем продолжаем работать, чтобы порча кучи проявилась. */
+/* Double unload. Then keep working so that heap corruption would show up. */
 static int t_unload_twice(const char* path) {
   figram_init();
   char* doc = read_all(path);
@@ -149,7 +149,7 @@ static int t_unload_twice(const char* path) {
   return 0;
 }
 
-/* Запрос к выгруженному автомату: память переиспользована другим документом. */
+/* A request to an unloaded machine whose memory may be reused by another document. */
 static int t_use_after_unload(const char* path, const char* other) {
   figram_init();
   void* m = figram_load_doc(read_all(path));
@@ -163,9 +163,9 @@ static int t_use_after_unload(const char* path, const char* other) {
   return 0;
 }
 
-/* ---------- потоки ---------- */
+/* ---------- threads ---------- */
 
-static int leak_ctl = 0;  /* контроль чувствительности: каждый поток теряет 64 КБ */
+static int leak_ctl = 0;  /* sensitivity control: every thread leaks 64 KB */
 void* volatile leak_sink;
 static void* one_call(void* arg) {
   void* m = arg;
@@ -175,7 +175,7 @@ static void* one_call(void* arg) {
   figram_free(r);
   return (void*)ok;
 }
-/* N короткоживущих потоков, каждый делает один вызов: рост RSS/VmSize. */
+/* N short-lived threads, one call each: growth of RSS/VmSize. */
 static int t_threads(const char* path, int n) {
   figram_init();
   leak_ctl = getenv("FIGRAM_THREADS_LEAK") != NULL;
@@ -195,7 +195,7 @@ static int t_threads(const char* path, int n) {
   return ok != n;
 }
 
-/* ---------- побочные эффекты figram_init для процесса-хоста ---------- */
+/* ---------- side effects of figram_init on the host process ---------- */
 
 static void report_env(const char* when) {
   struct sigaction sp; sigaction(SIGPIPE, NULL, &sp);
@@ -214,9 +214,9 @@ static int t_side_effects(void) {
   return 0;
 }
 
-/* ---------- входные строки ---------- */
+/* ---------- input strings ---------- */
 
-/* Встроенный NUL: lean_mk_string обрезает по strlen. */
+/* Embedded NUL in the variants without _n. */
 static int t_nul(const char* path) {
   figram_init();
   char* doc = read_all(path);
@@ -224,13 +224,13 @@ static int t_nul(const char* path) {
   char* glued = malloc(n + 32);
   memcpy(glued, doc, n);
   memcpy(glued + n, "\0garbage{{{", 12);
-  /* Для C это та же строка: обрезка неизбежна, но длина не передаётся вовсе. */
+  /* For C this is the same string: it is cut at the NUL, since no length is passed. */
   void* m = figram_load_doc(glued);
   printf("load(doc + NUL + garbage) → %s\n", m ? "LOADED (garbage after NUL ignored)" : "rejected");
   char* r = figram_check_json("{\"figram\":1}\0{\"bad\"");
   printf("check(\"{\\\"figram\\\":1}\\0...\") → %s\n", r);
   figram_free(r);
-  /* Ответ с NUL: экранированный \u0000 в ключе попадает в текст ошибки сырым байтом. */
+  /* An escaped \u0000 in a key appears in the error text (escaped again, not as a raw byte). */
   const char* dup_key = "{\"figram\":1,\"a\\u0000b\":1,\"a\\u0000b\":2}";
   r = figram_check_json(dup_key);
   printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
@@ -241,7 +241,7 @@ static int t_nul(const char* path) {
   return 0;
 }
 
-/* Невалидный UTF-8: lean_mk_string заменяет на U+FFFD; сравните с figram-engine. */
+/* Invalid UTF-8 requests: prints the replies (compare with figram-engine). */
 static int t_utf8(const char* path) {
   figram_init();
   void* m = figram_load_doc(read_all(path));
@@ -260,18 +260,18 @@ static int t_utf8(const char* path) {
   return 0;
 }
 
-/* ======== Регрессионные тесты исправлений fix-ffi (P-09, P-18, P-21, P-22) ========
-   Каждый подтест печатает строки «ok …» / «FAIL …» и возвращает 0, только если все
-   проверки прошли. На старой библиотеке отсутствующие функции дают «FAIL … MISSING». */
+/* ======== Regression subtests ========
+   Each subtest prints "ok …" / "FAIL …" lines and returns 0 only if all checks passed.
+   With an older library the missing functions give "FAIL … MISSING". */
 
 static int n_fail = 0;
 static void ok_if(int cond, const char* what, const char* detail) {
   printf("%s %s%s%.200s\n", cond ? "ok  " : "FAIL", what, detail ? ": " : "", detail ? detail : "");
   if (!cond) n_fail++;
 }
-#define HAVE(f) ((f) != NULL ? 1 : (ok_if(0, #f, "MISSING (функции нет в библиотеке)"), 0))
+#define HAVE(f) ((f) != NULL ? 1 : (ok_if(0, #f, "MISSING (function not in the library)"), 0))
 
-/* Ответ — ошибка протокола с заданным кодом (и id null, если nullid). */
+/* The reply is a protocol error with this code (and id null if nullid). */
 static int is_error_code(const char* r, const char* code, int nullid) {
   if (!r) return 0;
   char want[64];
@@ -283,10 +283,12 @@ static const char* err_or(const char* d) {
   return e ? e : d;
 }
 
-/* P-09: figram_init под RLIMIT_AS не роняет процесс, а возвращает код ≠ 0 с причиной. */
+/* Init under RLIMIT_AS: figram_init either succeeds or returns a code ≠ 0 with a reason,
+   without crashing the process. */
 static int t_rlimit_init(void) {
-  /* FIGRAM_TEST_AS_HEADROOM=N: сам задать RLIMIT_AS = занято сейчас + N байт (как хост, который
-     ставит лимит после старта). N = 1073741824 — окно, где арена mimalloc занимает весь запас. */
+  /* FIGRAM_TEST_AS_HEADROOM=N: set RLIMIT_AS = current usage + N bytes (like a host that sets the
+     limit after start-up). N = 1073741824 is the case where a 1 GiB mimalloc arena would take all
+     of the headroom. */
   const char* h = getenv("FIGRAM_TEST_AS_HEADROOM");
   if (h) {
     long vm = status_kb("VmSize");
@@ -298,13 +300,13 @@ static int t_rlimit_init(void) {
   int rc = figram_init();
   const char* e = figram_last_error ? figram_last_error() : NULL;
   printf("figram_init=%d last_error=%s\n", rc, e ? e : "(none)");
-  if (rc == 0) {                                /* лимита нет или он достаточен — тоже норма */
+  if (rc == 0) {                                /* no limit, or enough: also fine */
     char* r = figram_check_json("{}"); ok_if(r != NULL, "init ok, check works", r); figram_free(r);
     return n_fail != 0;
   }
   ok_if(e && *e, "init failure has a reason (figram_last_error)", e);
   ok_if(figram_init() == rc, "second figram_init returns the same code", NULL);
-  /* Отказ init не ломает остальные функции: они сообщают ошибку, а не падают. */
+  /* A failed init does not break the other functions: they report an error, they do not crash. */
   void* m = figram_load_doc("{\"figram\":1}");
   ok_if(m == NULL, "load after failed init returns NULL", NULL);
   char* c = figram_check_json("{}");
@@ -313,7 +315,7 @@ static int t_rlimit_init(void) {
   return n_fail != 0;
 }
 
-/* P-21: вызовы без figram_init работают (ленивая инициализация). */
+/* Calls without figram_init work (lazy initialization). */
 static int t_lazy(const char* path) {
   char* doc = read_all(path);
   void* m = figram_load_doc(doc);
@@ -325,7 +327,7 @@ static int t_lazy(const char* path) {
   return n_fail != 0;
 }
 
-/* P-21: ленивая инициализация из нескольких потоков одновременно (без figram_init). */
+/* Lazy initialization from several threads at once (without figram_init). */
 static void* lazy_worker(void* arg) {
   (void)arg;
   pthread_barrier_wait(&bar);
@@ -348,7 +350,7 @@ static int t_lazy_race(const char* path) {
   return good != NT;
 }
 
-/* P-21: NULL-аргументы и чужие указатели вместо дескриптора — ошибка, а не SIGSEGV. */
+/* NULL arguments and foreign pointers instead of a handle: an error, not SIGSEGV. */
 static int t_null_safe(const char* path) {
   char* doc = read_all(path);
   void* m = figram_load_doc(doc);
@@ -373,23 +375,23 @@ static int t_null_safe(const char* path) {
   if (HAVE(figram_check_json_n)) {
     r = figram_check_json_n(NULL, 3); ok_if(r && !strncmp(r, "error", 5), "check_json_n(NULL, 3) → error text", r); figram_free(r);
   }
-  /* После всех ошибок автомат работает. */
+  /* After all the errors the machine still works. */
   r = figram_request_json(m, HELLO); ok_if(r && strstr(r, "\"states\":11"), "handle still works", r); figram_free(r);
   figram_unload(m);
   return n_fail != 0;
 }
 
-/* P-21: use-after-unload и двойная выгрузка обнаруживаются (в пределах карантина). */
+/* Use after unload and double unload are detected (within the quarantine). */
 static int t_lifetime(const char* path, const char* other) {
   char* doc = read_all(path);
   void* m = figram_load_doc(doc);
   char* want = figram_request_json(m, REQ);
   figram_unload(m);
-  void* k = figram_load_doc(read_all(other));   /* память могла бы достаться другому автомату */
+  void* k = figram_load_doc(read_all(other));   /* the memory could go to another machine */
   char* r = figram_request_json(m, HELLO);
   ok_if(is_error_code(r, "bad_request", 1), "request after unload → bad_request", r);
   figram_free(r);
-  figram_unload(m);                              /* двойная выгрузка */
+  figram_unload(m);                              /* double unload */
   const char* e = figram_last_error ? figram_last_error() : NULL;
   ok_if(e && *e, "double unload is detected (figram_last_error)", e);
   r = figram_request_json(k, HELLO);
@@ -407,8 +409,8 @@ static int t_lifetime(const char* path, const char* other) {
   return n_fail != 0;
 }
 
-/* P-21: функции с длиной отвергают встроенный NUL; P-21/NP-06: load_doc_ex даёт причину;
-   выход: в тексте ошибки нет сырого NUL. */
+/* The length variants reject an embedded NUL; load_doc_ex gives the reason;
+   output: no raw NUL in an error text. */
 static int t_lengths(const char* path) {
   char* doc = read_all(path);
   size_t n = strlen(doc);
@@ -461,7 +463,7 @@ static int t_lengths(const char* path) {
   return n_fail != 0;
 }
 
-/* P-18: невалидный UTF-8 → parse_error (запрос) / отказ (документ), без замены на U+FFFD. */
+/* Invalid UTF-8 → parse_error (request) / rejection (document), never replaced with U+FFFD. */
 static int t_utf8_strict(const char* path) {
   char* doc = read_all(path);
   void* m = figram_load_doc(doc);
@@ -470,7 +472,7 @@ static int t_utf8_strict(const char* path) {
     "{\"id\":2,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\xc3\"},\"event\":\"btn:order\"}",
     "{\"id\":3,\"op\":\"hello\"}\xff",
     "{\"id\":4,\"op\":\"hel\xedlo\"}",
-    "{\"id\":\"\xed\xa0\x80\",\"op\":\"hello\"}",                 /* суррогат */
+    "{\"id\":\"\xed\xa0\x80\",\"op\":\"hello\"}",                 /* surrogate */
     "{\"id\":\"\xc0\xaf\",\"op\":\"hello\"}",                     /* overlong */
     "{\"id\":\"\xf4\x90\x80\x80\",\"op\":\"hello\"}",             /* > U+10FFFF */
   };
@@ -483,10 +485,10 @@ static int t_utf8_strict(const char* path) {
   char* r = figram_request_json(m, "{\"id\":\"пример ✓ \xf0\x9f\x8d\x95\",\"op\":\"hello\"}");
   ok_if(r && strstr(r, "\"protocol\":1") && strstr(r, "\xf0\x9f\x8d\x95"), "valid multi-byte UTF-8 request works", r);
   figram_free(r);
-  /* Документ с невалидным UTF-8: CLI отвергает такие файлы; FFI — тоже. */
+  /* A document with invalid UTF-8: the CLI rejects such files, and so does the C ABI. */
   size_t n = strlen(doc);
   char* bdoc = malloc(n + 1); memcpy(bdoc, doc, n + 1);
-  char* p = strstr(bdoc, "\"menu\"");          /* испортить байт внутри строки */
+  char* p = strstr(bdoc, "\"menu\"");          /* corrupt a byte inside a string */
   if (p) p[2] = (char)0xff;
   r = figram_check_json(bdoc);
   ok_if(r && strncmp(r, "ok", 2) && strstr(r, "UTF-8"), "check_json(invalid UTF-8 doc) → error about UTF-8", r);
@@ -501,9 +503,9 @@ static int t_utf8_strict(const char* path) {
   return n_fail != 0;
 }
 
-/* P-18/PROTOCOL_CHANGES 5, 8: предел размера запроса и пустой запрос. */
-/* {"id":1,"op":"hello"   …пробелы…   } ровно n байт: корректный строгий запрос (лишних полей
-   нет — PROTOCOL_CHANGES 3), размер набирается пробелами между значением и `}`. */
+/* Request size limit and empty request. */
+/* {"id":1,"op":"hello"   …spaces…   } of exactly n bytes: a valid strict request (no extra
+   fields), the size is made up with spaces between the value and `}`. */
 static char* req_of_size(size_t n) {
   const char* head = "{\"id\":1,\"op\":\"hello\"";
   size_t h = strlen(head);
@@ -541,9 +543,10 @@ static int t_limit(const char* path) {
   return n_fail != 0;
 }
 
-/* P-22: figram_init сохраняет диспозиции SIGPIPE, SIGSEGV, SIGBUS и sigaltstack вызывающего потока. */
+/* figram_init preserves the dispositions of SIGPIPE, SIGSEGV, SIGBUS and the sigaltstack of the
+   calling thread. */
 static void host_handler(int s) { (void)s; }
-/* SA_RESTORER glibc добавляет при каждой установке обработчика — это не изменение диспозиции. */
+/* glibc adds SA_RESTORER whenever a handler is installed; that is not a change of disposition. */
 #ifndef SA_RESTORER
 #define SA_RESTORER 0x04000000
 #endif
@@ -585,9 +588,10 @@ static int t_signals(const char* mode) {
   return n_fail != 0;
 }
 
-/* P-22: встроенный рантайм не запускает потоков и не открывает файловых дескрипторов (ни при
-   figram_init, ни при загрузке и запросах), а figram_init резервирует меньше 8 МБ адресов (раньше
-   ≈75 МБ: стек потока libuv и арена glibc malloc этого потока; без ffi/figram_rt.c — ещё 1 ГиБ арены mimalloc). */
+/* The embedded runtime starts no threads and opens no file descriptors (neither in figram_init
+   nor in loads and requests), and figram_init reserves less than 8 MB of address space (the stock
+   start-up reserves about 75 MB for the libuv thread stack and its glibc malloc arena, and without
+   ffi/figram_rt.c another 1 GiB for the mimalloc arena). */
 #define MAX_INIT_VMSIZE_KB (8 * 1024)
 static int n_fds(void) {
   DIR* d = opendir("/proc/self/fd"); int n = 0; struct dirent* e;

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Регрессионный тест: одновременный figram_init из двух потоков, N свежих процессов.
-#   tests/capi/init_race.sh BIN N [ПОДТЕСТ]   — код 0, только если все N процессов успешны.
-#   ПОДТЕСТ: init_race (по умолчанию; два потока, явный figram_init) или
-#            lazy_race (8 потоков, без figram_init: ленивая инициализация в load/request).
+# Concurrent initialization in N fresh processes.
+#   tests/capi/init_race.sh BIN N [SUBTEST]   — exit code 0 only if all N processes succeed.
+#   SUBTEST: init_race (default; two threads, explicit figram_init) or
+#            lazy_race (8 threads, no figram_init: lazy initialization in load/request).
 cd "$(dirname "$0")/../.."
 BIN=${1:-tests/capi/out/contract}; N=${2:-200}; SUB=${3:-init_race}
 declare -A codes; fail=0

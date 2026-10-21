@@ -1,19 +1,20 @@
-// Запуск рантайма Lean без цикла событий libuv (P-22). Это определение lean_initialize_runtime_module
-// заменяет определение из libleanrt.a (src/runtime/init_module.cpp): объект из архива компоновщик берёт,
-// только если символ ещё не определён. Шаги — те же, что в Lean 4.35, кроме:
-//  * initialize_libuv — таймеры, сокеты, сигналы и DNS libuv и постоянный поток их цикла событий
-//    (с потоком ядра io_uring SQPOLL, ≈8 файловыми дескрипторами и 64 МБ резерва арены glibc malloc).
-//    Пользуются ими только функции Std.Internal.UV и Std.Net, которых в программах Figram нет;
-//    verify.sh доказывает это по готовым файлам (ci/reach.py: цикл событий недостижим из main
-//    и конструкторов);
-//  * initialize_stack_overflow — только во встроенной библиотеке (без FIGRAM_STACK_GUARD): обработчик
-//    SIGSEGV/SIGBUS, сообщающий о переполнении стека, ставится на весь процесс, а сигналами хоста
-//    распоряжается хост. Исполняемые файлы figram и figram-engine его сохраняют.
-// verify.sh сверяет последовательность вызовов с определением из libleanrt.a установленного Lean:
-// новый шаг инициализации в другой версии Lean остановит проверку, а не пропустится молча.
+// Starts the Lean runtime without the libuv event loop. This definition of
+// lean_initialize_runtime_module replaces the one in libleanrt.a (src/runtime/init_module.cpp): the
+// linker takes an object from an archive only if the symbol is not defined yet. The steps are those
+// of Lean 4.35, except:
+//  * initialize_libuv — libuv timers, sockets, signals and DNS and the permanent thread of their
+//    event loop (with an io_uring SQPOLL kernel thread, about 8 file descriptors and a 64 MB glibc
+//    malloc arena reservation). Only the functions of Std.Internal.UV and Std.Net use them, and
+//    Figram programs have none; verify.sh proves this on the built files (ci/reach.py: the event
+//    loop is unreachable from main and the constructors);
+//  * initialize_stack_overflow — only in the embedded library (without FIGRAM_STACK_GUARD): the
+//    SIGSEGV/SIGBUS handler that reports a stack overflow is installed for the whole process, and
+//    the host's signals belong to the host. The executables figram and figram-engine keep it.
+// verify.sh compares the sequence of calls with the definition in libleanrt.a of the installed Lean:
+// a new initialization step in another Lean version stops the check instead of being skipped.
 #include <lean/version.h>
 #if LEAN_VERSION_MAJOR != 4 || LEAN_VERSION_MINOR != 35
-#error "ffi/figram_init.cpp повторяет src/runtime/init_module.cpp Lean 4.35: сверьте шаги с этой версией Lean"
+#error "ffi/figram_init.cpp follows src/runtime/init_module.cpp of Lean 4.35: compare the steps with this Lean version"
 #endif
 
 namespace lean {
@@ -27,7 +28,7 @@ void initialize_process();
 void initialize_stack_overflow();
 }  // namespace lean
 
-// Идемпотентна, как и в Lean: её вызывают и сгенерированный main, и figram_init.
+// Idempotent, as in Lean: both the generated main and figram_init call it.
 extern "C" void lean_initialize_runtime_module() {
   static bool initialized = false;
   if (initialized) return;
