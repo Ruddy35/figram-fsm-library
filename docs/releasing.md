@@ -10,15 +10,16 @@ a **draft**; a maintainer reviews the draft and publishes it.
 1. Choose the version `X.Y.Z` (semantic versioning; a pre-release suffix such as `0.2.0-rc.1` is
    allowed and marks the GitHub Release as a pre-release).
 2. Set it in `lakefile.lean`: `version := v!"X.Y.Z"`.
-3. Add a section for it to `CHANGELOG.md`, headed `## [X.Y.Z] - YYYY-MM-DD` (`## X.Y.Z` also works).
-   This section becomes the top of the release notes; the workflow refuses a version without one.
+3. Add a section for it to `CHANGELOG.md`, headed `## [X.Y.Z] - YYYY-MM-DD` (`## X.Y.Z` also works;
+   in a section prepared as `## [X.Y.Z] - Unreleased`, put in the date). The body of this section
+   becomes the top of the release notes; the workflow refuses a version without one.
 4. Merge to the default branch and wait for `ci` to pass. Its `release dry run` job already packages
    the commit, checks that two independent builds give byte-identical archives and that the archives
    are self-contained, and runs `verify-prebuilt.sh` on the packaged binaries.
 5. Start the release workflow, either
    * from the Actions tab: **release → Run workflow**, pick the branch (usually the default branch;
-     its head commit is released) and enter the version without `v`, or `gh workflow run release.yml
-     --ref main -f version=X.Y.Z`; or
+     its head commit is released) and enter the version without `v`, or
+     `gh workflow run release.yml --ref BRANCH -f version=X.Y.Z` with that branch; or
    * by pushing a tag at the commit to release: `git tag -a vX.Y.Z -m "Figram X.Y.Z" COMMIT && git push
      origin vX.Y.Z`.
 6. The workflow (a single job):
@@ -149,6 +150,7 @@ Limits:
 
 Figram is MIT-licensed (`LICENSE`). The binaries and the library archive also contain statically linked
 third-party code: the Lean 4 runtime and core library (`libleanrt.a`, `libInit.a`; they include the
-mimalloc allocator), libuv, GMP and, with the official Lean toolchain, LLVM libc++ and libc++abi. Their
-licenses and the obligations that come with distributing programs linked against them are listed in
+mimalloc allocator), libuv, GMP, LLVM libc++ and libc++abi, and in the executables also LLVM libunwind,
+compiler-rt start-up objects and glibc start-up objects. Their licenses and the obligations that come
+with distributing programs linked against them are listed in
 [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md), which ships in both archives.
