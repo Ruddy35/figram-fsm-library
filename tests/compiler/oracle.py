@@ -424,7 +424,7 @@ class Bot:
         if token is not None and not (type(token) is int and 0 <= token <= MAX_INT):
             # strict protocol (fix wave, PROTOCOL_CHANGES 3): checked while decoding the request,
             # i.e. before recovery and before the token is compared
-            raise RequestError(f"«token» должен быть целым от 0 до {MAX_INT}")
+            raise RequestError(f"`token` must be an integer from 0 to {MAX_INT}")
         if not self.is_message(snap["at"]):          # decision 8
             s2, acts = self._over(snap, keep_resume=True)
             return ("ok", s2, acts, True)

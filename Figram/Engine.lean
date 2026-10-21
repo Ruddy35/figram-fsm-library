@@ -49,31 +49,31 @@ def encSnapshot (s : Snapshot) : J :=
 def boundedNat (what : String) : J → R Nat
   | .num m e =>
     match numToNat m e with
-    | some n => if n ≤ maxInt then pure n else throw s!"снимок: {what} больше {maxInt}"
-    | none => throw s!"снимок: {what} должно быть неотрицательным целым"
-  | _ => throw s!"снимок: {what} должно быть числом"
+    | some n => if n ≤ maxInt then pure n else throw s!"snapshot: {what} exceeds {maxInt}"
+    | none => throw s!"snapshot: {what} must be a non-negative integer"
+  | _ => throw s!"snapshot: {what} must be a number"
 
 def nonEmpty (what : String) : J → R String
-  | .str s => if s.isEmpty then throw s!"снимок: {what} — пустая строка" else pure s
-  | _ => throw s!"снимок: {what} должно быть строкой"
+  | .str s => if s.isEmpty then throw s!"snapshot: {what} is an empty string" else pure s
+  | _ => throw s!"snapshot: {what} must be a string"
 
 def decResumeEntry (p : String × J) : R (String × String) := do
-  if p.1.isEmpty then throw "снимок: пустое имя раздела в «resume»"
-  pure (p.1, ← nonEmpty "значение «resume»" p.2)
+  if p.1.isEmpty then throw "snapshot: empty section name in `resume`"
+  pure (p.1, ← nonEmpty "a `resume` value" p.2)
 
 def decTimerEntry (p : String × J) : R (String × Nat) := do
-  if p.1.isEmpty then throw "снимок: пустое имя таймера"
-  pure (p.1, ← boundedNat "жетон таймера" p.2)
+  if p.1.isEmpty then throw "snapshot: empty timer name"
+  pure (p.1, ← boundedNat "a timer token" p.2)
 
 def checkKeys (kvs : Obj) : R Unit :=
   match kvs.find? (fun p => decide (p.1 ∉ snapshotKeys)) with
-  | some k => throw s!"снимок: неизвестное поле «{k.1}» (снимок более новой версии?)"
+  | some k => throw s!"snapshot: unknown field `{k.1}` (written by a newer version?)"
   | none => pure ()
 
 def checkVersion (kvs : Obj) : R Unit :=
   match get kvs "v" with
   | none => pure ()
-  | some j => do if (← boundedNat "«v»" j) = 1 then pure () else throw "снимок: неизвестная версия"
+  | some j => do if (← boundedNat "`v`" j) = 1 then pure () else throw "snapshot: unknown version"
 
 /-- Strict snapshot decoding; accepts exactly what snapshot.schema.json allows. -/
 def decSnapshot : J → R Snapshot
@@ -81,21 +81,21 @@ def decSnapshot : J → R Snapshot
     checkKeys kvs
     checkVersion kvs
     let st ← match get kvs "at" with
-      | some j => nonEmpty "«at»" j
-      | none => throw "у снимка нужно поле «at»"
+      | some j => nonEmpty "`at`" j
+      | none => throw "snapshot: missing field `at`"
     let res ← match get kvs "resume" with
       | none => pure []
       | some (.obj m) => m.mapM decResumeEntry
-      | some _ => throw "снимок: «resume» должен быть объектом"
+      | some _ => throw "snapshot: `resume` must be an object"
     let tms ← match get kvs "timers" with
       | none => pure []
       | some (.obj m) => m.mapM decTimerEntry
-      | some _ => throw "снимок: «timers» должен быть объектом"
+      | some _ => throw "snapshot: `timers` must be an object"
     let seq ← match get kvs "seq" with
       | none => pure 0
-      | some j => boundedNat "«seq»" j
+      | some j => boundedNat "`seq`" j
     pure ⟨st, res, tms, seq⟩
-  | _ => throw "снимок должен быть объектом"
+  | _ => throw "snapshot must be an object"
 
 /-! ## Request errors -/
 
@@ -163,7 +163,7 @@ def checkFields (kvs : Obj) : RE Unit :=
     match opKeys op with
     | some ks =>
       match kvs.find? (fun p => !ks.contains p.1) with
-      | some p => throw (.badRequest, s!"неизвестное поле запроса «{p.1}»")
+      | some p => throw (.badRequest, s!"unknown request field `{p.1}`")
       | none => pure ()
     | none => pure ()
   | _ => pure ()
@@ -172,33 +172,33 @@ def checkFields (kvs : Obj) : RE Unit :=
 def reqNat (what : String) : J → R Nat
   | .num m e =>
     match numToNat m e with
-    | some n => if n ≤ maxInt then pure n else throw s!"«{what}» должен быть целым от 0 до {maxInt}"
-    | none => throw s!"«{what}» должен быть целым от 0 до {maxInt}"
-  | _ => throw s!"«{what}» должен быть целым от 0 до {maxInt}"
+    | some n => if n ≤ maxInt then pure n else throw s!"`{what}` must be an integer from 0 to {maxInt}"
+    | none => throw s!"`{what}` must be an integer from 0 to {maxInt}"
+  | _ => throw s!"`{what}` must be an integer from 0 to {maxInt}"
 
 def decGuards (kvs : Obj) : R (List (String × Bool)) :=
   match get kvs "guards" with
   | none => pure []
   | some (.obj gs) => gs.mapM fun
       | (k, .bool b) => pure (k, b)
-      | (k, _) => throw s!"условие «{k}»: ожидалось true или false"
-  | some _ => throw "«guards» должен быть объектом"
+      | (k, _) => throw s!"condition `{k}`: expected true or false"
+  | some _ => throw "`guards` must be an object"
 
 /-- The request event: a non-empty string; `timer:<name>` (with a non-empty name) only
 with a token, any other event without a token. -/
 def decEvent (kvs : Obj) : R Event := do
   let name ← match get kvs "event" with
-    | some (.str e) => if e.isEmpty then throw "«event» должно быть непустой строкой" else pure e
-    | some _ => throw "«event» должно быть непустой строкой"
-    | none => throw "нужно поле «event»"
+    | some (.str e) => if e.isEmpty then throw "`event` must be a non-empty string" else pure e
+    | some _ => throw "`event` must be a non-empty string"
+    | none => throw "missing field `event`"
   if name.startsWith "timer:" then
     let id := (name.drop 6).toString
-    if id.isEmpty then throw "пустое имя таймера в «event»"
+    if id.isEmpty then throw "empty timer name in `event`"
     match get kvs "token" with
     | some j => pure (.timer id (← reqNat "token" j))
-    | none => throw "для события таймера нужно поле «token»"
+    | none => throw "missing field `token` for a timer event"
   else
-    if (get kvs "token").isSome then throw "поле «token» допустимо только для события таймера"
+    if (get kvs "token").isSome then throw "field `token` is allowed only for a timer event"
     pure (.named name)
 
 /-- The condition values from the request; missing ones are `false`. -/
@@ -256,20 +256,20 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
     -- so late events of old timers never match new ones.
     let s ← match get kvs "snapshot" with
       | some j => withCode .badSnapshot (decSnapshot j)
-      | none => throw (.badRequest, "нужно поле «snapshot»")
+      | none => throw (.badRequest, "missing field `snapshot`")
     let (s', as) := m.recover { s with resume := [] }
     if s'.seq > maxInt then throw (.seqOverflow, "seq_overflow")
     pure (result id s' as false)
   | some (.str "step") =>
     let s ← match get kvs "snapshot" with
       | some j => withCode .badSnapshot (decSnapshot j)
-      | none => throw (.badRequest, "нужно поле «snapshot»")
+      | none => throw (.badRequest, "missing field `snapshot`")
     let ev ← withCode .badRequest (decEvent kvs)
     let gs ← withCode .badRequest (decGuards kvs)
     stepReply m id s ev gs
-  | some (.str op) => throw (.badRequest, s!"неизвестная операция «{op}»")
-  | some _ => throw (.badRequest, "«op» должно быть строкой")
-  | none => throw (.badRequest, "нужно поле «op»")
+  | some (.str op) => throw (.badRequest, s!"unknown operation `{op}`")
+  | some _ => throw (.badRequest, "`op` must be a string")
+  | none => throw (.badRequest, "missing field `op`")
 
 /-- The `id` from the beginning of a line that could not be parsed: `{`, the key `"id"`, `:`
 and a JSON scalar (string, number, `true`, `false`, `null`) followed by `,`
@@ -305,7 +305,7 @@ def handleWith (mutant : Option String) (m : Machine) (line : String) : String :
       match checkFields kvs >>= fun _ => handleObj m kvs with
       | .ok j => markMutant mutant kvs j
       | .error (c, e) => errorJ ((get kvs "id").getD .null) c e
-    | .ok _ => errorJ .null .badRequest "запрос должен быть объектом"
+    | .ok _ => errorJ .null .badRequest "request must be an object"
     | .error e => errorJ (echoId line) .parseError e
 
 /-- One request line → one reply line. -/
@@ -320,9 +320,9 @@ with the `id` from the beginning of the line (`echoId`), if it is there. -/
 /-- The default size limit of a request line, in bytes (without the final `\n`). -/
 def defaultMaxRequest : Nat := 1048576
 
-def tooLargeText (limit : Nat) : String := s!"запрос длиннее предела {limit} байт"
+def tooLargeText (limit : Nat) : String := s!"request is longer than the limit of {limit} bytes"
 
-def invalidUtf8Text : String := "запрос не в кодировке UTF-8"
+def invalidUtf8Text : String := "request is not valid UTF-8"
 
 /-- The end of the longest prefix of the bytes `[0, n)` that is UTF-8 text. -/
 partial def utf8PrefixEnd (b : ByteArray) (n i : Nat) : Nat :=
@@ -375,6 +375,6 @@ def load (txt : String) : Except (List String) Machine :=
     else
       let m := d.toChart.compile
       if m.wfFast && namesOK m then .ok m
-      else .error ["скомпилированный автомат не прошёл проверку wf/namesOK"]
+      else .error ["compiled machine fails the wf/namesOK check"]
 
 end Figram.Engine

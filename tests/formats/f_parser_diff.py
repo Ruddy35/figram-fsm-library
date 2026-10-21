@@ -54,13 +54,13 @@ FRAG = [
 
 # Every error text of the parser (FormatIO.lean); each must be produced by some input.
 MESSAGES = [
-    "неверная последовательность \\u", "обрыв последовательности \\u", "незакрытая строка",
-    "непарный суррогат в \\u", "неизвестная escape-последовательность", "управляющий символ в строке",
-    "ожидалась цифра", "после «.» нужна цифра", "в показателе нужна цифра",
-    "показатель степени по модулю больше 1000", "вложенность больше 256", "ведущие нули запрещены",
-    "неожиданный символ", "неожиданный конец текста", "лишняя запятая перед «]»", "ожидалась «,» или «]»",
-    "лишняя запятая перед «}»", "повторяющийся ключ", "ожидалась «,» или «}»", "ожидалось «:»",
-    "ожидался ключ в кавычках", "лишний текст после JSON",
+    "invalid \\u escape", "truncated \\u escape", "unterminated string",
+    "unpaired surrogate in \\u escape", "unknown escape sequence", "control character in string",
+    "expected a digit", "missing digit after `.`", "missing digit in exponent",
+    "exponent out of range: absolute value above 1000", "nesting deeper than 256", "leading zeros are not allowed",
+    "unexpected character", "unexpected end of input", "trailing comma before `]`", "expected `,` or `]`",
+    "trailing comma before `}`", "duplicate key", "expected `,` or `}`", "expected `:`",
+    "expected a quoted key", "extra text after the JSON value",
 ]
 
 

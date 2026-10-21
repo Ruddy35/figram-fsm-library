@@ -79,12 +79,12 @@ partial def hasChars (s : String) (i k : Nat) : Bool :=
 /-- Four hexadecimal digits after `\u`. Fewer than four characters before the end of
 the text means "truncated", otherwise any non-hexadecimal character means "invalid". -/
 def hex4 (s : String) (i : Nat) : P Nat :=
-  if !hasChars s i 4 then .error "обрыв последовательности \\u"
+  if !hasChars s i 4 then .error "truncated \\u escape"
   else
     match hexValB (byteAt s i), hexValB (byteAt s (i + 1)), hexValB (byteAt s (i + 2)),
       hexValB (byteAt s (i + 3)) with
     | some a, some b, some c, some d => .ok (((a * 16 + b) * 16 + c) * 16 + d)
-    | _, _, _, _ => .error "неверная последовательность \\u"
+    | _, _, _, _ => .error "invalid \\u escape"
 
 /-- The end of a stretch of the string without a quote, a backslash or control characters. -/
 partial def plainEnd (s : String) (i : Nat) : Nat :=
@@ -119,15 +119,15 @@ partial def parseStr (s : String) (acc : String) (i : Nat) : P (String × Nat) :
               let lo ← hex4 s (j + 8)
               if 0xDC00 ≤ lo && lo < 0xE000 then
                 parseStr s (acc.push (Char.ofNat (0x10000 + (hi - 0xD800) * 0x400 + (lo - 0xDC00)))) (j + 12)
-              else throw "непарный суррогат в \\u"
-            else throw "непарный суррогат в \\u"
-          else if 0xDC00 ≤ hi && hi < 0xE000 then throw "непарный суррогат в \\u"
+              else throw "unpaired surrogate in \\u escape"
+            else throw "unpaired surrogate in \\u escape"
+          else if 0xDC00 ≤ hi && hi < 0xE000 then throw "unpaired surrogate in \\u escape"
           else parseStr s (acc.push (Char.ofNat hi)) (j + 6)
-        else throw s!"неизвестная escape-последовательность \\{charAt s (j + 1)}"
+        else throw s!"unknown escape sequence `\\{charAt s (j + 1)}`"
       -- a backslash as the last character of the text
-      else throw "незакрытая строка"
-    else throw "управляющий символ в строке"
-  else throw "незакрытая строка"
+      else throw "unterminated string"
+    else throw "control character in string"
+  else throw "unterminated string"
 
 /-- The end of a run of digits starting at `i`. -/
 partial def digitsEnd (s : String) (i : Nat) : Nat :=
@@ -157,19 +157,19 @@ def parseNum (s : String) (i : Nat) : P (Int × Int × Nat) := do
   let neg := byteIs s i 45
   let a := if neg then i + 1 else i
   let ie := digitsEnd s a
-  if ie = a then throw "ожидалась цифра"
+  if ie = a then throw "expected a digit"
   let (fa, fe) ← if byteIs s ie 46 then
       let fe := digitsEnd s (ie + 1)
-      if fe = ie + 1 then throw "после «.» нужна цифра" else pure (ie + 1, fe)
+      if fe = ie + 1 then throw "missing digit after `.`" else pure (ie + 1, fe)
     else pure (ie, ie)
   let (ex, j) ← if byteIs s fe 101 || byteIs s fe 69 then
       let k := fe + 1
       let (eneg, k) := if byteIs s k 45 then (true, k + 1)
         else if byteIs s k 43 then (false, k + 1) else (false, k)
       let ke := digitsEnd s k
-      if ke = k then throw "в показателе нужна цифра"
+      if ke = k then throw "missing digit in exponent"
       let ev := expVal s k ke 0
-      if ev > maxExponent then throw s!"показатель степени по модулю больше {maxExponent}"
+      if ev > maxExponent then throw s!"exponent out of range: absolute value above {maxExponent}"
       pure ((if eneg then -(ev : Int) else ev), ke)
     else pure (0, fe)
   let fc := fe - fa
@@ -216,10 +216,10 @@ partial def parseValue (s : String) (depth : Nat) (i : Nat) : P (J × Nat) :=
   if h : i < s.utf8ByteSize then
     let b := s.getUTF8Byte ⟨i⟩ h
     if b == 123 then
-      if depth ≥ maxDepth then .error s!"вложенность больше {maxDepth}"
+      if depth ≥ maxDepth then .error s!"nesting deeper than {maxDepth}"
       else parseObj s (depth + 1) #[] KeySet.none (skipWs s (i + 1)) true
     else if b == 91 then
-      if depth ≥ maxDepth then .error s!"вложенность больше {maxDepth}"
+      if depth ≥ maxDepth then .error s!"nesting deeper than {maxDepth}"
       else parseArr s (depth + 1) #[] (skipWs s (i + 1)) true
     else if b == 34 then do
       let (str, j) ← parseStr s "" (i + 1)
@@ -232,45 +232,45 @@ partial def parseValue (s : String) (depth : Nat) (i : Nat) : P (J × Nat) :=
     else if b == 110 && byteIs s (i + 1) 117 && byteIs s (i + 2) 108 && byteIs s (i + 3) 108 then
       .ok (.null, i + 4)
     else if isDigitB b || b == 45 then
-      if b == 48 && digitAt s (i + 1) then .error "ведущие нули запрещены"
-      else if b == 45 && byteIs s (i + 1) 48 && digitAt s (i + 2) then .error "ведущие нули запрещены"
+      if b == 48 && digitAt s (i + 1) then .error "leading zeros are not allowed"
+      else if b == 45 && byteIs s (i + 1) 48 && digitAt s (i + 2) then .error "leading zeros are not allowed"
       else do
         let (m, e, j) ← parseNum s i
         pure (.num m e, j)
-    else .error s!"неожиданный символ «{charAt s i}»"
-  else .error "неожиданный конец текста"
+    else .error s!"unexpected character `{charAt s i}`"
+  else .error "unexpected end of input"
 partial def parseArr (s : String) (depth : Nat) (acc : Array J) (i : Nat) (first : Bool) :
     P (J × Nat) :=
   if byteIs s i 93 then
-    if first then .ok (.arr [], i + 1) else .error "лишняя запятая перед «]»"
+    if first then .ok (.arr [], i + 1) else .error "trailing comma before `]`"
   else do
     let (v, j) ← parseValue s depth i
     let j := skipWs s j
     if byteIs s j 44 then parseArr s depth (acc.push v) (skipWs s (j + 1)) false
     else if byteIs s j 93 then pure (.arr (acc.push v).toList, j + 1)
-    else throw "ожидалась «,» или «]»"
+    else throw "expected `,` or `]`"
 partial def parseObj (s : String) (depth : Nat) (acc : Array (String × J)) (keys : KeySet)
     (i : Nat) (first : Bool) : P (J × Nat) :=
   if byteIs s i 125 then
-    if first then .ok (.obj [], i + 1) else .error "лишняя запятая перед «}»"
+    if first then .ok (.obj [], i + 1) else .error "trailing comma before `}`"
   else if byteIs s i 34 then do
     let (k, j) ← parseStr s "" (i + 1)
     let (dup, keys) := dupKey acc keys k
-    if dup then throw s!"повторяющийся ключ «{k}»"
+    if dup then throw s!"duplicate key `{k}`"
     let j := skipWs s j
     if byteIs s j 58 then
       let (v, j) ← parseValue s depth (j + 1)
       let j := skipWs s j
       if byteIs s j 44 then parseObj s depth (acc.push (k, v)) keys (skipWs s (j + 1)) false
       else if byteIs s j 125 then pure (.obj (acc.push (k, v)).toList, j + 1)
-      else throw "ожидалась «,» или «}»"
-    else throw "ожидалось «:»"
-  else .error "ожидался ключ в кавычках"
+      else throw "expected `,` or `}`"
+    else throw "expected `:`"
+  else .error "expected a quoted key"
 end
 
 def parse (s : String) : P J := do
   let (v, i) ← parseValue s 0 0
-  if skipWs s i < s.utf8ByteSize then throw "лишний текст после JSON" else pure v
+  if skipWs s i < s.utf8ByteSize then throw "extra text after the JSON value" else pure v
 
 /-! ## Printing -/
 

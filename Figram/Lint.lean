@@ -26,7 +26,7 @@ def isSec (c : Chart) (n : NodeId) : Bool :=
 /-- The name of a node in messages: the document root (the empty name) is called `bot`. -/
 def shown (n : NodeId) : String := if n.isEmpty then "bot" else n
 
-def lintMsg : String := "Схема не проходит итоговую проверку: какая-то стрелка ведёт не в сообщение"
+def lintMsg : String := "chart fails the final check: some arrow does not lead to a message"
 
 /-- The errors of a chart, except the final check `wfDirect`. Nodes are looked up in the
 index (`Chart.index`, the same as `find`), so the check is linear. -/
@@ -42,37 +42,37 @@ def lintCore (c : Chart) : List String := Id.run do
   for (n, i) in c.nodes.zipIdx do
     let ps := pos.concat n.id
     if ps.length > 1 && ps.head? == some i then
-      errs := errs.push s!"Узел «{shown n.id}» объявлен несколько раз"
+      errs := errs.push s!"node `{shown n.id}` is declared more than once"
     match n.parent with
     | some p =>
-      if !found p then errs := errs.push s!"У «{shown n.id}» несуществующий раздел-родитель «{shown p}»"
-      else if !sec p then errs := errs.push s!"Родитель «{shown p}» узла «{shown n.id}» — не раздел"
+      if !found p then errs := errs.push s!"`{shown n.id}` has a nonexistent parent section `{shown p}`"
+      else if !sec p then errs := errs.push s!"parent `{shown p}` of node `{shown n.id}` is not a section"
     | none => pure ()
     -- a cycle: climbing the parents hits the limit
     if (ix.anc n.id).length > ix.fuel then
-      errs := errs.push s!"Цикл во вложенности разделов через «{shown n.id}»"
+      errs := errs.push s!"cycle in the nesting of sections through `{shown n.id}`"
     match n.kind with
     | .sec i =>
       if (ix.node.find? i).bind (·.parent) != some n.id then
         errs := errs.push
-          s!"Начальный экран «{shown i}» раздела «{shown n.id}» должен лежать внутри него"
+          s!"initial node `{shown i}` of section `{shown n.id}` must be a child of it"
     | .message => pure ()
-  if !found c.root then errs := errs.push s!"Стартовый узел «{shown c.root}» не существует"
+  if !found c.root then errs := errs.push s!"start node `{shown c.root}` does not exist"
   for t in c.transitions do
     if !found t.src then
-      errs := errs.push s!"Стрелка по «{t.event}» начинается в несуществующем «{shown t.src}»"
+      errs := errs.push s!"arrow on `{t.event}` starts at nonexistent `{shown t.src}`"
     for b in t.branches do
       match b.target with
       | .node n =>
-        if !found n then errs := errs.push s!"Стрелка «{shown t.src}» → «{shown n}»: цели не существует"
+        if !found n then errs := errs.push s!"arrow `{shown t.src}` → `{shown n}`: target does not exist"
       | .history s =>
         if !sec s then
           errs := errs.push
-            s!"Стрелка «{shown t.src}» → «вернуться туда, где был» в «{shown s}»: это не раздел"
+            s!"arrow `{shown t.src}` → `{shown s}` with `resume`: not a section"
   let leaves := keySet c.leafIds
   for tm in c.timers do
     if !leaves.contains tm.node then
-      errs := errs.push s!"Таймер «{tm.id}» висит не на сообщении"
+      errs := errs.push s!"timer `{tm.id}` is not on a message"
   return errs.toList
 
 /-- The errors of a chart. The final check is `wfDirect` (= `c.compile.wf`). -/
@@ -102,15 +102,15 @@ def lintWarnings (c : Chart) : List String := Id.run do
       k := k + 1
       match uncond with
       | some u =>
-        ws := ws.push (s!"Стрелка «{shown t.src}» по «{t.event}»: вариант {k} никогда не сработает — " ++
-          s!"перед ним вариант {u} без условия")
+        ws := ws.push (s!"arrow `{shown t.src}` on `{t.event}`: variant {k} never fires, " ++
+          s!"variant {u} before it has no condition")
       | none =>
         match b.guard with
         | none => uncond := some k
         | some g =>
           if seen.contains g then
-            ws := ws.push (s!"Стрелка «{shown t.src}» по «{t.event}»: условие «{g}» повторяется, " ++
-              s!"вариант {k} никогда не сработает")
+            ws := ws.push (s!"arrow `{shown t.src}` on `{t.event}`: condition `{g}` is repeated, " ++
+              s!"variant {k} never fires")
           else seen := g :: seen
   -- 2. Arrows `timer:X` where timer X is never started: a message without X
   --    or a section with no message with X inside.
@@ -121,14 +121,14 @@ def lintWarnings (c : Chart) : List String := Id.run do
     | some x =>
       let os := owners.concat x
       unless os.any (fun o => (ix.anc o).contains t.src) do
-        ws := ws.push (s!"Стрелка «{t.event}» на «{shown t.src}» никогда не сработает: таймер «{x}» " ++
-          "запускают только другие сообщения, а срабатывание принимает лишь сообщение, которое его запустило")
+        ws := ws.push (s!"arrow `{t.event}` on `{shown t.src}` never fires: only other messages start " ++
+          s!"timer `{x}`, and a firing is accepted only by the message that started it")
   -- 3. "Resume" drawn only from inside the section.
   for s in dedupFast c.histSecs do
     let srcs := c.transitions.filter fun t => t.branches.any fun b => b.target == .history s
     if srcs.all (fun t => (ix.anc t.src).contains s) then
-      ws := ws.push (s!"«Вернуться туда, где был» в «{shown s}» нарисовано только изнутри раздела: " ++
-        "такая стрелка всегда оставляет пользователя на текущем сообщении")
+      ws := ws.push (s!"arrows with `resume` into `{shown s}` are drawn only from inside the section: " ++
+        "they always leave the user on the current message")
   -- 4. Reachability of messages from the start of the bot through arrows that can fire.
   let tab := firstIndex m.table
   let owns (L : NodeId) (e : EventId) : Bool := match timerOfEvent e with
@@ -159,7 +159,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
               queue := queue.push T
   for L in m.states do
     unless seen.contains L do
-      ws := ws.push s!"Сообщение «{shown L}» недостижимо: от начала бота к нему не ведёт ни одна стрелка"
+      ws := ws.push s!"message `{shown L}` is unreachable: no arrow leads to it from the start of the bot"
   -- 5. A timer loop to its own message also restarts the sibling timers.
   for L in m.states do
     let mine := ix.timersOf L
@@ -170,9 +170,9 @@ def lintWarnings (c : Chart) : List String := Id.run do
         if (untilUnguarded (·.guard) r.branches).any (fun b => b.target == .node L) then
           let starved := mine.filter fun o => o.id != tm.id && o.delayMs ≥ tm.delayMs
           unless starved.isEmpty do
-            ws := ws.push (s!"Петля «{timerEvent tm.id}» на «{shown L}» перезапускает таймеры сообщения " ++
-              s!"({", ".intercalate (starved.map fun o => s!"«{o.id}»")}): пока срабатывает «{tm.id}», " ++
-              "они не сработают")
+            ws := ws.push (s!"loop `{timerEvent tm.id}` on `{shown L}` restarts the message's timers " ++
+              s!"({", ".intercalate (starved.map fun o => s!"`{o.id}`")}): while `{tm.id}` keeps firing, " ++
+              "they never fire")
   return ws.toList
 
 end Chart

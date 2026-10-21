@@ -171,7 +171,7 @@ grep -q '^STRICT GATE: PASS$' "$LOGS/proofs.log" || fail "строгий шлю�
 
 step "Фиксированные сценарии совпадают с сохранёнными"
 $F golden "$T/golden" > "$T/golden.out"
-expect "$T/golden.out" '^сценариев: (\d+)$' "g[0] > 0 and g[0] == $(grep -c . examples/golden.jsonl)" "фиксированные сценарии"
+expect "$T/golden.out" '^scenarios: (\d+)$' "g[0] > 0 and g[0] == $(grep -c . examples/golden.jsonl)" "фиксированные сценарии"
 for f in golden.jsonl pizza.bot.json features.bot.json; do
   cmp "$T/golden/$f" "examples/$f" || fail "examples/$f не совпадает с выводом figram golden"
 done
@@ -181,7 +181,7 @@ step "Соответствие движка: фиксированные и сл�
 for d in pizza features; do
   $F trace examples/$d.bot.json 200 40 7 > "$T/$d.jsonl" 2> "$T/$d.cov"
   cat "$T/$d.cov"
-  expect "$T/$d.cov" '^покрыто вариантов стрелок: (\d+) из (\d+)$' 'g[1] > 0 and g[0] == g[1]' "покрытие $d"
+  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "покрытие $d"
 done
 python3 $P/conformance.py $E --golden examples/golden.jsonl \
   examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl" | tee "$T/conf.out"
@@ -219,7 +219,7 @@ timeout 5 $F check "$T/big.json" >/dev/null 2>"$T/big.err"
 rc=$?
 set -e
 # Ожидается именно код 1 с диагностикой; 124 — таймаут, 13x — аварийное завершение.
-if [ "$rc" -ne 1 ] || ! grep -q "показатель степени" "$T/big.err" || [ $(( $(date +%s) - start )) -ge 5 ]; then
+if [ "$rc" -ne 1 ] || ! grep -q "exponent out of range" "$T/big.err" || [ $(( $(date +%s) - start )) -ge 5 ]; then
   fail "код $rc, stderr: $(head -1 "$T/big.err")"
 fi
 echo "ok (код 1, $(head -1 "$T/big.err"))"

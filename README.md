@@ -139,10 +139,9 @@ pizza.bot.json
 
 A document with an error (an arrow to a message that does not exist):
 
-<!-- message text: verify after translation -->
 ```sh doctest
 $ echo '{"figram":1,"bot":{"initial":"a","children":{"a":{"on":{"btn:x":[{"to":"ghost"}]}}}}}' | figram check /dev/stdin 2>/dev/null
-...
+arrow `a` → `ghost`: target does not exist
 [exit 1]
 ```
 

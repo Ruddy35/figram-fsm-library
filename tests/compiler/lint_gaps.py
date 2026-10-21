@@ -66,13 +66,13 @@ def check(figram, doc):
 # CC05=fixed (default, P-24): `check` still accepts (exit 0, "ok") but warns on stderr;
 # CC05=baseline: the original observation (accepted silently).
 WARN = {
-    "timer_arrow_on_non_owner": "Стрелка «timer:t» на «a» никогда не сработает",
+    "timer_arrow_on_non_owner": "arrow `timer:t` on `a` never fires",
     "same_timer_two_messages": None,
-    "resume_only_from_inside": "нарисовано только изнутри раздела",
-    "variant_after_unconditional": "вариант 2 никогда не сработает",
-    "duplicate_guard_in_arrow": "условие «c1» повторяется",
+    "resume_only_from_inside": "drawn only from inside the section",
+    "variant_after_unconditional": "variant 2 never fires",
+    "duplicate_guard_in_arrow": "condition `c1` is repeated",
     "need_for_shadowed_section_guard": None,
-    "unreachable_message": "Сообщение «lost» недостижимо",
+    "unreachable_message": "message `lost` is unreachable",
 }
 
 
@@ -82,7 +82,7 @@ def warned_ok(name, warnings):
     frag = WARN[name]
     if frag is None:
         return warnings == []
-    return any(w.startswith("предупреждение: ") and frag in w for w in warnings)
+    return any(w.startswith("warning: ") and frag in w for w in warnings)
 
 
 def evidence(engine, name, doc):

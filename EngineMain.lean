@@ -60,7 +60,7 @@ def loadOrFail (path : String) : IO (Option Machine) := do
   match Engine.load (← IO.FS.readFile path) with
   | .ok m => pure (some m)
   | .error errs =>
-    for e in errs do IO.eprintln s!"ошибка документа: {Format.sanitize e}"
+    for e in errs do IO.eprintln s!"document error: {Format.sanitize e}"
     pure none
 
 /-- Leading `--max-request N`: the limit and the remaining arguments; `none` means an invalid value. -/
@@ -72,7 +72,7 @@ def parseLimit : List String → Nat → Option (Nat × List String)
 def usage : String :=
   "usage: figram-engine [--max-request BYTES] <bot.json>\n" ++
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine --mutants <bot.json>\n" ++
-  "       FIGRAM_ALLOW_MUTANTS=1 figram-engine [--max-request BYTES] --mutate <мутация> <bot.json>"
+  "       FIGRAM_ALLOW_MUTANTS=1 figram-engine [--max-request BYTES] --mutate <mutation> <bot.json>"
 
 /-- The number or name in a mutation refers to this machine: otherwise, for example,
 `redirect:999` or `drop-call:no_such_call` would silently give an unbroken engine.
@@ -93,8 +93,8 @@ def specInRange (m : Machine) (spec : String) : Bool :=
 def mutantsAllowed : IO Bool := return (← IO.getEnv "FIGRAM_ALLOW_MUTANTS") == some "1"
 
 def mutantsRefused : String :=
-  "figram-engine: --mutants и --mutate — тестовый режим (испорченный движок); " ++
-  "он включается переменной окружения FIGRAM_ALLOW_MUTANTS=1"
+  "figram-engine: --mutants and --mutate are a test mode (a deliberately broken engine); " ++
+  "enable it with the environment variable FIGRAM_ALLOW_MUTANTS=1"
 
 def main (args : List String) : IO UInt32 := do
   let some (limit, args) := parseLimit args Engine.defaultMaxRequest
@@ -117,17 +117,17 @@ def main (args : List String) : IO UInt32 := do
       return 2
     let some m ← loadOrFail path | return 1
     let some m' := Mutate.apply m spec
-      | IO.eprintln s!"неизвестная мутация «{Format.sanitize spec}» (список — --mutants)"; return 2
+      | IO.eprintln s!"unknown mutation `{Format.sanitize spec}` (see --mutants for the list)"; return 2
     unless specInRange m spec do
-      IO.eprintln s!"мутация «{Format.sanitize spec}» не относится к этому автомату (список — --mutants)"
+      IO.eprintln s!"mutation `{Format.sanitize spec}` does not apply to this machine (see --mutants for the list)"
       return 2
     -- the hypotheses of the protocol theorems are checked for the broken machine too
     -- (`wfFast` is the same `wf` check in linear time, theorem `Machine.wfFast_eq`)
     unless m'.wfFast && Engine.namesOK m' do
-      IO.eprintln s!"мутант «{Format.sanitize spec}» не прошёл проверку wf/namesOK"
+      IO.eprintln s!"mutant `{Format.sanitize spec}` fails the wf/namesOK check"
       return 1
-    IO.eprintln s!"figram-engine: ВНИМАНИЕ: испорченный движок (мутация «{Format.sanitize spec}») — \
-      только для проверки тестов"
+    IO.eprintln s!"figram-engine: WARNING: deliberately broken engine (mutation `{Format.sanitize spec}`), \
+      for testing the tests only"
     serve ⟨limit, some spec⟩ m' (← IO.getStdin) (← IO.getStdout)
     return 0
   | _ =>

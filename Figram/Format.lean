@@ -148,40 +148,40 @@ def numToNat (m e : Int) : Option Nat :=
 def decStrs : List J → R (List String)
   | [] => .ok []
   | .str s :: rest => (decStrs rest).map (s :: ·)
-  | _ :: _ => .error "ожидался список строк"
+  | _ :: _ => .error "expected a list of strings"
 
 def decStrMap : Obj → R (List (String × String))
   | [] => .ok []
   | (k, .str s) :: rest => (decStrMap rest).map ((k, s) :: ·)
-  | (k, _) :: _ => .error s!"«{k}»: ожидалась строка"
+  | (k, _) :: _ => .error s!"`{k}`: expected a string"
 
 def decNatMap : Obj → R (List (String × Nat))
   | [] => .ok []
   | (k, .num m e) :: rest =>
     match numToNat m e with
     | some n => (decNatMap rest).map ((k, n) :: ·)
-    | none => .error s!"«{k}»: ожидалось неотрицательное целое не больше {maxInt}"
-  | (k, _) :: _ => .error s!"«{k}»: ожидалось неотрицательное целое"
+    | none => .error s!"`{k}`: expected a non-negative integer at most {maxInt}"
+  | (k, _) :: _ => .error s!"`{k}`: expected a non-negative integer"
 
 def decVariant : J → R Variant
   | .obj kvs => do
     let cond ← match get kvs "if" with
       | none => pure none
       | some (.str c) => pure (some c)
-      | some _ => throw "«if»: ожидалась строка"
+      | some _ => throw "`if`: expected a string"
     let to ← match get kvs "to" with
       | some (.str t) => pure t
-      | _ => throw "у варианта нужно поле «to»"
+      | _ => throw "variant: missing field `to`"
     let resume ← match get kvs "resume" with
       | none => pure false
       | some (.bool b) => pure b
-      | some _ => throw "«resume»: ожидалось true или false"
+      | some _ => throw "`resume`: expected true or false"
     let calls ← match get kvs "do" with
       | none => pure []
       | some (.arr xs) => decStrs xs
-      | some _ => throw "«do»: ожидался список"
+      | some _ => throw "`do`: expected a list"
     pure ⟨cond, to, resume, calls, unknown variantKeys kvs⟩
-  | _ => .error "вариант должен быть объектом"
+  | _ => .error "variant must be an object"
 
 def decVariants : List J → R (List Variant)
   | [] => .ok []
@@ -190,13 +190,13 @@ def decVariants : List J → R (List Variant)
 def decOn : Obj → R (List (EventId × List Variant))
   | [] => .ok []
   | (e, .arr xs) :: rest => do pure ((e, ← decVariants xs) :: (← decOn rest))
-  | (e, _) :: _ => .error s!"«{e}»: ожидался список вариантов"
+  | (e, _) :: _ => .error s!"`{e}`: expected a list of variants"
 
 def decOnField (kvs : Obj) : R (List (EventId × List Variant)) :=
   match get kvs "on" with
   | none => pure []
   | some (.obj es) => decOn es
-  | some _ => throw "«on» должен быть объектом"
+  | some _ => throw "`on` must be an object"
 
 mutual
 def decNode : J → R NodeDoc
@@ -204,19 +204,19 @@ def decNode : J → R NodeDoc
     let on ← decOnField kvs
     match (← decChildrenIn kvs) with
     | none =>
-      if (get kvs "initial").isSome then throw "«initial» без «children»"
+      if (get kvs "initial").isSome then throw "`initial` without `children`"
       let ts ← match get kvs "timers" with
         | none => pure []
         | some (.obj ts) => decNatMap ts
-        | some _ => throw "«timers» должен быть объектом"
+        | some _ => throw "`timers` must be an object"
       pure (.message on ts (unknown nodeKeys kvs))
     | some cs =>
-      if (get kvs "timers").isSome then throw "у раздела не бывает «timers»"
+      if (get kvs "timers").isSome then throw "section: `timers` is not allowed"
       let i ← match get kvs "initial" with
         | some (.str i) => pure i
-        | _ => throw "у раздела нужно поле «initial»"
+        | _ => throw "section: missing field `initial`"
       pure (.sec i cs on (unknown nodeKeys kvs))
-  | _ => .error "узел должен быть объектом"
+  | _ => .error "node must be an object"
 /-- The first `children` field (if any), decoded. -/
 def decChildrenIn : Obj → R (Option (List (NodeId × NodeDoc)))
   | [] => .ok none
@@ -224,7 +224,7 @@ def decChildrenIn : Obj → R (Option (List (NodeId × NodeDoc)))
     if k = "children" then
       match v with
       | .obj cs => (decChildren cs).map some
-      | _ => .error "«children» должен быть объектом"
+      | _ => .error "`children` must be an object"
     else decChildrenIn rest
 def decChildren : Obj → R (List (NodeId × NodeDoc))
   | [] => .ok []
@@ -235,35 +235,35 @@ def decDecl (kvs : Obj) (k : String) : R (List (String × String)) :=
   match get kvs k with
   | none => pure []
   | some (.obj m) => decStrMap m
-  | some _ => throw s!"«{k}» должен быть объектом"
+  | some _ => throw s!"`{k}` must be an object"
 
 /-- Decoding of the structure without the `requires` check. -/
 def decodeRaw : J → R Doc
   | .obj kvs => do
     match get kvs "figram" with
-    | some (.num m e) => if numToNat m e = some 1 then pure () else throw "нужно поле «figram»: 1"
-    | _ => throw "нужно поле «figram»: 1"
+    | some (.num m e) => if numToNat m e = some 1 then pure () else throw "field `figram` must be 1"
+    | _ => throw "field `figram` must be 1"
     let req ← match get kvs "requires" with
       | none => pure []
       | some (.arr xs) => decStrs xs
-      | some _ => throw "«requires»: ожидался список"
+      | some _ => throw "`requires`: expected a list"
     let conds ← decDecl kvs "conditions"
     let calls ← decDecl kvs "calls"
     let vars ← decDecl kvs "variables"
     let bot ← match get kvs "bot" with
       | some j => decNode j
-      | none => throw "нужно поле «bot»"
+      | none => throw "missing field `bot`"
     match bot with
     | .sec .. => pure ⟨req, conds, calls, vars, bot, unknown docKeys kvs⟩
-    | .message .. => throw "«bot» должен быть разделом"
-  | _ => .error "документ должен быть объектом"
+    | .message .. => throw "`bot` must be a section"
+  | _ => .error "document must be an object"
 
 /-- **Reading a document.** A document that requires unknown extensions
 is rejected as a whole instead of being read partially. -/
 def decode (j : J) : R Doc := do
   let d ← decodeRaw j
   if d.requires.all (fun f => decide (f ∈ knownFeatures)) then pure d
-  else throw "документ требует возможностей, которых этот читатель не знает"
+  else throw "document requires extensions this reader does not know"
 
 /-! ## The meaning of a document: the chart `Chart` -/
 
@@ -312,36 +312,36 @@ partial def J.keysUnique : J → Bool
 /-- The check of the extra keys of one object. -/
 def extErrors (whereStr : String) (known : List String) (ext : Obj) : List String :=
   (ext.filterMap fun p =>
-    if p.1 ∈ known then some s!"{whereStr}: дополнительный ключ «{p.1}» совпадает с ключом формата"
-    else if !(J.keysUnique p.2) then some s!"{whereStr}: в значении «{p.1}» повторяются ключи"
+    if p.1 ∈ known then some s!"{whereStr}: extra key `{p.1}` collides with a format key"
+    else if !(J.keysUnique p.2) then some s!"{whereStr}: duplicate keys in the value of `{p.1}`"
     else none)
-  ++ (dups (ext.map (·.1))).map fun k => s!"{whereStr}: ключ «{k}» повторяется"
+  ++ (dups (ext.map (·.1))).map fun k => s!"{whereStr}: duplicate key `{k}`"
 
 def mapErrors (whereStr : String) (keys : List String) : List String :=
-  (if keys.contains "" then [s!"{whereStr}: пустое имя"] else [])
-  ++ (dups keys).map fun k => s!"{whereStr}: имя «{k}» повторяется"
+  (if keys.contains "" then [s!"{whereStr}: empty name"] else [])
+  ++ (dups keys).map fun k => s!"{whereStr}: duplicate name `{k}`"
 
 def variantErrors (whereStr : String) (v : Variant) : List String :=
-  (if v.to = "" then [s!"{whereStr}: пустая цель «to»"] else [])
-  ++ (if v.cond = some "" then [s!"{whereStr}: пустое имя условия"] else [])
-  ++ (if v.calls.contains "" then [s!"{whereStr}: пустое имя действия"] else [])
+  (if v.to = "" then [s!"{whereStr}: empty target `to`"] else [])
+  ++ (if v.cond = some "" then [s!"{whereStr}: empty condition name"] else [])
+  ++ (if v.calls.contains "" then [s!"{whereStr}: empty action name"] else [])
   ++ extErrors whereStr variantKeys v.ext
 
 def onErrors (id : NodeId) (on : List (EventId × List Variant)) : List String :=
-  mapErrors s!"события узла «{id}»" (on.map (·.1))
-  ++ on.flatMap fun p => p.2.flatMap (variantErrors s!"«{id}» → «{p.1}»")
+  mapErrors s!"events of node `{id}`" (on.map (·.1))
+  ++ on.flatMap fun p => p.2.flatMap (variantErrors s!"`{id}` → `{p.1}`")
 
 partial def nodeErrors (id : NodeId) : NodeDoc → List String
   | .message on ts ext =>
     onErrors id on
-    ++ mapErrors s!"таймеры сообщения «{id}»" (ts.map (·.1))
+    ++ mapErrors s!"timers of message `{id}`" (ts.map (·.1))
     ++ (ts.filterMap fun p => if p.2 > maxInt then
-          some s!"таймер «{p.1}» в «{id}»: задержка больше {maxInt} мс" else none)
-    ++ extErrors s!"узел «{id}»" nodeKeys ext
+          some s!"timer `{p.1}` in `{id}`: delay exceeds {maxInt} ms" else none)
+    ++ extErrors s!"node `{id}`" nodeKeys ext
   | .sec _ cs on ext =>
     onErrors id on
-    ++ mapErrors s!"вложенные узлы раздела «{id}»" (cs.map (·.1))
-    ++ extErrors s!"узел «{id}»" nodeKeys ext
+    ++ mapErrors s!"children of section `{id}`" (cs.map (·.1))
+    ++ extErrors s!"node `{id}`" nodeKeys ext
     ++ cs.flatMap fun p => nodeErrors p.1 p.2
 
 partial def allTimers : NodeDoc → List String
@@ -378,25 +378,25 @@ def Doc.check (d : Doc) : List String :=
   let branches := c.transitions.flatMap (·.branches)
   let undeclaredCond := (branches.filterMap (·.guard)).filterMap fun n =>
     if n = "" || d.conditions.any (·.1 == n) then none
-    else some s!"Условие «{n}» не описано в «conditions»"
+    else some s!"condition `{n}` is not described in `conditions`"
   let undeclaredCall := (branches.flatMap (·.actions)).filterMap fun
     | .call n => if n = "" || d.calls.any (·.1 == n) then none
-                 else some s!"Действие «{n}» не описано в «calls»"
+                 else some s!"action `{n}` is not described in `calls`"
     | _ => none
   let timers := allTimers d.bot
   let badTimerEvents := (allEvents d.bot).filterMap fun e =>
     if e.startsWith "timer:" && !(timers.contains (e.drop 6).toString) then
-      some s!"Событие «{e}»: такого таймера нет (префикс «timer:» зарезервирован)"
+      some s!"event `{e}`: no such timer (the prefix `timer:` is reserved)"
     else none
   let structural :=
-    (if d.requires.all (· ∈ knownFeatures) then [] else ["Документ требует незнакомых возможностей"])
-    ++ (match d.bot with | .sec .. => [] | .message .. => ["«bot» должен быть разделом"])
+    (if d.requires.all (· ∈ knownFeatures) then [] else ["document requires extensions this reader does not know"])
+    ++ (match d.bot with | .sec .. => [] | .message .. => ["`bot` must be a section"])
     ++ mapErrors "conditions" (d.conditions.map (·.1))
     ++ mapErrors "calls" (d.calls.map (·.1))
     ++ mapErrors "variables" (d.variables.map (·.1))
-    ++ extErrors "документ" docKeys d.ext
+    ++ extErrors "document" docKeys d.ext
     ++ nodeErrors "bot" d.bot
-  (if d.wfOK then [] else ["Документ нарушает условия формата (см. ошибки ниже)"])
+  (if d.wfOK then [] else ["document violates the format rules (see the errors below)"])
   ++ structural ++ dedup undeclaredCond ++ dedup undeclaredCall ++ dedup badTimerEvents ++ c.lint
 
 end Figram.Format

@@ -938,7 +938,7 @@ def r13_doc_error():
             eng.close()
     except EngineError as e:
         msg = str(e)
-    report("ошибка документа" in msg and "код" in msg,
+    report("document error" in msg and "код" in msg,
            f"R13 настоящий движок, невалидный документ: «{msg[:140]}»")
 
 
