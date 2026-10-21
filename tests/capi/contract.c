@@ -1,7 +1,7 @@
 // Edge cases of the C ABI contract (ffi/figram.h, ffi/figram_ffi.c).
 // Each subtest is a separate process run: ./contract <subtest> [arguments].
-// The exploratory subtests (NULL, calls before init, double unload, ...) only print what
-// happens; the calling script (tests/capi/regress.sh) checks the exit code or the output.
+// tests/capi/regress.sh runs every subtest and checks its exit code (for the edge-case subtests —
+// calls before init, double unload, use after unload — exit 0 means the host survived) or output.
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <signal.h>

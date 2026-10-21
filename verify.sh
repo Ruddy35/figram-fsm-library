@@ -293,7 +293,7 @@ done
 ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" tests/capi/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
 logged c_contract bash tests/capi/regress.sh "$CA"
-expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 34 and g[1] == 0' "C ABI"
+expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 44 and g[1] == 0' "C ABI"
 # The header with the contract is self-contained for C and C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h

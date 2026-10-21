@@ -76,12 +76,13 @@ Steps, in order:
     and UBSan: invalid UTF-8, a 5 MB request, 16 threads calling one machine; then, in a plain
     build, 5000 loads and unloads must grow memory by less than 2 MiB, while a control run without
     unloading must grow it by more than 8 MiB.
-17. **C ABI** — `tests/capi/regress.sh`, at least 34 checks, each in its own process:
+17. **C ABI** — `tests/capi/regress.sh`, at least 44 checks, each in its own process:
     initialization under `RLIMIT_AS`, concurrent and lazy initialization (300 processes each),
     `NULL` arguments, foreign and unloaded handles, NUL bytes, strict UTF-8, the size limit,
     signal dispositions and `sigaltstack`, no threads or file descriptors from initialization,
-    a malloc failure, a 16-thread stress test; `ffi/figram.h` must compile as C99 and as C++
-    without warnings.
+    a malloc failure, edge cases that must not crash the host (init twice, calls before init,
+    double unload, a request after unload), 64 threads on one handle, a 16-thread stress test;
+    `ffi/figram.h` must compile as C99 and as C++ without warnings.
 18. **Runtime without the libuv event loop** — see "Reachability" below.
 19. **Python client** — `tests/engine/client_faults.py`, `tests/engine/client_contract.py`,
     `tests/engine/client_robustness.py`, each with an empty stderr

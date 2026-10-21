@@ -75,6 +75,16 @@ check "request size limit and empty request" 0 "$B/contract" limit $D
 check "signals preserved (defaults)" 0 "$B/contract" signals default
 check "signals preserved (custom handlers + altstack)" 0 "$B/contract" signals custom
 check "no runtime threads or file descriptors" 0 "$B/contract" host_state $D
+# Edge cases that must not crash the host: init twice, calls before init, double unload, use after
+# unload, NUL and invalid UTF-8 in documents, side effects of init; 64 threads on one handle.
+check "figram_init twice" 0 "$B/contract" init_twice
+for w in check fmt load; do check "before figram_init: $w" 0 "$B/contract" before_init $w $D; done
+check "double unload returns" 0 "$B/contract" unload_twice $D
+check "request after unload returns" 0 "$B/contract" use_after_unload $D $D2
+check "NUL in a document" 0 "$B/contract" nul $D
+check "invalid UTF-8 in a document" 0 "$B/contract" utf8 $D
+check "init side effects report" 0 "$B/contract" side_effects
+check "64 threads on one handle" 0 "$B/contract" threads $D 64
 # The main harness and the stress test with loads and unloads of other machines.
 check "harness 16x20000 + reload" 0 "$B/harness_plain" $D memory
 check "stress 16x20000 + 4 loaders" 0 "$B/stress" $D 16 20000 4
