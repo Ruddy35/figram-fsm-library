@@ -3,8 +3,9 @@
 # Exit code 0 only if every check passes.
 #   tests/capi/regress.sh [BIN_DIR]   (run tests/capi/build.sh first)
 set -u
+B=${1:-}; case $B in ""|/*) ;; *) B=$PWD/$B;; esac   # BIN_DIR is relative to the caller's directory
 cd "$(dirname "$0")/../.."
-B=${1:-tests/capi/out}; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0; n=0; nfail=0
+B=${B:-tests/capi/out}; D=examples/pizza.bot.json; D2=examples/features.bot.json; fail=0; n=0; nfail=0
 check() {  # name expected_code command…
   local name=$1 want=$2; shift 2
   out=$(timeout 120 "$@" 2>&1); rc=$?; n=$((n+1))
