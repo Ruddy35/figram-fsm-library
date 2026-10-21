@@ -1,413 +1,314 @@
-# Figram: доказанный автомат для Telegram-ботов (Lean 4)
+# Figram
 
-Дизайнер рисует бота в редакторе, редактор сохраняет его документом JSON,
-движок исполняет документ. Всё ядро — семантика, компилятор, формат
-документа — описано и доказано в Lean 4 без `sorry` (только стандартные
-аксиомы `propext`, `Quot.sound`, `Classical.choice`). Тот же код Lean
-исполняется в продакшене: отдельным процессом или встроенным в Go.
+A finite-state-machine engine for chat bots, written in Lean 4, with machine-checked proofs of
+its compiler, document format and engine protocol.
 
-Полная проверка проекта — `./verify.sh` (3–4 минуты на 4 ядрах при собранном
-кеше Lake, нужен Lean 4.35.0).
-Без Lean — `./verify-prebuilt.sh` на собранных бинарниках из `bin/`
-(Linux x86_64; сборка воспроизводима, `verify.sh` сверяет хеши).
-Код выхода обоих скриптов: 0 — все шаги выполнены и прошли; 1 — провал;
-3 — прошли, но с явно объявленными отступлениями (`--quick`, `FIGRAM_WAIVE=go`,
-`FIGRAM_SHA256SUMS`) — это не «всё в порядке». `./verify-faults.sh` проверяет,
-что каждая внедрённая неисправность делает проверку красной.
+[![CI](https://github.com/Ruddy35/figram-fsm-library/actions/workflows/ci.yml/badge.svg)](https://github.com/Ruddy35/figram-fsm-library/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Ruddy35/figram-fsm-library?include_prereleases&sort=semver)](https://github.com/Ruddy35/figram-fsm-library/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Модель
+## Overview
 
-**Схема дизайнера** (`Figram/Chart.lean`) — база и три упрощения:
+A designer draws a bot in an editor; the editor saves it as a JSON document
+(`examples/*.bot.json`, schema [`schemas/figram.schema.json`](schemas/figram.schema.json)); the
+engine executes the document. The document describes messages, events, arrows with ordered
+variants guarded by named conditions, actions, nested sections, "resume where the user left
+off" arrows, and timers ([docs/format.md](docs/format.md)).
 
-* база: сообщение, событие, стрелка с вариантами (условия пишутся текстом,
-  первый подходящий вариант выигрывает), действие;
-* **разделы**: вложенность; стрелка от раздела работает на любом сообщении
-  внутри; стрелка в раздел ведёт на его начальное сообщение;
-* **«вернуться туда, где был»**: стрелка ведёт в раздел на то сообщение,
-  где пользователь остановился;
-* **напоминания**: таймер на сообщении.
+The engine is **stateless**. It loads and compiles a document once and then answers requests:
+given a user's snapshot and an event, it returns the new snapshot and the actions to perform
+(send a message, call a developer action, start or cancel a timer). The engine never stores
+users. The **host** — the developer's code around the engine — keeps one small JSON snapshot
+per user, evaluates conditions when the engine asks for them, executes the actions, and
+schedules timers ([docs/host-contract.md](docs/host-contract.md)).
 
-**Ядро** (`Figram/Core.lean`) — плоский автомат, который исполняет движок.
-Шаг — чистая функция `Machine.step : Machine → Snapshot → Event → HostEnv →
-Snapshot × List Action`. «Вернуться туда, где был» — операция ядра: место
-читается из снимка во время шага, поэтому размер автомата растёт линейно.
+**What is proved.** The reference semantics of the designer's chart, the compiler to a flat
+machine and the document format are specified in Lean 4; 23 pinned theorems state, among other
+things, that the compiled machine takes exactly the steps of the chart for every snapshot, event
+and condition values, that a checked document is encoded and decoded back unchanged, and that a
+`step` request runs exactly the proved step and returns a snapshot the engine can read back. All
+theorems use only the standard axioms `propext`, `Quot.sound` and `Classical.choice`, and the
+Lean kernel re-checks every declaration of the project (`leanchecker`). The JSON text layer, the CLI, the C shim and the clients are
+not proved; they are tested ([docs/proofs.md](docs/proofs.md), [docs/testing.md](docs/testing.md)).
 
-**Компилятор** (`Figram/Compile.lean`) превращает схему в ядро.
+The proved Lean code is what runs: it is compiled into
 
-### Решения спецификации
+* `figram` — a command-line tool to check, format and explore documents;
+* `figram-engine` — the engine as a process speaking line-delimited JSON over stdin/stdout;
+* `libfigram.a` — the engine as a static library with a C ABI ([`ffi/figram.h`](ffi/figram.h)),
+  used from C, C++ and Go.
 
-1. Всплытие: варианты собираются от сообщения к разделам выше; если у
-   сообщения есть стрелка, но все её условия ложны, событие уходит выше.
-2. Порядок действий: выход (отмена таймеров сообщения и всех остальных
-   таймеров снимка, оставшихся от прежней версии документа) → действия стрелки → вход
-   (запоминание места, запуск таймеров, отправка сообщения).
-3. Стрелка на то же сообщение отправляет его заново и перезапускает все
-   таймеры этого сообщения. Петля таймера — не исключение: петля `tick` раз в
-   секунду перезапускает и соседний `timeout` на 10 секунд, и тот не сработает,
-   пока работает петля (HOST.md, раздел 3).
-4. Место запоминается при входе в сообщение — для разделов над ним, в которые
-   ведёт хотя бы одна стрелка «вернуться туда, где был».
-5. Если запомненного сообщения больше нет в документе или оно теперь вне
-   этого раздела, «вернуться» ведёт на начальное сообщение раздела.
-6. Событие без подходящей стрелки игнорируется: снимок не меняется. Это
-   относится и к принятому срабатыванию таймера, для которого нет стрелки или
-   все условия ложны: запись таймера остаётся в снимке до ухода с сообщения, а
-   при уходе для неё выдаётся `cancel_timer` (HOST.md, раздел 3).
-7. Срабатывание таймера принимается только с жетоном текущего запуска и только
-   на сообщении, которому этот таймер принадлежит.
-8. Если сообщения из снимка больше нет в документе (или `at` указывает на
-   раздел), пользователь начинает бота заново: таймеры старого места
-   отменяются, места сохраняются, кроме тех, что перезаписывает вход в
-   начальное сообщение (решение 4). Восстановление выполняется раньше
-   обработки события, в том числе до проверки жетона таймера.
+## Features
 
-## Доказанные теоремы
+* One JSON document per bot, with a strict decoder, a canonical form (`figram fmt`) and
+  extension rules: annotations under `x-` keys are kept and never change behaviour; semantic
+  extensions must be declared in `requires`.
+* `figram check` reports the errors that the structure cannot rule out and warns about variants
+  that can never fire, unreachable messages and self-defeating timer loops.
+* A versioned, strict engine protocol: replies in request order, machine-readable error `code`s,
+  a request size limit, strict UTF-8.
+* Conditions are evaluated by the host only when the engine needs them (`need`), and only the
+  conditions that can change the choice are requested.
+* Timers carry tokens, so a stale firing is ignored; the `seq` counter gives the host stable
+  idempotency keys.
+* Embedding with minimal side effects on the host process: initialization creates no threads,
+  file descriptors or signal handlers (the `SIGPIPE` disposition that the Lean runtime changes is
+  restored), and works under `RLIMIT_AS` ([docs/embedding.md](docs/embedding.md)).
+* Reference clients: a Python client with a pool of engine processes, and a Go cgo wrapper.
 
-| Теорема | Что гарантирует |
+## Quick start
+
+### Download a release
+
+Releases are published on the [releases page](https://github.com/Ruddy35/figram-fsm-library/releases)
+for Linux x86_64:
+
+* `figram-<version>-linux-x86_64.tar.gz` — the `figram` and `figram-engine` executables, the
+  example documents and the documentation;
+* `libfigram-<version>-linux-x86_64.tar.gz` — `figram.h`, `libfigram.a` and the Lean runtime
+  archives needed to link it;
+* `SHA256SUMS` — the checksums of both archives.
+
+```sh
+VERSION=0.1.0
+BASE=https://github.com/Ruddy35/figram-fsm-library/releases/download/v$VERSION
+curl -LO "$BASE/figram-$VERSION-linux-x86_64.tar.gz" -LO "$BASE/SHA256SUMS"
+sha256sum --ignore-missing -c SHA256SUMS
+tar xzf "figram-$VERSION-linux-x86_64.tar.gz"
+cd "figram-$VERSION-linux-x86_64"
+bin/figram check examples/pizza.bot.json
+```
+
+The executables depend only on the system C library. [docs/releasing.md](docs/releasing.md)
+describes how releases are built and how to check that they were built from the sources.
+
+### Build from source
+
+```sh
+lake build            # needs Lean 4.35.0, see "Building from source"
+.lake/build/bin/figram check examples/pizza.bot.json
+```
+
+## Usage
+
+The examples below assume that `figram` and `figram-engine` are on `PATH`
+(`export PATH=$PWD/.lake/build/bin:$PATH` after building).
+
+### CLI: `figram`
+
+| Command | Description |
 |---|---|
-| `Chart.compile_correct` | Шаг скомпилированного автомата равен шагу схемы для **любого** снимка, события и значений условий |
-| `Chart.run_correct`, `session_correct` | То же для любого сценария и полной сессии |
-| `Chart.chart_run_valid` | После любого события пользователь стоит на существующем сообщении, даже если снимок устарел |
-| `Machine.step_state_valid` | То же для ядра на одном шаге |
-| `Machine.step_guard_local` | Шаг зависит только от условий из `requiredGuards` (обоснование протокола `need`) |
-| `Chart.compile_eq_spec` | Быстрый компилятор на индексах строит ровно тот же автомат, что прежнее списковое определение `compileSpec`, на котором доказаны теоремы ядра |
-| `Chart.wfDirect_eq`, `lint_nil_wf` | `check` проверяет условие `wf` прямо по схеме, не строя автомат (`c.compile.wf = c.wfDirect`); документ без ошибок `lint` удовлетворяет `c.compile.wf` |
-| `Machine.wfFast_eq` | Линейная проверка `wfFast`, которую выполняет `Engine.load`, равна `wf` |
-| `Format.decode_encode` | Для документа с `DocWF`: запись в модель JSON `J` и чтение возвращают ровно тот же документ (текст JSON — `FormatIO` — не доказан) |
-| `Format.encode_injective` | Разные документы с `DocWF` записываются по-разному (следствие `decode_encode`; без `DocWF` неверно) |
-| `Format.check_roundtrip` | Документ, прошедший `check`, записывается в модель `J` и читается обратно (текстовый круг — только тесты) |
-| `Format.decode_requires` | Документ с незнакомым смысловым расширением отвергается целиком |
-| `Format.toChart_strip`, `toChart_decls` | Аннотации и тексты описаний не влияют на поведение бота (`toChart_decls` верна по определению, `rfl`) |
-| `Engine.decSnapshot_encSnapshot` | Допустимый снимок (`SnapOK`), записанный в модель `J`, читается обратно в точности тем же |
-| `Engine.step_snapOK`, `reply_readable` | Ответ на `step` из допустимого снимка содержит снимок, который движок читает обратно (модель `J`; `start`/`restart` и связь `decSnapshot` → `SnapOK` в проекте не доказаны) |
-| `Engine.missing_nil_step` | Если движок не просит условий (`need` пуст), значения непереданных условий на шаг не влияют — поэтому `need` перечисляет только условия, способные изменить выбор |
-| `Engine.startAt_snapOK` | `start` с `seq` выдаёт допустимый снимок, если счётчик не переполнен; без `seq` — прежний `start` (`startAt_zero`) |
-| `Engine.handle_step` | Запрос `step`, уже разобранный в модель `J` (`handleObj`), исполняет ровно доказанный `Machine.step`; строковый `handle` не доказан (строгий набор полей, размер строки и UTF-8 проверяются до `handleObj` и только отвергают запросы) |
+| `figram example` | print the example pizza-shop document |
+| `figram check <bot.json>` | check a document: prints `ok`, or the errors one per line (exit 1); warnings go to stderr with exit 0 |
+| `figram fmt <bot.json>` | print the canonical form of a document |
+| `figram stats <bot.json>` | print the size of the compiled machine |
+| `figram trace <bot.json> <count> <length> <seed>` | print `count` random reference scenarios (JSON Lines) computed from the proved chart semantics; the coverage of arrow variants goes to stderr |
+| `figram random <seed> <messages>` | print a random valid document |
+| `figram golden <dir>` | write the fixed reference scenarios and their documents into `dir` |
 
-Точные формулировки, граница доказанного и проверенного, доверенная база —
-AUDIT.md.
+`figram` exits with status 0 on success and 1 on any error, including invalid arguments. The
+hidden command `figram json` parses lines of stdin with the JSON text layer; it exists for the
+differential tests.
 
-Условие теорем о корректности — `c.compile.wf`: его проверяет `check` при
-экспорте — по схеме, не строя автомат (последняя проверка `lint`;
-`wfDirect_eq`, `lint_nil_wf`), — и повторно `Engine.load` на построенном
-автомате линейной проверкой `wfFast` (`wfFast_eq`).
-Решение 7 (жетон таймера) обеспечивает разбор запроса `Engine.decEvent`:
-в модели ядра событие `.named "timer:x"` принимается без жетона, и теоремы
-этого не исключают.
-
-## Форматы
-
-* **Документ бота** — FORMAT.md (вывод из критериев, грамматика, правила
-  расширения), `figram.schema.json`, пример `examples/pizza.bot.json`.
-* **Снимок пользователя и протокол движка, версия 1** — FORMAT.md, раздел 7,
-  `snapshot.schema.json`.
-* **Контракт хоста** (порядок событий, транзакции, идемпотентность, таймеры,
-  обновление документа) — HOST.md.
-
-## Инструменты
-
-`figram` (4.8 МБ):
-
-```bash
-figram example                         # документ бота пиццерии
-figram check bot.json                  # ошибки документа
-figram fmt bot.json                    # каноническая запись
-figram stats bot.json                  # размер скомпилированного автомата
-figram trace bot.json 200 40 7         # случайные эталонные сценарии + покрытие
-figram random 3 12                     # случайный корректный документ
-figram golden examples                 # фиксированные сценарии
+```sh doctest
+$ figram check examples/pizza.bot.json
+ok
+$ figram stats examples/pizza.bot.json
+{"states":11,"rows":40,"branches":42,"resumes":1,"actions":31}
+$ figram example | cmp - examples/pizza.bot.json && echo identical
+identical
+$ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram fmt /dev/stdin
+{
+  "figram": 1,
+  "bot": {
+    "initial": "start",
+    "children": {
+      "start": {}
+    }
+  }
+}
+$ figram trace examples/pizza.bot.json 1 3 7 2>/dev/null
+{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"cmd:help","guards":{},"snapshot":{"at":"help","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"help"}]}]}
+$ figram random 7 5 2>/dev/null | figram check /dev/stdin 2>/dev/null
+ok
+$ out=$(mktemp -d) && figram golden "$out" > /dev/null && ls "$out" && rm -r "$out"
+features.bot.json
+golden.jsonl
+pizza.bot.json
 ```
 
-`figram-engine [--max-request БАЙТ] bot.json` (4.7 МБ) — движок через
-stdin/stdout, строка JSON на запрос, ответы строго в порядке запросов:
+A document with an error (an arrow to a message that does not exist):
 
-```
-→ {"id":1,"op":"step","snapshot":{"at":"cart"},"event":"btn:checkout"}
-← {"id":1,"need":["cart_not_empty"]}
-→ {"id":2,"op":"step","snapshot":{"at":"cart"},"event":"btn:checkout","guards":{"cart_not_empty":true}}
-← {"id":2,"snapshot":{"at":"address","seq":1},"actions":[{"send":"address"}]}
-→ {"id":3,"op":"step","snapshot":{"at":"cart"},"event":"btn:checkout","gaurds":{}}
-← {"id":3,"error":"неизвестное поле запроса «gaurds»","code":"bad_request"}
+<!-- message text: verify after translation -->
+```sh doctest
+$ echo '{"figram":1,"bot":{"initial":"a","children":{"a":{"on":{"btn:x":[{"to":"ghost"}]}}}}}' | figram check /dev/stdin 2>/dev/null
+...
+[exit 1]
 ```
 
-Запрос строгий (лишнее поле — ошибка), ошибка несёт машинный код `code`
-(`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`),
-при ошибке разбора `id` берётся из начала строки. Строка длиннее предела
-(по умолчанию 1 МиБ) — `too_large`, не UTF-8 — `parse_error`. Подробно —
-FORMAT.md, раздел 7.
+### Engine: `figram-engine`
 
-`FIGRAM_ALLOW_MUTANTS=1 figram-engine --mutants bot.json` и `--mutate <мутация>` —
-испорченные версии движка для проверки силы тестов (только при этой переменной
-окружения; предупреждение в stderr, `hello` сообщает мутацию).
-
-## Подключение
-
-* **Любой язык через процесс** — `figram-engine`. Клиент для Python с пулом
-  процессов и конвейером запросов — `ffi/python-example/figram_client.py`.
-* **Go, C, C++ в процессе** — `ffi/build.sh` собирает статическую библиотеку
-  `ffi/out/libfigram.a` (контракт C-ABI — заголовок `ffi/figram.h`), cgo или
-  компоновщик вшивают её в обычный исполняемый файл; см. «Встраивание».
-  Загруженный автомат помечается многопоточным (`lean_mark_mt`: атомарный
-  подсчёт ссылок): его одновременно используют любые горутины, а `Close()`
-  (`figram_unload`) освобождает его, дождавшись текущих вызовов, — документ
-  можно перезагружать без роста памяти. Пример с проверкой соответствия из
-  многих горутин, строгой проверкой протокола и тестом перезагрузки —
-  `ffi/go-example`.
-
-## Встраивание
-
-**Сборка и компоновка.** `ffi/build.sh` работает с обеими раскладками тулчейна
-Lean 4.35.0 и пишет флаги компоновщика в `ffi/out/LDFLAGS` (абсолютные пути):
-
-```bash
-./ffi/build.sh
-cc host.c -I ffi $(cat ffi/out/LDFLAGS)              # C/C++
-CGO_LDFLAGS="$(cat ffi/out/LDFLAGS)" go build        # своя обёртка на Go
+```text
+figram-engine [--max-request BYTES] <bot.json>
 ```
 
-`ffi/go-example` собирается обычным `go build`: `ffi/build.sh` генерирует рядом
-`zz_figram_ldflags.go` с теми же флагами, кроме `-Wl,--gc-sections` (cgo не пропускает его в
-директиве `#cgo`). Его стоит передать при сборке, как это делают сами исполняемые файлы Lean:
-`go build -ldflags=-extldflags=-Wl,--gc-sections` — тогда в программу попадает только
-достижимый код рантайма и стандартной библиотеки Lean (замер: пример на Go 10,2 → 3,9 МБ,
-RSS после `figram_init` +7,4 → +2,5 МБ). В `ffi/out/LDFLAGS` (C-хосты, `CGO_LDFLAGS`) флаг уже есть. Библиотека — это `libfigram.a` и архивы
-рантайма в `ffi/out/lean/`, а не один файл:
+The engine loads and compiles the document, then reads one JSON request per line from stdin and
+writes one JSON reply per line to stdout, strictly in request order. It exits with status 0 at
+the end of input, 1 if the document cannot be loaded (the reasons go to stderr), and 2 on invalid
+arguments. `--max-request` sets the request size limit (default 1 MiB, 0 — no limit).
 
-| Тулчейн Lean | Архивы `ffi/out/lean/` | Зависимости исполняемого файла |
-|---|---|---|
-| официальный релиз (clang + libc++) | `libInit.a`, `libleanrt.a`, `libc++.a`, `libc++abi.a`, `libuv.a`, `libgmp.a` из префикса Lean | локально не проверялось; ожидается libc, libm, libgcc_s.so.1 (раскрутка стека для libc++abi) |
-| сборка из исходников (gcc + libstdc++) | `libInit.a`, `libleanrt.a` и системные статические `libuv.a`, `libgmp.a` (`apt install libuv1-dev libgmp-dev`) | libc, libm, **libstdc++.so.6, libgcc_s.so.1** |
+```sh doctest
+$ printf '%s\n' '{"id":1,"op":"start"}' '{"id":2,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}' \
+>   | figram-engine examples/pizza.bot.json
+{"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+{"id":2,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+```
 
-Путь официального релиза в `ffi/build.sh` не изменился (те же архивы и флаги);
-локально он не проверялся — только в CI. Поддерживается только статическая
-компоновка в исполняемый файл: `libleanrt.a` собран с `-ftls-model=local-exec`,
-поэтому разделяемую библиотеку (`.so`, Go `-buildmode=c-shared`, плагины) собрать
-нельзя (`R_X86_64_TPOFF32`).
+The operations are `hello`, `start`, `restart` and `step`; a `step` may answer
+`{"need": [...]}` when it needs condition values, and errors carry a machine-readable `code`
+(`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`). The complete
+protocol, the snapshot format and the error rules are in [docs/format.md](docs/format.md),
+section 8; the rules a host must follow (per-user ordering, transactions, idempotency, timers,
+document updates) are in [docs/host-contract.md](docs/host-contract.md).
 
-**Контракт C-ABI** (`ffi/figram.h`):
+### Embedding from C and Go
 
-* инициализация ленивая и потокобезопасная: первый вызов любой функции
-  запускает рантайм Lean ровно один раз, `figram_init()` можно вызвать заранее;
-  отказ — код ≠ 0 и текст `figram_last_error()`, процесс хоста жив;
-* NULL вместо аргумента, чужой указатель вместо дескриптора, запрос к
-  выгруженному автомату и повторная выгрузка — ошибка, а не SIGSEGV (выгрузки
-  обнаруживаются в окне 1024 последних выгрузок);
-* варианты с длиной `figram_request_json_n`, `figram_load_doc_n`,
-  `figram_check_json_n`, `figram_fmt_json_n` отвергают встроенный NUL;
-  `figram_load_doc_ex(doc, &err)` возвращает причину отказа;
-* вход проверяется на UTF-8 строго (без замены на U+FFFD); запрос длиннее
-  `figram_set_max_request` (по умолчанию 1 МиБ, 0 — без предела) — `too_large`;
-  ошибки уровня C — ответ `{"id":null,"error":…,"code":…}` (FORMAT.md §7);
-  пустой запрос — `parse_error` (процесс `figram-engine` пустые строки пропускает);
-* неопределённым остаётся: `figram_unload` одновременно с запросами к тому же
-  дескриптору, дескриптор, выгруженный больше 1024 выгрузок назад, строки без
-  NUL в вариантах без `_n`, вызовы в дочернем процессе после `fork()`.
+`bash ffi/build.sh` builds `ffi/out/libfigram.a` and writes the linker flags to
+`ffi/out/LDFLAGS`:
 
-**Побочные эффекты инициализации** (`figram_shutdown` нет). Рантайм Lean
-запускается без цикла событий libuv и без обработчика переполнения стека:
-`figram_init` не создаёт потоков, файловых дескрипторов и обработчиков сигналов,
-не трогает `sigaltstack` и резервирует меньше 1 МБ адресов; RSS растёт на
-≈ 2 МБ (замер в Go; каждый загруженный автомат — ещё ≈ 9 КБ). Единственное
-изменение процесса — диспозиция SIGPIPE (рантайм ставит `SIG_IGN`): прослойка её
-сохраняет и восстанавливает. Переполнение стека кодом Lean — обычный SIGSEGV
-процесса хоста.
+```sh
+cc host.c -I ffi $(cat ffi/out/LDFLAGS)
+```
 
-**Запуск без цикла событий libuv.** Штатный `lean_initialize_runtime_module`
-запускает таймеры, сокеты, сигналы и DNS libuv с постоянным потоком их цикла
-событий (и потоком ядра io_uring SQPOLL, ≈ 8 дескрипторами, 64 МБ резерва арены
-glibc malloc). Figram ими не пользуется: `ffi/figram_init.cpp` определяет свой
-`lean_initialize_runtime_module` с теми же шагами без `initialize_libuv`
-(компоновщик берёт его раньше объекта из `libleanrt.a`). `verify.sh` проверяет
-это по готовым файлам: шаги запуска сверяются по дизассемблеру со штатными из
-`libleanrt.a` установленного Lean (новый шаг в другой версии Lean остановит
-проверку), а `ci/reach.py` строит граф вызовов и указателей от `main` и
-конструкторов и требует, чтобы функции цикла событий (`lean_uv_*`,
-`event_loop_*`, `initialize_libuv*`) были недостижимы; контроль — тот же хост со
-штатным запуском, где они достижимы. Исполняемые файлы сохраняют обработчик
-переполнения стека («Stack overflow detected. Aborting.»), встроенная
-библиотека — нет: сигналами распоряжается хост.
+The C ABI (initialization, ownership, strings, threads, side effects, memory limits), a complete
+C example and the Go wrapper in [`clients/go`](clients/go) are described in
+[docs/embedding.md](docs/embedding.md).
 
-**Память и RLIMIT_AS.** По умолчанию рантайм Lean резервирует 1 ГиБ адресов под
-арену распределителя mimalloc и по 1 ГиБ под стек каждого своего потока.
-`figram_init` и исполняемые файлы до запуска рантайма отключают резерв арены
-(память берётся у ОС по мере надобности) и задают стек потоков рантайма как у
-любого потока процесса (`ulimit -s`) — `ffi/figram_rt.c`; явно заданные
-`MIMALLOC_ARENA_RESERVE` и `LEAN_STACK_SIZE_KB` главнее. Встроенный рантайм
-запускается под `ulimit -v` / systemd `LimitAS=` уже при запасе ≈ 1 МиБ адресов
-сверх занятого; при меньшем распределитель Lean завершает процесс
-(«INTERNAL PANIC: out of memory», код 1), как и при нехватке памяти во время
-работы. Исполняемые файлы, кроме того, запускают `main` на основном потоке
-процесса (`LEAN_MAIN_USE_THREAD=0`): `figram-engine` однопоточный, резервирует
-≈ 10 МБ адресов (официальная сборка, локально и на раннере CI), занимает ≈ 4–6 МБ и работает под `ulimit -v 32M`
-(проверка — `engine_memory.py` в `verify.sh`). Глубина рекурсии кода Lean
-ограничена системным стеком; документы в пределах формата (вложенность ≤ 126
-разделов) в него укладываются.
+### Python client
 
-**Потоки.** Все функции можно вызывать из любых потоков. Хостам на C с
-несколькими рабочими потоками лучше дать каждому потоку свой дескриптор: общий
-дескриптор на 4 потоках медленнее на 20–30 % (атомарные счётчики на общих
-строках кэша); в Go разница в пределах шума.
+[`clients/python/figram_client.py`](clients/python/figram_client.py) drives a pool of
+`figram-engine` processes with pipelined requests, timeouts, replacement of failed processes and
+restart backoff; failures are reported as `EngineError` with `code` and `retryable`
+([docs/host-contract.md](docs/host-contract.md), section 5).
 
-**Проверка.** `ffi/audit/regress.sh` (входит в `verify.sh`) проверяет контракт
-по подтестам в отдельных процессах, `ffi/audit/sanitizers.sh` — те же подтесты
-под ASan/UBSan и TSan. ASan, valgrind и TSan не видят кучу Lean (mimalloc):
-use-after-free объектов Lean и снятая пометка `lean_mark_mt` им незаметны, а
-одновременные загрузки дают под TSan ложные «гонки». Рабочий оракул —
-функциональный стресс со сверкой каждого ответа (`ffi/audit/stress.c`:
-16 потоков × 20 000 запросов при параллельных загрузках и выгрузках).
+```python doctest
+from figram_client import Engine, EngineError
 
-## Проверка
+engine = Engine("figram-engine", "examples/pizza.bot.json", processes=2)
+try:
+    user = "user-42"
+    reply = engine.start(user)
+    print(reply["actions"])
+    reply = engine.step(user, reply["snapshot"], "btn:order")
+    print(reply["snapshot"], reply["actions"])
 
-| Что | Результат |
+    # The engine asks for conditions only when it needs them; the client calls `guards`.
+    cart = {"at": "cart", "seq": 3}
+    reply = engine.step(user, cart, "btn:checkout",
+                        guards=lambda names: {name: True for name in names})
+    print(reply["snapshot"]["at"])
+
+    try:
+        engine.step(user, {"at": "cart", "vv": 1}, "btn:checkout")
+    except EngineError as e:
+        print(e.code, e.retryable)
+finally:
+    engine.close()
+```
+
+```text output
+[{'send': 'menu'}]
+{'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2} [{'send': 'catalog'}]
+address
+bad_snapshot False
+```
+
+## Documentation
+
+| Document | Contents |
 |---|---|
-| Фиксированные сценарии (12): заказ до конца, обе стороны условий, всплытие после ложной ветки, вложенное и устаревшее «вернуться», петля, жетоны таймеров, восстановление удалённого сообщения, порядок действий | 62 запроса, расхождений 0 |
-| Случайные сценарии, покрытие вариантов стрелок | 42 из 42 (пиццерия), 36 из 36 (особые случаи) |
-| 100 случайных документов | 97 282 запроса, расхождений 0 |
-| Мутационное тестирование | обнаружено 107 из 107 мутаций, включая удаление `create_order` |
-| Контракт хоста: 30 пользователей, двойная параллельная доставка, 140 внедрённых сбоев | ровно один заказ на пользователя, потерь нет; контрольный хост без контракта даёт повторные заказы |
-| Движок без Python, один процесс (pizza) | до исправлений 15–18 мкс CPU на запрос, 52–76 тыс. запросов/с (замер аудита, официальная сборка); после — раздел «Производительность»; в `verify.sh` не входит |
-| Python, 64 потока, 2 процесса движка | 8000 шагов, расхождений 0; скорость зависит от машины (CI — 9 400–22 900 шагов/с, в VERIFY.log — 9 400; общая машина аудита под нагрузкой — 3 900–6 200), узкое место — Python |
-| Go в процессе, 600 горутин (4 загрузки документа × 3 раунда) и 60 горутин под `-race`; в CI дополнительно 10 000 горутин под `-race` и 100 000 без | расхождений 0, гонок нет |
-| Снимок: схема и движок на 24 граничных снимках; граница `seq` | совпадают; переполнение — контролируемая ошибка |
-| Граничные случаи протокола (`protocol_edges.py`): коды ошибок, строгие поля, жетоны и `seq` по значению, `start` с `seq`, эхо `id`, невалидный UTF-8, пустые строки, предел размера, порядок ответов, мутанты только при `FIGRAM_ALLOW_MUTANTS=1` | 106 случаев, расхождений 0 |
-| Стоимость разбора (`tests/formats/f_parser_scaling.py`, ручной замер) | объект из 32 000 ключей — 0,06 с, число из 160 000 цифр — 0,05 с, строка 20 МБ — 1,0 с и 122 МБ памяти (было 5,6 с, 12 с, 7 с и 1 ГБ); тот же язык, значения и тексты ошибок, что у прежнего парсера, на 60 000 входах (`f_parser_diff.py`). Процесс читает запрос по байту (предел размера, строгий UTF-8): +5–9 мкс CPU на запрос pizza (раздел «Производительность») |
-| Клиент Python при 13 видах сбоев движка на запросе и 5 — до готовности (до ответа на `hello`), 300 одновременных запросах к процессу, не читающему вход | ни одного зависания, процесс заменяется; таймаут одного вызова не убивает общий процесс |
-| Обвязка тестов при 13 видах порчи ответов движка, неполном и зависшем движке, нуле мутаций; среди видов порчи — пропавший и неизвестный код ошибки | conformance, loadtest и snapshot_fixtures красные (37 проверок) |
-| Текстовый JSON дифференциально против Python `json` | 30 000 случаев в `verify.sh`, расхождений 0; парсер без ограничений обнаруживается |
-| C-прослойка: невалидный UTF-8, пустой и огромный (5 МБ) запрос, 16 потоков POSIX, ASan и UBSan | ошибок в коде прослойки нет; кучу Lean (mimalloc) санитайзеры не видят, а TSan не ловит гонки счётчиков ссылок — оракул здесь сверка ответов из 16 потоков (AUDIT.md, раздел 2) |
-| C-ABI `ffi/figram.h` (`ffi/audit/regress.sh`): init под RLIMIT_AS, ленивая init из 8 потоков × 300 процессов, NULL, чужой и выгруженный дескриптор, NUL, UTF-8, предел размера, SIGPIPE, SIGSEGV/SIGBUS и sigaltstack хоста, ни потоков, ни дескрипторов от init | 34 проверки, отказов 0; до исправлений — SIGABRT/SIGSEGV |
-| Рантайм без цикла событий libuv: шаги запуска против штатных из `libleanrt.a` (дизассемблер), достижимость по готовым `figram`, `figram-engine` и C-хосту (`ci/reach.py`, самопроверка на синтетической программе) | функции цикла событий недостижимы; со штатным запуском (контроль) — достижимы |
-| «Вернуться туда, где был» — операция ядра: автомат растёт линейно | раздел из 100 сообщений со стрелкой на каждом и стрелкой «вернуться» в раздел — 201 вариант, из 1000 сообщений — 2001 (`figram stats`); время загрузки — раздел «Производительность» |
+| [docs/format.md](docs/format.md) | the document format, its derivation and extension rules, the execution semantics, the snapshot and the engine protocol |
+| [docs/host-contract.md](docs/host-contract.md) | what a host must do: ordering, transactions, idempotency, timers, resets, engine failures, document updates |
+| [docs/embedding.md](docs/embedding.md) | the C ABI and the Go wrapper |
+| [docs/proofs.md](docs/proofs.md) | the pinned theorems, how proofs are checked, what is not proved |
+| [docs/testing.md](docs/testing.md) | `./verify.sh` step by step, the other suites, reachability checks, performance |
+| [docs/releasing.md](docs/releasing.md) | how releases are built, checked and published |
+| [CHANGELOG.md](CHANGELOG.md) | release notes |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | development setup and conventions |
+| [SECURITY.md](SECURITY.md) | reporting vulnerabilities |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | components linked into the binaries and their licenses |
 
-Числа скорости в таблице зависят от машины и в проверку не входят.
-Честная параллельность Go проверяется в CI на 4 ядрах
-(`.github/workflows/verify.yml`: 10 000 горутин под `-race` и 100 000 без,
-расхождений 0).
+## Building from source
 
-Мутационное тестирование портит только таблицы скомпилированного автомата;
-разбор запросов и снимков, `need`, жетоны, `restart`, `hello` и граница `seq`
-в `restart` им не затрагиваются — их проверяет `protocol_edges.py`
-(ожидания выписаны вручную по FORMAT.md). На документе с недостижимыми
-ветками (вариант после варианта без условия, стрелка `timer:X` на сообщении
-без таймера X, недостижимое сообщение) `figram-engine --mutants` выдаёт и
-эквивалентные мутанты: их поведение совпадает с исходным, и «выжившая»
-мутация там не говорит о слабости тестов. На примерах, на которых мутации
-гоняет `verify.sh`, эквивалентных мутантов нет: обнаруживаются все 107.
+Requirements (Linux x86_64):
 
-## Производительность
+* **Lean 4.35.0.** With [elan](https://github.com/leanprover/elan), `lake build` uses the
+  version pinned in `lean-toolchain` (`leanprover/lean4:v4.35.0`). Without elan,
+  `ci/install-lean.sh [DIR]` downloads the official release archive, checks its SHA-256 against
+  `ci/lean-toolchain.sha256`, unpacks it into `DIR` (default `~/.lean-toolchain`) and prints the
+  `bin` directory to put on `PATH`; it needs `curl`, `zstd` and `tar`. A Lean 4.35.0 built from
+  source with gcc also works; then `ffi/build.sh` needs the static `libuv` and `libgmp`
+  (Debian/Ubuntu: `apt install libuv1-dev libgmp-dev`).
+* **For the tests:** Python 3 with the `jsonschema` package, Go 1.23 or newer (`clients/go`),
+  a C compiler (gcc) with AddressSanitizer and ThreadSanitizer, binutils (`objdump`, `readelf`,
+  `nm`, `c++filt`) and `prlimit`.
 
-Замеры независимого аудита (октябрь 2026) **до оптимизации** компиляции и
-шага: `bin/figram-engine` (официальная сборка) и сборка из исходников (gcc),
-KVM 4 vCPU Xeon 2,8 ГГц, 16 ГБ, машина общая с другими задачами (load average
-1–18, `nice -n 10`), один–три прогона на точку. Абсолютные числа шумят,
-надёжнее порядок величин и рост. Время загрузки зависит прежде всего от формы
-документа, а не от числа сообщений: «строка» автомата (`rows` в
-`figram stats`) — пара «сообщение, событие», поэтому общие и глобальные
-события умножаются на число сообщений.
-
-| Что | До оптимизации |
-|---|---|
-| Шаг на pizza (11 сообщений), процесс, запросы потоком из файла | 15–18 мкс CPU на запрос, 52–76 тыс. запросов/с |
-| Шаг на pizza, синхронно (запрос → ответ) | CPU p50 / p99: 19–20 / 62–68 мкс |
-| Go, встроенный движок, pizza | CI, 4 ядра: 56–60 тыс. запросов/с (600 и 100 000 горутин) |
-| Шаг на большом автомате: 10^5 / 3·10^5 / 10^6 строк | CPU p50: 0,75 / 3,5 / 12,6 мс (линейно по числу строк) |
-| Загрузка: один раздел, 1000 сообщений, одна стрелка на каждом | 0,4–1,2 с |
-| Загрузка: общие события (~5 на сообщение), 1000 / 2000 / 3000 сообщений | 1,5 / 7,8 / 22 с CPU |
-| Загрузка: своя кнопка у каждого сообщения, 250 / 500 / 1000 сообщений | 0,6–0,7 / 5,6–6,4 / 49 с (рост ≈ N³); с таймерами на 10 % сообщений 1000 — 196 с CPU, 2000 — не загрузился за 300 с |
-| Загрузка: 100 разделов × 20 сообщений с «вернуться туда, где был» | 33,5 с; 200 × 20 — больше 300 с |
-| Загрузка: 1000 сообщений и 100 / 1000 глобальных команд | 16 / 189 с CPU |
-
-Загрузка идёт при каждом старте процесса движка, замене процесса после
-сбоя и обновлении документа; для больших документов нужен отдельный таймаут
-старта (HOST.md, раздел 5).
-
-### После оптимизации
-
-Версия с исправлениями P-06/P-07 (компиляция один раз и за почти линейное
-время на индексах, `check` без построения автомата, строки сгруппированы по
-сообщению), P-10 (разбор JSON по байтам) и строгим протоколом. Та же общая
-машина (KVM 4 vCPU, `nice -n 10`), сборка gcc из исходников; «до» — такая же
-сборка gcc базовой версии на той же машине, а где базовая версия не
-загрузилась — замер аудита. Время — CPU. Скрипты: формы документов —
-`audit/core-compiler/perf_scale.py` (те же генераторы, что у аудита; пороги
-`--max-load-s 5 --max-step-us 1000` выполняются), разбор —
-`tests/formats/f_parser_scaling.py`.
-
-| Документ | Сообщений | Загрузка, с: до → после | `check`, с: до → после | Худший шаг, мкс: до → после |
-|---|---|---|---|---|
-| общие события, по две ветви с условием на кнопке, разделы по 10 сообщений (`states1000`) | 1000 | 1,46 → 0,06 | 0,91 → 0,04 | 87 → 89 |
-| то же, 3000 сообщений (`states3000`) | 3000 | 20,1 → 0,17 | 10,9 → 0,11 | 625 → 390 |
-| своя кнопка у каждого сообщения, таймеры на 10 % (`unique1000`) | 1000 | 192,7 → 0,11 | 103,3 → 0,10 | 265 → 102 |
-| то же, 2000 сообщений (`unique2000`) | 2000 | больше 300 (аудит) → 0,31 | — → 0,35 | — → 159 |
-| 100 разделов × 20 сообщений с «вернуться туда, где был» (`hist_100x20`) | 2001 | 33,7 → 0,05 | 17,7 → 0,08 | 260 → 113 |
-| 200 × 20 (`hist_200x20`) | 4001 | больше 300 (аудит) → 0,19 | — → 0,18 | — → 300 |
-| вложенность 64 (`depth64`) | 300 | 38,5 → 0,12 | 20,0 → 0,05 | 289 → 47 |
-| 300 глобальных команд (`global300`) | 1000 | — → 0,46 | — → 0,25 | — → 118 |
-| 1000 глобальных команд, 10^6 строк автомата (`global_big`) | 1000 | 194,9 → 1,02 | 100,7 → 0,52 | 24 342 → 138 |
-| случайный документ (`figram random 1 1000`) | 1000 | 67,6 → 0,07 | 35,9 → 0,09 | 140 → 127 |
-| один раздел, три кнопки на сообщении (`flat_4000`) | 4000 | 23–27 (аудит) → 0,29 | — → 0,23 | 390–700 (аудит) → 480 |
-| цепочка из 100 вложенных разделов, внизу 500 сообщений, «вернуться» в каждый раздел | 501 | 101,3 → 0,14 | — → 0,15 | 625 → 300 |
-
-Шаг по-прежнему проходит по сообщениям (около 0,1 мкс на сообщение за
-проход): на 4000 сообщениях — около 0,5 мс; компилятор делает
-O(сообщения × различные события) дешёвых шагов (2000 уникальных кнопок —
-0,3 с).
-
-Шаг на pizza (11 сообщений), процесс `figram-engine`, 3 × 50 000 запросов
-(`bench_engine.py` и `replay.sh` агента host-perf):
-
-| Что | До (сборка gcc базовой версии) | После |
-|---|---|---|
-| CPU на запрос, запросы потоком из файла | 18,6–20,5 мкс (48–53 тыс. запросов/с) | 24–28 мкс (35–41 тыс. запросов/с) |
-| CPU на запрос, синхронно (запрос → ответ), p50 / p99 | 39–41 / 105–116 мкс | 43–58 / 107–136 мкс |
-| Go, встроенный движок, 600 горутин, 4 ядра | CI, официальная сборка: 56–60 тыс. запросов/с | 49–52 тыс. запросов/с (общая машина, gcc) |
-
-Шаг на маленьком документе подорожал на 5–9 мкс: процесс читает строку
-запроса по байту, чтобы соблюдать предел размера и строгий UTF-8 и отвечать
-сразу, не дожидаясь следующих запросов (без этого, только с исправлениями
-ядра, — 16,5–17,3 мкс). На больших документах выигрыш от оптимизации шага
-намного больше.
-
-Разбор JSON (`f_parser_scaling.py`, пик RSS процесса):
-
-| Вход | До | После |
-|---|---|---|
-| `figram json`: объект из 16 000 / 32 000 ключей | 1,21 / 5,62 с | 0,03 / 0,06 с |
-| целое / дробь из 160 000 цифр | 11,9 / 11,1 с | 0,05 / 0,06 с |
-| строка 5 / 20 МБ | 1,75 с, 275 МБ / 6,9 с, 996 МБ | 0,22 с, 54 МБ / 1,0 с, 122 МБ |
-| движок: `guards` из 32 000 ключей | 3,97 с | 0,08 с |
-| движок: `id` из 160 000 цифр (эхо в ответе об ошибке) | 11,4 с | 0,07 с |
-| движок: `event` 20 МБ (`--max-request 0`) | 6,0 с, 977 МБ | 1,7 с, 70 МБ |
-
-## Что не покрыто доказательствами
-
-* Текстовый слой JSON (`Figram/FormatIO.lean`), CLI, C-прослойка, обёртки
-  Go и Python. Они проверяются дифференциальным фаззингом и тестами выше.
-* Сообщения об ошибках `check` (решающая проверка — `compile.wf` и
-  `Doc.wfOK`, они в условиях теорем).
-* Код условий и действий разработчика, хост, рантайм и компилятор Lean.
-
-## Структура
-
+```sh
+lake build                 # figram, figram-engine and the Lean library, without warnings
+bash ffi/build.sh          # libfigram.a, ffi/out/LDFLAGS, clients/go/zz_figram_ldflags.go
 ```
-Figram/Core.lean, CoreProofs.lean    ядро и его свойства
-Figram/Chart.lean                    схема дизайнера, эталонная семантика
-Figram/Compile.lean, Correct.lean    компилятор и главная теорема
-Figram/Run.lean                      сценарии
-Figram/Format*.lean                  формат документа, доказательства, текст JSON
-Figram/Lint.lean, LintProofs.lean    проверки схемы, `lint = [] → wf`
-Figram/Warnings.lean                 предупреждения `figram check` (stderr, код 0)
-Figram/Engine.lean, Api.lean         протокол движка, API для встраивания
-Figram/Trace.lean, RandomDoc.lean    эталонные сценарии, случайные документы
-Figram/Mutate.lean                   мутации
-Figram/Examples.lean                 примеры и проверки при сборке
-ffi/                                 Go, C-прослойка (контракт — ffi/figram.h), Python-клиент и тесты
-HOST.md                              контракт хоста
-tests/formats/                       граничные и дифференциальные тесты форматов и протокола
-audit/                               наборы независимого аудита и волны исправлений
-                                     (ядро и компилятор, таймеры, форматы, доказательства,
-                                     документация, хосты host-go и host-python)
-REVIEW.md                            ответ на ревью F01–F13 и N01–N07
-AUDIT.md                             что доказано, что проверено, доверенная база
-Figram/EngineProofs.lean             доказательства протокола движка
+
+## Testing
+
+```sh
+./verify.sh
 ```
+
+`./verify.sh` is the full gate: build without warnings, the pinned theorem statements and axioms,
+the strict proof gate, golden and random scenarios against the engine, mutation testing, the host
+contract, the protocol edge cases, differential fuzzing of the JSON text layer, the C ABI, the
+reachability of the libuv event loop, the Python client and the Go wrapper. It exits with 0 when
+every step passed. The formats suite, the compiler oracle suite, the C ABI sanitizer and mutant
+suites and the Go tests run separately; [docs/testing.md](docs/testing.md) describes all of them,
+and CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of them with the
+official Lean release.
+
+## Project layout
+
+```text
+Figram/                 Lean sources: semantics (Chart), core machine (Core), compiler (Compile),
+                        format (Format, FormatIO), checks (Lint, Warnings), engine (Engine, Api),
+                        scenarios and mutants (Run, Trace, RandomDoc, Mutate), proofs (*Proofs, Correct)
+Main.lean               the figram CLI
+EngineMain.lean         the figram-engine process
+ffi/                    the C ABI: figram.h, the shim (figram_ffi.c, figram_guard.cpp,
+                        figram_init.cpp, figram_rt.c, figram_exe.c), build.sh
+clients/python/         reference Python client (figram_client.py, protocol.py)
+clients/go/             reference Go wrapper and the gofig test driver
+schemas/                JSON schemas of the document and of the snapshot
+examples/               example documents and the golden scenarios
+docs/                   documentation
+tests/engine/           protocol, conformance, host contract and client suites (Python)
+tests/capi/             C ABI tests
+tests/formats/          formats suite
+tests/compiler/         compiler oracle suite
+tests/proofs/           proof gates and pinned theorem statements
+ci/                     install-lean.sh, reach.py, package.sh, check_docs.py
+verify.sh               the full gate
+verify-prebuilt.sh      checks prebuilt binaries without Lean
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: [SECURITY.md](SECURITY.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE). The binaries also contain third-party components under their own
+licenses, see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Audit archive
+
+Before the first release the project went through an independent audit and a fix cycle. The
+audit reports, logs and harnesses are not part of the tree; they are preserved at commit
+[`16c885a`](https://github.com/Ruddy35/figram-fsm-library/tree/16c885a).
