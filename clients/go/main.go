@@ -178,7 +178,11 @@ var corruptions = map[string]func(map[string]any){
 	"recovered-false":  func(r map[string]any) { r["recovered"] = false },
 	"no-id":            func(r map[string]any) { delete(r, "id") },
 	"extra-error":      func(r map[string]any) { r["error"] = "x" },
-	"empty":            func(r map[string]any) { for k := range r { delete(r, k) } },
+	"empty": func(r map[string]any) {
+		for k := range r {
+			delete(r, k)
+		}
+	},
 	"seq-bool": func(r map[string]any) {
 		if s, ok := r["snapshot"].(map[string]any); ok {
 			s["seq"] = true
