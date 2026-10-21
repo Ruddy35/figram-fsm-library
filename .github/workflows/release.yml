@@ -241,13 +241,22 @@ jobs:
                 exit 0
               fi
               still_draft() {  # checked again around every change of the release
-                [ "$(releases)" = "$id true" ] \
-                  || { echo "::error::release $TAG is published (not a draft); this workflow never changes a published release"; exit 1; }
+                now=$(releases)
+                case "$now" in
+                  "$id true") ;;
+                  "$id false")
+                    echo "::error::release $TAG is published (not a draft); this workflow never changes a published release"
+                    exit 1;;
+                  *)
+                    echo "::error::the draft $id no longer carries the tag $TAG (releases with this tag: ${now:-none})"
+                    exit 1;;
+                esac
               }
               still_draft
               # `draft` is not sent: the release stays a draft, and one published in the meantime is
-              # not turned back into a draft.
-              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F prerelease="$pre" \
+              # not turned back into a draft. `tag_name` is sent: without it GitHub resets the tag name
+              # of a draft whose tag does not exist yet to `untagged-…`.
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -f tag_name="$TAG" -F prerelease="$pre" \
                 -f target_commitish="$COMMIT" -f name="$title" -F body=@"$notes" > /dev/null
               still_draft
               # Assets of an earlier run that this run does not produce are removed from the draft.
