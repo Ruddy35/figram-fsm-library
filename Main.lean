@@ -5,18 +5,18 @@ import Figram.RandomDoc
 /-!
 # CLI `figram`
 
-* `figram example` — документ бота пиццерии;
-* `figram check <bot.json>` — ошибки документа (код 1); предупреждения —
-  в stderr с префиксом «предупреждение:», код 0;
-* `figram fmt <bot.json>` — каноническая запись;
-* `figram stats <bot.json>` — размер скомпилированного автомата;
-* `figram trace <bot.json> <count> <length> <seed>` — случайные эталонные
-  сценарии (JSONL); покрытие вариантов стрелок — в stderr;
-* `figram random <seed> <messages>` — случайный корректный документ;
-* `figram golden <dir>` — фиксированные сценарии и их документы;
-* `figram json` — разбор строк stdin текстовым слоем (для тестов).
+* `figram example` — the pizza shop bot document;
+* `figram check <bot.json>` — the errors of a document (exit status 1); warnings go
+  to stderr with the prefix `warning:`, exit status 0;
+* `figram fmt <bot.json>` — the canonical form;
+* `figram stats <bot.json>` — the size of the compiled machine;
+* `figram trace <bot.json> <count> <length> <seed>` — random reference
+  scenarios (JSONL); the coverage of arrow variants goes to stderr;
+* `figram random <seed> <messages>` — a random valid document;
+* `figram golden <dir>` — the fixed scenarios and their documents;
+* `figram json` — parse the lines of stdin with the text layer (for tests).
 
-Любая ошибка — ненулевой код выхода.
+Any error gives a non-zero exit status.
 -/
 
 open Figram Figram.Format
@@ -38,7 +38,7 @@ def checked (d : Doc) : IO Chart := do
     throw <| IO.userError "документ не прошёл проверку"
   pure d.toChart
 
-/-- Строгое положительное число из аргумента. -/
+/-- A strictly positive number from an argument. -/
 def posArg (name val : String) : IO Nat :=
   match val.toNat? with
   | some n => if n > 0 then pure n else throw <| IO.userError s!"{name} должно быть больше нуля"
@@ -49,9 +49,9 @@ def natArg (name val : String) : IO Nat :=
   | some n => pure n
   | none => throw <| IO.userError s!"{name}: ожидалось целое число, получено «{val}»"
 
-/-- `figram json`, для дифференциального тестирования текстового слоя: строка
-на вход, «OK <компактная запись>» или «ERR <причина>» на выход. Ввод читается
-целиком, байтами; строка не в кодировке UTF-8 — «ERR», как у движка. -/
+/-- `figram json`, for differential testing of the text layer: a line in,
+`OK <compact form>` or `ERR <reason>` out. The input is read as a whole, as bytes;
+a line that is not valid UTF-8 gives `ERR`, as in the engine. -/
 partial def jsonLines (data : ByteArray) (out : IO.FS.Stream) (start : Nat) : IO Unit := do
   if start ≥ data.size then return
   let stop := (data.findIdx? (· == 10) start).getD data.size

@@ -1,21 +1,21 @@
 import Figram.Engine
 
 /-!
-# Эталонные сценарии
+# Reference scenarios
 
-Ожидаемые результаты считаются по **эталонной семантике схемы** (`Chart.step`),
-а не по скомпилированному автомату. Имена нужных условий тоже берутся из схемы
-(`guardNames`), чтобы вход сценария не зависел от проверяемого компилятора.
+The expected results are computed by the **reference semantics of the chart** (`Chart.step`),
+not by the compiled machine. The names of the needed conditions are also taken from the chart
+(`guardNames`), so that the input of a scenario does not depend on the compiler under test.
 
-Формат строки сценария (JSONL, по строке на сценарий):
+The format of a scenario line (JSONL, one line per scenario):
 
 ```
-{"name"?: "...", "from"?: <снимок>, "start"?: {"snapshot": ..., "actions": [...]},
+{"name"?: "...", "from"?: <snapshot>, "start"?: {"snapshot": ..., "actions": [...]},
  "steps": [{"event": "...", "token"?: n, "guards": {...},
             "snapshot": ..., "actions": [...], "recovered"?: true}]}
 ```
 
-Если есть `from`, сценарий начинается с этого снимка, иначе — с `start`.
+With `from`, the scenario starts from that snapshot, otherwise from `start`.
 -/
 
 namespace Figram.Trace
@@ -23,14 +23,14 @@ open Figram.Format
 
 def lcg (s : Nat) : Nat := (s * 6364136223846793005 + 1442695040888963407) % 2 ^ 64
 
-/-- Имена условий, которые нужны для шага, по эталонной семантике: условия
-кандидатов до первого безусловного включительно (дальше выбор не доходит). -/
+/-- The names of the conditions needed for a step, by the reference semantics: the conditions
+of the candidates up to and including the first unconditional one (the choice never gets further). -/
 def guardNames (c : Chart) (s : Snapshot) (ev : Event) : List String :=
   if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     dedup ((untilUnguarded (·.guard) (c.cands s.state ev.key)).filterMap (·.guard))
   else []
 
-/-- Индекс сработавшего варианта среди кандидатов (для покрытия). -/
+/-- The index of the variant that fired among the candidates (for coverage). -/
 def firedIndex (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Option Nat :=
   if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     (c.cands s.state ev.key).findIdx? (fun b => guardOK env b.guard)
@@ -38,7 +38,7 @@ def firedIndex (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Option 
 
 def envOf (gs : List (String × Bool)) : HostEnv := fun n => ((gs.find? (·.1 == n)).map (·.2)).getD false
 
-/-- Один шаг: новый снимок и строка JSON шага. -/
+/-- One step: the new snapshot and the JSON line of the step. -/
 def stepJ (c : Chart) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : Snapshot × J :=
   let (s', acts) := c.step s ev (envOf gs)
   let recovered := decide (s.state ∉ c.leafIds)
@@ -54,9 +54,9 @@ def startJ (c : Chart) : J :=
   let (s, a) := c.start
   .obj [("snapshot", Engine.encSnapshot s), ("actions", Engine.encActions a)]
 
-/-! ## Случайный сценарий -/
+/-! ## Random scenario -/
 
-/-- Насколько «близко» к сообщению определено событие: 0 — на самом сообщении. -/
+/-- How "close" to the message the event is defined: 0 means on the message itself. -/
 def depthOf (c : Chart) (L : NodeId) (e : EventId) : Nat :=
   ((c.anc L).findIdx? (fun a => !(c.branchesAt a e).isEmpty)).getD 99
 
@@ -71,8 +71,8 @@ def Gen.rnd (g : Gen) (n : Nat) : Nat × Gen :=
   let r := lcg g.r
   ((r >>> 33) % max n 1, { g with r := r })
 
-/-- Выбор события: события самого сообщения в 8 раз вероятнее глобальных,
-таймеры срабатывают с текущим или устаревшим жетоном, изредка — незнакомое событие. -/
+/-- Choosing an event: the message's own events are 8 times as likely as global ones,
+timers fire with the current or a stale token, occasionally an unknown event. -/
 def Gen.pickEvent (g : Gen) : Event × Gen := Id.run do
   let (roll, g) := g.rnd 100
   if roll < 15 && !g.s.timers.isEmpty then
@@ -107,24 +107,24 @@ def Gen.step (g : Gen) : Gen := Id.run do
   let cov2 := cov.foldl (fun acc x => if acc.contains x then acc else x :: acc) g.covered
   return { g with s := s2, steps := g.steps.push j, covered := cov2 }
 
-/-- Случайный сценарий и покрытые им варианты стрелок. -/
+/-- A random scenario and the arrow variants it covers. -/
 def random (c : Chart) (len seed : Nat) : J × List String := Id.run do
   let mut g : Gen := { c := c, s := c.start.1, r := seed }
   for _ in [0:len] do
     g := g.step
   return (.obj [("start", startJ c), ("steps", .arr g.steps.toList)], g.covered)
 
-/-- Всего вариантов стрелок у всех сообщений (знаменатель покрытия). -/
+/-- The total number of arrow variants of all messages (the denominator of coverage). -/
 def totalBranches (c : Chart) : Nat :=
   c.leafIds.foldl (fun acc L => acc + c.events.foldl (fun a e => a + (c.cands L e).length) 0) 0
 
-/-! ## Сценарий по сценарию -/
+/-! ## Scripted scenario -/
 
 inductive In where
   | ev (name : String) (guards : List (String × Bool) := [])
-  /-- Срабатывание таймера с текущим жетоном. -/
+  /-- A timer firing with the current token. -/
   | timerNow (id : String)
-  /-- Срабатывание таймера с устаревшим жетоном. -/
+  /-- A timer firing with a stale token. -/
   | timerStale (id : String) (token : Nat)
 
 def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List In) :
@@ -137,7 +137,7 @@ def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List I
       | .ev n gs => (Event.named n, gs)
       | .timerNow id => (Event.timer id ((lookup s.timers id).getD 0), [])
       | .timerStale id t => (Event.timer id t, [])
-    -- в сценарий попадают ровно нужные шагу условия (по эталонной семантике)
+    -- the scenario gets exactly the conditions the step needs (by the reference semantics)
     let gs := (guardNames c s ev).map fun n => (n, ((given.find? (·.1 == n)).map (·.2)).getD false)
     let a := (c.step s ev (envOf gs)).2
     let (s', j) := stepJ c s ev gs

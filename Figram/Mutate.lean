@@ -1,21 +1,21 @@
 import Figram.CoreProofs
 
 /-!
-# Мутации автомата — проверка силы тестового набора (F04)
+# Machine mutations: measuring the strength of the test suite
 
-Каждая мутация — правдоподобная ошибка реализации движка или компилятора.
-Хороший набор сценариев должен обнаружить каждую мутацию, которая меняет
-поведение. Запуск: `figram-engine --mutants bot.json` печатает список,
-`figram-engine --mutate <мутация> bot.json` запускает испорченный движок.
+Each mutation is a plausible bug in the implementation of the engine or the compiler.
+A good set of scenarios must detect every mutation that changes the behaviour.
+Usage: `figram-engine --mutants bot.json` prints the list,
+`figram-engine --mutate <mutation> bot.json` runs the deliberately broken engine.
 -/
 
 namespace Figram.Mutate
 
-/-- Все варианты всех стрелок по порядку. -/
+/-- All variants of all arrows, in order. -/
 def branches (m : Machine) : List FBranch := m.rows.flatMap (·.branches)
 
-/-- Изменить стрелки, сохранив группировку по сообщениям; `f` получает
-сквозной номер стрелки (в порядке `Machine.rows`). -/
+/-- Change the arrows, keeping the grouping by message; `f` gets the
+running number of the arrow (in the order of `Machine.rows`). -/
 def mapRows (m : Machine) (f : Nat → Row → Row) : Machine := Id.run do
   let mut k := 0
   let mut table : Array (NodeId × List Row) := #[]
@@ -27,7 +27,7 @@ def mapRows (m : Machine) (f : Nat → Row → Row) : Machine := Id.run do
     table := table.push (s, out.toList)
   return { m with table := table.toList }
 
-/-- Изменить варианты; `f` получает сквозной номер варианта (в порядке `branches`). -/
+/-- Change the variants; `f` gets the running number of the variant (in the order of `branches`). -/
 def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.run do
   let mut k := 0
   let mut table : Array (NodeId × List Row) := #[]
@@ -42,7 +42,7 @@ def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.
     table := table.push (s, out.toList)
   return { m with table := table.toList }
 
-/-- Мутации стрелок не меняют сообщений и действий выхода. -/
+/-- Arrow mutations change neither the messages nor the exit actions. -/
 theorem mapBranches_states (m : Machine) (f : Nat → FBranch → FBranch) :
     (mapBranches m f).states = m.states := rfl
 theorem mapBranches_exit (m : Machine) (f : Nat → FBranch → FBranch) :
@@ -50,12 +50,12 @@ theorem mapBranches_exit (m : Machine) (f : Nat → FBranch → FBranch) :
 theorem mapRows_states (m : Machine) (f : Nat → Row → Row) : (mapRows m f).states = m.states := rfl
 theorem mapRows_exit (m : Machine) (f : Nat → Row → Row) : (mapRows m f).exit = m.exit := rfl
 
-/-- **Мутант стрелки таймера, которым сообщение не владеет, эквивалентен** на
-таких событиях: и исходный, и испорченный автомат игнорируют срабатывание, не
-читая стрелок (`Machine.step_unowned_timer`). Через протокол событие с ключом
-`timer:X` бывает только срабатыванием таймера (`Engine.decEvent`), поэтому
-мутации `redirect`/`drop-guard`/`reverse-actions`/`swap-branches` строк
-`timer:X` сообщений без X на поведение не влияют (T-13, INT-05). -/
+/-- **A mutant of an arrow for a timer the message does not own is equivalent** on
+such events: both the original and the broken machine ignore the firing without
+reading the arrows (`Machine.step_unowned_timer`). Through the protocol an event with
+the key `timer:X` can only be a timer firing (`Engine.decEvent`), so the mutations
+`redirect`/`drop-guard`/`reverse-actions`/`swap-branches` of the `timer:X` rows of
+messages without X do not affect the behaviour. -/
 theorem mapBranches_unowned_timer (m : Machine) (f : Nat → FBranch → FBranch) (s : Snapshot)
     (id : String) (tok : Nat) (env : HostEnv) (hs : s.state ∈ m.states)
     (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
@@ -76,11 +76,11 @@ def callNames (m : Machine) : List String :=
     | _ => none
   names.foldl (fun acc n => if acc.contains n then acc else acc ++ [n]) []
 
-/-- Действия, видимые хосту (служебное «запомнить место» не видно). -/
+/-- The actions visible to the host (the internal "remember the place" is not). -/
 def visible (as : List Action) : List Action :=
   as.filter fun | .remember .. => false | _ => true
 
-/-- Список мутаций, каждая из которых меняет наблюдаемое поведение. -/
+/-- The list of mutations, each of which changes the observable behaviour. -/
 def mutants (m : Machine) : List String :=
   let bs := (branches m).zipIdx
   (callNames m).map (s!"drop-call:{·}")

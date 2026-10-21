@@ -3,26 +3,26 @@ import Figram.CoreProofs
 import Figram.FormatProofs
 
 /-!
-# Свойства протокола движка
+# Properties of the engine protocol
 
-1. `decSnapshot_encSnapshot` — снимок, записанный движком, читается обратно
-   **в точности** тем же (если он в допустимых пределах `SnapOK`).
-2. `step_snapOK` — шаг автомата сохраняет допустимость снимка, если имена
-   в автомате непусты (`Machine.namesOK`, проверяется при загрузке) и счётчик
-   не переполнен (переполнение движок отвергает ошибкой `seq_overflow`).
-   Вместе с (1): движок никогда не выдаёт снимок, который сам не прочитает.
-3. `handle_step` — запрос `step` с полным набором условий исполняет ровно
-   доказанный `Machine.step`.
-4. `startAt_snapOK` — `start` с `seq` тоже выдаёт допустимый снимок.
+1. `decSnapshot_encSnapshot` — a snapshot written by the engine is read back as
+   **exactly** the same snapshot (if it is within the admissible bounds `SnapOK`).
+2. `step_snapOK` — a step of the machine keeps the snapshot admissible if the names
+   in the machine are non-empty (`Machine.namesOK`, checked on load) and the counter
+   does not overflow (the engine rejects an overflow with the error `seq_overflow`).
+   Together with (1): the engine never produces a snapshot it cannot read back.
+3. `handle_step` — a `step` request with a full set of conditions executes exactly
+   the proved `Machine.step`.
+4. `startAt_snapOK` — `start` with `seq` also produces an admissible snapshot.
 
-Проверки вне `handleObj` (строгий набор полей, размер строки, UTF-8) только
-отвергают запросы; принятый запрос обрабатывает `handleObj`.
+The checks outside `handleObj` (the strict set of fields, the line size, UTF-8) only
+reject requests; an accepted request is handled by `handleObj`.
 -/
 
 namespace Figram.Engine
 open Figram.Format
 
-/-- Допустимый снимок — ровно то, что разрешает snapshot.schema.json. -/
+/-- An admissible snapshot is exactly what snapshot.schema.json allows. -/
 structure SnapOK (s : Snapshot) : Prop where
   state : s.state ≠ ""
   resume : ∀ p ∈ s.resume, p.1 ≠ "" ∧ p.2 ≠ ""
@@ -61,7 +61,7 @@ theorem mapM_timers (t : List (String × Nat)) (h : ∀ p ∈ t, p.1 ≠ "" ∧ 
       boundedNat_num _ _ hp.2, hr]
     rfl
 
-/-- **Снимок, записанный движком, читается обратно в точности тем же.** -/
+/-- **A snapshot written by the engine is read back as exactly the same snapshot.** -/
 theorem decSnapshot_encSnapshot (s : Snapshot) (h : SnapOK s) :
     decSnapshot (encSnapshot s) = .ok s := by
   obtain ⟨st, res, tms, seq⟩ := s
@@ -86,9 +86,9 @@ theorem decSnapshot_encSnapshot (s : Snapshot) (h : SnapOK s) :
       h1, h2, boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure] <;>
     (try subst hr) <;> (try subst ht) <;> (try subst hz) <;> rfl
 
-/-! ## Шаг сохраняет допустимость снимка -/
+/-! ## A step keeps the snapshot admissible -/
 
-/-- Допустимость мест и таймеров. -/
+/-- Admissibility of the places and timers. -/
 def Inv (x : Snapshot) : Prop :=
   (∀ p ∈ x.resume, p.1 ≠ "" ∧ p.2 ≠ "") ∧ (∀ p ∈ x.timers, p.1 ≠ "" ∧ p.2 ≤ maxInt)
 
@@ -175,7 +175,7 @@ theorem table_ok {t : List (NodeId × List Action)} (ht : t.all (fun e => e.2.al
     have := List.all_eq_true.mp ht _ (lookup_mem hl)
     exact List.all_eq_true.mp this a ha
 
-/-- **Шаг сохраняет допустимость снимка**, если счётчик не переполнен. -/
+/-- **A step keeps the snapshot admissible** if the counter does not overflow. -/
 theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
     (s : Snapshot) (ev : Event) (env : HostEnv) (hs : SnapOK s)
     (hseq : (m.step s ev env).1.seq ≤ maxInt) : SnapOK (m.step s ev env).1 := by
@@ -215,7 +215,7 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
           rcases ha with ((ha | ha) | ha) | ha
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hexit e he)) _ a ha
-          · -- отмена таймеров, оставшихся от прежней версии документа
+          · -- cancelling the timers left over from a previous document version
             simp only [staleCancels, List.mem_map] at ha
             obtain ⟨_, _, rfl⟩ := ha
             rfl
@@ -223,11 +223,11 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
           · exact table_ok (List.all_eq_true.mpr fun e he =>
               List.all_eq_true.mpr (hentry e he)) _ a ha
 
-/-! ## Запрос `step` исполняет доказанный шаг -/
+/-! ## A `step` request executes the proved step -/
 
-/-- **Протокол исполняет ровно `Machine.step`**: если снимок, событие и
-условия разобраны, все нужные условия переданы и счётчик не переполнен,
-ответ — результат доказанного шага. -/
+/-- **The protocol executes exactly `Machine.step`**: if the snapshot, the event and
+the conditions are decoded, all needed conditions are given and the counter does not
+overflow, the reply is the result of the proved step. -/
 theorem handle_step (m : Machine) (kvs : Obj) (j : J) (s : Snapshot) (ev : Event)
     (gs : List (String × Bool))
     (hop : get kvs "op" = some (.str "step")) (hsn : get kvs "snapshot" = some j)
@@ -241,18 +241,18 @@ theorem handle_step (m : Machine) (kvs : Obj) (j : J) (s : Snapshot) (ev : Event
     List.isEmpty_nil, Bool.not_true, bind, Except.bind, pure, Except.pure]
   simp [hle]
 
-/-- **Лишние условия не влияют**: если переданные значения совпадают с любыми
-другими на нужных шагу условиях, результат шага тот же (следствие
-`step_guard_local`). -/
+/-- **Extra conditions do not matter**: if the given values agree with any other
+values on the conditions the step needs, the result of the step is the same (a corollary
+of `step_guard_local`). -/
 theorem guards_irrelevant (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool))
     (env : HostEnv)
     (hagree : ∀ n ∈ m.requiredGuards s.state ev.key, envOf gs n = env n) :
     m.step s ev (envOf gs) = m.step s ev env :=
   m.step_guard_local s ev _ _ hagree
 
-/-- **Запрос `need` достаточен**: если движок не просит ни одного условия,
-результат шага одинаков для любых значений условий, согласных с переданными
-в запросе (непереданные условия на шаг не влияют). -/
+/-- **The `need` request is sufficient**: if the engine asks for no condition,
+the result of the step is the same for all condition values that agree with the
+ones given in the request (conditions not given do not affect the step). -/
 theorem missing_nil_step (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool))
     (env : HostEnv) (h : missing m s ev gs = [])
     (hagree : ∀ n v, givenOf gs n = some v → env n = v) :
@@ -293,21 +293,21 @@ theorem missing_nil_step (m : Machine) (s : Snapshot) (ev : Event) (gs : List (S
         simp only [Machine.neededGuards, hr] at hn
         rw [find?_neededIn (envOf gs) env hn hgiven hagree]
 
-/-- **Замкнутость протокола**: для автомата, прошедшего загрузку, ответ на шаг
-из допустимого снимка содержит снимок, который движок читает обратно тем же. -/
+/-- **Closure of the protocol**: for a machine that passed loading, the reply to a step
+from an admissible snapshot contains a snapshot that the engine reads back unchanged. -/
 theorem reply_readable (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
     (s : Snapshot) (ev : Event) (env : HostEnv) (hs : SnapOK s)
     (hseq : (m.step s ev env).1.seq ≤ maxInt) :
     decSnapshot (encSnapshot (m.step s ev env).1) = .ok (m.step s ev env).1 :=
   decSnapshot_encSnapshot _ (step_snapOK m hwf hn s ev env hs hseq)
 
-/-! ## `start` с продолженным счётчиком -/
+/-! ## `start` with a continued counter -/
 
-/-- `start` без `seq` — частный случай `startAt` с `seq` 0. -/
+/-- `start` without `seq` is the special case of `startAt` with `seq` 0. -/
 theorem startAt_zero (m : Machine) : startAt m 0 = m.start := rfl
 
-/-- **`start` с `seq` выдаёт допустимый снимок**, если следующий `seq` не
-переполнен (иначе движок отвечает `seq_overflow`). -/
+/-- **`start` with `seq` produces an admissible snapshot** if the next `seq` does not
+overflow (otherwise the engine replies `seq_overflow`). -/
 theorem startAt_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) (n : Nat)
     (hseq : n + 1 ≤ maxInt) : SnapOK (startAt m n).1 := by
   simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn

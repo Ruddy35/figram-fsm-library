@@ -1,16 +1,16 @@
 import Figram.Compile
 
 /-!
-# Проверка схемы перед экспортом
+# Checking a chart before export
 
-Ошибки, которые редактор показывает дизайнеру. Решающая проверка — итоговая:
-`wfDirect`, она равна `c.compile.wf` (`wfDirect_eq`), то есть условию теорем
-`Figram.Run`; отсюда `lint_nil_wf` (`Figram.LintProofs`). Остальные проверки ловят ошибки раньше
-и объясняют их понятным языком. Проверка не строит автомат: документ
-компилируется один раз — при загрузке.
+The errors an editor shows to the designer. The decisive check is the final one,
+`wfDirect`: it equals `c.compile.wf` (`wfDirect_eq`), the hypothesis of the theorems of
+`Figram.Run`; hence `lint_nil_wf` (`Figram.LintProofs`). The other checks catch errors earlier
+and explain them in plain words. The check does not build the machine: a document
+is compiled once, when it is loaded.
 
-Предупреждения (`lintWarnings`) — то, что корректно, но никогда не сработает
-или ведёт себя неожиданно. На результат проверки они не влияют.
+Warnings (`lintWarnings`) are about things that are valid but never fire
+or behave unexpectedly. They do not affect the result of the check.
 -/
 
 namespace Figram
@@ -23,20 +23,20 @@ def isSec (c : Chart) (n : NodeId) : Bool :=
   | some ⟨_, _, .sec _⟩ => true
   | _ => false
 
-/-- Имя узла в сообщениях: корень документа (пустое имя) называется «bot». -/
+/-- The name of a node in messages: the document root (the empty name) is called `bot`. -/
 def shown (n : NodeId) : String := if n.isEmpty then "bot" else n
 
 def lintMsg : String := "Схема не проходит итоговую проверку: какая-то стрелка ведёт не в сообщение"
 
-/-- Ошибки схемы, кроме итоговой проверки `wfDirect`. Поиск узлов — по индексу
-(`Chart.index`: то же, что `find`), поэтому проверка линейна. -/
+/-- The errors of a chart, except the final check `wfDirect`. Nodes are looked up in the
+index (`Chart.index`, the same as `find`), so the check is linear. -/
 def lintCore (c : Chart) : List String := Id.run do
   let ix := c.index
   let found (n : NodeId) : Bool := (ix.node.find? n).isSome
   let sec (n : NodeId) : Bool := match ix.node.find? n with
     | some ⟨_, _, .sec _⟩ => true
     | _ => false
-  -- позиции объявлений по имени: повтор сообщается один раз, у первого объявления
+  -- declaration positions by name: a duplicate is reported once, at the first declaration
   let pos := concatIndex (c.nodes.zipIdx.map fun (n, i) => (n.id, [i]))
   let mut errs : Array String := #[]
   for (n, i) in c.nodes.zipIdx do
@@ -48,7 +48,7 @@ def lintCore (c : Chart) : List String := Id.run do
       if !found p then errs := errs.push s!"У «{shown n.id}» несуществующий раздел-родитель «{shown p}»"
       else if !sec p then errs := errs.push s!"Родитель «{shown p}» узла «{shown n.id}» — не раздел"
     | none => pure ()
-    -- цикл: подъём по родителям упирается в лимит
+    -- a cycle: climbing the parents hits the limit
     if (ix.anc n.id).length > ix.fuel then
       errs := errs.push s!"Цикл во вложенности разделов через «{shown n.id}»"
     match n.kind with
@@ -75,25 +75,25 @@ def lintCore (c : Chart) : List String := Id.run do
       errs := errs.push s!"Таймер «{tm.id}» висит не на сообщении"
   return errs.toList
 
-/-- Ошибки схемы. Итоговая проверка — `wfDirect` (= `c.compile.wf`). -/
+/-- The errors of a chart. The final check is `wfDirect` (= `c.compile.wf`). -/
 def lint (c : Chart) : List String :=
   let errs := c.lintCore
   if errs.isEmpty && !c.wfDirect then errs ++ [lintMsg] else errs
 
-/-! ## Предупреждения -/
+/-! ## Warnings -/
 
-/-- Таймер `X` события `timer:X`. -/
+/-- The timer `X` of the event `timer:X`. -/
 def timerOfEvent (e : EventId) : Option String :=
   if e.startsWith "timer:" then some (e.drop 6).toString else none
 
-/-- Предупреждения о схеме, которая прошла проверку: мёртвые варианты,
-недостижимые сообщения, стрелки, которые никогда не сработают, и петли
-таймеров, которые не дают сработать соседним таймерам. -/
+/-- Warnings about a chart that passed the check: dead variants, unreachable
+messages, arrows that never fire, and timer loops that keep sibling timers
+from firing. -/
 def lintWarnings (c : Chart) : List String := Id.run do
   let ix := c.index
   let m := c.compile
   let mut ws : Array String := #[]
-  -- 1. Варианты одной стрелки после варианта без условия и повтор условия.
+  -- 1. Variants of an arrow after a variant without a condition, and a repeated condition.
   for t in c.transitions do
     let mut uncond : Option Nat := none
     let mut seen : List String := []
@@ -112,8 +112,8 @@ def lintWarnings (c : Chart) : List String := Id.run do
             ws := ws.push (s!"Стрелка «{shown t.src}» по «{t.event}»: условие «{g}» повторяется, " ++
               s!"вариант {k} никогда не сработает")
           else seen := g :: seen
-  -- 2. Стрелки `timer:X` там, где таймер X не запускается: сообщение без X
-  --    или раздел, внутри которого нет сообщения с X.
+  -- 2. Arrows `timer:X` where timer X is never started: a message without X
+  --    or a section with no message with X inside.
   let owners := concatIndex (c.timers.map fun tm => (tm.id, [tm.node]))
   for t in c.transitions do
     match timerOfEvent t.event with
@@ -123,13 +123,13 @@ def lintWarnings (c : Chart) : List String := Id.run do
       unless os.any (fun o => (ix.anc o).contains t.src) do
         ws := ws.push (s!"Стрелка «{t.event}» на «{shown t.src}» никогда не сработает: таймер «{x}» " ++
           "запускают только другие сообщения, а срабатывание принимает лишь сообщение, которое его запустило")
-  -- 3. «Вернуться туда, где был», нарисованное только изнутри раздела.
+  -- 3. "Resume" drawn only from inside the section.
   for s in dedupFast c.histSecs do
     let srcs := c.transitions.filter fun t => t.branches.any fun b => b.target == .history s
     if srcs.all (fun t => (ix.anc t.src).contains s) then
       ws := ws.push (s!"«Вернуться туда, где был» в «{shown s}» нарисовано только изнутри раздела: " ++
         "такая стрелка всегда оставляет пользователя на текущем сообщении")
-  -- 4. Достижимость сообщений от начала бота по стрелкам, которые могут сработать.
+  -- 4. Reachability of messages from the start of the bot through arrows that can fire.
   let tab := firstIndex m.table
   let owns (L : NodeId) (e : EventId) : Bool := match timerOfEvent e with
     | none => true
@@ -146,7 +146,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
       i := i + 1
       for r in (tab.find? L).getD [] do
         if owns L r.event then
-          -- варианты после безусловного и с уже встреченным условием не сработают
+          -- variants after an unconditional one or with an already seen condition never fire
           let mut gs : List String := []
           for b in untilUnguarded (·.guard) r.branches do
             let dead := match b.guard with
@@ -160,7 +160,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
   for L in m.states do
     unless seen.contains L do
       ws := ws.push s!"Сообщение «{shown L}» недостижимо: от начала бота к нему не ведёт ни одна стрелка"
-  -- 5. Петля по таймеру на своё сообщение перезапускает и соседние таймеры.
+  -- 5. A timer loop to its own message also restarts the sibling timers.
   for L in m.states do
     let mine := ix.timersOf L
     for tm in mine do

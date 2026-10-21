@@ -7,10 +7,10 @@ package figram where
 @[default_target]
 lean_lib Figram
 
-/-! Системные размеры рантайма Lean для исполняемых файлов (P-09): стек потоков рантайма —
-`ulimit -s`, арена mimalloc не резервируется заранее (ffi/figram_rt.c); выставляются конструктором до main
-(ffi/figram_exe.c). Рантайм запускается без цикла событий libuv (P-22, ffi/figram_init.cpp; обработчик
-переполнения стека у исполняемых файлов сохраняется). C-ABI делает то же в figram_init (ffi/build.sh). -/
+/-! System sizes of the Lean runtime for the executables: the stack of runtime threads is
+`ulimit -s` and the mimalloc arena is not reserved in advance (ffi/figram_rt.c); a constructor sets
+them before main (ffi/figram_exe.c). The runtime starts without the libuv event loop (ffi/figram_init.cpp;
+the executables keep the stack overflow handler). The C ABI does the same in figram_init (ffi/build.sh). -/
 
 input_file figram_rt.c where
   path := "ffi" / "figram_rt.c"

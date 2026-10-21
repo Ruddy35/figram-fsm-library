@@ -1,26 +1,26 @@
 /-!
-# Ядро: плоский автомат
+# Core: the flat machine
 
-Это всё, что исполняет движок. Кубики:
+This is everything the engine executes. The building blocks:
 
-* **состояние** (`NodeId`) — сообщение, на котором стоит пользователь;
-* **событие** (`Event`) — нажатие, текст, команда или срабатывание таймера;
-* **стрелка** (`Row`) с упорядоченными вариантами (`FBranch`): первый вариант
-  с выполненным условием выигрывает;
-* **условие** — имя условия разработчика, его значение вычисляет хост;
-* **действие** (`Action`).
+* **state** (`NodeId`) — the message the user is on;
+* **event** (`Event`) — a button press, a text, a command or a timer firing;
+* **arrow** (`Row`) with ordered variants (`FBranch`): the first variant whose
+  condition holds wins;
+* **condition** — the name of a developer's condition; the host computes its value;
+* **action** (`Action`).
 
-Цель варианта — сообщение или «вернуться в раздел туда, где был»
-(`Target.resume`): место читается из снимка во время шага.
+The target of a variant is a message or "resume the section where the user left
+off" (`Target.resume`): the place is read from the snapshot during the step.
 
-Снимок пользователя (`Snapshot`) — текущее сообщение, запомненные места
-разделов, активные таймеры с жетонами и счётчик шагов.
+The user snapshot (`Snapshot`) holds the current message, the remembered places
+of sections, the active timers with their tokens and the step counter.
 
-Шаг — чистая функция `Machine.step`. Эффекты только возвращаются хосту.
+A step is the pure function `Machine.step`. Effects are only returned to the host.
 
-Стрелки хранятся сгруппированными по сообщению (`Machine.table`): шаг ищет
-сначала сообщение, затем событие среди его стрелок, поэтому стоимость шага —
-O(число сообщений + число событий сообщения), а не O(число всех стрелок).
+Arrows are stored grouped by message (`Machine.table`): a step looks up the
+message first, then the event among its arrows, so a step costs
+O(number of messages + number of events of the message), not O(number of all arrows).
 -/
 
 namespace Figram
@@ -28,11 +28,11 @@ namespace Figram
 abbrev NodeId := String
 abbrev EventId := String
 
-/-! ## Принадлежность имени списку
+/-! ## Membership of a name in a list
 
-Разрешимость `n ∈ l` для списков строк — прямой цикл со сравнением строк
-(обобщённый `List.elem` вызывает сравнение через замыкание; шаг движка
-проверяет принадлежность сообщения автомату несколько раз). -/
+Decidability of `n ∈ l` for lists of strings is a direct loop comparing strings
+(the generic `List.elem` calls the comparison through a closure; an engine step
+checks several times whether a message belongs to the machine). -/
 
 def memStr (n : String) : List String → Bool
   | [] => false
@@ -48,26 +48,26 @@ theorem memStr_iff (n : String) (l : List String) : memStr n l = true ↔ n ∈ 
 instance (priority := high) decMemStr (n : String) (l : List String) : Decidable (n ∈ l) :=
   decidable_of_iff _ (memStr_iff n l)
 
-/-! ## Таблицы «ключ → значение» -/
+/-! ## Key-value tables -/
 
-/-- Значение по ключу (первая запись). -/
+/-- The value of a key (the first entry). -/
 def lookup {α β} [DecidableEq α] (t : List (α × β)) (k : α) : Option β :=
   (t.find? (fun p => decide (p.1 = k))).map (·.2)
 
-/-- Записать значение: новая запись впереди, старые с тем же ключом удаляются. -/
+/-- Store a value: the new entry goes first, older entries with the same key are removed. -/
 def assign {α β} [DecidableEq α] (t : List (α × β)) (k : α) (v : β) : List (α × β) :=
   (k, v) :: t.filter (fun p => decide (p.1 ≠ k))
 
 def erase {α β} [DecidableEq α] (t : List (α × β)) (k : α) : List (α × β) :=
   t.filter (fun p => decide (p.1 ≠ k))
 
-/-! ## События и действия -/
+/-! ## Events and actions -/
 
 def timerEvent (id : String) : EventId := "timer:" ++ id
 
 inductive Event where
   | named (name : EventId)
-  /-- Срабатывание таймера `id`, запущенного с жетоном `token`. -/
+  /-- A firing of timer `id` started with token `token`. -/
   | timer (id : String) (token : Nat)
   deriving DecidableEq, Repr
 
@@ -76,41 +76,41 @@ def Event.key : Event → EventId
   | .timer id _ => timerEvent id
 
 inductive Action where
-  /-- Отправить сообщение. -/
+  /-- Send a message. -/
   | send (n : NodeId)
-  /-- Вызвать код разработчика. -/
+  /-- Call the developer's code. -/
   | call (name : String)
-  /-- Запустить таймер. Жетон назначает движок при исполнении шага. -/
+  /-- Start a timer. The engine assigns the token when it executes the step. -/
   | startTimer (id : String) (ms : Nat) (token : Nat)
   | cancelTimer (id : String)
-  /-- Служебное: запомнить, что в разделе `sec` пользователь на `n`.
-  Хосту не выдаётся. -/
+  /-- Internal: remember that in section `sec` the user is on `n`.
+  Never given to the host. -/
   | remember (sec : NodeId) (n : NodeId)
   deriving DecidableEq, Repr
 
-/-! ## Снимок -/
+/-! ## Snapshot -/
 
 structure Snapshot where
-  /-- Текущее сообщение. -/
+  /-- The current message. -/
   state : NodeId
-  /-- Запомненные места: раздел → сообщение. -/
+  /-- Remembered places: section → message. -/
   resume : List (NodeId × NodeId)
-  /-- Активные таймеры: имя → жетон запуска. -/
+  /-- Active timers: name → token of the run. -/
   timers : List (String × Nat)
-  /-- Номер последнего выполненного перехода. Растёт на 1 с каждым переходом;
-  служит жетоном таймеров и основой ключей идемпотентности у хоста. -/
+  /-- The number of the last transition. Grows by 1 with every transition;
+  serves as the timer token and as the basis of the host's idempotency keys. -/
   seq : Nat
   deriving DecidableEq, Repr
 
 def Snapshot.fresh : Snapshot := ⟨"", [], [], 0⟩
 
-/-- Принимается ли событие: срабатывание таймера — только с текущим жетоном. -/
+/-- Whether the event is accepted: a timer firing only with the current token. -/
 def Snapshot.accepts (s : Snapshot) : Event → Bool
   | .named _ => true
   | .timer id tok => decide (lookup s.timers id = some tok)
 
-/-- Один шаг исполнения действий: служебные применяются к снимку,
-остальные уходят хосту; таймерам назначается жетон. -/
+/-- One step of executing actions: internal ones are applied to the snapshot,
+the others go to the host; timers get their token. -/
 def realizeOne (tok : Nat) (acc : Snapshot × List Action) : Action → Snapshot × List Action
   | .remember sec n => ({ acc.1 with resume := assign acc.1.resume sec n }, acc.2)
   | .startTimer id ms _ =>
@@ -118,31 +118,31 @@ def realizeOne (tok : Nat) (acc : Snapshot × List Action) : Action → Snapshot
   | .cancelTimer id => ({ acc.1 with timers := erase acc.1.timers id }, acc.2 ++ [.cancelTimer id])
   | a => (acc.1, acc.2 ++ [a])
 
-/-- Отмена таймеров снимка, которых не отменяет `exit` (остались от прежней
-версии документа: HOST.md §6). В пределах одной версии список пуст. -/
+/-- Cancel the snapshot's timers that `exit` does not cancel (leftovers of a previous
+document version: docs/host-contract.md, section 6). Within one version the list is empty. -/
 def staleCancels (exit : List Action) (s : Snapshot) : List Action :=
   (s.timers.filter (fun p => !exit.contains (.cancelTimer p.1))).map (fun p => .cancelTimer p.1)
 
-/-- Срабатывание таймера `id` относится к сообщению, выход из которого его отменяет. -/
+/-- A firing of timer `id` belongs to the message whose exit cancels that timer. -/
 def ownsTimer (exit : List Action) : Event → Bool
   | .named _ => true
   | .timer id _ => exit.contains (.cancelTimer id)
 
-/-- Переход в `T` с действиями `acts`: новый снимок и действия для хоста. -/
+/-- A transition to `T` with actions `acts`: the new snapshot and the actions for the host. -/
 def realize (s : Snapshot) (T : NodeId) (acts : List Action) : Snapshot × List Action :=
   acts.foldl (realizeOne (s.seq + 1)) ({ s with state := T, seq := s.seq + 1 }, [])
 
-/-! ## Автомат -/
+/-! ## Machine -/
 
-/-- Значения условий разработчика, которые передаёт хост. -/
+/-- The values of the developer's conditions, supplied by the host. -/
 abbrev HostEnv := String → Bool
 
 def guardOK (env : HostEnv) : Option String → Bool
   | none => true
   | some n => env n
 
-/-- Начало списка вариантов до первого безусловного включительно: только эти
-варианты могут быть выбраны, остальные затенены. -/
+/-- The variants up to and including the first one without a condition: only these
+can be chosen, the rest are shadowed. -/
 def untilUnguarded {α} (g : α → Option String) : List α → List α
   | [] => []
   | b :: bs => match g b with
@@ -151,11 +151,11 @@ def untilUnguarded {α} (g : α → Option String) : List α → List α
 
 inductive Target where
   | node (n : NodeId)
-  /-- «Вернуться в раздел `sec` туда, где был». -/
+  /-- "Resume section `sec` where the user left off". -/
   | resume (sec : NodeId)
   deriving DecidableEq, Repr
 
-/-- Вариант стрелки: условие, цель, действия стрелки. -/
+/-- A variant of an arrow: condition, target, the arrow's actions. -/
 structure FBranch where
   guard : Option String
   target : Target
@@ -168,7 +168,7 @@ structure Row where
   branches : List FBranch
   deriving DecidableEq, Repr
 
-/-- Как возвращаться в раздел: начальное сообщение и сообщения внутри. -/
+/-- How to resume a section: its initial message and the messages inside it. -/
 structure ResumeSpec where
   sec : NodeId
   default : NodeId
@@ -179,21 +179,21 @@ structure Machine where
   states : List NodeId
   initial : NodeId
   initActions : List Action
-  /-- Стрелки по сообщениям: сообщение → его стрелки, по одной на событие. -/
+  /-- Arrows by message: message → its arrows, one per event. -/
   table : List (NodeId × List Row)
   resumes : List ResumeSpec
-  /-- Действия входа в сообщение: запомнить место, запустить таймеры, отправить. -/
+  /-- Entry actions of a message: remember the place, start timers, send. -/
   entry : List (NodeId × List Action)
-  /-- Действия выхода из сообщения: отменить его таймеры. -/
+  /-- Exit actions of a message: cancel its timers. -/
   exit : List (NodeId × List Action)
   deriving Repr
 
 namespace Machine
 
-/-- Все стрелки автомата подряд (по сообщениям). -/
+/-- All arrows of the machine in a row (message by message). -/
 def rows (m : Machine) : List Row := m.table.flatMap (·.2)
 
-/-- Стрелка сообщения `s` по событию `e`: поиск сообщения, затем события. -/
+/-- The arrow of message `s` for event `e`: look up the message, then the event. -/
 def row (m : Machine) (s : NodeId) (e : EventId) : Option Row :=
   ((lookup m.table s).getD []).find? (fun r => decide (r.event = e))
 
@@ -214,12 +214,12 @@ def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
   let T := m.resolve s b.target
   realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
 
-/-- Снимок указывает на сообщение, которого больше нет: начать бота заново,
-отменив таймеры старого места. Запомненные места сохраняются. -/
+/-- The snapshot points to a message that no longer exists: start the bot over,
+cancelling the timers of the old place. Remembered places are kept. -/
 def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
   realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions)
 
-/-- **Шаг автомата.** -/
+/-- **A step of the machine.** -/
 def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   if s.state ∉ m.states then m.recover s
   else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
@@ -231,20 +231,20 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
       | none => (s, [])
       | some b => m.fire s b
 
-/-- Первый вход пользователя. -/
+/-- The user's first entry. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
 
-/-- Условия разработчика, которые нужны для шага из `st` по событию с ключом `e`:
-условия вариантов до первого безусловного включительно. Варианты после него
-выбраны быть не могут, их условия на шаг не влияют (`step_guard_local`). -/
+/-- The developer's conditions needed for a step from `st` on the event with key `e`:
+the conditions of the variants up to and including the first one without a condition.
+Later variants cannot be chosen, so their conditions do not affect the step (`step_guard_local`). -/
 def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
   match m.row st e with
   | none => []
   | some r => (untilUnguarded (·.guard) r.branches).filterMap (·.guard)
 
-/-- Условия, значения которых нужны, чтобы выбрать вариант, когда значения
-части условий уже известны (`known`): варианты перебираются по порядку до
-безусловного или до условия, про которое известно, что оно истинно. -/
+/-- The conditions whose values are needed to choose a variant when the values of
+some conditions are already known (`known`): the variants are scanned in order up to
+one without a condition or one whose condition is known to be true. -/
 def neededIn (known : String → Option Bool) : List FBranch → List String
   | [] => []
   | b :: bs => match b.guard with
@@ -254,8 +254,8 @@ def neededIn (known : String → Option Bool) : List FBranch → List String
       | some false => neededIn known bs
       | none => g :: neededIn known bs
 
-/-- Недостающие условия для шага из `st` по событию `e` при известных `known`
-(всегда часть `requiredGuards`). -/
+/-- The missing conditions for a step from `st` on event `e` given `known`
+(always a part of `requiredGuards`). -/
 def neededGuards (m : Machine) (st : NodeId) (e : EventId) (known : String → Option Bool) :
     List String :=
   match m.row st e with
@@ -266,7 +266,7 @@ def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)
   | .resume sec => m.resumes.any (fun r => decide (r.sec = sec))
 
-/-- Проверка при экспорте: все цели существуют. -/
+/-- The export check: all targets exist. -/
 def wf (m : Machine) : Bool :=
   decide (m.initial ∈ m.states) &&
   m.rows.all (fun r => r.branches.all (fun b => m.targetOK b.target)) &&

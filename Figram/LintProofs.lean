@@ -2,16 +2,16 @@ import Figram.Lint
 import Figram.Correct
 
 /-!
-# Свойство проверки схемы
+# The property of the chart check
 
-Отдельный модуль: проверка (`Figram.Lint`) входит в библиотеку для встраивания
-и не зависит от модулей с доказательствами.
+A separate module: the check (`Figram.Lint`) is part of the embeddable library
+and does not depend on the modules with proofs.
 -/
 
 namespace Figram
 namespace Chart
 
-/-- **Схема без ошибок компилируется в автомат, прошедший `wf`.** -/
+/-- **A chart without errors compiles into a machine that passes `wf`.** -/
 theorem lint_nil_wf (c : Chart) (h : c.lint = []) : c.compile.wf = true := by
   rw [wfDirect_eq]
   unfold lint at h

@@ -1,21 +1,21 @@
 import Figram.Lint
 
 /-!
-# Формат документа
+# Document format
 
-Математическая модель JSON (`J`), типы документа, кодировщик `encode`
-и декодер `decode`. Вывод формата и его свойства — в `FORMAT.md`,
-доказательства — в `Figram.FormatProofs`.
+The mathematical model of JSON (`J`), the document types, the encoder `encode`
+and the decoder `decode`. The derivation of the format and its properties are in
+docs/format.md, the proofs in `Figram.FormatProofs`.
 
-Объект JSON моделируется списком пар «ключ — значение» в порядке записи.
-Повторяющиеся ключи отвергает текстовый парсер (`Figram.FormatIO`),
-до этой модели они не доходят.
+A JSON object is modelled as a list of key-value pairs in the order written.
+Duplicate keys are rejected by the text parser (`Figram.FormatIO`) and never
+reach this model.
 -/
 
 namespace Figram.Format
 
-/-- Значение JSON. Число — точное десятичное `m · 10^e`: так модель
-не теряет ни одного числа, которое может встретиться в расширениях. -/
+/-- A JSON value. A number is the exact decimal `m · 10^e`, so the model
+loses no number that may occur in extensions. -/
 inductive J where
   | null
   | bool (b : Bool)
@@ -27,45 +27,45 @@ inductive J where
 
 abbrev Obj := List (String × J)
 
-/-- Значение ключа: первое вхождение. -/
+/-- The value of a key: the first occurrence. -/
 def get (kvs : Obj) (k : String) : Option J :=
   (kvs.find? (fun p => decide (p.1 = k))).map (·.2)
 
-/-- Ключи, которые формат не знает: они сохраняются как есть. -/
+/-- The keys the format does not know: they are kept as they are. -/
 def unknown (known : List String) (kvs : Obj) : Obj :=
   kvs.filter (fun p => decide (p.1 ∉ known))
 
-/-- Дополнительные ключи не совпадают с ключами формата. -/
+/-- The extra keys do not coincide with the format keys. -/
 def extOK (known : List String) (ext : Obj) : Prop := ∀ p ∈ ext, p.1 ∉ known
 
-/-- Поле, которое пишется только когда отличается от значения по умолчанию. -/
+/-- A field that is written only when it differs from the default value. -/
 def field (k : String) (present : Bool) (j : J) : Obj := if present then [(k, j)] else []
 
-/-! ## Ключи формата версии 1 -/
+/-! ## Format keys of version 1 -/
 
 def docKeys : List String := ["figram", "requires", "conditions", "calls", "variables", "bot"]
 def nodeKeys : List String := ["initial", "children", "on", "timers"]
 def variantKeys : List String := ["if", "to", "resume", "do"]
 
-/-- Смысловые расширения, которые понимает этот читатель. В версии 1 их нет. -/
+/-- The semantic extensions this reader understands. Version 1 has none. -/
 def knownFeatures : List String := []
 
-/-! ## Типы документа -/
+/-! ## Document types -/
 
-/-- Вариант стрелки. -/
+/-- A variant of an arrow. -/
 structure Variant where
-  /-- Имя условия из `conditions`; нет — «иначе / всегда». -/
+  /-- The name of a condition from `conditions`; none means "otherwise / always". -/
   cond : Option String
-  /-- Куда вести: сообщение или раздел. -/
+  /-- Where to lead: a message or a section. -/
   to : NodeId
-  /-- `true` — «вернуться в раздел `to` туда, где был». -/
+  /-- `true` means "resume section `to` where the user left off". -/
   resume : Bool
-  /-- Имена действий из `calls`, по порядку. -/
+  /-- The names of actions from `calls`, in order. -/
   calls : List String
   ext : Obj
   deriving Repr
 
-/-- Узел: сообщение или раздел. Раздел — тот, у кого есть `children`. -/
+/-- A node: a message or a section. A section is a node with `children`. -/
 inductive NodeDoc where
   | message (on : List (EventId × List Variant)) (timers : List (String × Nat)) (ext : Obj)
   | sec (initial : NodeId) (children : List (NodeId × NodeDoc))
@@ -74,18 +74,18 @@ inductive NodeDoc where
 
 structure Doc where
   requires : List String
-  /-- Условия: имя → текст, который написал дизайнер. -/
+  /-- Conditions: name → the text the designer wrote. -/
   conditions : List (String × String)
-  /-- Действия: имя → описание. -/
+  /-- Actions: name → description. -/
   calls : List (String × String)
-  /-- Переменные: имя → описание. -/
+  /-- Variables: name → description. -/
   variables : List (String × String)
-  /-- Весь бот — корневой раздел. -/
+  /-- The whole bot is the root section. -/
   bot : NodeDoc
   ext : Obj
   deriving Repr
 
-/-! ## Кодирование -/
+/-! ## Encoding -/
 
 def encStrMap (m : List (String × String)) : Obj := m.map fun p => (p.1, .str p.2)
 def encNatMap (m : List (String × Nat)) : Obj := m.map fun p => (p.1, .num p.2 0)
@@ -125,17 +125,17 @@ def encode (d : Doc) : J :=
     ++ [("bot", encNode d.bot)]
     ++ d.ext)
 
-/-! ## Декодирование -/
+/-! ## Decoding -/
 
 abbrev R := Except String
 
-/-- Наибольшее целое в полях формата: 2^53 − 1. Его точно представляют
-JavaScript (редактор), Go, Rust и Python. -/
+/-- The largest integer in format fields: 2^53 − 1. JavaScript (the editor), Go, Rust
+and Python represent it exactly. -/
 def maxInt : Nat := 9007199254740991
 
-/-- Значение числа как натурального, если оно неотрицательное целое
-(в математическом смысле: `7200000`, `7.2e6` и `7200000.0` — одно число).
-Огромные степени не вычисляются: такое число заведомо больше `maxInt`. -/
+/-- The value of a number as a natural number, if it is a non-negative integer
+(mathematically: `7200000`, `7.2e6` and `7200000.0` are the same number).
+Huge powers are not computed: such a number is certainly larger than `maxInt`. -/
 def numToNat (m e : Int) : Option Nat :=
   if m < 0 then none
   else if m = 0 then some 0
@@ -217,7 +217,7 @@ def decNode : J → R NodeDoc
         | _ => throw "у раздела нужно поле «initial»"
       pure (.sec i cs on (unknown nodeKeys kvs))
   | _ => .error "узел должен быть объектом"
-/-- Первое поле `children` (если есть), раскодированное. -/
+/-- The first `children` field (if any), decoded. -/
 def decChildrenIn : Obj → R (Option (List (NodeId × NodeDoc)))
   | [] => .ok none
   | (k, v) :: rest =>
@@ -237,7 +237,7 @@ def decDecl (kvs : Obj) (k : String) : R (List (String × String)) :=
   | some (.obj m) => decStrMap m
   | some _ => throw s!"«{k}» должен быть объектом"
 
-/-- Разбор структуры без проверки `requires`. -/
+/-- Decoding of the structure without the `requires` check. -/
 def decodeRaw : J → R Doc
   | .obj kvs => do
     match get kvs "figram" with
@@ -258,16 +258,16 @@ def decodeRaw : J → R Doc
     | .message .. => throw "«bot» должен быть разделом"
   | _ => .error "документ должен быть объектом"
 
-/-- **Чтение документа.** Документ, который требует незнакомых
-возможностей, отвергается целиком, а не читается частично. -/
+/-- **Reading a document.** A document that requires unknown extensions
+is rejected as a whole instead of being read partially. -/
 def decode (j : J) : R Doc := do
   let d ← decodeRaw j
   if d.requires.all (fun f => decide (f ∈ knownFeatures)) then pure d
   else throw "документ требует возможностей, которых этот читатель не знает"
 
-/-! ## Смысл документа: схема `Chart` -/
+/-! ## The meaning of a document: the chart `Chart` -/
 
-/-- Идентификатор корневого раздела. Пустой ключ у узлов запрещён проверкой. -/
+/-- The identifier of the root section. The check forbids an empty node key. -/
 def rootId : NodeId := ""
 
 def Variant.toBranch (v : Variant) : Branch :=
@@ -295,21 +295,21 @@ def Doc.toChart (d : Doc) : Chart :=
   let f := flatNode rootId none d.bot
   ⟨f.1, rootId, f.2.1, f.2.2⟩
 
-/-! ## Проверка документа
+/-! ## Checking a document
 
-Смысловые условия, которые не выражены структурой JSON, плюс условия,
-без которых документ нельзя записать текстом и прочитать обратно. -/
+The semantic conditions that the JSON structure does not express, plus the conditions
+without which a document cannot be written as text and read back. -/
 
 def dups (l : List String) : List String :=
   dedup (l.filter fun k => (l.filter (· == k)).length > 1)
 
-/-- Ключи всех объектов внутри значения уникальны. -/
+/-- The keys of all objects inside a value are unique. -/
 partial def J.keysUnique : J → Bool
   | .obj kvs => (dups (kvs.map (·.1))).isEmpty && kvs.all (fun p => J.keysUnique p.2)
   | .arr xs => xs.all J.keysUnique
   | _ => true
 
-/-- Проверка дополнительных ключей одного объекта. -/
+/-- The check of the extra keys of one object. -/
 def extErrors (whereStr : String) (known : List String) (ext : Obj) : List String :=
   (ext.filterMap fun p =>
     if p.1 ∈ known then some s!"{whereStr}: дополнительный ключ «{p.1}» совпадает с ключом формата"
@@ -352,7 +352,7 @@ partial def allEvents : NodeDoc → List String
   | .message on _ _ => on.map (·.1)
   | .sec _ cs on _ => on.map (·.1) ++ cs.flatMap fun p => allEvents p.2
 
-/-! ### Условия теоремы о записи и чтении в вычислимом виде -/
+/-! ### The hypotheses of the write-and-read theorem in computable form -/
 
 def extOKb (known : List String) (ext : Obj) : Bool := ext.all (fun p => decide (p.1 ∉ known))
 

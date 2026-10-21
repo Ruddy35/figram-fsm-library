@@ -6,15 +6,15 @@ import Figram.Trace
 import Figram.RandomDoc
 
 /-!
-# Пример: бот пиццерии
+# Example: a pizza shop bot
 
-Демонстрирует все ярлыки:
+Shows all the shortcuts:
 
-* раздел «bot» вокруг всего — глобальная команда `/start` с любого экрана;
-* раздел «order» — кнопка «Отмена» один раз на весь заказ;
-* `/help` из любого места и «Назад» туда, где был;
-* напоминание на корзине;
-* условия текстом: «корзина не пуста», «адрес в зоне доставки».
+* the section `bot` around everything — the global command `/start` from any screen;
+* the section `order` — the "Cancel" button once for the whole order;
+* `/help` from anywhere and "Back" to where the user left off;
+* a reminder on the cart;
+* conditions as text: "the cart is not empty", "the address is in the delivery zone".
 -/
 
 namespace Figram.Examples
@@ -27,7 +27,7 @@ private def vIf (c : String) (to : NodeId) (calls : List String := []) : Variant
 private def back (s : NodeId) : Variant := ⟨none, s, true, [], []⟩
 private def msg (on : List (EventId × List Variant)) : NodeDoc := .message on [] []
 
-/-- Бот пиццерии в формате документа. -/
+/-- The pizza shop bot in the document format. -/
 def pizzaDoc : Doc where
   requires := []
   conditions := [
@@ -65,10 +65,10 @@ def pizzaDoc : Doc where
     ] [("cmd:start", [v "menu"]), ("cmd:help", [v "help"])] []
   ext := []
 
-/-- Схема, которую исполняет автомат. -/
+/-- The chart the machine executes. -/
 def pizza : Chart := pizzaDoc.toChart
 
-/-- Документ со всеми особыми случаями поведения. -/
+/-- A document with all the special cases of the behaviour. -/
 def featuresDoc : Doc where
   requires := []
   conditions := [
@@ -107,7 +107,7 @@ def features : Chart := featuresDoc.toChart
 #guard featuresDoc.check.isEmpty
 
 open Trace in
-/-- Фиксированные сценарии: каждый проверяет конкретное поведение. -/
+/-- Fixed scenarios: each one checks a specific behaviour. -/
 def golden : List (String × Doc × Option Snapshot × List In) := [
   ("pizza_order_success", pizzaDoc, none, [
     .ev "btn:order", .ev "btn:pizza", .ev "btn:size", .ev "btn:add",
@@ -152,32 +152,32 @@ def runGolden (name : String) : Option (Snapshot × List (List Action)) :=
 def finalAt (name : String) : String := ((runGolden name).map (·.1.state)).getD "?"
 def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten)).getD []
 
--- успешный заказ доходит до конца и вызывает create_order
+-- a successful order reaches the end and calls create_order
 #guard finalAt "pizza_order_success" == "done"
 #guard (allActs "pizza_order_success").contains (.call "create_order")
--- обе стороны условий
+-- both sides of the conditions
 #guard finalAt "guard_true" == "vip"
 #guard finalAt "guard_false" == "catalog"
--- ложная локальная ветка уходит к разделу
+-- a false local branch bubbles up to the section
 #guard finalAt "bubble_after_false_local" == "reminder"
 #guard finalAt "local_true_no_bubble" == "item2"
--- «вернуться туда, где был» во вложенный раздел
+-- "resume" into a nested section
 #guard finalAt "nested_resume" == "item2"
--- устаревшее запомненное место — начальное сообщение раздела
+-- a stale remembered place leads to the section's initial message
 #guard finalAt "stale_resume_value" == "catalog"
--- устаревший жетон игнорируется, текущий — срабатывает
+-- a stale token is ignored, the current one fires
 #guard finalAt "timer_tokens" == "reminder"
--- удалённое текущее сообщение: начало бота и отмена старых таймеров
+-- a deleted current message: the bot starts over and the old timers are cancelled
 #guard finalAt "recover_deleted_current" == "home"
 #guard (allActs "recover_deleted_current").take 1 == [.cancelTimer "old_timer"]
--- порядок действий: выход → действия стрелки → вход
+-- action order: exit → the arrow's actions → entry
 #guard ((runGolden "buy_action_order").map (·.2.getLast!)) ==
   some [.cancelTimer "remind", .call "charge", .call "notify", .send "paid"]
--- петля на себя перезапускает таймер с новым жетоном
+-- a self-loop restarts the timer with a new token
 #guard ((runGolden "self_loop_restarts_timer").map (·.2.getLast!)) ==
   some [.cancelTimer "idle", .startTimer "idle" 60000 3, .send "home"]
 
--- все документы-примеры и случайные документы проходят текстовый круг
+-- all example documents and random documents survive the text round trip
 def textRoundTrip (d : Doc) : Bool :=
   match parse (print (encode d)) >>= decode with
   | .ok d' => print (encode d') == print (encode d)
@@ -186,30 +186,30 @@ def textRoundTrip (d : Doc) : Bool :=
 #guard textRoundTrip pizzaDoc && textRoundTrip featuresDoc
 #guard (List.range 40).all fun i => let d := RandomDoc.doc i 10; d.check.isEmpty && textRoundTrip d
 
--- дубликат ключа ловится проверкой до экспорта (F05)
+-- a duplicate key is caught by the check before export
 #guard !({ pizzaDoc with conditions := [("same", "one"), ("same", "two")] }).check.isEmpty
 
--- пустые имена отвергаются (F02)
+-- empty names are rejected
 #guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"on\": {\"\": [{\"to\": \"\"}]}}}}}" >>= decode with
   | .ok d => !d.check.isEmpty
   | .error _ => true
 
--- огромный показатель степени отвергается сразу (F03)
+-- a huge exponent is rejected at once
 #guard match parse "{\"x\": 1e1000000000}" with
   | .ok _ => false
   | .error _ => true
 
--- неизвестный ключ читается и сохраняется, поведение не меняется
+-- an unknown key is read and kept, the behaviour does not change
 #guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"x-ui\": {\"x\": 10}}}}, \"x-author\": \"Анна\"}" >>= decode with
   | .ok d => d.ext.length == 1 && d.check.isEmpty
   | .error _ => false
 
--- документ с незнакомой возможностью отвергается целиком
+-- a document with an unknown extension is rejected as a whole
 #guard match parse "{\"figram\": 1, \"requires\": [\"parallel\"], \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {}}}}" >>= decode with
   | .ok _ => false
   | .error _ => true
 
--- повторяющийся ключ отвергается парсером
+-- a duplicate key is rejected by the parser
 #guard match parse "{\"a\": 1, \"a\": 2}" with
   | .ok _ => false
   | .error _ => true

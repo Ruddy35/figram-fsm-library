@@ -2,33 +2,33 @@ import Figram.FormatIO
 import Figram.Compile
 
 /-!
-# Движок: протокол «строка JSON на запрос, строка JSON на ответ», версия 1
+# Engine: the protocol "one JSON line per request, one JSON line per reply", version 1
 
-Документ загружается и компилируется один раз. Каждый запрос — одна строка,
-каждый ответ — одна строка с тем же `id`. Полное описание — FORMAT.md,
-раздел «Снимок и протокол движка».
+The document is loaded and compiled once. Every request is one line, every
+reply is one line with the same `id`. The full description is in docs/format.md,
+section 8 "Snapshot and engine protocol".
 
-Запросы (других полей в запросе быть не должно):
-* `{"id": 1, "op": "hello"}` — версия протокола;
-* `{"id": 2, "op": "start", "seq"?: N}` — первый вход пользователя (первый
-  переход получает `seq` N + 1; без `seq` — 1);
-* `{"id": 2, "op": "restart", "snapshot": {...}}` — начать пользователя заново,
-  продолжая счётчик (жетоны старых таймеров не совпадут с новыми);
+Requests (no other fields are allowed in a request):
+* `{"id": 1, "op": "hello"}` — the protocol version;
+* `{"id": 2, "op": "start", "seq"?: N}` — the user's first entry (the first
+  transition gets `seq` N + 1; without `seq`, 1);
+* `{"id": 2, "op": "restart", "snapshot": {...}}` — start the user over,
+  continuing the counter (old timer tokens never match new ones);
 * `{"id": 3, "op": "step", "snapshot": {...}, "event": "btn:checkout",
-   "guards": {"cart_not_empty": true}}` — шаг;
-  для срабатывания таймера: `"event": "timer:<имя>", "token": <жетон>`.
+   "guards": {"cart_not_empty": true}}` — a step;
+  for a timer firing: `"event": "timer:<name>", "token": <token>`.
 
-Ответы:
-* `{"id": 3, "snapshot": {...}, "actions": [...]}` — шаг выполнен
-  (с `"recovered": true`, если сообщения из снимка больше нет в боте);
-* `{"id": 3, "need": ["cart_not_empty"]}` — нужны значения условий;
-* `{"id": 3, "error": "...", "code": "..."}` — ошибка запроса: текст для
-  человека и машинный код (`ErrCode`). Если строка не разобрана как JSON,
-  `id` берётся из её начала (`echoId`), иначе — null.
+Replies:
+* `{"id": 3, "snapshot": {...}, "actions": [...]}` — the step is done
+  (with `"recovered": true` if the snapshot's message is no longer in the bot);
+* `{"id": 3, "need": ["cart_not_empty"]}` — condition values are needed;
+* `{"id": 3, "error": "...", "code": "..."}` — a request error: a text for
+  humans and a machine code (`ErrCode`). If the line cannot be parsed as JSON,
+  the `id` is taken from its beginning (`echoId`), otherwise it is null.
 
-Проверки, которых нет в доказанной `handleObj` (строгий набор полей запроса,
-предел размера строки, кодировка UTF-8), выполняются до неё: `handle`,
-`figram-engine`, прослойка C.
+The checks that are not part of the proved `handleObj` (the strict set of request
+fields, the line size limit, UTF-8) run before it: in `handle`, in
+`figram-engine` and in the C shim.
 -/
 
 namespace Figram.Engine
@@ -37,7 +37,7 @@ open Figram.Format
 def protocolVersion : Nat := 1
 def snapshotKeys : List String := ["v", "at", "resume", "timers", "seq"]
 
-/-! ## Снимок -/
+/-! ## Snapshot -/
 
 def encSnapshot (s : Snapshot) : J :=
   .obj ([("at", .str s.state)]
@@ -45,7 +45,7 @@ def encSnapshot (s : Snapshot) : J :=
     ++ field "timers" (!s.timers.isEmpty) (.obj (s.timers.map fun p => (p.1, .num p.2 0)))
     ++ field "seq" (s.seq != 0) (.num s.seq 0))
 
-/-- Целое поле снимка: 0 … 2^53 − 1 (как в snapshot.schema.json). -/
+/-- An integer field of the snapshot: 0 … 2^53 − 1 (as in snapshot.schema.json). -/
 def boundedNat (what : String) : J → R Nat
   | .num m e =>
     match numToNat m e with
@@ -75,7 +75,7 @@ def checkVersion (kvs : Obj) : R Unit :=
   | none => pure ()
   | some j => do if (← boundedNat "«v»" j) = 1 then pure () else throw "снимок: неизвестная версия"
 
-/-- Строгое чтение снимка; принимает ровно то, что разрешает snapshot.schema.json. -/
+/-- Strict snapshot decoding; accepts exactly what snapshot.schema.json allows. -/
 def decSnapshot : J → R Snapshot
   | .obj kvs => do
     checkKeys kvs
@@ -97,19 +97,19 @@ def decSnapshot : J → R Snapshot
     pure ⟨st, res, tms, seq⟩
   | _ => throw "снимок должен быть объектом"
 
-/-! ## Ошибки запроса -/
+/-! ## Request errors -/
 
-/-- Машинный код ответа-ошибки (FORMAT.md §7, «Ошибки»). -/
+/-- The machine code of an error reply (docs/format.md, section 8, "Errors"). -/
 inductive ErrCode where
-  /-- строка не JSON, не UTF-8, повтор ключа, вложенность, показатель, лишний текст -/
+  /-- the line is not JSON or not UTF-8, a duplicate key, nesting, an exponent, trailing text -/
   | parseError
-  /-- строка запроса длиннее предела -/
+  /-- the request line is longer than the limit -/
   | tooLarge
-  /-- неизвестное, недостающее или неверного типа поле, неизвестная операция -/
+  /-- an unknown, missing or mistyped field, an unknown operation -/
   | badRequest
-  /-- снимок не прошёл `decSnapshot` -/
+  /-- the snapshot failed `decSnapshot` -/
   | badSnapshot
-  /-- новый `seq` превысил бы 2^53 − 1 -/
+  /-- the new `seq` would exceed 2^53 − 1 -/
   | seqOverflow
   deriving DecidableEq, Repr, Inhabited
 
@@ -120,16 +120,16 @@ def ErrCode.name : ErrCode → String
   | .badSnapshot => "bad_snapshot"
   | .seqOverflow => "seq_overflow"
 
-/-- Результат обработки запроса: значение или код ошибки с текстом. -/
+/-- The result of handling a request: a value, or an error code with a text. -/
 abbrev RE := Except (ErrCode × String)
 
-/-- Ошибка разбора части запроса получает код. -/
+/-- A decoding error of a part of the request gets a code. -/
 @[inline] def withCode {α} (c : ErrCode) (r : R α) : RE α := r.mapError (c, ·)
 
 def errorJ (id : J) (c : ErrCode) (text : String) : J :=
   .obj [("id", id), ("error", .str text), ("code", .str c.name)]
 
-/-! ## Действия для хоста -/
+/-! ## Actions for the host -/
 
 def encAction : Action → Option J
   | .send n => some (.obj [("send", .str n)])
@@ -144,9 +144,9 @@ def result (id : J) (s : Snapshot) (as : List Action) (recovered : Bool) : J :=
   .obj ([("id", id), ("snapshot", encSnapshot s), ("actions", encActions as)]
     ++ field "recovered" recovered (.bool true))
 
-/-! ## Запрос -/
+/-! ## Request -/
 
-/-- Поля запроса операции `op`; `none` — неизвестная операция (её отвергает `handleObj`). -/
+/-- The request fields of operation `op`; `none` means an unknown operation (`handleObj` rejects it). -/
 def opKeys : String → Option (List String)
   | "hello" => some ["id", "op"]
   | "start" => some ["id", "op", "seq"]
@@ -154,9 +154,9 @@ def opKeys : String → Option (List String)
   | "step" => some ["id", "op", "snapshot", "event", "guards", "token"]
   | _ => none
 
-/-- Строгий запрос: поле, не предусмотренное для операции, — ошибка (опечатка
-`gaurds` иначе молча превращалась бы в бесконечный `need`). Проверяется в
-`handle` до `handleObj`. -/
+/-- A strict request: a field the operation does not define is an error (otherwise the
+typo `gaurds` would silently turn into an endless `need`). Checked in `handle`
+before `handleObj`. -/
 def checkFields (kvs : Obj) : RE Unit :=
   match get kvs "op" with
   | some (.str op) =>
@@ -168,7 +168,7 @@ def checkFields (kvs : Obj) : RE Unit :=
     | none => pure ()
   | _ => pure ()
 
-/-- Целое поле запроса от 0 до 2^53 − 1 по значению: `5`, `5.0`, `5e0`, `-0`. -/
+/-- An integer request field from 0 to 2^53 − 1 by value: `5`, `5.0`, `5e0`, `-0`. -/
 def reqNat (what : String) : J → R Nat
   | .num m e =>
     match numToNat m e with
@@ -184,8 +184,8 @@ def decGuards (kvs : Obj) : R (List (String × Bool)) :=
       | (k, _) => throw s!"условие «{k}»: ожидалось true или false"
   | some _ => throw "«guards» должен быть объектом"
 
-/-- Событие запроса: непустая строка; `timer:<имя>` (имя непустое) — только с
-жетоном, любое другое — без жетона. -/
+/-- The request event: a non-empty string; `timer:<name>` (with a non-empty name) only
+with a token, any other event without a token. -/
 def decEvent (kvs : Obj) : R Event := do
   let name ← match get kvs "event" with
     | some (.str e) => if e.isEmpty then throw "«event» должно быть непустой строкой" else pure e
@@ -201,36 +201,36 @@ def decEvent (kvs : Obj) : R Event := do
     if (get kvs "token").isSome then throw "поле «token» допустимо только для события таймера"
     pure (.named name)
 
-/-- Значения условий из запроса; отсутствующие — `false`. -/
+/-- The condition values from the request; missing ones are `false`. -/
 def envOf (gs : List (String × Bool)) : HostEnv :=
   fun n => ((gs.find? (·.1 == n)).map (·.2)).getD false
 
-/-- Значение условия из запроса, если оно передано. -/
+/-- The value of a condition from the request, if it was given. -/
 def givenOf (gs : List (String × Bool)) (n : String) : Option Bool :=
   (gs.find? (·.1 == n)).map (·.2)
 
-/-- Условия, которые нужны шагу, но не переданы в запросе: только те, что
-могут повлиять на выбор варианта при уже переданных значениях
-(`Machine.neededGuards`; достаточность — `missing_nil_step`). -/
+/-- The conditions the step needs but the request does not give: only those that
+can affect the choice of the variant given the values already passed
+(`Machine.neededGuards`; sufficiency is `missing_nil_step`). -/
 def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : List String :=
   if decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev then
     (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
   else []
 
-/-- Шаг протокола после разбора запроса. -/
+/-- A protocol step after the request has been decoded. -/
 def stepReply (m : Machine) (id : J) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : RE J :=
   let miss := missing m s ev gs
   if !miss.isEmpty then pure (.obj [("id", id), ("need", .arr (miss.map .str))])
   else
     let (s', as) := m.step s ev (envOf gs)
-    -- Снимок, который движок сам не сможет прочитать, не выдаётся.
+    -- A snapshot the engine itself could not read back is never produced.
     if s'.seq > maxInt then throw (.seqOverflow, "seq_overflow")
     else pure (result id s' as (decide (s.state ∉ m.states)))
 
-/-- Первый вход пользователя со счётчиком, продолженным с `n`: первый переход
-получает `seq` n + 1, как после снимка с `seq` n (`start` — это `startAt m 0`).
-Хост, начинающий заново существующего пользователя, передаёт его постоянную
-верхнюю отметку `seq` (HOST.md, раздел 4). -/
+/-- The user's first entry with the counter continued from `n`: the first transition
+gets `seq` n + 1, as after a snapshot with `seq` n (`start` is `startAt m 0`).
+A host that starts an existing user over passes the user's persistent
+high-water mark of `seq` (docs/host-contract.md, section 4). -/
 def startAt (m : Machine) (n : Nat) : Snapshot × List Action :=
   realize { Snapshot.fresh with seq := n } m.initial m.initActions
 
@@ -251,9 +251,9 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
       if s.seq > maxInt then throw (.seqOverflow, "seq_overflow")
       pure (result id s as false)
   | some (.str "restart") =>
-    -- Начать пользователя заново, не сбрасывая счётчик: отмена его таймеров,
-    -- действия первого входа, запомненные места очищаются. Жетоны продолжают
-    -- расти, поэтому запоздавшие события старых таймеров не совпадут с новыми.
+    -- Start the user over without resetting the counter: cancel the user's timers,
+    -- run the first-entry actions, clear the remembered places. Tokens keep growing,
+    -- so late events of old timers never match new ones.
     let s ← match get kvs "snapshot" with
       | some j => withCode .badSnapshot (decSnapshot j)
       | none => throw (.badRequest, "нужно поле «snapshot»")
@@ -271,10 +271,10 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
   | some _ => throw (.badRequest, "«op» должно быть строкой")
   | none => throw (.badRequest, "нужно поле «op»")
 
-/-- `id` из начала строки, которую не удалось разобрать: `{`, ключ `"id"`, `:`
-и скаляр JSON (строка, число, `true`, `false`, `null`), за которым следует `,`
-или `}`; пробелы JSON допускаются между всеми частями. Значение — как при
-обычном разборе (`-0` → `0`). Иначе — `null`. -/
+/-- The `id` from the beginning of a line that could not be parsed: `{`, the key `"id"`, `:`
+and a JSON scalar (string, number, `true`, `false`, `null`) followed by `,`
+or `}`; JSON whitespace is allowed between all parts. The value is as in
+normal parsing (`-0` → `0`). Otherwise `null`. -/
 def echoId (line : String) : J :=
   let i := skipWs line 0
   if !byteIs line i 123 then .null else
@@ -291,14 +291,14 @@ def echoId (line : String) : J :=
   | .ok (v, j) => if byteIs line (skipWs line j) 44 || byteIs line (skipWs line j) 125 then v else .null
   | .error _ => .null
 
-/-- Ответ `hello` испорченного движка тестового режима сообщает мутацию. -/
+/-- The `hello` reply of the deliberately broken test-mode engine reports the mutation. -/
 def markMutant (mutant : Option String) (kvs : Obj) (j : J) : J :=
   match mutant, get kvs "op", j with
   | some spec, some (.str "hello"), .obj r => .obj (r ++ [("mutant", .str spec)])
   | _, _, j => j
 
-/-- Одна строка запроса (текст UTF-8) → одна строка ответа; `mutant` — мутация
-испорченного движка тестового режима (`figram-engine --mutate`), иначе `none`. -/
+/-- One request line (UTF-8 text) → one reply line; `mutant` is the mutation of the
+deliberately broken test-mode engine (`figram-engine --mutate`), otherwise `none`. -/
 def handleWith (mutant : Option String) (m : Machine) (line : String) : String :=
   renderCompact <| match parse line with
     | .ok (.obj kvs) =>
@@ -308,23 +308,23 @@ def handleWith (mutant : Option String) (m : Machine) (line : String) : String :
     | .ok _ => errorJ .null .badRequest "запрос должен быть объектом"
     | .error e => errorJ (echoId line) .parseError e
 
-/-- Одна строка запроса → одна строка ответа. -/
+/-- One request line → one reply line. -/
 def handle (m : Machine) (line : String) : String := handleWith none m line
 
-/-! ## Строки, которые движок не разбирает
+/-! ## Lines the engine does not parse
 
-Предел размера и проверку UTF-8 выполняет тот, кто читает байты: процесс
-`figram-engine` (`EngineMain.lean`) и прослойка C. Ответ — ошибка с `id` из
-начала строки (`echoId`), если оно там есть. -/
+The size limit and the UTF-8 check are done by whoever reads the bytes: the
+`figram-engine` process (`EngineMain.lean`) and the C shim. The reply is an error
+with the `id` from the beginning of the line (`echoId`), if it is there. -/
 
-/-- Предел размера строки запроса по умолчанию, байт (без завершающего `\n`). -/
+/-- The default size limit of a request line, in bytes (without the final `\n`). -/
 def defaultMaxRequest : Nat := 1048576
 
 def tooLargeText (limit : Nat) : String := s!"запрос длиннее предела {limit} байт"
 
 def invalidUtf8Text : String := "запрос не в кодировке UTF-8"
 
-/-- Конец самого длинного начала байтов `[0, n)`, которое является текстом UTF-8. -/
+/-- The end of the longest prefix of the bytes `[0, n)` that is UTF-8 text. -/
 partial def utf8PrefixEnd (b : ByteArray) (n i : Nat) : Nat :=
   if i < n then
     match b.utf8DecodeChar? i with
@@ -332,40 +332,40 @@ partial def utf8PrefixEnd (b : ByteArray) (n i : Nat) : Nat :=
     | none => i
   else i
 
-/-- Начало байтов строки (не больше 64 КиБ), которое является текстом UTF-8:
-по нему ищется `id` для ответа-ошибки. -/
+/-- The prefix of the line's bytes (at most 64 KiB) that is UTF-8 text:
+the `id` for the error reply is looked up in it. -/
 def utf8Prefix (b : ByteArray) : String :=
   (String.fromUTF8? (b.extract 0 (utf8PrefixEnd b (min b.size 65536) 0))).getD ""
 
-/-- Ответ-ошибка на строку, которую движок не разбирает; `pre` — её начало в UTF-8. -/
+/-- The error reply to a line the engine does not parse; `pre` is its UTF-8 prefix. -/
 def errorLine (pre : String) (c : ErrCode) (text : String) : String :=
   renderCompact (errorJ (echoId pre) c text)
 
-/-- Строка запроса в байтах → строка ответа: предел `limit` (0 — без предела),
-затем UTF-8, затем `handleWith`. -/
+/-- A request line as bytes → a reply line: the limit `limit` (0 means no limit),
+then UTF-8, then `handleWith`. -/
 def handleBytes (mutant : Option String) (limit : Nat) (m : Machine) (b : ByteArray) : String :=
   if limit != 0 && b.size > limit then errorLine (utf8Prefix b) .tooLarge (tooLargeText limit)
   else match String.fromUTF8? b with
     | some s => handleWith mutant m s
     | none => errorLine (utf8Prefix b) .parseError invalidUtf8Text
 
-/-! ## Условия загрузки автомата -/
+/-! ## Load conditions of the machine -/
 
 def actionOK : Action → Bool
   | .remember sec n => !sec.isEmpty && !n.isEmpty
   | .startTimer id _ _ => !id.isEmpty
   | _ => true
 
-/-- Все имена, которые могут попасть в снимок, непусты. -/
+/-- All names that can get into a snapshot are non-empty. -/
 def namesOK (m : Machine) : Bool :=
   m.states.all (fun s => !s.isEmpty) && m.initActions.all actionOK
   && m.rows.all (fun r => r.branches.all (fun b => b.actions.all actionOK))
   && m.entry.all (fun e => e.2.all actionOK) && m.exit.all (fun e => e.2.all actionOK)
 
-/-- Загрузка документа для движка: разбор, проверка, компиляция и проверка
-условий теорем о протоколе (`wf`, `namesOK`). Документ компилируется один раз:
-`check` автомат не строит (`Chart.wfDirect`), `wf` проверяется на построенном
-автомате за линейное время (`wfFast = wf`). -/
+/-- Loading a document for the engine: parsing, checking, compiling and checking the
+hypotheses of the protocol theorems (`wf`, `namesOK`). The document is compiled once:
+`check` does not build the machine (`Chart.wfDirect`), and `wf` is checked on the built
+machine in linear time (`wfFast = wf`). -/
 def load (txt : String) : Except (List String) Machine :=
   match parse txt >>= decode with
   | .error e => .error [e]

@@ -2,19 +2,19 @@ import Figram.Compile
 import Figram.CoreProofs
 
 /-!
-# Главная теорема: компилятор сохраняет поведение
+# The main theorem: the compiler preserves the behaviour
 
-`compile_correct`: если скомпилированный автомат прошёл проверку `wf`, то для
-**любого** снимка, любого события и любых значений условий разработчика шаг
-скомпилированного автомата в точности равен шагу схемы по эталонной
-семантике: тот же новый снимок и тот же список действий.
+`compile_correct`: if the compiled machine passed the `wf` check, then for
+**any** snapshot, any event and any values of the developer's conditions, a step
+of the compiled machine is exactly the step of the chart under the reference
+semantics: the same new snapshot and the same list of actions.
 
-`start_correct`: первый вход тоже совпадает.
+`start_correct`: the first entry agrees as well.
 -/
 
 namespace Figram
 
-/-- Поиск по таблице, построенной по списку ключей. -/
+/-- A lookup in a table built from a list of keys. -/
 theorem lookup_map {β} (keys : List NodeId) (f : NodeId → β) (k : NodeId) (hk : k ∈ keys) :
     lookup (keys.map fun x => (x, f x)) k = some (f k) := by
   induction keys with
@@ -46,7 +46,7 @@ theorem find?_eq_self {α} [DecidableEq α] (l : List α) (a : α) (h : a ∈ l)
 
 namespace Machine
 
-/-- Быстрая проверка `wf` (хеш-таблицы) равна спецификации. -/
+/-- The fast `wf` check (hash tables) equals the specification. -/
 theorem wfFast_eq (m : Machine) : m.wfFast = m.wf := by
   have hst : ∀ n, (keySet m.states).contains n = decide (n ∈ m.states) := keySet_contains _
   have htgt : ∀ t : Target, targetIn (keySet m.states) (keySet (m.resumes.map (·.sec))) t =
@@ -67,10 +67,10 @@ namespace Chart
 
 variable (c : Chart)
 
-/-! ## Быстрый компилятор равен спецификации
+/-! ## The fast compiler equals the specification
 
-Каждый индекс `Chart.index` отвечает так же, как списковое определение,
-поэтому `compile` строит в точности `compileSpec`. -/
+Every index of `Chart.index` answers like the list definition, so
+`compile` builds exactly `compileSpec`. -/
 
 theorem index_node (n : NodeId) : c.index.node.find? n = c.find n := by
   simp only [index, firstIndex_get, find, List.find?_map, Option.map_map]
@@ -104,7 +104,7 @@ theorem index_enter (n : NodeId) : c.index.enter n = c.enter n := by
 theorem index_toF (b : Branch) : c.index.toF b = c.toF b := by
   simp only [Index.toF, toF, index_enter]
 
-/-- Группировка одиночками: ключ `f t`, значение `[g t]`. -/
+/-- Grouping singletons: key `f t`, value `[g t]`. -/
 theorem singletons_get {α β} (l : List α) (f : α → String) (g : α → β) (k : String) :
     ((l.map fun t => (f t, [g t])).filter (fun p => decide (p.1 = k))).flatMap (·.2) =
       (l.filter fun t => decide (f t = k)).map g := by
@@ -236,7 +236,7 @@ theorem compile_eq_spec : c.compile = c.compileSpec := by
   simp only [mkResume, memberIndex_get c s ((mem_dedup _ _).mp hs)]
 
 
-/-! ## Стрелки спецификации -/
+/-! ## The arrows of the specification -/
 
 theorem mem_cands {L : NodeId} {e : EventId} {b : Branch} (hb : b ∈ c.cands L e) :
     ∃ t ∈ c.transitions, t.event = e ∧ b ∈ t.branches := by
@@ -257,7 +257,7 @@ theorem event_mem {L : NodeId} {e : EventId} (h : c.cands L e ≠ []) : e ∈ c.
   simp only [events, mem_dedup, List.mem_map]
   exact ⟨t, htr, he⟩
 
-/-- Поиск по событию в стрелках сообщения. -/
+/-- A lookup by event among the arrows of a message. -/
 theorem find_rows (L e : NodeId) (evs : List EventId) :
     ((evs.map (c.compileRow L)).filter (fun r => !r.branches.isEmpty)).find?
         (fun r => decide (r.event = e)) =
@@ -281,7 +281,7 @@ theorem find_rows (L e : NodeId) (evs : List EventId) :
       · rw [ih]
         by_cases he : e ∈ xs <;> simp [he, Ne.symm hx]
 
-/-- Стрелка спецификации по сообщению и событию. -/
+/-- The arrow of the specification for a message and an event. -/
 theorem spec_row {L : NodeId} (hL : L ∈ c.leafIds) (e : EventId) :
     c.compileSpec.row L e = if c.cands L e = [] then none else some (c.compileRow L e) := by
   unfold Machine.row
@@ -314,7 +314,7 @@ theorem resolve_eq (s : Snapshot) {L : NodeId} {e : EventId} {b : Branch}
     simp only [toF, ht, Machine.resolve, hf, resolve, restoreTarget, mkResume]
     cases lookup s.resume s0 <;> rfl
 
-/-- Для выбранного варианта шаг скомпилированного автомата совпадает со схемой. -/
+/-- For the chosen variant the step of the compiled machine agrees with the chart. -/
 theorem fire_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) {e : EventId} {b : Branch}
     (hs : s.state ∈ c.leafIds) (hb : b ∈ c.cands s.state e) :
     c.compileSpec.fire s (c.toF b) = c.fire s b := by
@@ -337,8 +337,8 @@ theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev :
   unfold Machine.step Chart.step
   by_cases hs : s.state ∈ c.leafIds
   · have hs' : s.state ∈ c.compileSpec.states := hs
-    -- Условие приёма события читает действия выхода (`ownsTimer`): у
-    -- скомпилированного автомата и у схемы они совпадают.
+    -- The acceptance condition of an event reads the exit actions (`ownsTimer`):
+    -- they are the same for the compiled machine and the chart.
     have hex : c.compileSpec.exitOf s.state = c.exitActs s.state := by
       simp only [Machine.exitOf, compileSpec, lookup_map _ _ _ hs, Option.getD_some]
     simp only [hs, hs', not_true_eq_false, ite_false, hex]
@@ -360,7 +360,7 @@ theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev :
     simp only [hs, hs', not_false_eq_true, ite_true]
     rfl
 
-/-! ## Проверка `wf` без построения автомата -/
+/-! ## The `wf` check without building the machine -/
 
 theorem histCands_sub (s : NodeId) : ∀ v ∈ c.histCands s, v ∈ c.leafIds := by
   intro v hv
@@ -388,7 +388,7 @@ theorem mem_cands_iff {L : NodeId} {e : EventId} {b : Branch} :
   · rintro ⟨t, ht, ha, he, hb⟩
     exact ⟨t.src, ha, t, ⟨ht, rfl, he⟩, hb⟩
 
-/-- **`wfDirect` — это `wf` скомпилированного автомата.** -/
+/-- **`wfDirect` is `wf` of the compiled machine.** -/
 theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
   have hleaf : ∀ n, (keySet c.leafIds).contains n = decide (n ∈ c.leafIds) := keySet_contains _
   have hanc : ∀ x, (keySet (c.leafIds.flatMap c.index.anc)).contains x = true ↔
@@ -396,7 +396,7 @@ theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
     intro x
     rw [keySet_contains]
     simp [index_anc]
-  -- третья часть: начальные сообщения разделов; участники — всегда сообщения
+  -- third part: the initial messages of sections; the members are always messages
   have hst : c.compileSpec.states = c.leafIds := rfl
   have hrs : c.compileSpec.resumes = (dedup c.histSecs).map c.mkResume := rfl
   have h3 : (c.compileSpec.resumes.all fun r =>
@@ -411,7 +411,7 @@ theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
       exact (h (c.mkResume s) ⟨s, hs, rfl⟩).1
     · rintro h r ⟨s, hs, rfl⟩
       exact ⟨h s hs, c.histCands_sub s⟩
-  -- вторая часть: цели стрелок
+  -- second part: the arrow targets
   have h2 : (c.compileSpec.rows.all fun r => r.branches.all fun b => c.compileSpec.targetOK b.target) =
       c.transitions.all (fun t => !(keySet (c.leafIds.flatMap c.index.anc)).contains t.src ||
         t.branches.all (fun b => c.index.destIn (keySet c.leafIds) b.target)) := by
@@ -459,7 +459,7 @@ theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
 theorem wfDirect_eq : c.compile.wf = c.wfDirect := by
   rw [compile_eq_spec, wfDirect_spec]
 
-/-- **Главная теорема.** -/
+/-- **The main theorem.** -/
 theorem compile_correct (hwf : c.compile.wf = true) (s : Snapshot) (ev : Event) (env : HostEnv) :
     c.compile.step s ev env = c.step s ev env := by
   rw [compile_eq_spec] at hwf ⊢

@@ -1,35 +1,34 @@
 import Figram.Chart
 
 /-!
-# Компилятор: схема дизайнера → плоский автомат
+# Compiler: the designer's chart → the flat machine
 
-* разделы и всплытие → у каждого сообщения своя стрелка, в которую по порядку
-  сложены варианты сообщения и всех разделов над ним;
-* вход в раздел → цель заранее заменена на его начальное сообщение;
-* «вернуться туда, где был» → операция ядра `Target.resume` плюс одна запись
-  `ResumeSpec` на раздел (размер растёт линейно, а не квадратично);
-* вход и выход сообщения → таблицы `entry` и `exit`, по записи на сообщение.
+* sections and bubbling → every message gets its own arrow holding, in order,
+  the variants of the message and of all sections above it;
+* entering a section → the target is replaced in advance by its initial message;
+* "resume where the user left off" → the core operation `Target.resume` plus one
+  `ResumeSpec` entry per section (the size grows linearly, not quadratically);
+* entry and exit of a message → the tables `entry` and `exit`, one entry per message.
 
-Спецификация — `compileSpec`: простые списковые определения (`cands`,
-`compileRow`, `histCands`), по ним доказана главная теорема. Исполняется
-`compile`: те же данные, но с индексами (раздел «Индексы») — предки каждого
-сообщения считаются один раз, для сообщения перебираются только стрелки
-его предков, места «вернуться» собираются за один проход. Равенство
-`compile_eq_spec : c.compile = c.compileSpec` доказано в `Figram.Correct`.
+The specification is `compileSpec`: plain list definitions (`cands`,
+`compileRow`, `histCands`); the main theorem is proved about them. What runs is
+`compile`: the same data, but built with indexes (section "Indexes") — the ancestors of
+each message are computed once, only the arrows of its ancestors are scanned for a
+message, and the "resume" places are collected in one pass. The equality
+`compile_eq_spec : c.compile = c.compileSpec` is proved in `Figram.Correct`.
 -/
 
 namespace Figram
 
-/-! ## Индексы
+/-! ## Indexes
 
-Хеш-таблицы, которые компилятор и проверка строят один раз на документ.
-Только `Init` (без `Std`): библиотека для встраивания (`ffi/build.sh`)
-собирается из тех же модулей, что и раньше. Каждая таблица — быстрая
-реализация спискового определения, равенство доказано (`keySet_contains`,
-`firstIndex_get`, `concatIndex_get`, `dedupFast_eq`), поэтому остальные
-доказательства говорят о простых списках. -/
+Hash tables that the compiler and the check build once per document.
+Only `Init` (no `Std`), so the embeddable library (`ffi/build.sh`) needs no
+further modules. Each table is a fast implementation of a list
+definition, and the equality is proved (`keySet_contains`, `firstIndex_get`,
+`concatIndex_get`, `dedupFast_eq`), so the other proofs talk about plain lists. -/
 
-/-- Удаление повторов с сохранением порядка (остаётся последнее вхождение). -/
+/-- Remove duplicates keeping the order (the last occurrence stays). -/
 def dedup {α} [DecidableEq α] : List α → List α
   | [] => []
   | x :: xs => if x ∈ dedup xs then dedup xs else x :: dedup xs
@@ -60,38 +59,38 @@ theorem nodup_dedup {α} [DecidableEq α] (l : List α) : (dedup l).Nodup := by
     · rename_i h
       exact List.nodup_cons.mpr ⟨h, ih⟩
 
-/-- Корзина ключа в таблице из `n` корзин. Остаток считается в `UInt64`
-(без длинной арифметики); внешний `% n` гарантирует `slot n k < n`. -/
+/-- The bucket of a key in a table of `n` buckets. The remainder is computed in `UInt64`
+(no big-number arithmetic); the outer `% n` guarantees `slot n k < n`. -/
 def slotOf (n : Nat) (h : UInt64) : Nat := (h % n.toUInt64).toNat % n
 
 def slot (n : Nat) (k : String) : Nat := slotOf n (hash k)
 
-/-- Хеш-таблица с фиксированным числом корзин; пары корзины — в порядке вставки
-(последняя вставленная — первая). -/
+/-- A hash table with a fixed number of buckets; the pairs of a bucket are in insertion
+order (the last inserted comes first). -/
 structure Tab (β : Type) where
   buckets : Array (List (String × β))
 
 namespace Tab
 
-/-- Пустая таблица на `n + 1` корзину. -/
+/-- An empty table with `n + 1` buckets. -/
 def empty {β} (n : Nat) : Tab β := ⟨Array.replicate (n + 1) []⟩
 
-/-- Вставка; сопоставление с образцом отдаёт массив корзин единственным
-владельцем, и `modify` меняет его на месте. -/
+/-- Insertion; the pattern match leaves the bucket array with a single owner,
+so `modify` updates it in place. -/
 def insert {β} : Tab β → String → β → Tab β
   | ⟨b⟩, k, v => ⟨b.modify (slot b.size k) ((k, v) :: ·)⟩
 
 def bucket {β} (t : Tab β) (k : String) : List (String × β) :=
   t.buckets.getD (slot t.buckets.size k) []
 
-/-- Первое значение ключа. -/
+/-- The first value of a key. -/
 def find? {β} (t : Tab β) (k : String) : Option β :=
   ((t.bucket k).find? (fun p => decide (p.1 = k))).map (·.2)
 
 def contains {β} (t : Tab β) (k : String) : Bool := (t.bucket k).any (fun p => decide (p.1 = k))
 
-/-- Значения ключа `k` в списке пар подряд; без лишних выделений памяти:
-нет пары — `[]`, одна пара — её список без копии. -/
+/-- The values of key `k` in a list of pairs, concatenated; without extra allocation:
+no pair gives `[]`, one pair gives its list without a copy. -/
 def concatIn {β} (k : String) : List (String × List β) → List β
   | [] => []
   | p :: ps =>
@@ -101,17 +100,17 @@ def concatIn {β} (k : String) : List (String × List β) → List β
       | rest => p.2 ++ rest
     else concatIn k ps
 
-/-- Все значения ключа подряд. -/
+/-- All values of a key, concatenated. -/
 def concat {β} (t : Tab (List β)) (k : String) : List β := concatIn k (t.bucket k)
 
-/-- `concat` с заранее посчитанным хешем ключа (`concatH t k (hash k) = concat t k`). -/
+/-- `concat` with a precomputed hash of the key (`concatH t k (hash k) = concat t k`). -/
 def concatH {β} (t : Tab (List β)) (k : String) (h : UInt64) : List β :=
   concatIn k (t.buckets.getD (slotOf t.buckets.size h) [])
 
 theorem concatH_hash {β} (t : Tab (List β)) (k : String) : t.concatH k (hash k) = t.concat k := rfl
 
-/-- Таблица из списка пар: корзины хранят пары в порядке списка; корзин вдвое
-больше пар, чтобы поиск отсутствующего ключа чаще попадал в пустую корзину. -/
+/-- A table from a list of pairs: buckets keep the pairs in list order; there are twice
+as many buckets as pairs, so that a lookup of a missing key more often hits an empty bucket. -/
 def ofList {β} (l : List (String × β)) : Tab β :=
   l.foldr (fun p t => t.insert p.1 p.2) (empty (2 * l.length))
 
@@ -156,7 +155,7 @@ theorem bucket_ofList {β} (l : List (String × β)) (k : String) :
 
 end Tab
 
-/-- Поиск в отфильтрованном по корзине списке — тот же, что во всём списке. -/
+/-- A lookup in the list filtered by bucket equals the lookup in the whole list. -/
 theorem find?_slot {β} (l : List (String × β)) (f : String → Nat) (k : String) :
     (l.filter (fun p => decide (f p.1 = f k))).find? (fun p => decide (p.1 = k)) =
       l.find? (fun p => decide (p.1 = k)) := by
@@ -183,7 +182,7 @@ theorem filter_slot {β} (l : List (String × β)) (f : String → Nat) (k : Str
       rw [ite_eq_right (by simpa using hf), ih, List.filter_cons]
       simp [h]
 
-/-- Множество строк списка. -/
+/-- The set of strings of a list. -/
 def keySet (l : List String) : Tab Unit := Tab.ofList (l.map fun k => (k, ()))
 
 theorem keySet_contains (l : List String) (k : String) :
@@ -195,15 +194,15 @@ theorem keySet_contains (l : List String) (k : String) :
   · rintro ⟨p, ⟨⟨x, hx, rfl⟩, _⟩, rfl⟩; exact hx
   · intro hk; exact ⟨(k, ()), ⟨⟨k, hk, rfl⟩, by simp⟩, rfl⟩
 
-/-- Первая запись с ключом — то же, что поиск по списку пар. -/
+/-- The first entry with a key, the same as a lookup in the list of pairs. -/
 def firstIndex {β} (l : List (String × β)) : Tab β := Tab.ofList l
 
 theorem firstIndex_get {β} (l : List (String × β)) (k : String) :
     (firstIndex l).find? k = (l.find? (fun p => decide (p.1 = k))).map (·.2) := by
   simp only [firstIndex, Tab.find?, Tab.bucket_ofList, find?_slot]
 
-/-- Сцепление списков по ключу с сохранением порядка: для ключа `k` —
-списки всех пар с ключом `k`, подряд в порядке пар. -/
+/-- Concatenation of lists by key, keeping the order: for key `k`, the lists
+of all pairs with key `k`, one after another in the order of the pairs. -/
 def concatIndex {β} (l : List (String × List β)) : Tab (List β) := Tab.ofList l
 
 theorem concatIn_eq {β} (k : String) (ps : List (String × List β)) :
@@ -224,11 +223,11 @@ theorem concatIndex_get {β} (l : List (String × List β)) (k : String) :
     (concatIndex l).concat k = (l.filter (fun p => decide (p.1 = k))).flatMap (·.2) := by
   simp only [concatIndex, Tab.concat, concatIn_eq, Tab.bucket_ofList, filter_slot]
 
-/-- Шаг `dedupFast`. -/
+/-- A step of `dedupFast`. -/
 def dedupStep (x : String) : Tab Unit × List String → Tab Unit × List String
   | (seen, acc) => if seen.contains x then (seen, acc) else (seen.insert x (), x :: acc)
 
-/-- Удаление повторов за линейное время; равно `dedup` (`dedupFast_eq`). -/
+/-- Duplicate removal in linear time; equals `dedup` (`dedupFast_eq`). -/
 def dedupFast (l : List String) : List String := (l.foldr dedupStep (Tab.empty l.length, [])).2
 
 theorem contains_insert (t : Tab Unit) (x k : String) (h : 0 < t.buckets.size) :
@@ -277,13 +276,13 @@ theorem dedupFast_eq (l : List String) : dedupFast l = dedup l := (dedupFast_aux
 
 namespace Machine
 
-/-- `targetOK` по готовым множествам сообщений и разделов. -/
+/-- `targetOK` over prebuilt sets of messages and sections. -/
 def targetIn (st secs : Tab Unit) : Target → Bool
   | .node n => st.contains n
   | .resume sec => secs.contains sec
 
-/-- `wf` за линейное время: принадлежность — через хеш-таблицы
-(`wfFast_eq : m.wfFast = m.wf` в `Figram.Correct`). -/
+/-- `wf` in linear time: membership goes through hash tables
+(`wfFast_eq : m.wfFast = m.wf` in `Figram.Correct`). -/
 def wfFast (m : Machine) : Bool :=
   let st := keySet m.states
   let secs := keySet (m.resumes.map (·.sec))
@@ -308,12 +307,12 @@ def compileRow (c : Chart) (L : NodeId) (e : EventId) : Row :=
 
 def mkResume (c : Chart) (s : NodeId) : ResumeSpec := ⟨s, c.enter s, c.histCands s⟩
 
-/-- Стрелки сообщения `L` по спецификации: по всем событиям документа
-в порядке `events`, только непустые. -/
+/-- The arrows of message `L` by the specification: for all events of the document
+in the order of `events`, only the non-empty ones. -/
 def rowsSpec (c : Chart) (L : NodeId) : List Row :=
   (c.events.map (c.compileRow L)).filter (fun r => !r.branches.isEmpty)
 
-/-- **Спецификация компилятора.** -/
+/-- **The specification of the compiler.** -/
 def compileSpec (c : Chart) : Machine where
   states := c.leafIds
   initial := c.enter c.root
@@ -323,10 +322,10 @@ def compileSpec (c : Chart) : Machine where
   entry := c.leafIds.map fun L => (L, c.entryActs L)
   exit := c.leafIds.map fun L => (L, c.exitActs L)
 
-/-! ## Быстрая реализация -/
+/-! ## Fast implementation -/
 
-/-- Индексы схемы: узел по имени (первое объявление, как `find`), разделы
-с «вернуться туда, где был», таймеры по сообщениям. -/
+/-- The indexes of a chart: node by name (the first declaration, like `find`), sections
+with "resume", timers by message. -/
 structure Index where
   fuel : Nat
   node : Tab Node
@@ -375,20 +374,20 @@ def entryActs (ix : Index) (T : NodeId) : List Action :=
 def exitActs (ix : Index) (L : NodeId) : List Action :=
   (ix.timersOf L).map (fun t => .cancelTimer t.id)
 
-/-- Цель стрелки ведёт в сообщение из `leaves` («вернуться» проверяется отдельно). -/
+/-- The arrow target leads to a message of `leaves` ("resume" is checked separately). -/
 def destIn (ix : Index) (leaves : Tab Unit) : Dest → Bool
   | .node n => leaves.contains (ix.enter n)
   | .history _ => true
 
 end Index
 
-/-- Стрелки каждого узла с уже переведёнными вариантами:
-узел → список (событие, варианты) в порядке стрелок. -/
+/-- The arrows of every node with already translated variants:
+node → list of (event, variants) in arrow order. -/
 def transIndex (c : Chart) (ix : Index) : Tab (List (EventId × List FBranch)) :=
   concatIndex (c.transitions.map fun t => (t.src, [(t.event, t.branches.map ix.toF)]))
 
-/-- Стрелки сообщения `L`: варианты всех его предков, сложенные по событиям,
-в порядке событий документа `evs`. -/
+/-- The arrows of message `L`: the variants of all its ancestors, grouped by event,
+in the order of the document's events `evs`. -/
 def leafRows (evs : List (EventId × UInt64)) (tr : Tab (List (EventId × List FBranch)))
     (ix : Index) (L : NodeId) : List Row :=
   let tab := concatIndex ((ix.anc L).flatMap fun a => tr.concat a)
@@ -396,16 +395,16 @@ def leafRows (evs : List (EventId × UInt64)) (tr : Tab (List (EventId × List F
     let bs := tab.concatH e h
     if bs.isEmpty then none else some ⟨L, e, bs⟩
 
-/-- Сообщения внутри разделов с «вернуться туда, где был», за один проход. -/
+/-- The messages inside sections with "resume", in one pass. -/
 def memberIndex (c : Chart) (ix : Index) : Tab (List NodeId) :=
   concatIndex (c.leafIds.flatMap fun l =>
     (dedupFast ((ix.anc l).filter fun a => ix.hist.contains a && a != l)).map fun a => (a, [l]))
 
-/-- **Компилятор** (быстрая реализация `compileSpec`). -/
+/-- **The compiler** (the fast implementation of `compileSpec`). -/
 def compile (c : Chart) : Machine :=
   let ix := c.index
   let tr := c.transIndex ix
-  -- события документа с готовыми хешами: на каждое сообщение — без пересчёта
+  -- the document's events with precomputed hashes: no recomputation per message
   let evs := (dedupFast (c.transitions.map (·.event))).map fun e => (e, hash e)
   let mem := c.memberIndex ix
   let leaves := c.leafIds
@@ -417,9 +416,9 @@ def compile (c : Chart) : Machine :=
     entry := leaves.map fun L => (L, ix.entryActs L)
     exit := leaves.map fun L => (L, ix.exitActs L) }
 
-/-- Проверка `compile.wf` без построения автомата (`wfDirect_eq` в
-`Figram.Correct`): начальное сообщение, цели стрелок предков сообщений и
-начальные сообщения разделов с «вернуться» — сообщения. -/
+/-- The check `compile.wf` without building the machine (`wfDirect_eq` in
+`Figram.Correct`): the initial message, the arrow targets of the messages' ancestors and
+the initial messages of sections with "resume" are messages. -/
 def wfDirect (c : Chart) : Bool :=
   let ix := c.index
   let leaves := keySet c.leafIds

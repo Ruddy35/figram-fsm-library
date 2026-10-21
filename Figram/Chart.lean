@@ -1,51 +1,51 @@
 import Figram.Core
 
 /-!
-# Уровень дизайнера: база и три упрощения
+# The designer's level: the base and three simplifications
 
-То, что рисует дизайнер. База — те же пять кубиков, что в ядре:
-сообщение, событие, стрелка с вариантами (условия пишутся текстом),
-переменная, действие. Поверх — три упрощения:
+What the designer draws. The base is the same five building blocks as in the core:
+message, event, arrow with variants (conditions are written as text),
+variable, action. On top of it, three simplifications:
 
-1. **Разделы.** Сообщения можно класть в разделы, разделы — друг в друга.
-   Стрелка, нарисованная от раздела, работает на любом сообщении внутри
-   («Отмена» один раз на весь заказ, `/start` на разделе вокруг всего бота).
-   Стрелка в раздел ведёт на его начальное сообщение.
-2. **«Вернуться туда, где был».** Стрелка может вести не в сообщение,
-   а «в раздел туда, где пользователь остановился».
-3. **Напоминание по времени.** Таймер на сообщении: запускается, когда
-   пользователь пришёл, отменяется, когда ушёл; срабатывание приходит
-   событием `timerEvent id`.
+1. **Sections.** Messages can be put into sections, and sections into each other.
+   An arrow drawn from a section works on every message inside it
+   ("Cancel" once for the whole order, `/start` on the section around the whole bot).
+   An arrow into a section leads to its initial message.
+2. **"Resume where the user left off".** An arrow can lead not to a message
+   but "into the section, where the user stopped".
+3. **Timed reminder.** A timer on a message: it starts when the user arrives
+   and is cancelled when the user leaves; a firing arrives as the event
+   `timerEvent id`.
 
-`Chart.step` — **эталонная семантика** схемы. Компилятор (`Figram.Compile`)
-разворачивает упрощения в базу, теорема `compile_correct` доказывает,
-что поведение совпадает.
+`Chart.step` is the **reference semantics** of the chart. The compiler (`Figram.Compile`)
+unfolds the simplifications into the base, and the theorem `compile_correct` proves
+that the behaviour is the same.
 
-## Решения спецификации
+## Decisions of the specification
 
-1. Всплытие: варианты собираются от сообщения к разделам выше; первый
-   вариант с истинным условием выигрывает. Если у сообщения есть стрелка,
-   но все её условия ложны, событие уходит к разделу выше.
-2. Порядок действий: выход (отмена таймеров сообщения) → действия стрелки →
-   вход (запоминание места, запуск таймеров, отправка сообщения).
-3. Стрелка на то же сообщение отправляет его заново и перезапускает таймеры.
-4. Место запоминается при входе в сообщение: для каждого раздела над ним,
-   в который ведёт хотя бы одна стрелка «вернуться туда, где был».
-   Для стрелки снаружи раздела это то же самое, что запомнить место при выходе;
-   изнутри раздела такая стрелка ведёт на текущее сообщение.
-5. Если запомненного сообщения больше нет в схеме (новая версия),
-   «вернуться туда, где был» ведёт на начальное сообщение раздела.
-6. Событие без подходящей стрелки игнорируется.
-7. Срабатывание таймера принимается только с жетоном текущего запуска.
-8. Если сообщения из снимка больше нет в схеме, пользователь начинает бота
-   заново; таймеры старого места отменяются, запомненные места сохраняются.
+1. Bubbling: variants are collected from the message up through the enclosing sections;
+   the first variant whose condition is true wins. If the message has an arrow
+   but all its conditions are false, the event goes up to the enclosing section.
+2. Action order: exit (cancel the message's timers) → the arrow's actions →
+   entry (remember the place, start timers, send the message).
+3. An arrow to the same message sends it again and restarts its timers.
+4. The place is remembered on entry into a message: for every section above it
+   into which at least one "resume" arrow leads.
+   For an arrow from outside the section this is the same as remembering the place on exit;
+   from inside the section such an arrow leads to the current message.
+5. If the remembered message is no longer in the chart (a new version),
+   "resume" leads to the section's initial message.
+6. An event without a matching arrow is ignored.
+7. A timer firing is accepted only with the token of the current run.
+8. If the snapshot's message is no longer in the chart, the user starts the bot
+   over; the timers of the old place are cancelled, remembered places are kept.
 -/
 
 namespace Figram
 
 inductive NodeKind where
   | message
-  /-- Раздел и его начальное сообщение (или вложенный раздел). -/
+  /-- A section and its initial message (or nested section). -/
   | sec (initial : NodeId)
   deriving DecidableEq, Repr
 
@@ -55,29 +55,29 @@ structure Node where
   kind : NodeKind
   deriving DecidableEq, Repr
 
-/-- Цель стрелки в схеме дизайнера. -/
+/-- The target of an arrow in the designer's chart. -/
 inductive Dest where
-  /-- Сообщение или раздел (тогда — его начальное сообщение). -/
+  /-- A message or a section (then its initial message). -/
   | node (n : NodeId)
-  /-- «Вернуться в раздел туда, где был». -/
+  /-- "Resume the section where the user left off". -/
   | history (sec : NodeId)
   deriving DecidableEq, Repr
 
 structure Branch where
-  /-- Имя условия, написанного текстом; нет — «иначе / всегда». -/
+  /-- The name of a condition written as text; none means "otherwise / always". -/
   guard : Option String
   target : Dest
   actions : List Action
   deriving DecidableEq, Repr
 
 structure Transition where
-  /-- Сообщение или раздел. -/
+  /-- A message or a section. -/
   src : NodeId
   event : EventId
   branches : List Branch
   deriving DecidableEq, Repr
 
-/-- Напоминание на сообщении. -/
+/-- A reminder on a message. -/
 structure Timer where
   id : String
   node : NodeId
@@ -86,7 +86,7 @@ structure Timer where
 
 structure Chart where
   nodes : List Node
-  /-- Куда попадает пользователь при первом входе. -/
+  /-- Where the user lands on the first entry. -/
   root : NodeId
   transitions : List Transition
   timers : List Timer
@@ -106,7 +106,7 @@ def ancAux (c : Chart) : Nat → NodeId → List NodeId
     | none => []
     | some p => c.ancAux k p
 
-/-- Само сообщение и все разделы над ним, снизу вверх. -/
+/-- The message itself and all sections above it, bottom up. -/
 def anc (c : Chart) (n : NodeId) : List NodeId :=
   c.ancAux c.nodes.length n
 
@@ -116,40 +116,40 @@ def enterAux (c : Chart) : Nat → NodeId → NodeId
     | some ⟨_, _, .sec i⟩ => c.enterAux k i
     | _ => n
 
-/-- Вход в узел: для раздела — спуск по начальным сообщениям. -/
+/-- Entering a node: for a section, descend through the initial messages. -/
 def enter (c : Chart) (n : NodeId) : NodeId :=
   c.enterAux c.nodes.length n
 
 def leafIds (c : Chart) : List NodeId :=
   (c.nodes.filter (fun x => decide (x.kind = .message))).map (·.id)
 
-/-- Разделы, в которые ведёт хотя бы одна стрелка «вернуться туда, где был». -/
+/-- The sections into which at least one "resume" arrow leads. -/
 def histSecs (c : Chart) : List NodeId :=
   c.transitions.flatMap fun t => t.branches.filterMap fun b =>
     match b.target with
     | .history s => some s
     | .node _ => none
 
-/-- Сообщения внутри раздела `s` на любой глубине. -/
+/-- The messages inside section `s` at any depth. -/
 def histCands (c : Chart) (s : NodeId) : List NodeId :=
   c.leafIds.filter (fun l => decide (s ∈ c.anc l ∧ l ≠ s))
 
 def timersOf (c : Chart) (n : NodeId) : List Timer :=
   c.timers.filter (fun t => decide (t.node = n))
 
-/-- Действия входа в сообщение `T`: запомнить место во всех разделах над ним,
-куда ведёт «вернуться туда, где был»; запустить таймеры; отправить сообщение. -/
+/-- The entry actions of message `T`: remember the place in every section above it
+into which a "resume" arrow leads; start the timers; send the message. -/
 def entryActs (c : Chart) (T : NodeId) : List Action :=
   (c.anc T).filterMap (fun s =>
       if s ∈ c.histSecs ∧ s ≠ T then some (.remember s T) else none)
   ++ (c.timersOf T).map (fun t => .startTimer t.id t.delayMs 0)
   ++ [.send T]
 
-/-- Действия выхода из сообщения `L`: отменить его таймеры. -/
+/-- The exit actions of message `L`: cancel its timers. -/
 def exitActs (c : Chart) (L : NodeId) : List Action :=
   (c.timersOf L).map (fun t => .cancelTimer t.id)
 
-/-- Куда ведёт «вернуться туда, где был». -/
+/-- Where "resume" leads. -/
 def restoreTarget (c : Chart) (s : Snapshot) (sec : NodeId) : NodeId :=
   match lookup s.resume sec with
   | some v => if v ∈ c.histCands sec then v else c.enter sec
@@ -159,12 +159,12 @@ def resolve (c : Chart) (s : Snapshot) : Dest → NodeId
   | .node n => c.enter n
   | .history sec => c.restoreTarget s sec
 
-/-- Варианты стрелок узла `a` по событию `e`. -/
+/-- The variants of the arrows of node `a` for event `e`. -/
 def branchesAt (c : Chart) (a : NodeId) (e : EventId) : List Branch :=
   (c.transitions.filter (fun t => decide (t.src = a ∧ t.event = e))).flatMap (·.branches)
 
-/-- Все кандидаты для сообщения `L`: сначала его собственные, затем
-разделов выше. Это и есть «всплытие». -/
+/-- All candidates for message `L`: its own first, then those of the sections
+above it. This is "bubbling". -/
 def cands (c : Chart) (L : NodeId) (e : EventId) : List Branch :=
   (c.anc L).flatMap (c.branchesAt · e)
 
@@ -177,7 +177,7 @@ def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
 def recover (c : Chart) (s : Snapshot) : Snapshot × List Action :=
   realize s (c.enter c.root) (s.timers.map (fun p => .cancelTimer p.1) ++ c.initActs)
 
-/-- **Эталонная семантика схемы дизайнера.** -/
+/-- **The reference semantics of the designer's chart.** -/
 def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   if s.state ∉ c.leafIds then c.recover s
   else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])

@@ -4,27 +4,27 @@ import Figram.Mutate
 /-!
 # figram-engine
 
-* `figram-engine [--max-request BYTES] bot.json` — загружает документ,
-  компилирует один раз и обслуживает запросы построчно через stdin/stdout
-  (`Figram.Engine`). Строка читается байтами: длиннее предела (по умолчанию
-  1 МиБ, 0 — без предела) — ответ `too_large`, не UTF-8 — `parse_error`;
-  строка из одних пробелов JSON пропускается без ответа. Ответы идут строго
-  в порядке запросов.
-* Тестовый режим, только при `FIGRAM_ALLOW_MUTANTS=1` в окружении:
-  `figram-engine --mutants bot.json` — список мутаций для проверки тестов;
-  `figram-engine [--max-request BYTES] --mutate <мутация> bot.json` —
-  испорченный движок (предупреждение в stderr, `hello` сообщает мутацию).
+* `figram-engine [--max-request BYTES] bot.json` — loads the document,
+  compiles it once and serves requests line by line over stdin/stdout
+  (`Figram.Engine`). A line is read as bytes: a line longer than the limit (by default
+  1 MiB, 0 means no limit) gets `too_large`, a line that is not UTF-8 gets `parse_error`;
+  a line of JSON whitespace only is skipped without a reply. Replies come strictly
+  in request order.
+* Test mode, only with `FIGRAM_ALLOW_MUTANTS=1` in the environment:
+  `figram-engine --mutants bot.json` — the list of mutations for testing the tests;
+  `figram-engine [--max-request BYTES] --mutate <mutation> bot.json` — the
+  deliberately broken engine (a warning on stderr, `hello` reports the mutation).
 -/
 
 open Figram
 
-/-- Сколько первых байт слишком длинной строки хранится (по ним ищется `id`). -/
+/-- How many leading bytes of a too long line are kept (the `id` is looked up in them). -/
 def keepPrefix : Nat := 65536
 
-/-- Строка запроса: её байты без `\n` (у строки длиннее предела — только начало),
-длина в байтах и признак «только пробелы JSON»; `none` — конец ввода.
-Байты читаются по одному: чтение блоком ждало бы следующих запросов, а движок
-отвечает на строку сразу, как она пришла. -/
+/-- A request line: its bytes without `\n` (only the beginning for a line longer than the
+limit), the length in bytes and a flag "JSON whitespace only"; `none` means end of input.
+Bytes are read one at a time: a block read would wait for the next requests, while the
+engine answers a line as soon as it arrives. -/
 partial def readLine (inp : IO.FS.Stream) (limit : Nat) (acc : ByteArray) (len : Nat) (blank : Bool) :
     IO (Option (ByteArray × Nat × Bool)) := do
   let b ← inp.read 1
@@ -34,15 +34,15 @@ partial def readLine (inp : IO.FS.Stream) (limit : Nat) (acc : ByteArray) (len :
   if c == 10 then
     return some (acc, len, blank)
   let blank := blank && (c == 32 || c == 9 || c == 13)
-  -- строка стала длиннее предела: дальше хранится только начало
+  -- the line is now longer than the limit: only its beginning is kept from here on
   let acc := if limit != 0 && len == limit && acc.size > keepPrefix then acc.extract 0 keepPrefix else acc
   let acc := if limit == 0 || len < limit || acc.size < keepPrefix then acc.push c else acc
   readLine inp limit acc (len + 1) blank
 
 structure Cfg where
-  /-- предел размера строки запроса в байтах; 0 — без предела -/
+  /-- the size limit of a request line in bytes; 0 means no limit -/
   limit : Nat
-  /-- мутация испорченного движка тестового режима -/
+  /-- the mutation of the deliberately broken test-mode engine -/
   mutant : Option String
 
 partial def serve (cfg : Cfg) (m : Machine) (inp out : IO.FS.Stream) : IO Unit := do
@@ -63,7 +63,7 @@ def loadOrFail (path : String) : IO (Option Machine) := do
     for e in errs do IO.eprintln s!"ошибка документа: {Format.sanitize e}"
     pure none
 
-/-- Ведущие `--max-request N`: предел и остальные аргументы; `none` — неверное значение. -/
+/-- Leading `--max-request N`: the limit and the remaining arguments; `none` means an invalid value. -/
 def parseLimit : List String → Nat → Option (Nat × List String)
   | "--max-request" :: v :: rest, _ => v.toNat? >>= parseLimit rest
   | ["--max-request"], _ => none
@@ -74,9 +74,9 @@ def usage : String :=
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine --mutants <bot.json>\n" ++
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine [--max-request BYTES] --mutate <мутация> <bot.json>"
 
-/-- Номер или имя в мутации относится к этому автомату: иначе, например,
-`redirect:999` или `drop-call:нет_такого` молча дали бы неиспорченный движок.
-Мутации без номера (`drop-exit` и т. п.) применимы к любому автомату. -/
+/-- The number or name in a mutation refers to this machine: otherwise, for example,
+`redirect:999` or `drop-call:no_such_call` would silently give an unbroken engine.
+Mutations without a number (`drop-exit` and the like) apply to any machine. -/
 def specInRange (m : Machine) (spec : String) : Bool :=
   match spec.splitOn ":" with
   | ["drop-call", n] => (Mutate.callNames m).contains n
@@ -89,7 +89,7 @@ def specInRange (m : Machine) (spec : String) : Bool :=
     | none => false
   | _ => true
 
-/-- Тестовый режим испорченного движка включается только явно. -/
+/-- The test mode of the deliberately broken engine is enabled only explicitly. -/
 def mutantsAllowed : IO Bool := return (← IO.getEnv "FIGRAM_ALLOW_MUTANTS") == some "1"
 
 def mutantsRefused : String :=
@@ -121,8 +121,8 @@ def main (args : List String) : IO UInt32 := do
     unless specInRange m spec do
       IO.eprintln s!"мутация «{Format.sanitize spec}» не относится к этому автомату (список — --mutants)"
       return 2
-    -- условия теорем о протоколе проверяются и у испорченного автомата
-    -- (`wfFast` — та же проверка `wf` за линейное время, теорема `Machine.wfFast_eq`)
+    -- the hypotheses of the protocol theorems are checked for the broken machine too
+    -- (`wfFast` is the same `wf` check in linear time, theorem `Machine.wfFast_eq`)
     unless m'.wfFast && Engine.namesOK m' do
       IO.eprintln s!"мутант «{Format.sanitize spec}» не прошёл проверку wf/namesOK"
       return 1

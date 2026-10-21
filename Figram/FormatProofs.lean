@@ -1,22 +1,22 @@
 import Figram.Format
 
 /-!
-# Свойства формата
+# Properties of the format
 
-1. `decode_encode` — **полнота и точность**: любой корректный документ
-   записывается в JSON и читается обратно в точности тем же, включая
-   неизвестные ключи и их порядок.
-2. `encode_injective` — **однозначность**: разные документы дают разный JSON.
-3. `decode_requires` — **безопасность расширений**: принятый документ
-   требует только известных читателю возможностей.
-4. `toChart_strip` — **неизвестные ключи не влияют на поведение бота**.
-5. `toChart_decls` — **описания условий, действий и переменных
-   не влияют на поведение бота**: это документация для разработчика.
+1. `decode_encode` — **completeness and exactness**: every well-formed document
+   is written to JSON and read back as exactly the same document, including
+   unknown keys and their order.
+2. `encode_injective` — **unambiguity**: different documents give different JSON.
+3. `decode_requires` — **safety of extensions**: an accepted document
+   requires only extensions the reader knows.
+4. `toChart_strip` — **unknown keys do not affect the behaviour of the bot**.
+5. `toChart_decls` — **the descriptions of conditions, actions and variables
+   do not affect the behaviour of the bot**: they are documentation for the developer.
 -/
 
 namespace Figram.Format
 
-/-! ## Условия корректности документа -/
+/-! ## Well-formedness conditions of a document -/
 
 def OnWF (on : List (EventId × List Variant)) : Prop :=
   ∀ p ∈ on, ∀ v ∈ p.2, extOK variantKeys v.ext
@@ -40,7 +40,7 @@ structure DocWF (d : Doc) : Prop where
   botSec : d.bot.isSec = true
   ext : extOK docKeys d.ext
 
-/-! ## Вспомогательные леммы -/
+/-! ## Auxiliary lemmas -/
 
 theorem find?_ext_none {known : List String} {ext : Obj} (h : extOK known ext)
     {k : String} (hk : k ∈ known) : ext.find? (fun p => decide (p.1 = k)) = none := by
@@ -101,7 +101,7 @@ theorem field_keys (k : String) (b : Bool) (j : J) : ∀ p ∈ field k b j, p.1 
   unfold field at hp
   split at hp <;> simp_all
 
-/-! ## Вариант стрелки -/
+/-! ## Arrow variant -/
 
 theorem dec_enc_variant (v : Variant) (h : extOK variantKeys v.ext) :
     decVariant (encVariant v) = .ok v := by
@@ -145,7 +145,7 @@ theorem dec_enc_on (on : List (EventId × List Variant)) (h : OnWF on) :
     simp [h1, h2, bind, Except.bind]
     rfl
 
-/-! ## Узлы -/
+/-! ## Nodes -/
 
 theorem decChildrenIn_ext {ext : Obj} (h : extOK nodeKeys ext) :
     decChildrenIn ext = .ok none := by
@@ -238,7 +238,7 @@ theorem dec_enc_children : (cs : List (NodeId × NodeDoc)) → ChildrenWF cs →
     simp [encChildren, decChildren, h1, h2, bind, Except.bind, pure, Except.pure]
 end
 
-/-! ## Документ -/
+/-! ## Document -/
 
 theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d := by
   obtain ⟨req, conds, calls, vars, bot, ext⟩ := d
@@ -343,7 +343,7 @@ theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d 
       simp [get, List.find?_append, find?_field, e2, hn, h1, bind, Except.bind, pure,
         Except.pure, decStrs_cons_map]
 
-/-- **Полнота и точность.** -/
+/-- **Completeness and exactness.** -/
 theorem decode_encode (d : Doc) (h : DocWF d) : decode (encode d) = .ok d := by
   have hr := h.requires
   simp only [decode, decodeRaw_encode d h, bind, Except.bind]
@@ -351,7 +351,7 @@ theorem decode_encode (d : Doc) (h : DocWF d) : decode (encode d) = .ok d := by
     simp only [List.all_eq_true, decide_eq_true_eq]; exact hr
   simp [this, pure, Except.pure]
 
-/-- **Однозначность.** -/
+/-- **Unambiguity.** -/
 theorem encode_injective (d₁ d₂ : Doc) (h₁ : DocWF d₁) (h₂ : DocWF d₂)
     (he : encode d₁ = encode d₂) : d₁ = d₂ := by
   have e1 := decode_encode d₁ h₁
@@ -360,7 +360,7 @@ theorem encode_injective (d₁ d₂ : Doc) (h₁ : DocWF d₁) (h₂ : DocWF d�
   rw [e1] at e2
   exact Except.ok.inj e2
 
-/-- **Безопасность расширений.** -/
+/-- **Safety of extensions.** -/
 theorem decode_requires (j : J) (d : Doc) (h : decode j = .ok d) :
     ∀ f ∈ d.requires, f ∈ knownFeatures := by
   simp only [decode, bind, Except.bind] at h
@@ -374,7 +374,7 @@ theorem decode_requires (j : J) (d : Doc) (h : decode j = .ok d) :
       simpa using hall
     · simp [throw, throwThe, MonadExceptOf.throw] at h
 
-/-! ## Что не влияет на поведение -/
+/-! ## What does not affect the behaviour -/
 
 def Variant.strip (v : Variant) : Variant := { v with ext := [] }
 
@@ -390,7 +390,7 @@ def stripChildren : List (NodeId × NodeDoc) → List (NodeId × NodeDoc)
   | (k, n) :: rest => (k, n.strip) :: stripChildren rest
 end
 
-/-- Документ без единого неизвестного ключа на любой глубине. -/
+/-- The document without a single unknown key at any depth. -/
 def Doc.strip (d : Doc) : Doc := { d with bot := d.bot.strip, ext := [] }
 
 theorem onTrans_strip (id : NodeId) (on : List (EventId × List Variant)) :
@@ -416,15 +416,15 @@ theorem flatChildren_strip (par : NodeId) :
       flatChildren_strip par rest]
 end
 
-/-- **Неизвестные ключи не влияют на поведение бота.** -/
+/-- **Unknown keys do not affect the behaviour of the bot.** -/
 theorem toChart_strip (d : Doc) : d.strip.toChart = d.toChart := by
   simp only [Doc.strip, Doc.toChart, flat_strip]
 
-/-- **Описания не влияют на поведение бота.** -/
+/-- **Descriptions do not affect the behaviour of the bot.** -/
 theorem toChart_decls (d : Doc) (conds calls vars : List (String × String)) :
     { d with conditions := conds, calls := calls, variables := vars }.toChart = d.toChart := rfl
 
-/-! ## Проверка документа гарантирует запись и чтение -/
+/-! ## The document check guarantees writing and reading back -/
 
 theorem extOKb_sound {known : List String} {ext : Obj} (h : extOKb known ext = true) :
     extOK known ext := by
@@ -466,8 +466,8 @@ theorem check_wfOK (d : Doc) (h : d.check = []) : d.wfOK = true := by
     simp only [Doc.check, hw] at h
     simp at h
 
-/-- **Документ, прошедший проверку, записывается и читается обратно
-в точности тем же.** -/
+/-- **A document that passed the check is written and read back as
+exactly the same document.** -/
 theorem check_roundtrip (d : Doc) (h : d.check = []) : decode (encode d) = .ok d :=
   decode_encode d (wfOK_sound d (check_wfOK d h))
 

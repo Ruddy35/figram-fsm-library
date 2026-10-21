@@ -1,19 +1,19 @@
 import Figram.Correct
 
 /-!
-# Сценарии: последовательности событий
+# Scenarios: sequences of events
 
-На **любом** сценарии из **любого** снимка:
+On **any** scenario from **any** snapshot:
 
-* `run_correct` — скомпилированный автомат и схема дизайнера выдают
-  одинаковые снимки и одинаковые действия;
-* `chart_run_valid` — после первого события пользователь стоит на
-  существующем сообщении, даже если исходный снимок устарел.
+* `run_correct` — the compiled machine and the designer's chart produce
+  the same snapshots and the same actions;
+* `chart_run_valid` — after the first event the user is on an existing
+  message, even if the initial snapshot is stale.
 -/
 
 namespace Figram
 
-/-- Одно событие сценария вместе со значениями условий разработчика. -/
+/-- One event of a scenario together with the values of the developer's conditions. -/
 abbrev Input := Event × HostEnv
 
 def Machine.run (m : Machine) (s : Snapshot) : List Input → Snapshot × List Action
@@ -52,15 +52,15 @@ theorem run_correct (c : Chart) (hwf : c.compile.wf = true)
     simp only [Machine.run, Chart.run]
     rw [c.compile_correct hwf s e env, ih]
 
-/-- Пользователь никогда не «теряется»: после любого непустого сценария
-из любого снимка он стоит на сообщении схемы. -/
+/-- The user never gets "lost": after any non-empty scenario from any
+snapshot the user is on a message of the chart. -/
 theorem chart_run_valid (c : Chart) (hwf : c.compile.wf = true)
     (s : Snapshot) (x : Input) (rest : List Input) :
     (c.run s (x :: rest)).1.state ∈ c.leafIds := by
   rw [← c.run_correct hwf s]
   exact c.compile.run_state_valid hwf s x rest
 
-/-- Полная сессия с первого входа. -/
+/-- A full session from the first entry. -/
 theorem session_correct (c : Chart) (hwf : c.compile.wf = true) (inp : List Input) :
     c.compile.run c.compile.start.1 inp = c.run c.start.1 inp := by
   rw [c.start_correct]
