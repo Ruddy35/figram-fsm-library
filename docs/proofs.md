@@ -79,7 +79,8 @@ The exact statements are in [`tests/proofs/THEOREMS.expected`](../tests/proofs/T
 ### Supplementary lemmas
 
 [`tests/proofs/FigramAudit/Glue.lean`](../tests/proofs/FigramAudit/Glue.lean) (library
-`FigramAudit`, built with `lake build FigramAudit`; neither `./verify.sh` nor CI builds it)
+`FigramAudit`, built with `lake build FigramAudit`; not part of `./verify.sh`, built by the CI
+suite `proofs`)
 connects the product theorems end to end, among others:
 
 * `Figram.Audit.check_compile_correct` — a document that passed `check` is compiled correctly,
@@ -124,18 +125,21 @@ connects the product theorems end to end, among others:
 `tests/proofs/test_strict_gate_clean.sh` checks that the strict gate never rewrites tracked files
 and that the tracked theorem list acts as a pin (CI runs it).
 
-The other files in `tests/proofs/` are run by hand; no gate runs them:
+The other files in `tests/proofs/` are not part of `./verify.sh`; the CI suite `proofs` runs them
+after `test_strict_gate_clean.sh`, each with its expected outcome:
 
 * [`tests/proofs/Counterexamples.lean`](../tests/proofs/Counterexamples.lean) shows concrete
   charts and documents on which the theorems' conclusions fail once a hypothesis is dropped, and
   where the proved model differs from the text and protocol layers; `StatementsNegative.lean` and
-  `CounterexamplesNegative.lean` are negative controls that Lean must reject (the theorems
-  without their hypotheses, the opposite claims; exit status 1);
+  `CounterexamplesNegative.lean` are negative controls that Lean must reject with the number of
+  errors stated in their header (the theorems without their hypotheses, the opposite claims);
 * `TextRoundTrip.lean` checks with `#guard` that documents with extreme numbers in annotations
   are printed into text that reads back as the same document;
-* `GlueAxioms.lean` prints the axioms of the supplementary lemmas and `OpaqueDeps.lean` lists
-  the theorem statements that depend on `partial` definitions (both need `lake build
-  FigramAudit` first).
+* `GlueAxioms.lean` prints the axioms of the supplementary lemmas (only the three standard axioms
+  are allowed) and `OpaqueDeps.lean` lists the theorem statements that depend on `partial`
+  definitions; both need the `FigramAudit` library.
+
+By hand:
 
 ```sh
 lake build FigramAudit
@@ -149,8 +153,8 @@ lake env lean tests/proofs/CounterexamplesNegative.lean  # must fail with 4 erro
 * **The JSON text layer** (`Figram/FormatIO.lean`: `parse`, `print`, `renderCompact`). These are
   `partial` definitions, opaque to the logic; all format and protocol theorems are stated on the
   JSON model `J`, not on text. The text round trip is tested: by differential fuzzing against
-  Python `json` in `./verify.sh`, by the formats suite, and by hand with
-  `tests/proofs/TextRoundTrip.lean`.
+  Python `json` in `./verify.sh`, by the formats suite, and by `tests/proofs/TextRoundTrip.lean`
+  (CI suite `proofs`).
 * **The string-level request handler** `Engine.handle`: the strict field check, the size limit
   and UTF-8 validation run before the proved `handleObj` and can only reject requests; they are
   tested by `tests/engine/protocol_edges.py` and the formats suite.

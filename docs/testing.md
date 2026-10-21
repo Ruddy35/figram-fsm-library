@@ -151,7 +151,8 @@ and Python `jsonschema` on `ubuntu-latest`:
   (`gofig` and `gofig-race` on 2000 scenarios from all cores);
 * **suite formats**, **suite compiler**, **suite capi** (`tests/capi/build.sh`,
   `sanitizers.sh`, `mutants.sh`, `build_check.sh`), **suite go** (`gofmt`, `go vet`,
-  `go test` plain and `-race`), **suite proofs** (`tests/proofs/test_strict_gate_clean.sh`),
+  `go test` plain and `-race`), **suite proofs** (`tests/proofs/test_strict_gate_clean.sh` and
+  the proof controls of [proofs.md](proofs.md)),
   **suite docs** (`python3 ci/check_docs.py`), **suite faults-prebuilt** and
   **suite faults-full** (`./verify-faults.sh`);
 * **release dry run** — packages the commit with `ci/package.sh`, repackages a clean rebuild and
