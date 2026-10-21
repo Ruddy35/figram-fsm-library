@@ -199,9 +199,18 @@ def textRoundTrip (d : Doc) : Bool :=
   | .ok _ => false
   | .error _ => true
 
--- an unknown key is read and kept, the behaviour does not change
+-- an annotation key (`x-…`) is read and kept, the behaviour does not change
 #guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"x-ui\": {\"x\": 10}}}}, \"x-author\": \"Zoë\"}" >>= decode with
   | .ok d => d.ext.length == 1 && d.check.isEmpty
+  | .error _ => false
+
+-- a key without the `x-` prefix (a misspelt `if`, `timers`, `bot`) is kept by the decoder,
+-- so `fmt` still round-trips it, but the check rejects the document
+#guard match parse "{\"figram\": 1, \"Bot\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"tiemrs\": {\"t\": 5}, \"on\": {\"go\": [{\"iff\": \"c\", \"to\": \"a\"}]}}}}}" >>= decode with
+  | .ok d => textRoundTrip d
+      && d.check.contains "document: unknown key `Bot` (annotation keys start with `x-`)"
+      && d.check.contains "node `a`: unknown key `tiemrs` (annotation keys start with `x-`)"
+      && d.check.contains "`a` → `go`: unknown key `iff` (annotation keys start with `x-`)"
   | .error _ => false
 
 -- a document with an unknown extension is rejected as a whole

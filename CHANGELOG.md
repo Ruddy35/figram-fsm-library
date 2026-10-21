@@ -38,3 +38,9 @@ the audit were kept under `tests/`.
   messages, `figram` diagnostics and CLI output, C ABI error texts, the Go wrapper and the Python
   client (its `EngineError` messages). Error `code` values, JSON field names, CLI command names
   and exit statuses are unchanged.
+- An unknown key without the `x-` prefix in the document, a section, a message or a variant is an
+  error: `figram check`, `figram_check_json` and document loading (`figram-engine`,
+  `figram_load_doc_ex`) reject it, and the document schema allows only `x-` keys besides the
+  format keys. Before, such keys were accepted and kept silently, so a misspelt
+  optional field (`"iff"`, `"tiemrs"`) changed the bot without any message. `figram fmt` still
+  keeps them ([docs/format.md](docs/format.md), section 5).

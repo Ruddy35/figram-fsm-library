@@ -13,6 +13,7 @@ Document model (docs/format.md, section 4):
   section  <=> object has "children"; "initial" is a direct child (V2)
   message  has optional "timers": {name: ms}
   "on": {event: [variant]}, variant = {"if"?, "to", "resume"?, "do"?}
+  any other key of the document, a node or a variant starts with "x-" (section 5)
 Semantics (docs/format.md, section 7):
   * entering a section = entering its initial node, recursively, until a
     message is reached ("an arrow into a section leads to its initial message");
@@ -161,9 +162,16 @@ class Bot:
             out.append(k)
         return out
 
+    @staticmethod
+    def _extra(obj, known, where, errs):
+        for k, _ in obj:
+            if k not in known and not k.startswith("x-"):
+                errs.append(f"{where}: unknown key {k!r}")
+
     def _load(self, doc, errs):
         if not is_obj(doc):
             raise DocError(["document must be an object"])
+        self._extra(doc, FORMAT_DOC_KEYS, "document", errs)
         fig = get(doc, "figram")
         if as_int(fig) != 1:
             raise DocError(["figram must be 1"])
@@ -208,6 +216,7 @@ class Bot:
     def _node(self, name, parent, obj, errs, top=False):
         if not is_obj(obj):
             raise DocError([f"node {name!r} must be an object"])
+        self._extra(obj, FORMAT_NODE_KEYS, f"node {name!r}", errs)
         if not top:
             if name == "":
                 errs.append("empty node name")
@@ -224,6 +233,7 @@ class Bot:
             for vj in arr:
                 if not is_obj(vj):
                     raise DocError(["variant must be an object"])
+                self._extra(vj, FORMAT_VARIANT_KEYS, f"{name}.{ev}", errs)
                 cond = get(vj, "if")
                 if cond is not None and not isinstance(cond, str):
                     raise DocError(["if: string expected"])

@@ -10,7 +10,7 @@ Transformations (each applied to every random document):
   rename_names   events / conditions / calls / timer ids renamed       -> outputs renamed
   shuffle_children  order of `children` of every section               -> identical
   shuffle_on     order of `on`, `conditions`, `calls` dictionaries      -> identical
-  annotations    x-… and unknown keys on doc/section/message/variant   -> identical
+  annotations    x-… keys on doc/section/message/variant              -> identical
   unreachable    extra unreachable message+section with plain arrows   -> identical (hello.states +2)
   unreachable_resume  extra unreachable message with a resume arrow into an existing section
                  -> identical ACTIONS (snapshot `resume` may differ: decision 4 remembers more)
@@ -132,7 +132,7 @@ def transform(rng, name, doc):
                    if "timers" in o else None)
     elif name == "annotations":
         d["x-editor"] = {"v": 3, "nested": [1, {"a": None}]}
-        d["unknown_top"] = True
+        d["x-top"] = True
 
         def ann(n, o):
             o["x-ui"] = {"x": 1.5, "y": -2e3}

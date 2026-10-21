@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Figram: Telegram bot document, format 1",
-  "description": "The structural part of the format. The semantic conditions (unique names, existing targets, described conditions and actions) are checked by `figram check`. Unknown keys are allowed everywhere: they are kept and not interpreted. Integer fields (timer delays) are exact integers; a validator that stores numbers as doubles may accept `1e-400` (0 as a double), which `figram check` rejects (docs/format.md, section 3, \"Numbers\").",
+  "description": "The structural part of the format. The semantic conditions (unique names, existing targets, described conditions and actions) are checked by `figram check`. An extra key of the document, a node or a variant must start with `x-` (an annotation): it is kept and not interpreted; any other key is an error. Integer fields (timer delays) are exact integers; a validator that stores numbers as doubles may accept `1e-400` (0 as a double), which `figram check` rejects (docs/format.md, section 3, \"Numbers\").",
   "type": "object",
   "required": ["figram", "bot"],
   "properties": {
@@ -18,6 +18,8 @@
     "variables": { "$ref": "#/$defs/descriptions", "description": "Variables: name → a description for the developer." },
     "bot": { "$ref": "#/$defs/section", "description": "The whole bot is the root section." }
   },
+  "patternProperties": { "^x-": true },
+  "additionalProperties": false,
   "$defs": {
     "id": { "type": "string", "minLength": 1 },
     "descriptions": {
@@ -39,7 +41,9 @@
         "to": { "$ref": "#/$defs/id", "description": "A message or a section." },
         "resume": { "type": "boolean", "description": "true: resume section `to` where the user left off." },
         "do": { "type": "array", "items": { "$ref": "#/$defs/id" }, "description": "Actions in order." }
-      }
+      },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false
     },
     "node": {
       "if": { "type": "object", "required": ["children"] },
@@ -59,6 +63,8 @@
           "additionalProperties": { "$ref": "#/$defs/node" }
         }
       },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false,
       "not": { "required": ["timers"] }
     },
     "message": {
@@ -72,6 +78,8 @@
           "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
         }
       },
+      "patternProperties": { "^x-": true },
+      "additionalProperties": false,
       "not": { "required": ["initial"] }
     }
   }

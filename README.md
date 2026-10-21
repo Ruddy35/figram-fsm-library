@@ -43,8 +43,9 @@ The proved Lean code is what runs: it is compiled into
 ## Features
 
 * One JSON document per bot, with a strict JSON parser, a canonical form (`figram fmt`) and
-  extension rules: annotations under `x-` keys (and any other unknown keys) are kept and never
-  change behaviour; semantic extensions must be declared in `requires`.
+  extension rules: annotations under `x-` keys are kept and never change behaviour, any other
+  unknown key is an error (a misspelt field is reported, not ignored); semantic extensions must
+  be declared in `requires`.
 * `figram check` reports the errors that the structure cannot rule out and warns about probable
   mistakes, such as variants that can never fire, unreachable messages and self-defeating timer
   loops.
