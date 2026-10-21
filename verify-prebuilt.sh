@@ -5,8 +5,8 @@
 # That the binaries were built from these sources is shown only by ./verify.sh with
 # FIGRAM_SHA256SUMS (the build is reproducible).
 #
-#   ./verify-prebuilt.sh DIR          the full check (~90 s on one core)
-#   ./verify-prebuilt.sh --quick DIR  a shortened check (~30 s): fewer documents and fuzzing cases,
+#   ./verify-prebuilt.sh DIR          the full check (about 3 min)
+#   ./verify-prebuilt.sh --quick DIR  a shortened check (about 1 min): fewer documents and fuzzing cases,
 #                                     no mutations and no harness self-test; NOT a replacement
 # DIR (or FIGRAM_BIN=DIR) is the directory with `figram` and `figram-engine`, e.g. an unpacked
 # release or .lake/build/bin. If DIR/SHA256SUMS exists, `sha256sum -c` must accept it.

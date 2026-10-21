@@ -70,7 +70,7 @@ class EngineError(Exception):
       parsed) or an argument that cannot be sent; a retry gives the same result.
     * `code` — the machine-readable code from the engine reply (`parse_error`,
       `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`); None if there
-      was no error reply or the engine is old and has no `code` field.
+      was no error reply or the reply has no `code` field (pre-release engines).
     """
 
     def __init__(self, message: str, *, code: str | None = None, retryable: bool = True) -> None:
@@ -100,7 +100,7 @@ def _check_wire(x, depth: int = 0) -> None:
 
     A line that cannot be parsed (a duplicate key, nesting deeper than
     MAX_DEPTH, a lone surrogate) is rejected by the engine with an error reply,
-    by an old engine even without the id. Such requests are rejected here,
+    by pre-release engines even without the id. Such requests are rejected here,
     before sending: keys must be strings (json.dumps turns 1 and "1", True and
     "true" into equal keys) and nesting is limited; encoding rejects surrogates.
     """
@@ -130,7 +130,7 @@ def _decode(raw: bytes):
 
 
 def _error_reply(resp: dict) -> bool:
-    """An error reply: exactly {id, error} (old protocol) or {id, error, code}."""
+    """An error reply: exactly {id, error} (pre-release engines) or {id, error, code}."""
     if "error" not in resp:
         return False
     keys = resp.keys() - {"id"}

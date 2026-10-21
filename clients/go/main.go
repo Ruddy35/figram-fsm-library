@@ -8,7 +8,8 @@ package main
 /*
 // The linker flags of libfigram.a depend on the Lean toolchain: ffi/build.sh writes them to
 // zz_figram_ldflags.go (next to this file, generated) and to ffi/out/LDFLAGS. To use the Bot
-// wrapper in your own module: CGO_LDFLAGS="$(cat path/to/ffi/out/LDFLAGS)" go build.
+// wrapper in your own module: CGO_CFLAGS="-I path/to/ffi" CGO_LDFLAGS="$(cat path/to/ffi/out/LDFLAGS)"
+// go build, or link the release library archive (docs/embedding.md).
 #cgo CFLAGS: -I${SRCDIR}/../../ffi
 #include <stdlib.h>
 #include <string.h>
