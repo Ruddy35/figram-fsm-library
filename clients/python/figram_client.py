@@ -139,7 +139,7 @@ def _error_reply(resp: dict) -> bool:
     if type(resp["error"]) is not str:
         raise ProtocolError("error is not a string")
     if "code" in resp and (type(resp["code"]) is not str or not resp["code"]):
-        raise ProtocolError(f"code: {resp['code']!r}")
+        raise ProtocolError(f"error code is not a non-empty string: {resp['code']!r}")
     return True
 
 

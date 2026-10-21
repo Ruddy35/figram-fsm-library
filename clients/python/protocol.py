@@ -95,7 +95,7 @@ def check_error(resp) -> str:
     if type(resp["error"]) is not str or not resp["error"]:
         raise ProtocolError(f"error is not a non-empty string: {resp['error']!r}")
     if resp["code"] not in ERROR_CODES:
-        raise ProtocolError(f"unknown error code {resp['code']!r}")
+        raise ProtocolError(f"unknown error code: {resp['code']!r}")
     return resp["code"]
 
 
