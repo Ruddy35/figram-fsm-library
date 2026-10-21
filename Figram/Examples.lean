@@ -31,17 +31,17 @@ private def msg (on : List (EventId × List Variant)) : NodeDoc := .message on [
 def pizzaDoc : Doc where
   requires := []
   conditions := [
-    ("cart_not_empty", "В корзине есть хотя бы одна пицца"),
-    ("in_delivery_zone", "Адрес входит в зону доставки")]
+    ("cart_not_empty", "The cart has at least one pizza"),
+    ("in_delivery_zone", "The address is in the delivery zone")]
   calls := [
-    ("clear_cart", "Очистить корзину"),
-    ("save_size", "Запомнить выбранный размер"),
-    ("add_to_cart", "Добавить пиццу в корзину"),
-    ("save_address", "Сохранить адрес из сообщения"),
-    ("create_order", "Создать заказ в CRM")]
+    ("clear_cart", "Clear the cart"),
+    ("save_size", "Save the chosen size"),
+    ("add_to_cart", "Add the pizza to the cart"),
+    ("save_address", "Save the address from the message"),
+    ("create_order", "Create the order in the CRM")]
   variables := [
-    ("cart", "Содержимое корзины"),
-    ("address", "Адрес доставки")]
+    ("cart", "Cart contents"),
+    ("address", "Delivery address")]
   bot := .sec "menu" [
       ("menu", msg [("btn:order", [v "order"])]),
       ("help", msg [("btn:back", [back "order"])]),
@@ -72,10 +72,10 @@ def pizza : Chart := pizzaDoc.toChart
 def featuresDoc : Doc where
   requires := []
   conditions := [
-    ("is_vip", "Пользователь — VIP"),
-    ("local_ok", "Локальная проверка в каталоге"),
-    ("in_stock", "Товар есть на складе")]
-  calls := [("charge", "Списать оплату"), ("notify", "Уведомить менеджера")]
+    ("is_vip", "The user is a VIP"),
+    ("local_ok", "Local check in the catalog"),
+    ("in_stock", "The item is in stock")]
+  calls := [("charge", "Charge the payment"), ("notify", "Notify the manager")]
   variables := []
   bot := .sec "home" [
       ("home", .message [
@@ -200,7 +200,7 @@ def textRoundTrip (d : Doc) : Bool :=
   | .error _ => true
 
 -- an unknown key is read and kept, the behaviour does not change
-#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"x-ui\": {\"x\": 10}}}}, \"x-author\": \"Анна\"}" >>= decode with
+#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"x-ui\": {\"x\": 10}}}}, \"x-author\": \"Zoë\"}" >>= decode with
   | .ok d => d.ext.length == 1 && d.check.isEmpty
   | .error _ => false
 

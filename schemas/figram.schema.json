@@ -1,22 +1,22 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Figram: документ Telegram-бота, формат 1",
-  "description": "Структурная часть формата. Смысловые условия (уникальность идентификаторов, существование целей, описанность условий и действий) проверяет `figram check`. Неизвестные ключи разрешены везде: их сохраняют и не интерпретируют. Целые поля (`ms` таймеров) — точные целые; валидатор, хранящий числа как double, может принять `1e-400` (как double это 0), который `figram check` отвергнет (FORMAT.md, «Числа»).",
+  "title": "Figram: Telegram bot document, format 1",
+  "description": "The structural part of the format. The semantic conditions (unique names, existing targets, described conditions and actions) are checked by `figram check`. Unknown keys are allowed everywhere: they are kept and not interpreted. Integer fields (timer delays) are exact integers; a validator that stores numbers as doubles may accept `1e-400` (0 as a double), which `figram check` rejects (docs/format.md, section 3, \"Numbers\").",
   "type": "object",
   "required": ["figram", "bot"],
   "properties": {
-    "figram": { "const": 1, "description": "Основная версия формата. Меняется только при несовместимом изменении." },
+    "figram": { "const": 1, "description": "The major version of the format. Changes only with an incompatible change." },
     "requires": {
       "type": "array",
       "items": { "type": "string" },
       "uniqueItems": true,
       "maxItems": 0,
-      "description": "Смысловые расширения, без которых документ нельзя понять правильно. Читатель обязан отвергнуть документ, если не знает хотя бы одно. В версии 1 известных расширений нет."
+      "description": "Semantic extensions without which the document cannot be understood correctly. A reader must reject the document if it does not know at least one of them. Version 1 defines no extensions."
     },
-    "conditions": { "$ref": "#/$defs/descriptions", "description": "Условия: имя → текст, который написал дизайнер." },
-    "calls": { "$ref": "#/$defs/descriptions", "description": "Действия: имя → описание для разработчика." },
-    "variables": { "$ref": "#/$defs/descriptions", "description": "Переменные: имя → описание для разработчика." },
-    "bot": { "$ref": "#/$defs/section", "description": "Весь бот — корневой раздел." }
+    "conditions": { "$ref": "#/$defs/descriptions", "description": "Conditions: name → the text the designer wrote." },
+    "calls": { "$ref": "#/$defs/descriptions", "description": "Actions: name → a description for the developer." },
+    "variables": { "$ref": "#/$defs/descriptions", "description": "Variables: name → a description for the developer." },
+    "bot": { "$ref": "#/$defs/section", "description": "The whole bot is the root section." }
   },
   "$defs": {
     "id": { "type": "string", "minLength": 1 },
@@ -27,7 +27,7 @@
     },
     "handlers": {
       "type": "object",
-      "description": "Событие → варианты по порядку; первый вариант с выполненным условием выигрывает.",
+      "description": "Event → variants in order; the first variant whose condition holds wins.",
       "propertyNames": { "minLength": 1 },
       "additionalProperties": { "type": "array", "items": { "$ref": "#/$defs/variant" } }
     },
@@ -35,10 +35,10 @@
       "type": "object",
       "required": ["to"],
       "properties": {
-        "if": { "$ref": "#/$defs/id", "description": "Имя условия; без него — «иначе / всегда»." },
-        "to": { "$ref": "#/$defs/id", "description": "Сообщение или раздел." },
-        "resume": { "type": "boolean", "description": "true — вернуться в раздел «to» туда, где пользователь остановился." },
-        "do": { "type": "array", "items": { "$ref": "#/$defs/id" }, "description": "Действия по порядку." }
+        "if": { "$ref": "#/$defs/id", "description": "The name of a condition; without it, \"otherwise / always\"." },
+        "to": { "$ref": "#/$defs/id", "description": "A message or a section." },
+        "resume": { "type": "boolean", "description": "true: resume section `to` where the user left off." },
+        "do": { "type": "array", "items": { "$ref": "#/$defs/id" }, "description": "Actions in order." }
       }
     },
     "node": {
@@ -50,8 +50,8 @@
       "type": "object",
       "required": ["initial", "children"],
       "properties": {
-        "initial": { "$ref": "#/$defs/id", "description": "С какого вложенного узла начинается раздел." },
-        "on": { "$ref": "#/$defs/handlers", "description": "Стрелки раздела работают на любом сообщении внутри." },
+        "initial": { "$ref": "#/$defs/id", "description": "The child node the section starts with." },
+        "on": { "$ref": "#/$defs/handlers", "description": "The arrows of a section work on every message inside it." },
         "children": {
           "type": "object",
           "minProperties": 1,
@@ -67,7 +67,7 @@
         "on": { "$ref": "#/$defs/handlers" },
         "timers": {
           "type": "object",
-          "description": "Напоминания: имя → задержка в миллисекундах (0 … 2^53−1). Срабатывание приходит событием «timer:имя» с жетоном запуска.",
+          "description": "Reminders: name → delay in milliseconds (0 … 2^53−1). A firing arrives as the event `timer:<name>` with the token of the run.",
           "propertyNames": { "minLength": 1 },
           "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
         }

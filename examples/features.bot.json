@@ -1,13 +1,13 @@
 {
   "figram": 1,
   "conditions": {
-    "is_vip": "Пользователь — VIP",
-    "local_ok": "Локальная проверка в каталоге",
-    "in_stock": "Товар есть на складе"
+    "is_vip": "The user is a VIP",
+    "local_ok": "Local check in the catalog",
+    "in_stock": "The item is in stock"
   },
   "calls": {
-    "charge": "Списать оплату",
-    "notify": "Уведомить менеджера"
+    "charge": "Charge the payment",
+    "notify": "Notify the manager"
   },
   "bot": {
     "initial": "home",

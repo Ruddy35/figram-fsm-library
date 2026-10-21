@@ -92,8 +92,8 @@ def gen (n : Nat) : M Doc := do
   let plan : Plan := ⟨parent, secs, on, timers⟩
   return {
     requires := [],
-    conditions := conds.map fun c => (c, s!"Случайное условие {c}"),
-    calls := calls.map fun c => (c, s!"Случайное действие {c}"),
+    conditions := conds.map fun c => (c, s!"Random condition {c}"),
+    calls := calls.map fun c => (c, s!"Random action {c}"),
     variables := [],
     bot := build plan "",
     ext := [] }
