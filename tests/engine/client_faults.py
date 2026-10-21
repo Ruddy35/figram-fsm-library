@@ -1,11 +1,12 @@
-"""Клиент не зависает ни при каком поведении движка (N01).
+"""The client never hangs, whatever the engine does.
 
-Подставные «движки» (тестовые двойники, sh) нарушают протокол разными
-способами; каждый запрос из многих потоков должен завершиться контролируемой
-ошибкой за ограниченное время, а следующий запрос — уйти в новый, исправный
-процесс. Двойники сбоят на запросе после ответа на hello (клиент отправляет
-hello при запуске процесса и ждёт ответа); сбои до готовности — отдельно:
-конструктор обязан завершиться EngineError за start_timeout.
+The fake "engines" (test doubles, sh) violate the protocol in different ways;
+every request from many threads must end with a controlled error within a
+bounded time, and the next request must go to a new, healthy process. The
+doubles fail on a request after answering hello (the client sends hello when
+it starts a process and waits for the reply); failures before readiness are
+checked separately: the constructor must fail with EngineError within
+start_timeout.
 
     python3 client_faults.py ENGINE bot.json
 """
@@ -22,19 +23,19 @@ from figram_client import Engine, EngineError
 
 HELLO = 'read l; echo \'{"id":0,"protocol":1,"states":1}\'; '
 FAKES = {
-    "невалидный JSON": 'read l; echo "{oops"; sleep 30',
-    "неизвестный id": 'read l; echo \'{"id": 999, "snapshot": {}}\'; sleep 30',
-    "ответ без id": 'read l; echo \'{"snapshot": {}}\'; sleep 30',
+    "invalid JSON": 'read l; echo "{oops"; sleep 30',
+    "unknown id": 'read l; echo \'{"id": 999, "snapshot": {}}\'; sleep 30',
+    "reply without id": 'read l; echo \'{"snapshot": {}}\'; sleep 30',
     "id = true": 'read l; echo \'{"id": true, "snapshot": {"at": "a"}, "actions": []}\'; sleep 30',
-    "пустой результат": 'read l; echo \'{"id": 1}\'; sleep 30',
+    "empty result": 'read l; echo \'{"id": 1}\'; sleep 30',
     "result + error": 'read l; echo \'{"id": 1, "snapshot": {"at": "a"}, "actions": [], "error": "x"}\'; sleep 30',
     "seq = true": 'read l; echo \'{"id": 1, "snapshot": {"at": "a", "seq": true}, "actions": []}\'; sleep 30',
-    "неизвестное действие": 'read l; echo \'{"id": 1, "snapshot": {"at": "a"}, "actions": [{"jump": "x"}]}\'; sleep 30',
-    "нет ответа": 'while read l; do :; done',
-    "обрыв вывода": 'read l; exit 0',
-    "падение": 'read l; kill -SEGV $$',
-    "не читает вход": 'sleep 30',
-    "мусор и не читает вход": 'sleep 0.3; echo "{oops"; sleep 30',
+    "unknown action": 'read l; echo \'{"id": 1, "snapshot": {"at": "a"}, "actions": [{"jump": "x"}]}\'; sleep 30',
+    "no reply": 'while read l; do :; done',
+    "output closed": 'read l; exit 0',
+    "crash": 'read l; kill -SEGV $$',
+    "does not read input": 'sleep 30',
+    "garbage, does not read input": 'sleep 0.3; echo "{oops"; sleep 30',
 }
 BIG = {"at": "home", "resume": {f"s{i}": "m" for i in range(7000)}}
 
@@ -52,12 +53,12 @@ with tempfile.TemporaryDirectory() as d:
         def worker(i):
             try:
                 if i % 2:
-                    engine.step("u", BIG, "btn:x")   # большой запрос (~110 КБ)
+                    engine.step("u", BIG, "btn:x")   # a large request (~110 KB)
                 else:
                     engine.start("u")
-                results.append("ответ")
+                results.append("reply")
             except EngineError:
-                results.append("ошибка")
+                results.append("error")
 
         t0 = time.monotonic()
         threads = [threading.Thread(target=worker, args=(i,)) for i in range(8)]
@@ -70,14 +71,14 @@ with tempfile.TemporaryDirectory() as d:
         t1 = time.monotonic()
         engine.close()
         close_took = time.monotonic() - t1
-        good = hung == 0 and results.count("ошибка") == 8 and took < 3.0 and close_took < 3.0
+        good = hung == 0 and results.count("error") == 8 and took < 3.0 and close_took < 3.0
         ok &= good
-        print(f"{'ok ' if good else 'НЕТ'} {name}: ошибок {results.count('ошибка')} из 8, "
-              f"зависло {hung}, {took:.1f} с, close {close_took:.1f} с")
+        print(f"{'ok  ' if good else 'FAIL'} {name}: errors {results.count('error')} of 8, "
+              f"hung {hung}, {took:.1f} s, close {close_took:.1f} s")
 
-    # Много одновременных запросов к одному процессу, который не читает вход:
-    # вместе ~300 КБ — больше буфера канала (64 КБ), писатель блокируется.
-    # Каждый вызов обязан завершиться ошибкой в пределах одного таймаута.
+    # Many concurrent requests to one process that does not read its input:
+    # together ~300 KB, more than the pipe buffer (64 KB), so the writer blocks.
+    # Every call must fail within one timeout.
     path = os.path.join(d, "fake.sh")
     with open(path, "w") as f:
         f.write(f"#!/bin/sh\n{HELLO}sleep 30\n")
@@ -106,17 +107,17 @@ with tempfile.TemporaryDirectory() as d:
     hung = sum(t.is_alive() for t in threads)
     good = len(errors) == 300 and hung == 0 and max(durations) < 2.0
     ok &= good
-    print(f"{'ok ' if good else 'НЕТ'} 300 одновременных запросов (~300 КБ) при заблокированном входе: "
-          f"ошибок {len(errors)}, зависло {hung}, самый долгий вызов {max(durations):.2f} с, всего {took:.1f} с")
+    print(f"{'ok  ' if good else 'FAIL'} 300 concurrent requests (~300 KB) with blocked input: "
+          f"errors {len(errors)}, hung {hung}, slowest call {max(durations):.2f} s, total {took:.1f} s")
 
-    # Сбои до готовности (фаза запуска): конструктор ждёт hello и бросает
-    # EngineError за ограниченное время, а не висит и не возвращает пул.
+    # Failures before readiness (start-up phase): the constructor waits for hello and
+    # raises EngineError within a bounded time instead of hanging or returning the pool.
     START = {
-        "мусор вместо hello": 'read l; echo "{oops"; sleep 30',
-        "выход до hello": 'exit 1',
-        "падение до hello": 'kill -SEGV $$',
-        "не отвечает на hello": 'sleep 30',
-        "hello неверной формы": 'read l; echo \'{"id": 0, "protocol": 1}\'; sleep 30',
+        "garbage instead of hello": 'read l; echo "{oops"; sleep 30',
+        "exit before hello": 'exit 1',
+        "crash before hello": 'kill -SEGV $$',
+        "does not answer hello": 'sleep 30',
+        "hello of the wrong form": 'read l; echo \'{"id": 0, "protocol": 1}\'; sleep 30',
     }
     for name, body in START.items():
         path = os.path.join(d, "fake.sh")
@@ -126,28 +127,28 @@ with tempfile.TemporaryDirectory() as d:
         t0 = time.monotonic()
         try:
             Engine(path, doc, processes=2, timeout=1.0, start_timeout=1.0).close()
-            r = "пул создан"
+            r = "pool created"
         except EngineError:
-            r = "ошибка"
+            r = "error"
         took = time.monotonic() - t0
-        good = r == "ошибка" and took < 3.0
+        good = r == "error" and took < 3.0
         ok &= good
-        print(f"{'ok ' if good else 'НЕТ'} запуск, {name}: {r}, {took:.1f} с (start_timeout 1 с)")
+        print(f"{'ok  ' if good else 'FAIL'} start, {name}: {r}, {took:.1f} s (start_timeout 1 s)")
 
-    # После сбоя пул заменяет процесс: следующий запрос к настоящему движку проходит.
+    # After a failure the pool replaces the process: the next request to the real engine succeeds.
     engine = Engine(real_engine, doc, processes=1, timeout=2.0)
-    engine._procs[0]._fail("внедрённый сбой")
+    engine._procs[0]._fail("injected failure")
     try:
-        engine.start("u")          # к неисправному процессу больше не уходит
+        engine.start("u")          # no longer goes to the failed process
     except EngineError:
         pass
     try:
         r = engine.start("u")
-        print("ok  замена неисправного процесса:", r["snapshot"]["at"])
+        print("ok   replacement of the failed process:", r["snapshot"]["at"])
     except EngineError as e:
         ok = False
-        print("НЕТ замена неисправного процесса:", e)
+        print("FAIL replacement of the failed process:", e)
     engine.close()
 
-print("клиент устойчив" if ok else "КЛИЕНТ ЗАВИСАЕТ ИЛИ НЕ ВОССТАНАВЛИВАЕТСЯ")
+print("client is robust" if ok else "CLIENT HANGS OR DOES NOT RECOVER")
 sys.exit(0 if ok else 1)

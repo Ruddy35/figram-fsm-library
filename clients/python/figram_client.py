@@ -1,42 +1,43 @@
-"""Клиент figram-engine для Python: пул процессов, общение через stdin/stdout.
+"""Python client of figram-engine: a pool of processes talking over stdin/stdout.
 
-Каждый процесс движка однопоточный, обрабатывает запросы по очереди и отвечает
-строго в порядке запросов (FORMAT.md §7). Клиент отправляет запросы, не
-дожидаясь ответов на предыдущие (конвейер): у каждого запроса свой `id`,
-отдельный поток читает ответы и будит того, кто ждёт. Параллельность — через
-несколько процессов (по числу ядер).
+Each engine process is single-threaded, handles requests one at a time and
+replies strictly in request order (docs/format.md, section 8). The client sends
+requests without waiting for the replies to earlier ones (pipelining): every
+request has its own `id`, and a separate thread reads the replies and wakes the
+waiting caller. Parallelism comes from several processes (one per core).
 
-Пользователь всегда попадает в один и тот же процесс (по хешу ключа) — это
-только распределение нагрузки. Порядок событий пользователя и целостность его
-снимка клиент НЕ обеспечивает: движок не хранит состояния, и два события
-одного пользователя, отправленные без блокировки, считаются от одного снимка —
-одно из них теряется; при сбое процесса все его запросы завершаются ошибкой, и
-повторы хоста могут прийти в любом порядке. Хост обрабатывает события
-пользователя по одному, под блокировкой на пользователя (HOST.md §1.1).
+A user always goes to the same process (by a hash of the key); this only
+spreads the load. The client does NOT keep a user's events in order or protect
+the integrity of the user's snapshot: the engine is stateless, so two events of
+one user sent without a lock are computed from the same snapshot and one of
+them is lost; when a process fails, all its requests fail, and the host's
+retries may arrive in any order. The host processes the events of a user one at
+a time, under a per-user lock (docs/host-contract.md, section 1, step 1).
 
-Жизненный цикл процесса (HOST.md §5):
+Process life cycle (docs/host-contract.md, section 5):
 
-* Запуск. Процесс загружает документ (на больших документах — секунды и
-  минуты); клиент сразу отправляет `hello` и ждёт ответа не дольше
-  `start_timeout`. Запросы процесс принимает только после ответа; вызовы,
-  пришедшие во время загрузки, ждут готовности, и их `timeout` отсчитывается
-  от неё. Таймауты запросов загружающийся процесс не убивают.
-* Таймаут запроса завершает ошибкой только этот вызов: его `id` помечается
-  брошенным, поздний ответ отбрасывается, процесс продолжает работать.
-  Зависшим процесс считается, только если при неотвеченных запросах он
-  ничего не выводит `hang_timeout` секунд.
-* Нарушение протокола (невалидный JSON или UTF-8, строка ответа длиннее
-  `max_line`, чужой или нецелый id, ответ не по порядку, ответ неправильной
-  формы, обрыв вывода, падение, нет ответа на `hello`) и зависание помечают
-  процесс неисправным, будят все ожидающие вызовы ошибкой и убивают процесс.
-  Исключение — ответ-ошибка с `"id": null` (движок не разобрал строку
-  запроса): ответы идут по порядку, поэтому он завершает ошибкой только самый
-  старый неотвеченный запрос.
-* Замена. Следующий вызов к неисправному процессу запускает новый и ждёт его
-  загрузки. Если процессы слота падают подряд, не обслужив ни одного запроса
-  (например, документ не загружается), перезапуск откладывается с
-  экспоненциальной паузой `restart_backoff`; в паузе вызовы сразу получают
-  `EngineError` с причиной последнего сбоя, включая хвост stderr движка.
+* Start. The process loads the document (seconds or minutes for large
+  documents); the client sends `hello` right away and waits for the reply at
+  most `start_timeout`. The process accepts requests only after the reply;
+  calls made during loading wait until it is ready, and their `timeout` counts
+  from then. Request timeouts do not kill a process that is still loading.
+* A request timeout fails only that call: its `id` is marked abandoned, the
+  late reply is discarded, and the process keeps running. A process counts as
+  hung only if it prints nothing for `hang_timeout` seconds while requests are
+  unanswered.
+* A protocol violation (invalid JSON or UTF-8, a reply line longer than
+  `max_line`, a foreign or non-integer id, a reply out of order, a reply of the
+  wrong shape, closed output, a crash, no reply to `hello`) and a hang mark the
+  process as failed, wake every waiting call with an error and kill the
+  process. The exception is an error reply with `"id": null` (the engine could
+  not parse the request line): replies come in order, so it fails only the
+  oldest unanswered request.
+* Replacement. The next call to a failed process starts a new one and waits
+  for it to load. If the processes of a slot keep failing before serving a
+  single request (for example, the document does not load), restarts are
+  delayed with an exponential `restart_backoff`; during the delay calls fail
+  at once with an `EngineError` carrying the reason of the last failure,
+  including the tail of the engine's stderr.
 """
 
 from __future__ import annotations
@@ -59,17 +60,17 @@ from protocol import ProtocolError, check_reply
 
 
 class EngineError(Exception):
-    """Отказ вызова движка.
+    """A failed engine call.
 
-    * `retryable` — True: сбой процесса или транспорта (нет ответа за срок,
-      процесс упал, нарушил протокол, не загрузился, перезапускается): шаг —
-      чистая функция, хост повторяет его (HOST.md §5). False — отказ
-      детерминирован: ответ движка с `error` (снимок отвергнут, `seq_overflow`,
-      строка не разобрана) или аргумент, который нельзя отправить; повтор
-      даст то же самое.
-    * `code` — машинный код из ответа движка (`parse_error`, `too_large`,
-      `bad_request`, `bad_snapshot`, `seq_overflow`); None, если ответа с
-      ошибкой не было или движок старый, без поля `code`.
+    * `retryable` — True: a failure of the process or of the transport (no reply
+      in time, the process crashed, violated the protocol, did not load, is
+      restarting): a step is a pure function, so the host repeats it
+      (docs/host-contract.md, section 5). False — the failure is deterministic:
+      an engine reply with `error` (snapshot rejected, `seq_overflow`, line not
+      parsed) or an argument that cannot be sent; a retry gives the same result.
+    * `code` — the machine-readable code from the engine reply (`parse_error`,
+      `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`); None if there
+      was no error reply or the engine is old and has no `code` field.
     """
 
     def __init__(self, message: str, *, code: str | None = None, retryable: bool = True) -> None:
@@ -79,64 +80,64 @@ class EngineError(Exception):
 
 
 PROTOCOL = 1
-# FormatIO.maxDepth: наибольшая вложенность массивов и объектов в строке запроса.
+# FormatIO.maxDepth: the maximum nesting of arrays and objects in a request line.
 MAX_DEPTH = 256
-# Наибольшая длина строки ответа по умолчанию; длиннее — нарушение протокола.
+# Default maximum length of a reply line; a longer line is a protocol violation.
 MAX_LINE = 16 * 1024 * 1024
-STDERR_TAIL = 2048        # сколько последних байт stderr движка попадает в ошибки
-_TICK = 0.25              # период проверки сроков потоком чтения
-_DRAIN = 5.0              # после сбоя вывод дочитывается до EOF не дольше
-_HELLO_ID = 0             # id запроса hello при запуске; вызовы — с 1
-_CLOSED = "клиент закрыт"
+STDERR_TAIL = 2048        # how many last bytes of the engine's stderr go into errors
+_TICK = 0.25              # how often the reader thread checks the deadlines
+_DRAIN = 5.0              # after a failure, output is read until EOF for at most this long
+_HELLO_ID = 0             # id of the start-up hello; calls use 1 and up
+_CLOSED = "client closed"
 _MISSING = object()
-# Экранированный суррогат в тексте ответа (\ud800…\udfff): только тогда нужна
-# поэлементная проверка, что одиночных суррогатов нет.
+# An escaped surrogate in the reply text (\ud800…\udfff): only then is the
+# element-wise check for lone surrogates needed.
 _ESC_SURROGATE = re.compile(r"\\u[dD][89a-fA-F]")
 
 
 def _check_wire(x, depth: int = 0) -> None:
-    """Запрос, который движок разберёт на уровне текста.
+    """A request that the engine can parse at the text level.
 
-    Строку, которую разобрать нельзя (повторяющийся ключ, вложенность больше
-    MAX_DEPTH, одиночный суррогат), движок отвергает ответом-ошибкой, старый
-    движок — ещё и без id. Такие запросы отвергаются здесь, до отправки:
-    ключи — только строки (json.dumps превращает 1 и "1", True и "true" в
-    одинаковые ключи), вложенность ограничена; суррогаты отсекает кодирование.
+    A line that cannot be parsed (a duplicate key, nesting deeper than
+    MAX_DEPTH, a lone surrogate) is rejected by the engine with an error reply,
+    by an old engine even without the id. Such requests are rejected here,
+    before sending: keys must be strings (json.dumps turns 1 and "1", True and
+    "true" into equal keys) and nesting is limited; encoding rejects surrogates.
     """
     if isinstance(x, dict):
         if depth >= MAX_DEPTH:
-            raise ValueError(f"вложенность больше {MAX_DEPTH}")
+            raise ValueError(f"nesting deeper than {MAX_DEPTH}")
         for k, v in x.items():
             if not isinstance(k, str):
-                raise TypeError(f"ключ {k!r} не строка")
+                raise TypeError(f"key {k!r} is not a string")
             _check_wire(v, depth + 1)
     elif isinstance(x, (list, tuple)):
         if depth >= MAX_DEPTH:
-            raise ValueError(f"вложенность больше {MAX_DEPTH}")
+            raise ValueError(f"nesting deeper than {MAX_DEPTH}")
         for v in x:
             _check_wire(v, depth + 1)
 
 
 def _decode(raw: bytes):
-    """Строка ответа → значение JSON, строго: только UTF-8 и без одиночных
-    суррогатов — ни закодированных байтами (CESU), ни экранированных."""
+    """Reply line → JSON value, strictly: UTF-8 only and no lone surrogates,
+    neither encoded as bytes (CESU) nor escaped."""
     text = raw.decode("utf-8")          # UnicodeDecodeError ⊂ ValueError
     value = json.loads(text)
     if _ESC_SURROGATE.search(text):
-        # Пару суррогатов json склеивает в один символ; одиночный не кодируется.
+        # json joins a surrogate pair into one character; a lone one does not encode.
         json.dumps(value, ensure_ascii=False).encode("utf-8")
     return value
 
 
 def _error_reply(resp: dict) -> bool:
-    """Ответ-ошибка: ровно {id, error} (старый протокол) или {id, error, code}."""
+    """An error reply: exactly {id, error} (old protocol) or {id, error, code}."""
     if "error" not in resp:
         return False
     keys = resp.keys() - {"id"}
     if keys not in ({"error"}, {"error", "code"}):
-        raise ProtocolError(f"ответ с error и лишними полями: {sorted(keys)}")
+        raise ProtocolError(f"reply with error and extra fields: {sorted(keys)}")
     if type(resp["error"]) is not str:
-        raise ProtocolError("error не строка")
+        raise ProtocolError("error is not a string")
     if "code" in resp and (type(resp["code"]) is not str or not resp["code"]):
         raise ProtocolError(f"code: {resp['code']!r}")
     return True
@@ -144,15 +145,15 @@ def _error_reply(resp: dict) -> bool:
 
 def _check_hello(resp: dict) -> None:
     keys = resp.keys() - {"id"}
-    # "mutant" — только у испорченного движка тестов (FIGRAM_ALLOW_MUTANTS).
+    # "mutant" — only from the corrupted test engine (FIGRAM_ALLOW_MUTANTS).
     if not {"protocol", "states"} <= keys <= {"protocol", "states", "mutant"}:
-        raise ProtocolError(f"ответ hello: поля {sorted(keys)}")
+        raise ProtocolError(f"hello reply: fields {sorted(keys)}")
     if type(resp["protocol"]) is not int or type(resp["states"]) is not int:
-        raise ProtocolError(f"ответ hello: {resp!r}")
+        raise ProtocolError(f"hello reply: {resp!r}")
     if "mutant" in resp and type(resp["mutant"]) is not str:
-        raise ProtocolError(f"ответ hello: mutant {resp['mutant']!r}")
+        raise ProtocolError(f"hello reply: mutant {resp['mutant']!r}")
     if resp["protocol"] != PROTOCOL:
-        raise ProtocolError(f"протокол движка {resp['protocol']}, клиент знает только {PROTOCOL}")
+        raise ProtocolError(f"engine protocol {resp['protocol']}, the client supports only {PROTOCOL}")
 
 
 class _Config:
@@ -166,8 +167,8 @@ class _Config:
 
 
 class _Call:
-    """Запрос в пути. kind: "user" — вызов хоста; "start" — hello при запуске;
-    "probe" — hello проверки живости после таймаута."""
+    """A request in flight. kind: "user" — a call of the host; "start" — the
+    start-up hello; "probe" — a liveness hello after a timeout."""
     __slots__ = ("done", "response", "op", "kind", "sent", "abandoned")
 
     def __init__(self, op: str, kind: str = "user") -> None:
@@ -175,21 +176,22 @@ class _Call:
         self.response = None
         self.op = op
         self.kind = kind
-        self.sent = False          # записан в stdin: ответ на него обязателен
-        self.abandoned = False     # вызов ушёл по таймауту: поздний ответ отбросить
+        self.sent = False          # written to stdin: a reply to it is required
+        self.abandoned = False     # the call timed out: discard the late reply
 
 
 class _Process:
-    """Один процесс движка.
+    """One engine process.
 
-    * Запись в stdin делает отдельный поток-писатель; вызывающий поток никогда
-      не блокируется на вводе-выводе и ждёт ответ не дольше `timeout` от начала
-      вызова (от готовности, если процесс ещё загружается), включая время,
-      пока запрос стоит в очереди на запись.
-    * Поток чтения читает stdout и stderr (хвост — для текста ошибок), следит
-      за сроками запуска и зависания и ограничивает длину строки ответа.
-    * Замок защищает только таблицы запросов, ввод-вывод под ним не
-      выполняется, поэтому аварийная остановка никогда его не ждёт.
+    * A separate writer thread writes to stdin; the calling thread never blocks
+      on I/O and waits for the reply at most `timeout` from the start of the
+      call (from readiness if the process is still loading), including the time
+      the request waits in the write queue.
+    * The reader thread reads stdout and stderr (the tail goes into error
+      texts), watches the start-up and hang deadlines and limits the length of
+      a reply line.
+    * The lock protects only the request tables and no I/O is done under it,
+      so an emergency stop never waits for it.
     """
 
     def __init__(self, binary: str, document: str, cfg: _Config) -> None:
@@ -205,14 +207,14 @@ class _Process:
         self.spawned_at = time.monotonic()
         self._lock = threading.Lock()
         self._ids = itertools.count(1)
-        self._pending: dict[int, _Call] = {}     # id → запрос без ответа
-        self._sent: collections.deque = collections.deque()   # id записанных, по порядку
+        self._pending: dict[int, _Call] = {}     # id → request without a reply
+        self._sent: collections.deque = collections.deque()   # ids of written requests, in order
         self._outbox: queue.SimpleQueue = queue.SimpleQueue()
         self.failure: str | None = None
         self.failed_at: float | None = None
         self.ready_at: float | None = None
-        self.served = False                      # ответил хотя бы на один вызов
-        self._started = threading.Event()        # загрузка закончилась: готов или сбой
+        self.served = False                      # answered at least one call
+        self._started = threading.Event()        # loading is over: ready or failed
         self._last_progress = self.spawned_at
         self._probe: int | None = None
         self._exit: str | None = None
@@ -229,11 +231,11 @@ class _Process:
     def alive(self) -> bool:
         return self.failure is None
 
-    # --- сбой и остановка -------------------------------------------------
+    # --- failure and shutdown ---------------------------------------------
 
     def _peek_exit(self) -> None:
-        """Запомнить код выхода, если процесс уже завершился сам. Без сбора
-        (WNOWAIT): pid остаётся нашим до wait()."""
+        """Record the exit status if the process has already exited by itself.
+        Without reaping it (WNOWAIT): the pid stays ours until wait()."""
         if self._exit is not None:
             return
         try:
@@ -243,9 +245,9 @@ class _Process:
         if st is None:
             return
         if st.si_code == os.CLD_EXITED:
-            self._exit = f"движок завершился с кодом {st.si_status}"
+            self._exit = f"engine exited with code {st.si_status}"
         elif st.si_code in (os.CLD_KILLED, os.CLD_DUMPED):
-            self._exit = f"движок убит сигналом {st.si_status}"
+            self._exit = f"engine killed by signal {st.si_status}"
 
     def _kill(self) -> None:
         self._peek_exit()
@@ -253,16 +255,16 @@ class _Process:
             os.killpg(self._p.pid, signal.SIGKILL)
         except (ProcessLookupError, PermissionError):
             pass
-        # Собрать процесс сразу, не блокируя вызывающий поток (без зомби).
+        # Reap the process right away without blocking the calling thread (no zombies).
         threading.Thread(target=self._p.wait, daemon=True).start()
 
     def _fail(self, reason: str, kill: bool = True) -> bool:
-        """Пометить процесс неисправным, разбудить всех ожидающих, убить процесс.
+        """Mark the process failed, wake all waiting calls, kill the process.
 
-        Убивает только первый вызов: следующие (читатель видит EOF, писатель —
-        EPIPE) приходят, когда фоновый wait() мог уже собрать процесс, и pid
-        свободен — SIGKILL по нему попал бы в чужую группу процессов.
-        Возвращает True, если этот вызов был первым."""
+        Only the first call kills: later ones (the reader sees EOF, the writer
+        EPIPE) come when the background wait() may already have reaped the
+        process and the pid is free, so a SIGKILL to it could hit another
+        process group. Returns True if this call was the first."""
         with self._lock:
             first = self.failure is None
             if first:
@@ -284,10 +286,10 @@ class _Process:
         return " | ".join(s.strip() for s in text.splitlines() if s.strip())
 
     def error_text(self) -> str:
-        """Причина сбоя с кодом выхода и хвостом stderr движка."""
+        """The failure reason with the exit status and the tail of the engine's stderr."""
         if self.failure != _CLOSED and threading.current_thread() is not self._reader:
-            self._reader.join(0.25)      # дочитать stderr упавшего процесса
-        text = self.failure or "неизвестный сбой"
+            self._reader.join(0.25)      # read the rest of the failed process's stderr
+        text = self.failure or "unknown failure"
         if self._exit:
             text += f"; {self._exit}"
         tail = self.stderr_tail()
@@ -296,14 +298,14 @@ class _Process:
         return text
 
     def _failed_error(self) -> EngineError:
-        return EngineError(f"процесс движка неисправен: {self.error_text()}",
+        return EngineError(f"engine process failed: {self.error_text()}",
                            retryable=self.failure != _CLOSED)
 
-    # --- вызовы -----------------------------------------------------------
+    # --- calls ------------------------------------------------------------
 
     def wait_ready(self) -> None:
-        """Дождаться конца загрузки (ответа на hello); EngineError, если процесс
-        не запустился. Срок запуска соблюдает поток чтения."""
+        """Wait until loading is over (the reply to hello); EngineError if the
+        process did not start. The reader thread enforces the start-up deadline."""
         if self.ready_at is None and self.failure is None:
             t = self._cfg.start_timeout
             self._started.wait(None if t is None else
@@ -311,21 +313,22 @@ class _Process:
         if self.failure is not None:
             raise self._failed_error()
         if self.ready_at is None:
-            self._fail(f"движок не ответил на hello за {self._cfg.start_timeout} с")
+            self._fail(f"engine did not answer hello within {self._cfg.start_timeout} s")
             raise self._failed_error()
 
     def call(self, request: dict, deadline: float | None = None) -> dict:
-        """Отправить запрос и дождаться ответа: не дольше `timeout` от начала
-        вызова или от готовности процесса и не позже `deadline` (monotonic)."""
-        # Сериализация и кодирование до регистрации: неверный аргумент — ошибка
-        # вызова, таблица ожидающих и процесс не затрагиваются. UnicodeEncodeError
-        # (одиночный суррогат) — подкласс ValueError.
+        """Send a request and wait for the reply: at most `timeout` from the start
+        of the call or from the process becoming ready, and no later than
+        `deadline` (monotonic)."""
+        # Serialize and encode before registering: an invalid argument fails the
+        # call and leaves the pending table and the process untouched.
+        # UnicodeEncodeError (a lone surrogate) is a subclass of ValueError.
         try:
             _check_wire(request)
             body = json.dumps(request, ensure_ascii=False, separators=(",", ":"),
                               allow_nan=False).encode()
         except (TypeError, ValueError, RecursionError) as e:
-            raise EngineError(f"запрос не сериализуется в JSON: {e}", retryable=False) from None
+            raise EngineError(f"request is not JSON-serializable: {e}", retryable=False) from None
         self.wait_ready()
         limit = self._timeout
         end = time.monotonic() + limit
@@ -339,7 +342,7 @@ class _Process:
                 self._pending[rid] = c
         if failed:
             raise self._failed_error()
-        # id дописывается к уже сериализованному объекту: {"id":N,...}
+        # the id is prepended to the already serialized object: {"id":N,...}
         line = b'{"id":' + str(rid).encode() + (b"," + body[1:] if body != b"{}" else b"}")
         self._outbox.put((rid, line + b"\n"))
         if not c.done.wait(max(0.0, end - time.monotonic())):
@@ -347,19 +350,19 @@ class _Process:
                 mine = c.response is None and self._pending.get(rid) is c
                 if mine:
                     if c.sent:
-                        c.abandoned = True       # ответ придёт — отбросить
+                        c.abandoned = True       # the reply will come: discard it
                     else:
-                        del self._pending[rid]   # не записан — писатель пропустит
+                        del self._pending[rid]   # not written: the writer skips it
             if mine:
                 self._probe_health()
-                raise EngineError(f"нет ответа за {limit:.3g} с")
+                raise EngineError(f"no reply within {limit:.3g} s")
         if c.response is None:
             raise self._failed_error()
         return c.response
 
     def _probe_health(self) -> None:
-        """После таймаута — hello в очередь (не больше одного сразу): ответ
-        подтверждает, что процесс жив и отвечает по порядку."""
+        """After a timeout, queue a hello (at most one at a time): its reply
+        confirms that the process is alive and replies in order."""
         with self._lock:
             if self.failure is not None or self._probe is not None:
                 return
@@ -368,7 +371,7 @@ class _Process:
             self._pending[rid] = _Call("hello", "probe")
         self._outbox.put((rid, b'{"id":%d,"op":"hello"}\n' % rid))
 
-    # --- потоки -----------------------------------------------------------
+    # --- threads ----------------------------------------------------------
 
     def _write_loop(self) -> None:
         stdin = self._p.stdin
@@ -380,7 +383,7 @@ class _Process:
                 rid, line = item
                 with self._lock:
                     c = self._pending.get(rid)
-                    if c is None:            # снят до записи: таймаут, сбой, close
+                    if c is None:            # removed before writing: timeout, failure, close
                         continue
                     if not self._sent:
                         self._last_progress = time.monotonic()
@@ -390,20 +393,20 @@ class _Process:
                     stdin.write(line)
                     stdin.flush()
                 except (OSError, ValueError) as e:
-                    self._fail(f"запись не удалась: {e!r}")
+                    self._fail(f"write failed: {e!r}")
                     return
         finally:
-            # Вход закрывает только писатель. Остаток буфера в мёртвый процесс
-            # не отправить — ошибку оборванного канала подавляем здесь, иначе
-            # её напечатает финализатор.
+            # Only the writer closes stdin. The rest of the buffer cannot be sent
+            # to a dead process: the broken pipe error is suppressed here, or the
+            # finalizer would print it.
             try:
                 stdin.close()
             except (OSError, ValueError):
                 pass
 
     def _check_deadlines(self) -> float:
-        """Срок запуска (до готовности) и зависания (после); вернуть, сколько
-        можно ждать вывода до следующей проверки."""
+        """The start-up deadline (before readiness) and the hang deadline (after);
+        return how long to wait for output until the next check."""
         now = time.monotonic()
         cfg = self._cfg
         if self.ready_at is None:
@@ -411,7 +414,7 @@ class _Process:
                 return _TICK
             left = self.spawned_at + cfg.start_timeout - now
             if left <= 0:
-                self._fail(f"движок не ответил на hello за {cfg.start_timeout} с (загрузка документа)")
+                self._fail(f"engine did not answer hello within {cfg.start_timeout} s (loading the document)")
             return max(0.0, min(_TICK, left))
         with self._lock:
             busy, last = bool(self._sent), self._last_progress
@@ -419,7 +422,7 @@ class _Process:
             return _TICK
         left = last + cfg.hang_timeout - now
         if left <= 0:
-            self._fail(f"движок завис: нет вывода {cfg.hang_timeout} с при неотвеченных запросах")
+            self._fail(f"engine hung: no output for {cfg.hang_timeout} s with unanswered requests")
         return max(0.0, min(_TICK, left))
 
     def _read_loop(self) -> None:
@@ -429,7 +432,7 @@ class _Process:
         for fd in (ofd, efd):
             poller.register(fd, select.POLLIN)
         open_fds = {ofd, efd}
-        frags: list[bytes] = []          # начало строки ответа без конца строки
+        frags: list[bytes] = []          # the start of a reply line without its end
         flen = 0
         drain_until = None
         max_line = self._cfg.max_line
@@ -440,8 +443,8 @@ class _Process:
                     if self.failure is not None:
                         continue
                 else:
-                    # После сбоя: дочитать вывод до EOF (хвост stderr; процесс,
-                    # который при close ещё пишет ответы, не блокируется).
+                    # After a failure: read the output until EOF (the stderr tail; a
+                    # process that still writes replies at close does not block).
                     if drain_until is None:
                         drain_until = time.monotonic() + _DRAIN
                     wait = drain_until - time.monotonic()
@@ -462,7 +465,7 @@ class _Process:
                         poller.unregister(ofd)
                         open_fds.discard(ofd)
                         if self.failure is None:
-                            # Последняя строка без перевода строки принимается.
+                            # A last line without a newline is accepted.
                             if frags and not self._on_line(b"".join(frags)):
                                 continue
                             self._on_eof(poller, efd, open_fds)
@@ -483,7 +486,7 @@ class _Process:
                             line = chunk[start:nl]
                         start = nl + 1
                         if max_line and len(line) > max_line:
-                            self._fail(f"строка ответа длиннее {max_line} байт")
+                            self._fail(f"reply line longer than {max_line} bytes")
                             break
                         if not self._on_line(line):
                             break
@@ -491,11 +494,11 @@ class _Process:
                         frags.append(chunk[start:])
                         flen += len(chunk) - start
                         if max_line and flen > max_line:
-                            self._fail(f"строка ответа длиннее {max_line} байт (конца строки нет)")
+                            self._fail(f"reply line longer than {max_line} bytes (no end of line)")
                     if self.failure is not None:
                         frags, flen = [], 0
-        except Exception as e:  # noqa: BLE001 — любой сбой чтения
-            self._fail(f"сбой чтения: {e!r}")
+        except Exception as e:  # noqa: BLE001 — any read failure
+            self._fail(f"read failed: {e!r}")
         finally:
             for f in (out, err):
                 try:
@@ -509,8 +512,8 @@ class _Process:
             del self._err[:-STDERR_TAIL]
 
     def _on_eof(self, poller, efd: int, open_fds: set) -> None:
-        """stdout закрыт: коротко дочитать stderr (там причина, например ошибка
-        документа) и код выхода, затем сбой."""
+        """stdout is closed: briefly read the rest of stderr (it holds the reason,
+        for example a document error) and the exit status, then fail."""
         end = time.monotonic() + 0.2
         while efd in open_fds:
             left = end - time.monotonic()
@@ -522,27 +525,27 @@ class _Process:
                 open_fds.discard(efd)
                 break
             self._add_stderr(chunk)
-        for _ in range(5):          # stderr закрыт — процесс вот-вот станет зомби
+        for _ in range(5):          # stderr is closed: the process is about to become a zombie
             self._peek_exit()
             if self._exit is not None or efd in open_fds:
                 break
             time.sleep(0.01)
-        self._fail("движок закрыл вывод")
+        self._fail("engine closed its output")
 
     def _on_line(self, raw: bytes) -> bool:
-        """Разобрать строку ответа; False — процесс помечен неисправным."""
+        """Parse a reply line; False — the process has been marked failed."""
         try:
             resp = _decode(raw)
         except (ValueError, RecursionError) as e:
-            self._fail(f"невалидный ответ (JSON или UTF-8): {e!r} в {raw[:200]!r}")
+            self._fail(f"invalid reply (JSON or UTF-8): {e!r} in {raw[:200]!r}")
             return False
         if type(resp) is not dict:
-            self._fail(f"ответ не объект: {raw[:200]!r}")
+            self._fail(f"reply is not an object: {raw[:200]!r}")
             return False
         try:
             is_error = _error_reply(resp)
         except ProtocolError as e:
-            self._fail(f"нарушение протокола: {e}")
+            self._fail(f"protocol violation: {e}")
             return False
         rid = resp.get("id", _MISSING)
         with self._lock:
@@ -550,18 +553,18 @@ class _Process:
                 return False
             head = self._sent[0] if self._sent else None
             if rid is None and is_error and head is not None:
-                # Строку не разобрали, id неизвестен: ответы идут строго по
-                # порядку запросов — это ответ на самый старый неотвеченный.
+                # The line was not parsed and its id is unknown: replies come
+                # strictly in request order, so this answers the oldest request.
                 rid = head
             c = self._pending.get(rid) if type(rid) is int else None
         if type(rid) is not int:
-            self._fail(f"ответ без целого id: {raw[:200]!r}")
+            self._fail(f"reply without an integer id: {raw[:200]!r}")
             return False
         if c is None:
-            self._fail(f"ответ с неизвестным id {rid}")
+            self._fail(f"reply with an unknown id {rid}")
             return False
         if rid != head:
-            self._fail(f"ответ на запрос {rid} раньше, чем на {head}: нарушен порядок ответов")
+            self._fail(f"reply to request {rid} before the reply to {head}: replies out of order")
             return False
         try:
             if is_error:
@@ -571,10 +574,10 @@ class _Process:
             else:
                 check_reply(resp, rid, c.op)
         except ProtocolError as e:
-            self._fail(f"нарушение протокола: {e}")
+            self._fail(f"protocol violation: {e}")
             return False
         with self._lock:
-            if self._pending.get(rid) is not c:      # сбой между проверками
+            if self._pending.get(rid) is not c:      # a failure between the checks
                 return False
             del self._pending[rid]
             self._sent.popleft()
@@ -587,7 +590,7 @@ class _Process:
         if c.kind == "user":
             c.done.set()
         elif is_error:
-            self._fail(f"движок отверг hello: {resp['error']}")
+            self._fail(f"engine rejected hello: {resp['error']}")
             return False
         elif c.kind == "start":
             self.ready_at = time.monotonic()
@@ -595,13 +598,13 @@ class _Process:
         return True
 
     def _begin_close(self) -> None:
-        # Новые вызовы — ошибка, ожидающие будятся сразу. Готовый процесс не
-        # убивается: писатель закрывает stdin, движок выходит по EOF. Ещё не
-        # загрузившийся убивается сразу: вход он прочтёт только после загрузки,
-        # а запросов в работе у него нет.
+        # New calls fail and waiting calls are woken at once. A ready process is
+        # not killed: the writer closes stdin and the engine exits on EOF. A
+        # process that is still loading is killed at once: it would read its
+        # input only after loading, and it has no requests in progress.
         loading = self.ready_at is None
         first = self._fail(_CLOSED, kill=loading)
-        self._closing = first and not loading     # жив, не убит: остановка за close
+        self._closing = first and not loading     # alive, not killed: close stops it
 
     def _finish_close(self, deadline: float) -> None:
         self._writer.join(max(0.0, deadline - time.monotonic()))
@@ -609,37 +612,37 @@ class _Process:
             self._p.wait(timeout=max(0.0, deadline - time.monotonic()))
         except subprocess.TimeoutExpired:
             if self._closing:
-                self._kill()   # жив и не собран: pid ещё наш
+                self._kill()   # alive and not reaped: the pid is still ours
             self._p.wait()
 
     def close(self, deadline: float | None = None) -> None:
-        """Завершить процесс; не дольше `timeout` (или до `deadline`), даже если
-        движок завис."""
+        """Stop the process within `timeout` (or by `deadline`), even if the
+        engine hangs."""
         self._begin_close()
         self._finish_close(time.monotonic() + self._timeout if deadline is None else deadline)
 
 
 class Engine:
-    """Пул процессов `figram-engine`. Безопасен для вызова из многих потоков.
+    """A pool of `figram-engine` processes. Safe to call from many threads.
 
-    * `timeout` — срок одного обращения к движку: от начала вызова или от
-      готовности процесса, если он ещё загружается;
-    * `start_timeout` — срок загрузки документа (ответа на hello) у каждого
-      процесса; None — без предела;
-    * `hang_timeout` — процесс, который при неотвеченных запросах ничего не
-      выводит столько секунд, считается зависшим и заменяется; None — по
-      умолчанию max(60, 3 × timeout); math.inf — никогда;
-    * `step_timeout` — общий срок `step` от готовности процесса: оба обращения
-      к движку (запрос условий и повтор с ними) и функция условий; None —
-      2 × timeout;
-    * `max_line` — наибольшая длина строки ответа в байтах (0 — без предела);
-    * `restart_backoff` — (начальная, наибольшая) пауза в секундах перед
-      повторным перезапуском слота, процессы которого падают, не обслужив ни
-      одного запроса; удваивается с каждым таким сбоем, сбрасывается, когда
-      процесс слота ответил на запрос; (0, 0) — без пауз;
-    * `wait_ready` — конструктор ждёт загрузки всех процессов и бросает
-      EngineError (с хвостом stderr движка), если какой-то не запустился;
-      False — вернуться сразу, вызовы сами дождутся готовности.
+    * `timeout` — the deadline of one engine request: from the start of the call
+      or from the process becoming ready if it is still loading;
+    * `start_timeout` — the deadline for loading the document (the reply to
+      hello), per process; None — no limit;
+    * `hang_timeout` — a process that prints nothing for this many seconds while
+      requests are unanswered counts as hung and is replaced; None — the
+      default max(60, 3 × timeout); math.inf — never;
+    * `step_timeout` — the overall deadline of `step` from the process becoming
+      ready: both engine requests (asking for the conditions and repeating with
+      them) and the conditions function; None — 2 × timeout;
+    * `max_line` — the maximum length of a reply line in bytes (0 — no limit);
+    * `restart_backoff` — (initial, maximum) delay in seconds before restarting
+      a slot again whose processes fail without serving a single request; it
+      doubles with every such failure and resets when a process of the slot has
+      answered a request; (0, 0) — no delays;
+    * `wait_ready` — the constructor waits until all processes have loaded and
+      raises EngineError (with the tail of the engine's stderr) if one did not
+      start; False — return at once, calls wait for readiness themselves.
     """
 
     def __init__(self, binary: str, document: str, processes: int = 1,
@@ -648,7 +651,7 @@ class Engine:
                  max_line: int = MAX_LINE, restart_backoff: tuple[float, float] = (0.1, 30.0),
                  wait_ready: bool = True) -> None:
         if processes < 1:
-            raise ValueError("processes должно быть не меньше 1")
+            raise ValueError("processes must be at least 1")
         if hang_timeout is None:
             hang_timeout = max(60.0, 3 * timeout)
         self._cfg = _Config(timeout, start_timeout, hang_timeout, max_line)
@@ -658,8 +661,8 @@ class Engine:
         self._swap = threading.Lock()
         self._closed = False
         self._procs: list[_Process] = []
-        self._fails = [0] * processes                # подряд упавших процессов слота
-        self._retry_at = [0.0] * processes           # раньше этого слот не перезапускать
+        self._fails = [0] * processes                # processes of the slot that failed in a row
+        self._retry_at = [0.0] * processes           # do not restart the slot before this time
         self._seen: list[_Process | None] = [None] * processes
         try:
             for _ in range(processes):
@@ -673,7 +676,7 @@ class Engine:
                     p.wait_ready()
                 except EngineError as e:
                     self.close()
-                    raise EngineError(f"движок не запустился: {e}") from None
+                    raise EngineError(f"engine did not start: {e}") from None
 
     def _delay(self, fails: int) -> float:
         base, cap = self._backoff
@@ -682,8 +685,9 @@ class Engine:
         return min(cap, base * 2 ** min(fails - 1, 60))
 
     def _proc(self, key: str) -> _Process:
-        """Процесс пользователя; неисправный заменяется новым (текущие запросы
-        к старому уже завершены ошибкой, хост повторит их по контракту)."""
+        """The user's process; a failed one is replaced by a new one (the requests
+        in progress on the old one have already failed; the host repeats them as
+        the contract requires)."""
         if self._closed:
             raise EngineError(_CLOSED, retryable=False)
         i = zlib.crc32(key.encode()) % len(self._procs)
@@ -698,7 +702,7 @@ class Engine:
             if p.alive:
                 return p
             now = time.monotonic()
-            if self._seen[i] is not p:       # этот сбой ещё не учтён: назначить паузу
+            if self._seen[i] is not p:       # this failure is not counted yet: schedule the delay
                 self._seen[i] = p
                 if p.served:
                     self._fails[i] = 0
@@ -709,28 +713,29 @@ class Engine:
             else:
                 try:
                     self._procs[i] = _Process(*self._args, self._cfg)
-                except OSError as e:   # нет бинарника, нет прав, EMFILE, EAGAIN
+                except OSError as e:   # no binary, no permission, EMFILE, EAGAIN
                     self._retry_at[i] = now + self._delay(self._fails[i])
                     self._fails[i] += 1
                     spawn_error = e
                 else:
                     return self._procs[i]
         if spawn_error is not None:
-            raise EngineError(f"не удалось запустить движок: {spawn_error}") from None
-        raise EngineError(f"процесс движка перезапустится через {wait:.1f} с; "
-                          f"последний сбой: {p.error_text()}")
+            raise EngineError(f"cannot start the engine: {spawn_error}") from None
+        raise EngineError(f"engine process restarts in {wait:.1f} s; "
+                          f"last failure: {p.error_text()}")
 
     def start(self, key: str, seq: int | None = None) -> dict:
-        """Новый пользователь. `seq` — номер последнего перехода, с которого
-        продолжить счётчик (сброс существующего пользователя, HOST.md §4; нужен
-        движок, принимающий `start` с `seq`)."""
+        """A new user. `seq` — the number of the last transition to continue the
+        counter from (resetting an existing user, docs/host-contract.md, section 4;
+        needs an engine that accepts `start` with `seq`)."""
         request = {"op": "start"}
         if seq is not None:
             request["seq"] = seq
         return self._check(self._proc(key).call(request))
 
     def restart(self, key: str, snapshot: dict) -> dict:
-        """Начать пользователя заново, не сбрасывая счётчик жетонов (HOST.md)."""
+        """Start the user over without resetting the token counter
+        (docs/host-contract.md, section 4)."""
         return self._check(self._proc(key).call({"op": "restart", "snapshot": snapshot}))
 
     def step(
@@ -741,12 +746,12 @@ class Engine:
         guards: Callable[[Iterable[str]], dict[str, bool]] | None = None,
         token: int | None = None,
     ) -> dict:
-        """Шаг автомата. `guards(names)` вычисляет условия разработчика —
-        вызывается только если движок сообщил, что они нужны для этого шага.
-        Для события таймера `timer:<имя>` передайте `token` из его start_timer.
-        Весь шаг укладывается в `step_timeout` от готовности процесса; функцию
-        условий прервать нельзя, но если она вернулась после срока, второй
-        запрос не отправляется — EngineError."""
+        """A machine step. `guards(names)` computes the developer's conditions;
+        it is called only if the engine says they are needed for this step.
+        For a timer event `timer:<name>` pass the `token` of its start_timer.
+        The whole step fits in `step_timeout` from the process becoming ready;
+        the conditions function cannot be interrupted, but if it returns after
+        the deadline, the second request is not sent and EngineError is raised."""
         proc = self._proc(key)
         request = {"op": "step", "snapshot": snapshot, "event": event}
         if token is not None:
@@ -757,25 +762,25 @@ class Engine:
         if "need" in response:
             need = response["need"]
             if guards is None:
-                raise EngineError(f"нужны условия: {need}", retryable=False)
+                raise EngineError(f"conditions needed: {need}", retryable=False)
             values = guards(list(need))
             if type(values) is not dict:
-                raise EngineError(f"функция условий вернула {type(values).__name__}, нужен dict",
+                raise EngineError(f"the conditions function returned {type(values).__name__}, not a dict",
                                   retryable=False)
             missing = [n for n in need if n not in values]
             wrong = [n for n in need if n in values and type(values[n]) is not bool]
             if missing or wrong:
-                raise EngineError(f"функция условий: нет значений {missing}, не bool {wrong}",
+                raise EngineError(f"the conditions function: no values for {missing}, not bool: {wrong}",
                                   retryable=False)
             if time.monotonic() >= deadline:
-                raise EngineError(f"шаг не уложился в {self._step_timeout:.3g} с: "
-                                  "функция условий вернулась после срока")
+                raise EngineError(f"the step did not fit in {self._step_timeout:.3g} s: "
+                                  "the conditions function returned after the deadline")
             response = proc.call({**request, "guards": {n: values[n] for n in need}}, deadline)
             if "need" in response:
-                raise EngineError(f"движок повторно запросил условия: {response['need']}")
+                raise EngineError(f"the engine asked for conditions again: {response['need']}")
         response = self._check(response)
         if "snapshot" not in response:
-            raise EngineError(f"незавершённый ответ шага: {response}")
+            raise EngineError(f"incomplete step reply: {response}")
         return response
 
     @staticmethod
@@ -785,8 +790,9 @@ class Engine:
         return response
 
     def close(self) -> None:
-        """Закрыть пул: после него вызовы — EngineError, процессы не запускаются.
-        Процессы закрываются одновременно, с одним общим сроком `timeout`."""
+        """Close the pool: afterwards calls raise EngineError and no processes are
+        started. The processes are closed at the same time, with one shared
+        `timeout` deadline."""
         with self._swap:
             self._closed = True
             procs = list(self._procs)

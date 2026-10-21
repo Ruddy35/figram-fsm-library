@@ -1,10 +1,10 @@
-"""Строгая проверка ответов протокола движка (FORMAT.md §7) и запуск дочерних
-процессов с жёстким сроком. Используется клиентом и всеми тестами.
+"""Strict checks of engine protocol replies (docs/format.md, section 8) and running
+child processes with a hard deadline. Used by the client and by all tests.
 
-Правило: ответ — ровно один из вариантов «результат», «need», «error»;
-типы полей проверяются точно (булево значение не считается числом).
-Ответ-ошибка — ровно поля `id`, `error` (текст для человека) и `code`
-(машинный код из ERROR_CODES, FORMAT.md §7).
+Rule: a reply is exactly one of the variants "result", "need", "error"; field
+types are checked exactly (a boolean is not a number). An error reply has
+exactly the fields `id`, `error` (a text for humans) and `code` (a machine code
+from ERROR_CODES, docs/format.md, section 8, "Errors").
 """
 
 from __future__ import annotations
@@ -15,16 +15,16 @@ import subprocess
 
 MAX_INT = 9007199254740991
 
-# Машинные коды ответа-ошибки (FORMAT.md §7, «Ошибки»).
+# Machine codes of an error reply (docs/format.md, section 8, "Errors").
 ERROR_CODES = frozenset({"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow"})
 
 
 class ProtocolError(Exception):
-    """Ответ движка нарушает протокол."""
+    """An engine reply violates the protocol."""
 
 
 class ChildTimeout(Exception):
-    """Дочерний процесс не уложился в срок."""
+    """A child process did not finish in time."""
 
 
 def is_int(x) -> bool:
@@ -33,35 +33,35 @@ def is_int(x) -> bool:
 
 def nat(x, what: str) -> None:
     if not is_int(x) or not 0 <= x <= MAX_INT:
-        raise ProtocolError(f"{what}: ожидалось целое 0…2^53−1, получено {x!r}")
+        raise ProtocolError(f"{what}: expected an integer 0…2^53−1, got {x!r}")
 
 
 def name(x, what: str) -> None:
     if type(x) is not str or not x:
-        raise ProtocolError(f"{what}: ожидалась непустая строка, получено {x!r}")
+        raise ProtocolError(f"{what}: expected a non-empty string, got {x!r}")
 
 
 def check_snapshot(s) -> None:
-    """Строго по snapshot.schema.json."""
+    """Strictly by schemas/snapshot.schema.json."""
     if type(s) is not dict:
-        raise ProtocolError(f"снимок не объект: {s!r}")
+        raise ProtocolError(f"snapshot is not an object: {s!r}")
     extra = set(s) - {"v", "at", "resume", "timers", "seq"}
     if extra:
-        raise ProtocolError(f"снимок: лишние поля {sorted(extra)}")
+        raise ProtocolError(f"snapshot: extra fields {sorted(extra)}")
     if "v" in s and (not is_int(s["v"]) or s["v"] != 1):
-        raise ProtocolError(f"снимок: версия {s['v']!r}")
-    name(s.get("at"), "снимок.at")
+        raise ProtocolError(f"snapshot: version {s['v']!r}")
+    name(s.get("at"), "snapshot.at")
     for k, field in (("resume", "resume"), ("timers", "timers")):
         if k in s and type(s[k]) is not dict:
-            raise ProtocolError(f"снимок.{field} не объект")
+            raise ProtocolError(f"snapshot.{field} is not an object")
     for k, v in s.get("resume", {}).items():
-        name(k, "снимок.resume: раздел")
-        name(v, f"снимок.resume.{k}")
+        name(k, "snapshot.resume: section")
+        name(v, f"snapshot.resume.{k}")
     for k, v in s.get("timers", {}).items():
-        name(k, "снимок.timers: имя")
-        nat(v, f"снимок.timers.{k}")
+        name(k, "snapshot.timers: name")
+        nat(v, f"snapshot.timers.{k}")
     if "seq" in s:
-        nat(s["seq"], "снимок.seq")
+        nat(s["seq"], "snapshot.seq")
 
 
 ACTION_FORMS = {
@@ -74,47 +74,47 @@ ACTION_FORMS = {
 
 def check_actions(acts) -> None:
     if type(acts) is not list:
-        raise ProtocolError(f"actions не список: {acts!r}")
+        raise ProtocolError(f"actions is not a list: {acts!r}")
     for a in acts:
         if type(a) is not dict:
-            raise ProtocolError(f"действие не объект: {a!r}")
+            raise ProtocolError(f"action is not an object: {a!r}")
         kinds = [k for k in ACTION_FORMS if k in a]
         if len(kinds) != 1 or set(a) != ACTION_FORMS[kinds[0]]:
-            raise ProtocolError(f"неизвестная форма действия: {a!r}")
-        name(a[kinds[0]], f"действие {kinds[0]}")
+            raise ProtocolError(f"unknown action form: {a!r}")
+        name(a[kinds[0]], f"action {kinds[0]}")
         if kinds[0] == "start_timer":
             nat(a["ms"], "start_timer.ms")
             nat(a["token"], "start_timer.token")
 
 
 def check_error(resp) -> str:
-    """Проверить форму ответа-ошибки (ровно `id`, `error`, `code`; `id` — любое
-    значение JSON или null); вернуть код."""
+    """Check the form of an error reply (exactly `id`, `error`, `code`; `id` is
+    any JSON value or null); return the code."""
     if type(resp) is not dict or set(resp) != {"id", "error", "code"}:
-        raise ProtocolError(f"ответ-ошибка: поля {sorted(resp) if type(resp) is dict else resp!r}")
+        raise ProtocolError(f"error reply: fields {sorted(resp) if type(resp) is dict else resp!r}")
     if type(resp["error"]) is not str or not resp["error"]:
-        raise ProtocolError(f"error не непустая строка: {resp['error']!r}")
+        raise ProtocolError(f"error is not a non-empty string: {resp['error']!r}")
     if resp["code"] not in ERROR_CODES:
-        raise ProtocolError(f"неизвестный код ошибки {resp['code']!r}")
+        raise ProtocolError(f"unknown error code {resp['code']!r}")
     return resp["code"]
 
 
 def check_reply(resp, rid: int, op: str) -> str:
-    """Проверить ответ на запрос `op` с id `rid`; вернуть вариант:
-    'result', 'need', 'error' или 'hello'."""
+    """Check the reply to request `op` with id `rid`; return the variant:
+    'result', 'need', 'error' or 'hello'."""
     if type(resp) is not dict:
-        raise ProtocolError(f"ответ не объект: {resp!r}")
+        raise ProtocolError(f"reply is not an object: {resp!r}")
     if not is_int(resp.get("id")) or resp["id"] != rid:
-        raise ProtocolError(f"id ответа {resp.get('id')!r} вместо {rid}")
+        raise ProtocolError(f"reply id {resp.get('id')!r} instead of {rid}")
     keys = set(resp) - {"id"}
     if "error" in keys:
         check_error(resp)
         return "error"
     if op == "hello":
-        # "mutant" — только у испорченного движка тестового режима (FIGRAM_ALLOW_MUTANTS=1)
+        # "mutant" — only from a corrupted engine in test mode (FIGRAM_ALLOW_MUTANTS=1)
         if keys - {"mutant"} != {"protocol", "states"} or not is_int(resp["protocol"]) \
                 or not is_int(resp["states"]) or ("mutant" in resp and type(resp["mutant"]) is not str):
-            raise ProtocolError(f"ответ hello: {resp!r}")
+            raise ProtocolError(f"hello reply: {resp!r}")
         return "hello"
     if op == "step" and keys == {"need"}:
         need = resp["need"]
@@ -124,7 +124,7 @@ def check_reply(resp, rid: int, op: str) -> str:
             name(n, "need")
         return "need"
     if keys not in ({"snapshot", "actions"}, {"snapshot", "actions", "recovered"}):
-        raise ProtocolError(f"ответ {op}: поля {sorted(keys)}")
+        raise ProtocolError(f"{op} reply: fields {sorted(keys)}")
     if "recovered" in resp and resp["recovered"] is not True:
         raise ProtocolError(f"recovered: {resp['recovered']!r}")
     check_snapshot(resp["snapshot"])
@@ -133,8 +133,8 @@ def check_reply(resp, rid: int, op: str) -> str:
 
 
 def run_child(cmd, data: bytes, timeout: float, phase: str, env=None) -> subprocess.CompletedProcess:
-    """Запустить процесс с данными на вход; по истечении срока убить его
-    вместе с потомками и выбросить ChildTimeout с названием фазы."""
+    """Run a process with the given input; when the deadline passes, kill it
+    together with its descendants and raise ChildTimeout naming the phase."""
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, start_new_session=True, env=env)
     try:
@@ -145,13 +145,13 @@ def run_child(cmd, data: bytes, timeout: float, phase: str, env=None) -> subproc
         except ProcessLookupError:
             pass
         p.communicate()
-        raise ChildTimeout(f"фаза «{phase}»: процесс не завершился за {timeout} с")
+        raise ChildTimeout(f"phase '{phase}': the process did not finish within {timeout} s")
     return subprocess.CompletedProcess(cmd, p.returncode, out, err)
 
 
 def mutant_env() -> dict:
-    """Окружение для запуска испорченного движка (`--mutants`, `--mutate`): тестовый
-    режим включается только явно (FORMAT.md §7, «Мутанты»)."""
+    """Environment for running a corrupted engine (`--mutants`, `--mutate`): the test
+    mode is enabled only explicitly (docs/format.md, section 8, "Test mode")."""
     return dict(os.environ, FIGRAM_ALLOW_MUTANTS="1")
 
 
