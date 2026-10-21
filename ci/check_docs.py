@@ -897,12 +897,27 @@ def check_build():
                       f"ffi/build.sh has {m.group(1) if m else None!r}")
     # The documentation files of each release archive (docs/releasing.md, 'Release assets').
     pkg = read("ci/package.sh")
-    shipped = {k: set(v.split()) for k, v in re.findall(r'^put_docs "\$(cli|lib)" (.+)$', pkg, re.M)}
+    pages = {f"docs/{n}" for n in os.listdir(os.path.join(ROOT, "docs")) if n.endswith(".md")}
+    def expand(words):  # the package.sh words of a document list, with its arrays expanded
+        out = set()
+        for w in words:
+            w = w.strip('"')
+            if w == "${docpages[@]}":
+                out |= pages
+            elif w == "${documents[@]}":
+                m = re.search(r"^documents=\((.+)\)$", pkg, re.M)
+                out |= expand(m.group(1).split()) if m else {w}
+            else:
+                out.add(w)
+        return out
+    shipped = {k: expand(v.split()) for k, v in re.findall(r'^put_docs "\$(cli|lib)" (.+)$', pkg, re.M)}
     rel = doc("docs/releasing.md")
     sec = rel.section("Release assets") if rel else None
     for kind, asset in (("cli", "figram-X.Y.Z-linux-x86_64.tar.gz"), ("lib", "libfigram-X.Y.Z-linux-x86_64.tar.gz")):
         row = re.search(rf"^\| `{re.escape(asset)}` \|(.*)\|\s*$", sec or "", re.M)
         listed = {x for x in re.findall(r"`([^`]+)`", row.group(1)) if x == "LICENSE" or x.endswith(".md")} if row else set()
+        if "docs/*.md" in listed:
+            listed = (listed - {"docs/*.md"}) | pages
         if kind not in shipped or listed != shipped[kind]:
             fail("build", f"docs/releasing.md lists the documents {sorted(listed)} in {asset}, "
                           f"ci/package.sh ships {sorted(shipped.get(kind, ()))}")

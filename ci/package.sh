@@ -5,12 +5,15 @@
 #
 # Packages a finished build of this tree (run first: lake build figram figram-engine && bash ffi/build.sh)
 # and writes to OUTDIR:
-#   figram-VERSION-linux-x86_64.tar.gz     bin/figram, bin/figram-engine (stripped), LICENSE,
-#                                          THIRD_PARTY_NOTICES.md, README.md, docs/format.md, examples/
+#   figram-VERSION-linux-x86_64.tar.gz     bin/figram, bin/figram-engine (stripped), the documents,
+#                                          schemas/, examples/
 #   libfigram-VERSION-linux-x86_64.tar.gz  include/figram.h, lib/libfigram.a, the Lean runtime archives
 #                                          collected by ffi/build.sh (lib/*.a), lib/pkgconfig/figram.pc,
-#                                          share/figram/LDFLAGS, LICENSE, THIRD_PARTY_NOTICES.md,
-#                                          docs/embedding.md
+#                                          share/figram/LDFLAGS, the documents
+# The documents are LICENSE, THIRD_PARTY_NOTICES.md, README.md, CHANGELOG.md and docs/*.md. Their
+# relative links that do not resolve inside the archive (source files such as ffi/figram.h) are
+# rewritten to the repository at the packaged commit (https://github.com/OWNER/REPO/blob/COMMIT/PATH),
+# so the shipped documentation stays navigable and pinned to the release.
 #   SHA256SUMS                             sha256 of both archives
 #   SHA256SUMS.binaries                    sha256 of the stripped figram and figram-engine, in the
 #                                          format verify.sh expects in FIGRAM_SHA256SUMS
@@ -26,9 +29,9 @@
 # `#cgo pkg-config:`; share/figram/LDFLAGS contains no paths and, like ffi/out/LDFLAGS, ends with
 # -Wl,--gc-sections.
 #
-# --allow-missing-docs: package even if LICENSE, THIRD_PARTY_NOTICES.md, README.md or a docs/ file is
-# missing (local testing only; the release workflow never passes it). Build outputs, ffi/figram.h and
-# examples/ are always required.
+# --allow-missing-docs: package even if one of the documents is missing (local testing only; the
+# release workflow never passes it). Build outputs, ffi/figram.h, schemas/ and examples/ are always
+# required.
 set -euo pipefail
 export LC_ALL=C TZ=UTC
 unset TAR_OPTIONS GZIP
@@ -63,20 +66,37 @@ stale=$(find ffi -maxdepth 1 -type f \( -name '*.c' -o -name '*.cpp' -o -name '*
 [ -f ffi/figram.h ] || die "ffi/figram.h is missing"
 if git rev-parse --git-dir >/dev/null 2>&1; then
   mapfile -t examples < <(git ls-files examples | sort)
+  mapfile -t schemas < <(git ls-files schemas | sort)
+  mapfile -t docpages < <(git ls-files 'docs/*.md' | sort)
   if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
     echo "ci/package.sh: WARNING: tracked files have uncommitted changes; the archives do not match commit $(git rev-parse --short HEAD)" >&2
   fi
 else
   mapfile -t examples < <(find examples -type f | sort)
+  mapfile -t schemas < <(find schemas -type f | sort)
+  mapfile -t docpages < <(find docs -maxdepth 1 -name '*.md' | sort)
 fi
 printf '%s\n' "${examples[@]}" | grep -q '\.bot\.json$' || die "examples/ has no *.bot.json"
+printf '%s\n' "${schemas[@]}" | grep -q '\.schema\.json$' || die "schemas/ has no *.schema.json"
+documents=(LICENSE THIRD_PARTY_NOTICES.md README.md CHANGELOG.md "${docpages[@]}")
+# Where the rewritten links point: the GitHub repository of this checkout at this commit.
+repo_url=${FIGRAM_REPO_URL:-}
+if [ -z "$repo_url" ] && [ -n "${GITHUB_SERVER_URL:-}" ] && [ -n "${GITHUB_REPOSITORY:-}" ]; then
+  repo_url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+fi
+if [ -z "$repo_url" ]; then
+  repo_url=$(git remote get-url origin 2>/dev/null | sed -E 's#^git@github.com:#https://github.com/#; s#\.git$##') || true
+fi
+commit=$(git rev-parse HEAD 2>/dev/null) || commit=
+case "$repo_url" in https://*) ;; *) die "cannot tell the repository URL for the documentation links: set FIGRAM_REPO_URL";; esac
+[ -n "$commit" ] || die "not a git checkout: the documentation links need a commit"
 if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
   SOURCE_DATE_EPOCH=$(git log -1 --format=%ct 2>/dev/null) || die "not a git checkout: set SOURCE_DATE_EPOCH"
 fi
 case "$SOURCE_DATE_EPOCH" in ''|*[!0-9]*) die "SOURCE_DATE_EPOCH must be a number of seconds";; esac
 
 missing=()
-for f in LICENSE THIRD_PARTY_NOTICES.md README.md docs/format.md docs/embedding.md; do
+for f in LICENSE THIRD_PARTY_NOTICES.md README.md CHANGELOG.md docs/format.md docs/embedding.md; do
   [ -f "$f" ] || missing+=("$f")
 done
 if [ ${#missing[@]} -gt 0 ]; then
@@ -122,8 +142,8 @@ put_docs() {  # put_docs DIR FILE...
 
 cli=figram-$version-linux-x86_64
 for b in figram figram-engine; do put 755 "$B/$b" "$cli/bin/$b"; strip "$T/$cli/bin/$b"; done
-put_docs "$cli" LICENSE THIRD_PARTY_NOTICES.md README.md docs/format.md
-for f in "${examples[@]}"; do put 644 "$f" "$cli/$f"; done
+put_docs "$cli" "${documents[@]}"
+for f in "${schemas[@]}" "${examples[@]}"; do put 644 "$f" "$cli/$f"; done
 
 lib=libfigram-$version-linux-x86_64
 put 644 ffi/figram.h "$lib/include/figram.h"
@@ -145,7 +165,40 @@ Libs: -L\${libdir} -l:libfigram.a ${pc_flags[*]}
 EOF
 echo "-l:libfigram.a ${flags[*]}" > "$T/$lib/share/figram/LDFLAGS"
 chmod 644 "$T/$lib/lib/pkgconfig/figram.pc" "$T/$lib/share/figram/LDFLAGS"
-put_docs "$lib" LICENSE THIRD_PARTY_NOTICES.md docs/embedding.md
+put_docs "$lib" "${documents[@]}"
+
+# Relative links of the shipped Markdown files: kept when the target is in the same archive,
+# otherwise pointed at the repository at this commit (a directory as tree/, a file as blob/).
+link_docs() {  # link_docs ARCHIVE_DIR
+  python3 - "$T/$1" "$root" "$repo_url" "$commit" <<'PY'
+import os, re, sys
+top, root, url, commit = sys.argv[1:5]
+link = re.compile(r"(\]\()([^)\s#]+)((?:#[^)\s]*)?\))")
+for d, _, files in os.walk(top):
+    for name in sorted(files):
+        if not name.endswith(".md"):
+            continue
+        path = os.path.join(d, name)
+        rel_dir = os.path.relpath(d, top)
+        def fix(m):
+            target = m.group(2)
+            if re.match(r"[a-z][a-z0-9+.-]*:", target):
+                return m.group(0)
+            repo_path = os.path.normpath(os.path.join(rel_dir, target))
+            if os.path.exists(os.path.join(top, repo_path)):
+                return m.group(0)
+            if repo_path.startswith("..") or not os.path.exists(os.path.join(root, repo_path)):
+                sys.exit(f"{os.path.relpath(path, top)}: link {target} resolves neither in the archive nor in the repository")
+            kind = "tree" if os.path.isdir(os.path.join(root, repo_path)) else "blob"
+            return f"{m.group(1)}{url}/{kind}/{commit}/{repo_path}{m.group(3)}"
+        text = open(path, encoding="utf-8").read()
+        new = link.sub(fix, text)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
+PY
+}
+link_docs "$cli"
+link_docs "$lib"
 
 pack() {
   (cd "$T" && tar --create --format=gnu --sort=name --owner=0 --group=0 --numeric-owner \

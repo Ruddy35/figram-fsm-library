@@ -67,9 +67,10 @@ Releases are published on the [releases page](https://github.com/Ruddy35/figram-
 for Linux x86_64:
 
 * `figram-<version>-linux-x86_64.tar.gz` — the `figram` and `figram-engine` executables, the
-  example documents, this README, `docs/format.md`, `LICENSE` and `THIRD_PARTY_NOTICES.md`;
+  example documents, the JSON schemas and the documentation (this README, `docs/`, `CHANGELOG.md`,
+  `LICENSE`, `THIRD_PARTY_NOTICES.md`);
 * `libfigram-<version>-linux-x86_64.tar.gz` — `figram.h`, `libfigram.a` and the Lean runtime
-  archives needed to link it;
+  archives needed to link it, with the same documentation;
 * `SHA256SUMS` — the checksums of both archives; `SHA256SUMS.binaries` — the checksums of the two
   executables.
 
