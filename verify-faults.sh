@@ -103,9 +103,25 @@ engine, doc, schema_path = sys.argv[1:4]';;
       printf '\nexample : (20 : Nat) + 22 = 42 := by native_decide\n' >> Figram/Examples.lean;;
     theorem-weakened)     # the statement is weakened: an unsatisfiable premise, the same proof
       sub Figram/EngineProofs.lean 'theorem reply_readable (m : Machine) (hwf' 'theorem reply_readable (m : Machine) (_hfalse : False) (hwf';;
-    go-missing)           # go is not installed
-      export PATH=$(printf '%s' "$PATH" | tr ':' '\n' | while read -r d; do [ -x "$d/go" ] || printf '%s:' "$d"; done | sed 's/:$//')
-      command -v go >/dev/null && { echo "injection go-missing: go is still in PATH"; exit 2; } || true;;
+    go-missing)           # go is not installed: every PATH directory with go or gofmt (on GitHub
+                          # runners also /usr/bin) is replaced by a shadow directory that links all
+                          # its other entries, so the rest of the tools stay reachable
+      local dirs d e n=0 path=""
+      IFS=: read -r -a dirs <<< "$PATH"
+      for d in "${dirs[@]}"; do
+        if [ -n "$d" ] && { [ -e "$d/go" ] || [ -e "$d/gofmt" ]; }; then
+          n=$((n + 1)); mkdir -p "$PWD/.no-go-path/$n"
+          for e in "$d"/*; do
+            case ${e##*/} in go|gofmt) continue;; esac
+            if [ -e "$e" ]; then ln -s "$e" "$PWD/.no-go-path/$n/"; fi
+          done
+          d=$PWD/.no-go-path/$n
+        fi
+        path=${path:+$path:}$d
+      done
+      export PATH=$path
+      command -v go >/dev/null && { echo "injection go-missing: go is still in PATH"; exit 2; }
+      command -v timeout >/dev/null || { echo "injection go-missing: timeout is no longer in PATH"; exit 2; };;
     race-test-not-run)    # the race test is renamed and does not run
       sub clients/go/race_test.go 'func TestSharedRequestMap(' 'func testSharedRequestMap(';;
     coverage-drop)        # the scenario generator almost never picks message events
