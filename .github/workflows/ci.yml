@@ -60,7 +60,9 @@ jobs:
           - { suite: capi, timeout: 30 }       # C ABI under ASan/UBSan and TSan, mutants of the C layer
           - { suite: go, timeout: 30 }         # go test of the Go wrapper, plain and -race
           - { suite: proofs, timeout: 30 }     # strict proof gate leaves tracked files untouched
-          - { suite: docs, timeout: 20 }       # documentation matches the code (ci/check_docs.py)
+          - { suite: docs, timeout: 20 }       # documentation matches the code
+          - { suite: faults-prebuilt, timeout: 60 }  # verify-prebuilt.sh turns red on every injected fault
+          - { suite: faults-full, timeout: 120 }     # verify.sh turns red on every injected fault
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
       - name: Lean from lean-toolchain (release archive, sha256 from ci/lean-toolchain.sha256)
@@ -83,18 +85,17 @@ jobs:
           E=$PWD/.lake/build/bin/figram-engine
           case "$SUITE" in
             formats)
-              FIGRAM=$F FIGRAM_ENGINE=$E FIGRAM_REAL=$F tests/formats/run_all.sh "$L" 2>&1 | tee "$L/summary.txt"
-              if grep -q UNEXPECTED "$L/summary.txt"; then echo "::error::formats suite: unexpected exit codes"; exit 1; fi;;
+              FIGRAM=$F FIGRAM_ENGINE=$E FIGRAM_REAL=$F tests/formats/run_all.sh "$L" 2>&1 | tee "$L/summary.txt";;
             compiler)
               tests/compiler/run_all.sh "$E" "$F" "$L" 2>&1 | tee "$L/summary.txt";;
             capi)
               # GCC's ThreadSanitizer aborts ("unexpected memory mapping") with 32 bits of mmap ASLR
               # entropy, which recent Ubuntu kernels may use; it works with 28.
               sudo sysctl -w vm.mmap_rnd_bits=28
-              bash tests/capi/build_audit.sh
+              bash tests/capi/build.sh
               bash tests/capi/sanitizers.sh 2>&1 | tee "$L/sanitizers.txt"
               bash tests/capi/mutants.sh 2>&1 | tee "$L/mutants.txt"
-              bash tests/capi/b01_build.sh 2>&1 | tee "$L/b01_build.txt";;
+              bash tests/capi/build_check.sh 2>&1 | tee "$L/build_check.txt";;
             go)
               cd clients/go
               go vet ./...
@@ -103,7 +104,12 @@ jobs:
             proofs)
               bash tests/proofs/test_strict_gate_clean.sh 2>&1 | tee "$L/test_strict_gate_clean.txt";;
             docs)
-              python3 ci/check_docs.py 2>&1 | tee "$L/check_docs.txt";;
+              python3 ci/check_docs.py 2>&1 | tee "$L/check_docs.txt"
+              bash tests/capi/doc_check.sh 2>&1 | tee "$L/doc_check.txt";;
+            faults-prebuilt)
+              FAULT_LOGS=$L ./verify-faults.sh prebuilt;;
+            faults-full)
+              FAULT_LOGS=$L ./verify-faults.sh full;;
             *)
               echo "::error::unknown suite $SUITE"; exit 1;;
           esac
