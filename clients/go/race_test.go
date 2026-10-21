@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// Один и тот же словарь запроса из нескольких горутин.
+// One request map shared by several goroutines.
 func TestSharedRequestMap(t *testing.T) {
 	doc, _ := os.ReadFile("../../examples/pizza.bot.json")
 	if initFigram() != 0 {

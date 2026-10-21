@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Сборка встраиваемой статической библиотеки Figram из доказанного кода Lean.
-#   out/libfigram.a      — для Go (cgo), C, C++; заголовок с контрактом — ffi/figram.h
-#   out/lean/            — статические части рантайма Lean для линковки
-#   out/LDFLAGS          — флаги компоновщика хоста (абсолютные пути), например
+# Builds the embeddable static Figram library from the proved Lean code (docs/embedding.md).
+#   out/libfigram.a      — for Go (cgo), C, C++; the header with the contract is ffi/figram.h
+#   out/lean/            — the static parts of the Lean runtime to link with
+#   out/LDFLAGS          — linker flags for a host (absolute paths), for example
 #                            cc host.c $(cat ffi/out/LDFLAGS)
 #                            CGO_LDFLAGS="$(cat ffi/out/LDFLAGS)" go build
-#   out/LDFLAGS.runtime  — то же без libfigram.a (рантайм Lean и системные библиотеки)
+#   out/LDFLAGS.runtime  — the same without libfigram.a (the Lean runtime and system libraries)
 #   clients/go/zz_figram_ldflags.go — the same flags for the cgo client in clients/go (generated, not in git)
-# Поддерживаются две раскладки тулчейна Lean (определяется по наличию $PREFIX/lib/libc++.a):
-#   * официальный релиз (clang + libc++): libc++.a, libc++abi.a, libuv.a, libgmp.a лежат в префиксе;
-#   * сборка из исходников (gcc + libstdc++): статические libuv.a и libgmp.a берутся из системы
-#     (путь сообщает компилятор: $CC -print-file-name), рантайм C++ — системный libstdc++.
+# Two layouts of the Lean toolchain are supported (detected by the presence of $PREFIX/lib/libc++.a):
+#   * official release (clang + libc++): libc++.a, libc++abi.a, libuv.a, libgmp.a are in the prefix;
+#   * built from source (gcc + libstdc++): the static libuv.a and libgmp.a come from the system
+#     (the compiler reports the path: $CC -print-file-name), the C++ runtime is the system libstdc++.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 lake build Figram FigramApi:static
@@ -19,11 +19,11 @@ O=.lake/build/ir/Figram
 OBJS=""
 for m in Core Chart Compile Lint Format FormatIO Engine Api; do OBJS="$OBJS $O/$m.c.o.export"; done
 mkdir -p ffi/out/lean
-# figram_guard.cpp — перехват исключений C++ рантайма при инициализации (P-09); figram_rt.c —
-# системные размеры рантайма (стек потоков `ulimit -s`, без заранее зарезервированной арены mimalloc);
-# figram_init.cpp — запуск рантайма без цикла событий libuv и без обработчика SIGSEGV/SIGBUS (P-22):
-# его lean_initialize_runtime_module компоновщик берёт из libfigram.a раньше, чем из libleanrt.a. Файлы
-# собираются без системных заголовков (так их компилирует leanc официального релиза).
+# figram_guard.cpp — catches C++ exceptions of the runtime during initialization; figram_rt.c —
+# system sizes for the runtime (thread stack of `ulimit -s`, no mimalloc arena reserved in advance);
+# figram_init.cpp — starts the runtime without the libuv event loop and without the SIGSEGV/SIGBUS
+# handler: the linker takes its lean_initialize_runtime_module from libfigram.a before the one in
+# libleanrt.a. The files compile without system headers (as leanc of the official release builds them).
 leanc -c -fexceptions -o ffi/out/figram_ffi.o ffi/figram_ffi.c
 leanc -c -o ffi/out/figram_guard.o ffi/figram_guard.cpp
 leanc -c -o ffi/out/figram_rt.o ffi/figram_rt.c
@@ -32,11 +32,11 @@ rm -f ffi/out/libfigram.a
 ar rcs ffi/out/libfigram.a ffi/out/figram_ffi.o ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS
 cp "$P/lib/lean/libInit.a" "$P/lib/lean/libleanrt.a" ffi/out/lean/
 if [ -f "$P/lib/libc++.a" ]; then
-  # Официальный релиз Lean: архивы из префикса (как и до B-01).
+  # Official Lean release: the archives from the prefix.
   cp "$P/lib/libc++.a" "$P/lib/libc++abi.a" "$P/lib/libuv.a" "$P/lib/libgmp.a" ffi/out/lean/
   RT="-Wl,-Bstatic -lc++ -lc++abi -luv -lgmp -Wl,-Bdynamic"
 else
-  # Тулчейн из исходников: системные статические libuv и libgmp, системный libstdc++.
+  # Toolchain built from source: the system's static libuv and libgmp, the system libstdc++.
   CC=${CC:-cc}
   for a in libuv.a libgmp.a; do
     f=$($CC -print-file-name=$a)
@@ -45,9 +45,9 @@ else
       *) f="";;
     esac
     if [ -z "$f" ]; then
-      echo "ffi/build.sh: в префиксе Lean ($P/lib) нет libc++.a (это не официальный релиз), и $CC не находит" \
-           "статическую $a. Установите её (Debian/Ubuntu: apt install libuv1-dev libgmp-dev) или используйте" \
-           "официальный релиз Lean." >&2
+      echo "ffi/build.sh: the Lean prefix ($P/lib) has no libc++.a (not an official release), and $CC does" \
+           "not find a static $a. Install it (Debian/Ubuntu: apt install libuv1-dev libgmp-dev) or use the" \
+           "official Lean release." >&2
       exit 1
     fi
     cp "$f" ffi/out/lean/
@@ -55,11 +55,11 @@ else
   rm -f ffi/out/lean/libc++.a ffi/out/lean/libc++abi.a
   RT="-Wl,-Bstatic -luv -lgmp -Wl,-Bdynamic -lstdc++"
 fi
-# --gc-sections: из рантайма Lean и его стандартной библиотеки в программу хоста попадает только
-# достижимый код (Lean компилирует их с -ffunction-sections и так же собирает свои исполняемые
-# файлы). Без него cgo-программа на Go крупнее на ≈6 МБ, а RSS после figram_init — на ≈5 МБ.
-# В директиву #cgo флаг не попадает: cgo разрешает в исходниках только флаги из белого списка;
-# Go-хосты передают его через CGO_LDFLAGS или `go build -ldflags=-extldflags=-Wl,--gc-sections`.
+# --gc-sections: only the reachable code of the Lean runtime and its standard library ends up in
+# the host program (Lean compiles them with -ffunction-sections and links its own executables the
+# same way). Without it a cgo program is several MB larger (docs/embedding.md has the sizes).
+# The flag is not put into the #cgo directive: cgo allows only whitelisted flags in sources;
+# Go hosts pass it via CGO_LDFLAGS or `go build -ldflags=-extldflags=-Wl,--gc-sections`.
 GC="-Wl,--gc-sections"
 SYS="-lm -ldl -lpthread -lrt"
 OUT=$(pwd)/ffi/out
@@ -67,11 +67,11 @@ echo "-L$OUT/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group $RT $GC $SYS
 echo "-L$OUT -l:libfigram.a $(cat ffi/out/LDFLAGS.runtime)" > ffi/out/LDFLAGS
 cat > clients/go/zz_figram_ldflags.go <<EOF
 // Code generated by ffi/build.sh; DO NOT EDIT.
-// Флаги компоновки libfigram.a для этого тулчейна Lean (см. ffi/out/LDFLAGS).
+// Linker flags of libfigram.a for this Lean toolchain (see ffi/out/LDFLAGS).
 
 package main
 
 // #cgo LDFLAGS: -L\${SRCDIR}/../../ffi/out -l:libfigram.a -L\${SRCDIR}/../../ffi/out/lean -Wl,--start-group -lInit -lleanrt -Wl,--end-group $RT $SYS
 import "C"
 EOF
-echo "готово: ffi/out/libfigram.a, флаги компоновки: ffi/out/LDFLAGS"
+echo "done: ffi/out/libfigram.a, linker flags: ffi/out/LDFLAGS"

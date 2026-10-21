@@ -1,12 +1,12 @@
 package main
 
-// Регрессионные тесты исправлений fix-ffi для обёртки Bot:
-//   I-17  — Load без явного figram_init (ленивая инициализация, sync.Once);
-//   P-09  — под RLIMIT_AS рантайм Lean запускается (резерв адресов — десятки МБ, а не 2,2 ГБ);
-//   NP-06 — Load сообщает причину отказа документа;
-//   PROTOCOL_CHANGES — checkReply: ошибки {id,error,code}, hello с mutant,
-//   предел размера запроса (too_large, id null).
-// Дочерние процессы запускаются через TestMain (FIGRAM_CHILD=…).
+// Regression tests of the Bot wrapper:
+//   - Load without an explicit figram_init (lazy initialization, sync.Once);
+//   - the Lean runtime starts under RLIMIT_AS;
+//   - Load reports why a document was rejected;
+//   - checkReply: errors {id,error,code}, hello with mutant,
+//     the request size limit (too_large, id null).
+// Child processes are started through TestMain (FIGRAM_CHILD=…).
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ func vmSizeBytes() uint64 {
 	return 0
 }
 
-// runChild — тело дочернего процесса; код выхода 0 — ожидаемое поведение.
+// runChild is the body of a child process; exit code 0 means the expected behaviour.
 func runChild(mode string) int {
 	doc, err := os.ReadFile("../../examples/pizza.bot.json")
 	if err != nil {
@@ -46,7 +46,7 @@ func runChild(mode string) int {
 		return 3
 	}
 	switch mode {
-	case "lazy": // ни initFigram, ни figram_init: первый вызов — Load
+	case "lazy": // neither initFigram nor figram_init: the first call is Load
 		b, err := Load(string(doc))
 		if err != nil {
 			fmt.Println("Load without init:", err)
@@ -60,10 +60,10 @@ func runChild(mode string) int {
 		}
 		fmt.Println("lazy: ok")
 		return 0
-	case "rlimit": // RLIMIT_AS задан до первого обращения к библиотеке
+	case "rlimit": // RLIMIT_AS is set before the first call into the library
 		as, _ := strconv.ParseUint(os.Getenv("FIGRAM_CHILD_AS"), 10, 64)
 		if h, _ := strconv.ParseUint(os.Getenv("FIGRAM_CHILD_AS_HEADROOM"), 10, 64); h != 0 {
-			as = vmSizeBytes() + h // лимит = занято сейчас + запас
+			as = vmSizeBytes() + h // limit = current usage + headroom
 		}
 		var lim syscall.Rlimit
 		syscall.Getrlimit(syscall.RLIMIT_AS, &lim)
@@ -72,8 +72,8 @@ func runChild(mode string) int {
 			fmt.Println("setrlimit:", err)
 			return 3
 		}
-		// Явный figram_init (как в main.go), затем Load: оба обязаны вернуть ошибку, а не
-		// уронить процесс (раньше: lean::exception → std::terminate → SIGABRT).
+		// An explicit figram_init (as in main.go), then Load: on failure both must return an
+		// error rather than crash the process (lean::exception → std::terminate → SIGABRT).
 		rc := initFigram()
 		fmt.Printf("RLIMIT_AS=%d: figram_init=%d\n", as, rc)
 		b, err := Load(string(doc))
@@ -86,7 +86,7 @@ func runChild(mode string) int {
 			if !strings.Contains(err.Error(), "figram_init") {
 				return 1
 			}
-			// Повторная попытка возвращает ту же ошибку, процесс жив.
+			// A second attempt returns the same error, the process stays alive.
 			if _, err2 := Load(string(doc)); err2 == nil {
 				fmt.Println("second Load succeeded after a failed init")
 				return 1
@@ -112,7 +112,7 @@ func child(t *testing.T, mode string, env ...string) (string, error) {
 	return string(out), err
 }
 
-// I-17: Load в свежем процессе без явной инициализации.
+// Load in a fresh process without explicit initialization.
 func TestFixLazyLoadWithoutInit(t *testing.T) {
 	out, err := child(t, "lazy")
 	t.Logf("child: %v\n%.600s", err, out)
@@ -121,12 +121,11 @@ func TestFixLazyLoadWithoutInit(t *testing.T) {
 	}
 }
 
-// P-09: под RLIMIT_AS рантайм Lean запускается и работает: арена mimalloc заранее не
-// резервируется (ffi/figram_rt.c), потоков рантайм не создаёт (ffi/figram_init.cpp). Раньше ему
-// нужно было ≈2,2 ГБ адресов сверх занятого, и под таким лимитом figram_init отказывал.
+// Init under RLIMIT_AS: the Lean runtime starts and works, because the mimalloc arena is not
+// reserved in advance (ffi/figram_rt.c) and the runtime creates no threads (ffi/figram_init.cpp).
 func TestFixInitUnderRlimitAS(t *testing.T) {
 	if raceEnabled {
-		t.Skip("под -race адресное пространство занято теневой памятью TSan")
+		t.Skip("under -race the address space is taken by the TSan shadow memory")
 	}
 	for _, env := range []string{"FIGRAM_CHILD_AS_HEADROOM=268435456", "FIGRAM_CHILD_AS_HEADROOM=1073741824",
 		"FIGRAM_CHILD_AS=3000000000"} {
@@ -138,7 +137,7 @@ func TestFixInitUnderRlimitAS(t *testing.T) {
 	}
 }
 
-// NP-06: отказ загрузки документа объясняет причину.
+// A failed document load explains the reason.
 func TestFixLoadReason(t *testing.T) {
 	_, err := Load(`{"figram":1}`)
 	if err == nil {
@@ -154,7 +153,7 @@ func TestFixLoadReason(t *testing.T) {
 	}
 }
 
-// PROTOCOL_CHANGES 5: запрос длиннее предела (1 МиБ) — ответ too_large с id null, Request не падает.
+// A request longer than the limit (1 MiB) gets a too_large reply with id null; Request does not crash.
 func TestFixRequestTooLarge(t *testing.T) {
 	bot, err := Load(pizzaDoc(t))
 	if err != nil {
@@ -167,7 +166,7 @@ func TestFixRequestTooLarge(t *testing.T) {
 	if err != nil || v != "error" || resp["code"] != "too_large" || resp["id"] != nil {
 		t.Errorf("want error variant with code too_large and id null, got %v %v %v", v, err, resp)
 	}
-	// Без предела тот же запрос обрабатывает движок.
+	// Without the limit the engine processes the same request.
 	if prev := SetMaxRequest(0); prev != 1<<20 {
 		t.Errorf("default limit %d, want %d", prev, 1<<20)
 	}
@@ -189,10 +188,10 @@ func decodeReply(t *testing.T, s string) map[string]any {
 	return r
 }
 
-// PROTOCOL_CHANGES 1, 7: проверка ответов знает про code и mutant.
+// The reply check knows about code and mutant.
 func TestFixCheckReplyProtocolChanges(t *testing.T) {
 	cases := []struct {
-		op, reply, want string // want: вариант или "ERR"
+		op, reply, want string // want: the variant or "ERR"
 	}{
 		{"step", `{"id":5,"error":"x","code":"bad_request"}`, "error"},
 		{"step", `{"id":5,"error":"x","code":"bad_snapshot"}`, "error"},
@@ -207,7 +206,7 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"error":1,"code":"bad_request"}`, "ERR"},
 		{"step", `{"id":null,"error":"x","code":"bad_request"}`, "ERR"},
 		{"step", `{"id":6,"error":"x","code":"bad_request"}`, "ERR"},
-		{"step", `{"id":5,"error":"x"}`, "ERR"}, // code обязателен (движок с fix/protocol)
+		{"step", `{"id":5,"error":"x"}`, "ERR"}, // code is required
 		{"step", `{"id":null,"error":"x"}`, "ERR"},
 		{"hello", `{"id":5,"protocol":1,"states":11}`, "hello"},
 		{"hello", `{"id":5,"protocol":1,"states":11,"mutant":"drop-call:create_order"}`, "hello"},

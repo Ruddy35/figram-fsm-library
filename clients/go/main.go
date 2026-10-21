@@ -1,19 +1,20 @@
-// Проверка встроенного движка в процессе Go: эталонные сценарии из многих горутин.
+// Reference Go wrapper of the embedded engine (docs/embedding.md) and gofig, a test driver that
+// replays reference scenarios from many goroutines.
 //
 //	go build && ./gofig [-rounds N] [-bots K] bot.json traces.jsonl
-//	go build -race   — с детектором гонок (CI на многоядерной машине)
+//	go build -race   — with the race detector (CI on a multi-core machine)
 package main
 
 /*
-// Флаги компоновки libfigram.a зависят от тулчейна Lean: ffi/build.sh пишет их в
-// zz_figram_ldflags.go (рядом, генерируется) и в ffi/out/LDFLAGS. Обёртку Bot в своём
-// модуле подключайте так: CGO_LDFLAGS="$(cat путь/к/ffi/out/LDFLAGS)" go build.
+// The linker flags of libfigram.a depend on the Lean toolchain: ffi/build.sh writes them to
+// zz_figram_ldflags.go (next to this file, generated) and to ffi/out/LDFLAGS. To use the Bot
+// wrapper in your own module: CGO_LDFLAGS="$(cat path/to/ffi/out/LDFLAGS)" go build.
 #cgo CFLAGS: -I${SRCDIR}/../../ffi
 #include <stdlib.h>
 #include <string.h>
 #include "figram.h"
-// figram_last_error() — текст в памяти потока: копируется в том же вызове C, потому что
-// горутина между двумя вызовами cgo может перейти на другой поток ОС.
+// figram_last_error() is thread-local: it is copied in the same C call, because a goroutine
+// may move to another OS thread between two cgo calls.
 static int fg_init(char* buf, size_t cap) {
 	int rc = figram_init();
 	buf[0] = 0;
@@ -51,9 +52,9 @@ var (
 	initErr  error
 )
 
-// Init инициализирует рантайм Lean один раз на процесс (I-17: sync.Once; Load вызывает
-// его сам). Ошибка окончательна и повторяется при каждом вызове, например если
-// RLIMIT_AS не оставляет рантайму даже ≈ 32 МиБ адресного пространства (см. ffi/figram.h).
+// Init initializes the Lean runtime once per process (sync.Once; Load calls it itself).
+// A failure is final and is returned by every call, for example when RLIMIT_AS leaves the
+// runtime too little address space (see ffi/figram.h).
 func Init() error {
 	initOnce.Do(func() {
 		buf := (*C.char)(C.malloc(1024))
@@ -65,9 +66,9 @@ func Init() error {
 	return initErr
 }
 
-// SetMaxRequest задаёт предел длины запроса в байтах для всего процесса (0 — без предела;
-// по умолчанию 1 МиБ, как figram-engine --max-request) и возвращает прежний. Запрос
-// длиннее предела получает ответ {"id":null,"error":…,"code":"too_large"}.
+// SetMaxRequest sets the request size limit in bytes for the whole process (0 — no limit;
+// 1 MiB by default, like figram-engine --max-request) and returns the previous one. A request
+// longer than the limit gets the reply {"id":null,"error":…,"code":"too_large"}.
 func SetMaxRequest(n int) int {
 	if n < 0 {
 		n = 0
@@ -75,16 +76,17 @@ func SetMaxRequest(n int) int {
 	return int(C.figram_set_max_request(C.size_t(n)))
 }
 
-// Bot — загруженный документ. Безопасен для одновременных вызовов Request;
-// Close освобождает автомат и ждёт завершения текущих вызовов.
+// Bot is a loaded document. It is safe for concurrent Request calls;
+// Close frees the machine after waiting for the running calls.
 type Bot struct {
 	mu     sync.RWMutex
 	m      unsafe.Pointer
 	nextID atomic.Int64
 }
 
-// cBytes — указатель на байты строки Go для вызова C с явной длиной: память без указателей
-// Go, библиотека её только читает и не сохраняет (правила cgo это допускают).
+// cBytes returns a pointer to the bytes of a Go string for a C call with an explicit length:
+// the memory holds no Go pointers, and the library only reads it and does not keep it (the cgo
+// rules allow this).
 func cBytes(s string) (*C.char, C.size_t) {
 	if len(s) == 0 {
 		return nil, 0
@@ -92,32 +94,32 @@ func cBytes(s string) (*C.char, C.size_t) {
 	return (*C.char)(unsafe.Pointer(unsafe.StringData(s))), C.size_t(len(s))
 }
 
-// Load загружает документ (инициализируя рантайм при первом вызове). Ошибка содержит
-// причину отказа (figram_load_doc_ex_n): ошибки check, разбора, UTF-8 или отказ init.
+// Load loads a document (initializing the runtime on first use). The error contains the
+// reason of the failure (figram_load_doc_ex_n): check errors, a parse error, UTF-8 or a failed init.
 func Load(doc string) (*Bot, error) {
 	if err := Init(); err != nil {
 		return nil, err
 	}
-	// Встроенный NUL библиотека отвергает и сама (вариант _n); здесь — понятное сообщение.
+	// The library rejects an embedded NUL itself (_n variant); this gives a clear message.
 	if strings.IndexByte(doc, 0) >= 0 {
-		return nil, fmt.Errorf("документ содержит байт NUL")
+		return nil, fmt.Errorf("document contains a NUL byte")
 	}
 	p, n := cBytes(doc)
 	var cerr *C.char
 	m := C.figram_load_doc_ex_n(p, n, &cerr)
 	runtime.KeepAlive(doc)
 	if m == nil {
-		reason := "нет памяти"
+		reason := "out of memory"
 		if cerr != nil {
 			reason = C.GoString(cerr)
 			C.figram_free(cerr)
 		}
-		return nil, fmt.Errorf("документ не загружен: %s", reason)
+		return nil, fmt.Errorf("document not loaded: %s", reason)
 	}
 	return &Bot{m: m}, nil
 }
 
-// Close освобождает автомат; после него Request возвращает ошибку.
+// Close frees the machine; after it Request returns an error.
 func (b *Bot) Close() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -127,18 +129,18 @@ func (b *Bot) Close() {
 	}
 }
 
-// Request — один запрос протокола движка. Ответ строго проверяется
-// (checkReply): id, ровно один вариант ответа, типы полей.
+// Request sends one engine protocol request. The reply is validated strictly
+// (checkReply): the id, exactly one reply variant, field types.
 func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 	if b.m == nil {
-		return nil, "", fmt.Errorf("автомат освобождён")
+		return nil, "", fmt.Errorf("bot is closed")
 	}
 	id := b.nextID.Add(1)
-	// Словарь вызывающего не изменяется: id добавляется в копию верхнего
-	// уровня, вложенные значения сериализация только читает. Поэтому один
-	// словарь можно передавать из многих горутин одновременно.
+	// The caller's map is not modified: id is added to a copy of the top
+	// level, and serialization only reads the nested values. So one map
+	// may be passed from many goroutines at once.
 	msg := make(map[string]any, len(req)+1)
 	for k, v := range req {
 		msg[k] = v
@@ -146,9 +148,9 @@ func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	msg["id"] = id
 	line, err := json.Marshal(msg)
 	if err != nil {
-		return nil, "", fmt.Errorf("запрос не сериализуется: %w", err)
+		return nil, "", fmt.Errorf("request cannot be serialized: %w", err)
 	}
-	// Запрос передаётся с длиной (без копии и без обрезки по NUL; json.Marshal NUL экранирует).
+	// The request is passed with its length (no copy, no cut at a NUL; json.Marshal escapes NUL).
 	out := C.figram_request_json_n(b.m, (*C.char)(unsafe.Pointer(&line[0])), C.size_t(len(line)))
 	runtime.KeepAlive(line)
 	defer C.figram_free(out)
@@ -156,19 +158,19 @@ func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	dec := json.NewDecoder(strings.NewReader(C.GoString(out)))
 	dec.UseNumber()
 	if err := dec.Decode(&resp); err != nil {
-		return nil, "", fmt.Errorf("ответ не JSON-объект: %w", err)
+		return nil, "", fmt.Errorf("reply is not a JSON object: %w", err)
 	}
 	if corrupt != nil {
 		corrupt(resp)
 	}
-	// op может отсутствовать или быть не строкой: движок ответит error, паники нет.
+	// op may be missing or not a string: the engine replies with an error, no panic.
 	op, _ := req["op"].(string)
 	variant, err := checkReply(resp, id, op)
 	return resp, variant, err
 }
 
-// corrupt — только для самопроверки (флаг -corrupt): портит ответ движка,
-// чтобы убедиться, что проверка ловит нарушение протокола.
+// corrupt is for the self-test only (flag -corrupt): it corrupts the engine reply
+// to make sure that the check catches a protocol violation.
 var corrupt func(map[string]any)
 
 var corruptions = map[string]func(map[string]any){
@@ -210,49 +212,49 @@ func keysAre(m map[string]any, keys ...string) bool {
 	return true
 }
 
-// checkSnapshot — строго по snapshot.schema.json.
+// checkSnapshot validates strictly by schemas/snapshot.schema.json.
 func checkSnapshot(v any) error {
 	s, ok := v.(map[string]any)
 	if !ok {
-		return fmt.Errorf("снимок не объект: %v", v)
+		return fmt.Errorf("snapshot is not an object: %v", v)
 	}
 	for k := range s {
 		switch k {
 		case "v", "at", "resume", "timers", "seq":
 		default:
-			return fmt.Errorf("снимок: лишнее поле %q", k)
+			return fmt.Errorf("snapshot: unknown field %q", k)
 		}
 	}
 	if v, ok := s["v"]; ok && (!natOK(v) || v.(json.Number) != "1") {
-		return fmt.Errorf("снимок: версия %v", v)
+		return fmt.Errorf("snapshot: version %v", v)
 	}
 	if !nameOK(s["at"]) {
-		return fmt.Errorf("снимок.at: %v", s["at"])
+		return fmt.Errorf("snapshot.at: %v", s["at"])
 	}
 	if r, ok := s["resume"]; ok {
 		m, ok := r.(map[string]any)
 		if !ok {
-			return fmt.Errorf("снимок.resume не объект")
+			return fmt.Errorf("snapshot.resume is not an object")
 		}
 		for k, v := range m {
 			if k == "" || !nameOK(v) {
-				return fmt.Errorf("снимок.resume.%q: %v", k, v)
+				return fmt.Errorf("snapshot.resume.%q: %v", k, v)
 			}
 		}
 	}
 	if t, ok := s["timers"]; ok {
 		m, ok := t.(map[string]any)
 		if !ok {
-			return fmt.Errorf("снимок.timers не объект")
+			return fmt.Errorf("snapshot.timers is not an object")
 		}
 		for k, v := range m {
 			if k == "" || !natOK(v) {
-				return fmt.Errorf("снимок.timers.%q: %v", k, v)
+				return fmt.Errorf("snapshot.timers.%q: %v", k, v)
 			}
 		}
 	}
 	if q, ok := s["seq"]; ok && !natOK(q) {
-		return fmt.Errorf("снимок.seq: %v", q)
+		return fmt.Errorf("snapshot.seq: %v", q)
 	}
 	return nil
 }
@@ -260,18 +262,18 @@ func checkSnapshot(v any) error {
 func checkActions(v any) error {
 	acts, ok := v.([]any)
 	if !ok {
-		return fmt.Errorf("actions не список: %v", v)
+		return fmt.Errorf("actions is not a list: %v", v)
 	}
 	for _, a := range acts {
 		m, ok := a.(map[string]any)
 		if !ok {
-			return fmt.Errorf("действие не объект: %v", a)
+			return fmt.Errorf("action is not an object: %v", a)
 		}
 		switch {
 		case keysAre(m, "send"), keysAre(m, "call"), keysAre(m, "cancel_timer"):
 			for _, x := range m {
 				if !nameOK(x) {
-					return fmt.Errorf("действие: %v", m)
+					return fmt.Errorf("action: %v", m)
 				}
 			}
 		case keysAre(m, "start_timer", "ms", "token"):
@@ -279,23 +281,23 @@ func checkActions(v any) error {
 				return fmt.Errorf("start_timer: %v", m)
 			}
 		default:
-			return fmt.Errorf("неизвестная форма действия: %v", m)
+			return fmt.Errorf("unknown action form: %v", m)
 		}
 	}
 	return nil
 }
 
-// Коды ошибок протокола (FORMAT.md §7, PROTOCOL_CHANGES 1).
+// Error codes of the protocol (docs/format.md, section 8, "Errors").
 var errorCodes = map[string]bool{
 	"parse_error": true, "too_large": true, "bad_request": true, "bad_snapshot": true, "seq_overflow": true,
 }
 
-// legacyErrorWithoutCode: движок до изменения протокола отвечал на ошибку {id, error} без
-// code. Движок этой версии всегда добавляет code (FORMAT.md §7), поэтому форма без code —
-// нарушение протокола. Лишние поля и неизвестные коды отвергаются всегда.
+// legacyErrorWithoutCode: an older engine replied to an error with {id, error} without code.
+// This engine always adds code (docs/format.md, section 8), so the form without code is a
+// protocol violation. Extra fields and unknown codes are always rejected.
 const legacyErrorWithoutCode = false
 
-// checkReply — ровно один вариант ответа: результат, hello, need или error.
+// checkReply accepts exactly one reply variant: result, hello, need or error.
 func checkReply(r map[string]any, id int64, op string) (string, error) {
 	rest := map[string]any{}
 	for k, v := range r {
@@ -305,34 +307,34 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 	}
 	if _, isErr := rest["error"]; isErr {
 		if _, ok := rest["error"].(string); !ok {
-			return "", fmt.Errorf("error не строка")
+			return "", fmt.Errorf("error is not a string")
 		}
 		code := ""
 		switch {
 		case keysAre(rest, "error", "code"):
 			c, ok := rest["code"].(string)
 			if !ok || !errorCodes[c] {
-				return "", fmt.Errorf("неизвестный code ошибки: %v", rest["code"])
+				return "", fmt.Errorf("unknown error code: %v", rest["code"])
 			}
 			code = c
 		case legacyErrorWithoutCode && keysAre(rest, "error"):
 		default:
-			return "", fmt.Errorf("ответ-ошибка: поля %v (ожидались id, error, code)", rest)
+			return "", fmt.Errorf("error reply: fields %v (expected id, error, code)", rest)
 		}
-		// id null — только у отказов разбора и предела размера (запрос не прочитан);
-		// иначе id обязан совпасть с запросом.
+		// id null only for parse and size-limit failures (the request was not read);
+		// otherwise the id must equal the request's.
 		if idv, has := r["id"]; has && idv == nil && (code == "parse_error" || code == "too_large") {
 			return "error", nil
 		}
 		if !natOK(r["id"]) || r["id"].(json.Number) != json.Number(strconv.FormatInt(id, 10)) {
-			return "", fmt.Errorf("id ответа %v вместо %d", r["id"], id)
+			return "", fmt.Errorf("reply id %v instead of %d", r["id"], id)
 		}
 		return "error", nil
 	}
 	if !natOK(r["id"]) || r["id"].(json.Number) != json.Number(strconv.FormatInt(id, 10)) {
-		return "", fmt.Errorf("id ответа %v вместо %d", r["id"], id)
+		return "", fmt.Errorf("reply id %v instead of %d", r["id"], id)
 	}
-	// hello: {protocol, states} и, в режиме мутантов движка (только для тестов), mutant.
+	// hello: {protocol, states} and, in the engine's mutant mode (tests only), mutant.
 	if op == "hello" && (keysAre(rest, "protocol", "states") || keysAre(rest, "protocol", "states", "mutant")) {
 		if !natOK(rest["protocol"]) || !natOK(rest["states"]) {
 			return "", fmt.Errorf("hello: %v", rest)
@@ -355,7 +357,7 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		return "need", nil
 	}
 	if !keysAre(rest, "snapshot", "actions") && !keysAre(rest, "snapshot", "actions", "recovered") {
-		return "", fmt.Errorf("ответ %s: поля %v", op, rest)
+		return "", fmt.Errorf("reply to %s: fields %v", op, rest)
 	}
 	if rec, ok := rest["recovered"]; ok && rec != true {
 		return "", fmt.Errorf("recovered: %v", rec)
@@ -395,37 +397,37 @@ func decodeNum(raw json.RawMessage) (any, error) {
 	return v, err
 }
 
-// validateTrace — ожидания сценария тоже обязаны соответствовать протоколу.
+// validateTrace: the expectations of a scenario must follow the protocol too.
 func validateTrace(t trace) error {
 	if t.Start != nil {
 		s, err := decodeNum(t.Start.Snapshot)
 		if err != nil || checkSnapshot(s) != nil {
-			return fmt.Errorf("начальный снимок сценария: %v %v", err, checkSnapshot(s))
+			return fmt.Errorf("scenario start snapshot: %v %v", err, checkSnapshot(s))
 		}
 		a, err := decodeNum(t.Start.Actions)
 		if err != nil || checkActions(a) != nil {
-			return fmt.Errorf("начальные действия сценария")
+			return fmt.Errorf("scenario start actions")
 		}
 	} else {
 		s, err := decodeNum(t.From)
 		if err != nil || checkSnapshot(s) != nil {
-			return fmt.Errorf("исходный снимок сценария (from)")
+			return fmt.Errorf("scenario initial snapshot (from)")
 		}
 	}
 	for i, st := range t.Steps {
 		s, err := decodeNum(st.Snapshot)
 		if err != nil || checkSnapshot(s) != nil {
-			return fmt.Errorf("шаг %d: снимок сценария", i)
+			return fmt.Errorf("step %d: scenario snapshot", i)
 		}
 		a, err := decodeNum(st.Actions)
 		if err != nil || checkActions(a) != nil {
-			return fmt.Errorf("шаг %d: действия сценария", i)
+			return fmt.Errorf("step %d: scenario actions", i)
 		}
 		if st.Recovered != nil && !*st.Recovered {
-			return fmt.Errorf("шаг %d: recovered может быть только true", i)
+			return fmt.Errorf("step %d: recovered can only be true", i)
 		}
 		if st.Event == "" {
-			return fmt.Errorf("шаг %d: пустое событие", i)
+			return fmt.Errorf("step %d: empty event", i)
 		}
 	}
 	return nil
@@ -444,7 +446,7 @@ func check(b *Bot, t trace) (n int, bad int) {
 		if err != nil || variant != "result" || !same(r["snapshot"], t.Start.Snapshot) || !same(r["actions"], t.Start.Actions) {
 			bad++
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "нарушение протокола:", err)
+				fmt.Fprintln(os.Stderr, "protocol violation:", err)
 			}
 		}
 		snap, _ = decodeNum(t.Start.Snapshot)
@@ -468,7 +470,7 @@ func check(b *Bot, t trace) (n int, bad int) {
 			!same(r["actions"], st.Actions) || gotRec != wantRec {
 			bad++
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "нарушение протокола:", err)
+				fmt.Fprintln(os.Stderr, "protocol violation:", err)
 			}
 		}
 		snap, _ = decodeNum(st.Snapshot)
@@ -482,30 +484,30 @@ func fail(format string, args ...any) {
 }
 
 func main() {
-	rounds := flag.Int("rounds", 1, "сколько раз прогнать все сценарии")
-	bots := flag.Int("bots", 1, "сколько раз загрузить документ (общие автоматы для горутин)")
-	corruptKind := flag.String("corrupt", "", "самопроверка: испортить ответы (recovered-broken, no-id, …)")
-	reload := flag.Int("reload", 0, "проверка времени жизни: загрузить и освободить документ N раз")
+	rounds := flag.Int("rounds", 1, "how many times to run all scenarios")
+	bots := flag.Int("bots", 1, "how many times to load the document (machines shared by the goroutines)")
+	corruptKind := flag.String("corrupt", "", "self-test: corrupt the replies (recovered-broken, no-id, …)")
+	reload := flag.Int("reload", 0, "lifetime check: load and close the document N times")
 	flag.Parse()
 	if *corruptKind != "" {
 		f, ok := corruptions[*corruptKind]
 		if !ok {
-			fail("неизвестная порча %q", *corruptKind)
+			fail("unknown corruption %q", *corruptKind)
 		}
 		corrupt = f
 	}
 	if *rounds < 1 || *bots < 1 {
-		fail("-rounds и -bots должны быть не меньше 1 (получено %d и %d)", *rounds, *bots)
+		fail("-rounds and -bots must be at least 1 (got %d and %d)", *rounds, *bots)
 	}
 	if flag.NArg() != 2 {
-		fail("использование: gofig [-rounds N] [-bots K] bot.json traces.jsonl")
+		fail("usage: gofig [-rounds N] [-bots K] bot.json traces.jsonl")
 	}
 	if err := Init(); err != nil {
 		fail("%v", err)
 	}
 	doc, err := os.ReadFile(flag.Arg(0))
 	if err != nil {
-		fail("не прочитать документ: %v", err)
+		fail("cannot read the document: %v", err)
 	}
 	if *reload > 0 {
 		reloadTest(string(doc), *reload)
@@ -521,7 +523,7 @@ func main() {
 	}
 	f, err := os.Open(flag.Arg(1))
 	if err != nil {
-		fail("не открыть сценарии: %v", err)
+		fail("cannot open the scenarios: %v", err)
 	}
 	var traces []trace
 	sc := bufio.NewScanner(f)
@@ -534,21 +536,21 @@ func main() {
 		}
 		var t trace
 		if err := json.Unmarshal(sc.Bytes(), &t); err != nil {
-			fail("строка %d сценариев повреждена: %v", line, err)
+			fail("scenario line %d is corrupt: %v", line, err)
 		}
 		if t.Start == nil && len(t.From) == 0 || len(t.Steps) == 0 {
-			fail("строка %d: сценарий без начала или без шагов", line)
+			fail("line %d: scenario without a start or without steps", line)
 		}
 		if err := validateTrace(t); err != nil {
-			fail("строка %d: ожидания сценария нарушают протокол: %v", line, err)
+			fail("line %d: scenario expectations violate the protocol: %v", line, err)
 		}
 		traces = append(traces, t)
 	}
 	if err := sc.Err(); err != nil {
-		fail("ошибка чтения сценариев: %v", err)
+		fail("error reading the scenarios: %v", err)
 	}
 	if len(traces) == 0 {
-		fail("сценариев нет")
+		fail("no scenarios")
 	}
 	expected := int64(0)
 	for _, t := range traces {
@@ -559,7 +561,7 @@ func main() {
 	}
 	expected *= int64(*rounds)
 	if expected <= 0 {
-		fail("ожидаемое число запросов %d — проверять нечего", expected)
+		fail("expected number of requests is %d: nothing to check", expected)
 	}
 	var total, bad atomic.Int64
 	var wg sync.WaitGroup
@@ -577,16 +579,16 @@ func main() {
 	}
 	wg.Wait()
 	el := time.Since(start)
-	fmt.Printf("ботов %d, раундов %d, горутин %d, запросов %d, расхождений %d, %.0f запросов/с (GOMAXPROCS=%d, CPU=%d)\n",
+	fmt.Printf("bots %d, rounds %d, goroutines %d, requests %d, mismatches %d, %.0f requests/s (GOMAXPROCS=%d, CPU=%d)\n",
 		*bots, *rounds, len(traces)**rounds, total.Load(), bad.Load(), float64(total.Load())/el.Seconds(), runtime.GOMAXPROCS(0), runtime.NumCPU())
 	for _, b := range loaded {
 		b.Close()
 	}
 	if _, _, err := loaded[0].Request(map[string]any{"op": "hello"}); err == nil {
-		fail("запрос после Close не отвергнут")
+		fail("request after Close was not rejected")
 	}
 	if total.Load() != expected {
-		fail("обработано запросов %d из %d", total.Load(), expected)
+		fail("processed %d of %d requests", total.Load(), expected)
 	}
 	if bad.Load() > 0 {
 		os.Exit(1)
@@ -603,7 +605,7 @@ func rssKB() int64 {
 	return pages * 4
 }
 
-// reloadTest: загрузка, запрос и освобождение n раз; рост памяти против контроля без Close.
+// reloadTest loads, queries and closes the document n times; memory growth versus a control without Close.
 func reloadTest(doc string, n int) {
 	run := func(close bool) int64 {
 		runtime.GC()
@@ -615,7 +617,7 @@ func reloadTest(doc string, n int) {
 				fail("%v", err)
 			}
 			if _, v, err := b.Request(map[string]any{"op": "start"}); err != nil || v != "result" {
-				fail("запрос к загруженному автомату: %v", err)
+				fail("request to the loaded machine: %v", err)
 			}
 			if close {
 				b.Close()
@@ -625,14 +627,14 @@ func reloadTest(doc string, n int) {
 		debug.FreeOSMemory()
 		return rssKB() - before
 	}
-	run(true) // прогрев: аллокаторы Go и Lean выходят на установившийся размер
+	run(true) // warm-up: the Go and Lean allocators reach a steady size
 	withClose := run(true)
 	withoutClose := run(false)
-	fmt.Printf("%d загрузок с Close (после прогрева): рост памяти %d КБ; без Close (контроль): %d КБ\n",
+	fmt.Printf("%d loads with Close (after warm-up): memory growth %d KB; without Close (control): %d KB\n",
 		n, withClose, withoutClose)
-	// Рост с Close двухмодальный: ~0 или ~2–2.5 МБ (шаг аллокатора), порог 2048 КБ давал
-	// ложные отказы в 20–40 % прогонов под нагрузкой. 4096 КБ — всё ещё в 12 раз ниже контроля.
+	// The growth with Close is bimodal: ~0 or ~2–2.5 MB (an allocator step); a 2048 KB threshold
+	// failed spuriously in 20–40 % of runs under load. 4096 KB is still 12 times below the control.
 	if withClose >= 4096 || withoutClose <= 8192 {
-		fail("Close не освобождает память или контроль нечувствителен")
+		fail("Close does not free memory, or the control is insensitive")
 	}
 }

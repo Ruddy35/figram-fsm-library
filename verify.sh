@@ -276,11 +276,11 @@ ccstep ffi_asan gcc -c -g -fsanitize=address,undefined -fexceptions -I"$PFX/incl
 ccstep io_asan gcc -c -g -fsanitize=address,undefined -o "$T/io.o" tests/capi/c_harness_io.c
 ccstep harness_asan gcc -g -fsanitize=address,undefined -o "$T/harness" tests/capi/c_harness.c "$T/io.o" "$T/ffi.o" ffi/out/figram_guard.o ffi/out/figram_rt.o ffi/out/figram_init.o $OBJS $LIBS
 SHOW=2 logged c_asan env ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 "$T/harness" examples/pizza.bot.json
-expect "$LOGS/c_asan.log" '^16 потоков × (\d+) вызовов к одному автомату: расхождений (\d+)$' 'g[0] > 0 and g[1] == 0' "C, 16 потоков"
+expect "$LOGS/c_asan.log" '^16 threads × (\d+) calls to one machine: mismatches (\d+)$' 'g[0] > 0 and g[1] == 0' "C, 16 threads"
 # Память при загрузке и выгрузке — на обычной сборке (у ASan карантин памяти).
 ccstep harness_plain gcc -O1 -o "$T/harness_plain" tests/capi/c_harness.c tests/capi/c_harness_io.c $(cat ffi/out/LDFLAGS)
 logged c_reload "$T/harness_plain" examples/pizza.bot.json memory
-expect "$LOGS/c_reload.log" '^(\d+) загрузок и выгрузок: рост памяти' 'g[0] > 0' "C, загрузки и выгрузки"
+expect "$LOGS/c_reload.log" '^(\d+) loads and unloads: memory growth' 'g[0] > 0' "C, loads and unloads"
 
 step "C-ABI ffi/figram.h: init без падения хоста, NULL, дескрипторы, NUL, UTF-8, предел, сигналы"
 # tests/capi/regress.sh (P-09, P-18, P-21, P-22, FFI-01/05/06): каждый подтест — отдельный процесс;
@@ -292,7 +292,7 @@ done
 ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" tests/capi/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
 logged c_contract bash tests/capi/regress.sh "$CA"
-expect "$LOGS/c_contract.log" '^регрессионных проверок C-ABI (\d+), провалено (\d+)$' 'g[0] >= 34 and g[1] == 0' "C-ABI"
+expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 34 and g[1] == 0' "C ABI"
 # Заголовок с контрактом самодостаточен для C и C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h
@@ -364,11 +364,11 @@ if command -v go >/dev/null; then
   (cd $G && CC=${CC:-gcc} go build -race -o gofig-race .) > "$LOGS/go_build_race.log" 2>&1 \
     || { cat "$LOGS/go_build_race.log"; fail "go build -race"; }
   SHOW=1 logged go_conf $G/gofig -rounds 3 -bots 4 examples/pizza.bot.json "$T/pizza.jsonl"
-  expect "$LOGS/go_conf.log" '^ботов (\d+), раундов (\d+), горутин (\d+), запросов (\d+), расхождений (\d+),' \
-    'g[3] > 0 and g[4] == 0' "Go, соответствие"
+  expect "$LOGS/go_conf.log" '^bots (\d+), rounds (\d+), goroutines (\d+), requests (\d+), mismatches (\d+),' \
+    'g[3] > 0 and g[4] == 0' "Go, conformance"
   SHOW=1 logged go_race env GOMAXPROCS=$(( $(nproc) > 4 ? $(nproc) : 4 )) $G/gofig-race -rounds 3 -bots 3 examples/pizza.bot.json "$T/small.jsonl"
-  expect "$LOGS/go_race.log" '^ботов (\d+), раундов (\d+), горутин (\d+), запросов (\d+), расхождений (\d+),' \
-    'g[3] > 0 and g[4] == 0' "Go -race, соответствие"
+  expect "$LOGS/go_race.log" '^bots (\d+), rounds (\d+), goroutines (\d+), requests (\d+), mismatches (\d+),' \
+    'g[3] > 0 and g[4] == 0' "Go -race, conformance"
   for a in "-rounds 0" "-bots 0"; do
     if $G/gofig $a examples/pizza.bot.json "$T/small.jsonl" >/dev/null 2>&1; then
       fail "Go-проверка приняла $a"; fi

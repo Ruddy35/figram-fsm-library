@@ -1,7 +1,7 @@
-// Проверка C-прослойки: невалидный UTF-8, пустые и огромные входы,
-// параллельные вызовы из потоков POSIX к одному неизменяемому автомату.
-// Ожидания по FORMAT.md §7 / PROTOCOL_CHANGES: ошибки C-прослойки — {"id":null,"error":…,"code":…}
-// (пустой запрос и невалидный UTF-8 — parse_error, длиннее предела 1 МиБ — too_large).
+// Check of the C shim: invalid UTF-8, empty and huge inputs, concurrent calls from POSIX
+// threads to one immutable machine. Expectations per docs/embedding.md: errors of the shim are
+// {"id":null,"error":…,"code":…} (an empty request and invalid UTF-8 — parse_error, longer than
+// the 1 MiB limit — too_large).
 int printf(const char*, ...);
 char* strstr(const char*, const char*);
 int strncmp(const char*, const char*, unsigned long);
@@ -27,7 +27,7 @@ int fclose(FILE*);
 
 static const char* REQ = "{\"id\":7,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\"},\"event\":\"btn:order\"}";
 
-/* Резидентная память процесса в КБ (Linux). */
+/* Resident memory of the process in KB (Linux). */
 static long rss_kb(void) {
   FILE* f = fopen("/proc/self/statm", "r");
   char buf[128]; long pages = 0, rss = 0;
@@ -36,9 +36,9 @@ static long rss_kb(void) {
   return rss * 4;
 }
 
-/* Загрузить и выгрузить документ n раз, делая запрос к каждому; рост памяти. */
+/* Loads and unloads the document n times with a request to each; returns the memory growth. */
 static long reload_growth(const char* doc, int n, int unload) {
-  for (int i = 0; i < 50; i++) {                 /* прогрев аллокатора */
+  for (int i = 0; i < 50; i++) {                 /* allocator warm-up */
     void* m = figram_load_doc(doc);
     figram_free(figram_request_json(m, REQ));
     figram_unload(m);
@@ -56,7 +56,7 @@ static long reload_growth(const char* doc, int n, int unload) {
 static void* bot;
 static char* expected;
 
-/* Ответ — ошибка (code "" — любая; иначе с этим кодом и id null); code NULL — не ошибка. */
+/* The reply is an error (code "" — any; otherwise with this code and id null); code NULL — not an error. */
 static int expect_error(const char* r, const char* code) {
   if (!r) return 0;
   int is_err = strstr(r, "\"error\":") != 0;
@@ -86,12 +86,12 @@ int main(int argc, char** argv) {
   extern int read_file(const char*, char**);
   char* doc; if (read_file(argv[1], &doc)) return 1;
   bot = figram_load_doc(doc);
-  if (!bot) { printf("документ не загружен\n"); return 1; }
+  if (!bot) { printf("document not loaded\n"); return 1; }
   void* bad_doc = figram_load_doc("{\"figram\": 1}");
-  printf("некорректный документ: %s\n", bad_doc ? "ЗАГРУЖЕН" : "отвергнут");
+  printf("invalid document: %s\n", bad_doc ? "LOADED" : "rejected");
 
-  /* code: ожидаемый код ошибки C-прослойки; "" — ошибка движка (код не проверяется);
-     NULL — не ошибка. */
+  /* code: the expected error code of the shim; "" — an engine error (the code is not checked);
+     NULL — not an error. */
   struct { const char* in; const char* code; } nasty[] = {
     {"", "parse_error"}, {"{", ""}, {"\xff\xfe\xfd", "parse_error"},
     {"{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"\xff\"},\"event\":\"x\"}", "parse_error"},
@@ -102,17 +102,17 @@ int main(int argc, char** argv) {
   int bad_inputs = 0;
   for (unsigned i = 0; i < sizeof(nasty) / sizeof(nasty[0]); i++) {
     char* r = figram_request_json(bot, nasty[i].in);
-    printf("вход %u → %.110s\n", i, r);
-    if (!expect_error(r, nasty[i].code)) { printf("НЕТ: вход %u: ожидалось %s\n", i, nasty[i].code ? nasty[i].code : "не ошибка"); bad_inputs++; }
+    printf("input %u → %.110s\n", i, r);
+    if (!expect_error(r, nasty[i].code)) { printf("FAIL: input %u: expected %s\n", i, nasty[i].code ? nasty[i].code : "no error"); bad_inputs++; }
     figram_free(r);
   }
-  unsigned long n = 5u << 20;                    // строка 5 МБ: длиннее предела 1 МиБ
+  unsigned long n = 5u << 20;                    // a 5 MB string: longer than the 1 MiB limit
   char* big = malloc(n + 64);
   memset(big, 'a', n + 64);
   big[0] = '"'; big[n] = '"'; big[n + 1] = 0;
   char* r = figram_request_json(bot, big);
-  printf("строка 5 МБ → %.80s\n", r);
-  if (!expect_error(r, "too_large")) { printf("НЕТ: строка 5 МБ: ожидалось too_large\n"); bad_inputs++; }
+  printf("5 MB string → %.80s\n", r);
+  if (!expect_error(r, "too_large")) { printf("FAIL: 5 MB string: expected too_large\n"); bad_inputs++; }
   figram_free(r); free(big);
 
   expected = figram_request_json(bot, REQ);
@@ -120,20 +120,20 @@ int main(int argc, char** argv) {
   for (int i = 0; i < 16; i++) pthread_create(&th[i], 0, worker, 0);
   long bad = 0;
   for (int i = 0; i < 16; i++) { void* b; pthread_join(th[i], &b); bad += (long)b; }
-  printf("16 потоков × 20000 вызовов к одному автомату: расхождений %ld\n", bad);
+  printf("16 threads × 20000 calls to one machine: mismatches %ld\n", bad);
   figram_free(expected);
 
-  /* Замер памяти имеет смысл только без ASan (у него карантин освобождённой памяти). */
+  /* The memory measurement makes sense only without ASan (it quarantines freed memory). */
   int reload_ok = 1;
   if (argc > 2) {
     long with_unload = reload_growth(doc, 5000, 1);
     long without_unload = reload_growth(doc, 5000, 0);
-    printf("5000 загрузок и выгрузок: рост памяти %ld КБ; без выгрузки (контроль): %ld КБ\n",
+    printf("5000 loads and unloads: memory growth %ld KB; without unload (control): %ld KB\n",
            with_unload, without_unload);
     reload_ok = with_unload < 2048 && without_unload > 8192;
   }
-  if (!reload_ok) printf("НЕТ: выгрузка не освобождает память или контроль нечувствителен\n");
+  if (!reload_ok) printf("FAIL: unload does not free memory, or the control is insensitive\n");
   figram_unload(bot);
-  if (bad_inputs) printf("НЕТ: %d граничных входов дали не тот ответ\n", bad_inputs);
+  if (bad_inputs) printf("FAIL: %d edge-case inputs got a wrong reply\n", bad_inputs);
   return bad != 0 || !reload_ok || bad_inputs != 0;
 }
