@@ -1,4 +1,4 @@
-"""Minimal driver for `figram-engine` (FORMAT.md §7): one JSON line per request."""
+"""Minimal driver for `figram-engine` (docs/format.md, section 8): one JSON line per request."""
 
 import json
 import os
@@ -21,7 +21,7 @@ class Engine:
             args += ["--mutate", mutate]
         args.append(self.tmp.name)
         self.timeout = timeout
-        # --mutate is a test mode enabled only by FIGRAM_ALLOW_MUTANTS=1 (fix wave, P-17)
+        # --mutate is a test mode enabled only by FIGRAM_ALLOW_MUTANTS=1 (docs/format.md, section 8, "Test mode")
         self.p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE, text=True, bufsize=1,
                                   env=dict(os.environ, FIGRAM_ALLOW_MUTANTS="1") if mutate else None)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Differential test: independent oracle vs figram-engine on random documents,
 random event sequences (stale/forged timer tokens), stale snapshots and
-document upgrades v1 -> v2 (HOST.md §6).
+document upgrades v1 -> v2 (docs/host-contract.md, section 6).
 
   python3 diff_random.py --engine BIN [--docs N] [--steps N] [--seed S]
                          [--mutate M] [--oracle-bug B] [--expect-red]

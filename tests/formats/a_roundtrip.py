@@ -23,7 +23,7 @@ and check, for every variant x:
   P3  python json.loads(fmt x, object_pairs_hook) == oracle model (structure)
   P4  `figram check x` prints ok, `figram stats x` and
       `figram trace x 3 8 <seed>` are byte-identical to the base document
-      (К5а: annotations / defaults / number spelling do not change behaviour)
+      (C5a: annotations / defaults / number spelling do not change behaviour)
 
 Known finding rows (FC-01) are run separately (see EDGE below) and are
 expected to FAIL on the baseline; use --strict to make them count.
@@ -159,7 +159,7 @@ def transform(j, r, shuffle, defaults, annotate, numbers):
 
     def shuffle_known(o, known):
         """Permute the positions of known keys only; unknown keys keep their
-        relative order (К1: unknown key order is part of the document)."""
+        relative order (C1: unknown key order is part of the document)."""
         idx = [i for i, (k, _) in enumerate(o) if k in known]
         vals = [o[i] for i in idx]
         r.shuffle(vals)

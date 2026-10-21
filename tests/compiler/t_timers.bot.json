@@ -1,7 +1,7 @@
 {
   "figram": 1,
-  "conditions": {"ok": "Можно уходить"},
-  "calls": {"ping": "Пинг"},
+  "conditions": {"ok": "The user may leave"},
+  "calls": {"ping": "Ping"},
   "bot": {
     "initial": "wait",
     "on": {"cmd:start": [{"to": "wait"}], "btn:home": [{"to": "wait"}]},

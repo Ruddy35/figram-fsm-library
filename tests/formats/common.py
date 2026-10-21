@@ -1,4 +1,4 @@
-"""Shared helpers for the formats-correctness audit tests.
+"""Shared helpers of the formats suite.
 
 Independent re-implementation (in Python) of the pieces of Figram that the
 tests use as an oracle:
@@ -6,8 +6,8 @@ tests use as an oracle:
 * J model: numbers as exact (m, e) pairs taken from the source text,
   objects as ordered lists of pairs, strings as Python str;
 * the Lean printer `render` / `renderCompact` (FormatIO.lean) — re-written
-  from the specification in FORMAT.md / the source comments;
-* the document decoder + encoder (FORMAT.md §4) — `canon_doc`.
+  from the specification in docs/format.md / the source comments;
+* the document decoder + encoder (docs/format.md, section 4) — `canon_doc`.
 
 Nothing here imports or calls Figram code; the binaries are only run as
 subprocesses through `run()`.
@@ -149,7 +149,7 @@ def _walk(v, depth=0):
 
 
 def load_j(text: str, deviations: bool = True):
-    """Python json + the documented Figram deviations (FORMAT.md §3 «Числа»,
+    """Python json + the documented Figram deviations (docs/format.md, section 3, "Numbers",
     FormatIO.lean header): duplicate keys, |exponent| > 1000, depth > 256,
     lone surrogates, NaN/Infinity are rejected.  Raises Reject/ValueError."""
     if deviations:
@@ -290,7 +290,7 @@ def to_j(py):
 
 
 # --------------------------------------------------------------------------
-# Document decoder + encoder oracle (FORMAT.md §4, §2 К1, §3 decision 11/12)
+# Document decoder + encoder oracle (docs/format.md: section 4, C1 of section 2, decisions 11/12 of section 3)
 # --------------------------------------------------------------------------
 
 DOC_KEYS = ["figram", "requires", "conditions", "calls", "variables", "bot"]
@@ -304,7 +304,7 @@ class DecodeError(Exception):
 
 
 def num_to_nat(n):
-    """FORMAT.md decision 12: value of the number if it is a non-negative
+    """docs/format.md, decision 12: value of the number if it is a non-negative
     integer.  Mirrors the documented shortcut 'huge powers are not computed'
     (e > 18 with m > 0 is rejected: such a number exceeds 2^53 anyway)."""
     if not isinstance(n, Num):

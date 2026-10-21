@@ -2,12 +2,12 @@
 """(d) Engine request table: small hand-written request lines, exact replies.
 
 Document: examples/features.bot.json (guard is_vip on home/btn:go, timer
-«remind» on item with a handler, timer «idle» on home without one).
+"remind" on item with a handler, timer "idle" on home without one).
 Every request is a raw text line (so 1.0 / 1e0 / -0 / duplicate keys reach
 the engine as written; a few rows are raw bytes with invalid UTF-8).  The
 expected reply column is the exact byte string; it was recorded from the
-baseline binary, reviewed by hand against FORMAT.md §7, and then rewritten by
-hand for the protocol changes of the fix wave (PROTOCOL_CHANGES.md 1–6): every
+baseline binary, reviewed by hand against docs/format.md (section 8), and then
+rewritten by hand for the protocol changes of the audit fix cycle: every
 error carries a machine `code`, a parse error echoes a leading scalar `id`,
 requests are strict (unknown fields, `token` only on timer events and only as
 an integer 0…2^53−1, non-empty `event`, non-empty timer name), `start` takes an
