@@ -5,18 +5,18 @@ import Figram.RandomDoc
 /-!
 # CLI `figram`
 
-* `figram example` — документ бота пиццерии;
-* `figram check <bot.json>` — ошибки документа (код 1); предупреждения —
-  в stderr с префиксом «предупреждение:», код 0;
-* `figram fmt <bot.json>` — каноническая запись;
-* `figram stats <bot.json>` — размер скомпилированного автомата;
-* `figram trace <bot.json> <count> <length> <seed>` — случайные эталонные
-  сценарии (JSONL); покрытие вариантов стрелок — в stderr;
-* `figram random <seed> <messages>` — случайный корректный документ;
-* `figram golden <dir>` — фиксированные сценарии и их документы;
-* `figram json` — разбор строк stdin текстовым слоем (для тестов).
+* `figram example` — the pizza shop bot document;
+* `figram check <bot.json>` — the errors of a document (exit status 1); warnings go
+  to stderr with the prefix `warning:`, exit status 0;
+* `figram fmt <bot.json>` — the canonical form;
+* `figram stats <bot.json>` — the size of the compiled machine;
+* `figram trace <bot.json> <count> <length> <seed>` — random reference
+  scenarios (JSONL); the coverage of arrow variants goes to stderr;
+* `figram random <seed> <messages>` — a random valid document;
+* `figram golden <dir>` — the fixed scenarios and their documents;
+* `figram json` — parse the lines of stdin with the text layer (for tests).
 
-Любая ошибка — ненулевой код выхода.
+Any error gives a non-zero exit status.
 -/
 
 open Figram Figram.Format
@@ -29,34 +29,34 @@ def readDoc (path : String) : IO Doc := do
   let txt ← IO.FS.readFile path
   match parse txt >>= decode with
   | .ok d => pure d
-  | .error e => throw <| IO.userError s!"не удалось прочитать документ: {sanitize e}"
+  | .error e => throw <| IO.userError s!"cannot read the document: {sanitize e}"
 
 def checked (d : Doc) : IO Chart := do
   let errs := d.check
   unless errs.isEmpty do
-    for e in errs do IO.eprintln s!"ошибка: {sanitize e}"
-    throw <| IO.userError "документ не прошёл проверку"
+    for e in errs do IO.eprintln s!"error: {sanitize e}"
+    throw <| IO.userError "the document has errors"
   pure d.toChart
 
-/-- Строгое положительное число из аргумента. -/
+/-- A strictly positive number from an argument. -/
 def posArg (name val : String) : IO Nat :=
   match val.toNat? with
-  | some n => if n > 0 then pure n else throw <| IO.userError s!"{name} должно быть больше нуля"
-  | none => throw <| IO.userError s!"{name}: ожидалось целое число, получено «{val}»"
+  | some n => if n > 0 then pure n else throw <| IO.userError s!"{name} must be greater than zero"
+  | none => throw <| IO.userError s!"{name}: expected an integer, got `{val}`"
 
 def natArg (name val : String) : IO Nat :=
   match val.toNat? with
   | some n => pure n
-  | none => throw <| IO.userError s!"{name}: ожидалось целое число, получено «{val}»"
+  | none => throw <| IO.userError s!"{name}: expected an integer, got `{val}`"
 
-/-- `figram json`, для дифференциального тестирования текстового слоя: строка
-на вход, «OK <компактная запись>» или «ERR <причина>» на выход. Ввод читается
-целиком, байтами; строка не в кодировке UTF-8 — «ERR», как у движка. -/
+/-- `figram json`, for differential testing of the text layer: a line in,
+`OK <compact form>` or `ERR <reason>` out. The input is read as a whole, as bytes;
+a line that is not valid UTF-8 gives `ERR`, as in the engine. -/
 partial def jsonLines (data : ByteArray) (out : IO.FS.Stream) (start : Nat) : IO Unit := do
   if start ≥ data.size then return
   let stop := (data.findIdx? (· == 10) start).getD data.size
   let reply := match String.fromUTF8? (data.extract start stop) with
-    | none => "ERR " ++ renderCompact (.str "текст не в кодировке UTF-8")
+    | none => "ERR " ++ renderCompact (.str "text is not valid UTF-8")
     | some text =>
       match parse text with
       | .ok j => "OK " ++ renderCompact j
@@ -72,10 +72,10 @@ def run (args : List String) : IO Unit := do
     let errs := d.check
     if errs.isEmpty then
       IO.println "ok"
-      for w in d.warnings do IO.eprintln s!"предупреждение: {sanitize w}"
+      for w in d.warnings do IO.eprintln s!"warning: {sanitize w}"
     else
       for e in errs do IO.println (sanitize e)
-      throw <| IO.userError s!"ошибок: {errs.length}"
+      throw <| IO.userError s!"errors: {errs.length}"
   | ["fmt", p] => IO.println (print (encode (← readDoc p)))
   | ["stats", p] =>
     let m := (← checked (← readDoc p)).compile
@@ -96,12 +96,12 @@ def run (args : List String) : IO Unit := do
       let (j, cov) := Trace.random c len (seed + i * 7919)
       IO.println (renderCompact j)
       covered := cov.foldl (fun acc x => if acc.contains x then acc else x :: acc) covered
-    IO.eprintln s!"покрыто вариантов стрелок: {covered.length} из {Trace.totalBranches c}"
+    IO.eprintln s!"arrow variants covered: {covered.length} of {Trace.totalBranches c}"
   | ["random", seed, n] =>
     let d := RandomDoc.doc (← natArg "seed" seed) (← posArg "messages" n)
     let errs := d.check
     unless errs.isEmpty do
-      throw <| IO.userError s!"генератор создал некорректный документ: {errs}"
+      throw <| IO.userError s!"the generator produced an invalid document: {errs}"
     IO.println (print (encode d))
   | ["golden", dir] =>
     IO.FS.createDirAll dir
@@ -117,7 +117,7 @@ def run (args : List String) : IO Unit := do
         | other => other
       lines := lines.push (renderCompact j)
     IO.FS.writeFile s!"{dir}/golden.jsonl" ("\n".intercalate lines.toList ++ "\n")
-    IO.println s!"сценариев: {lines.size}"
+    IO.println s!"scenarios: {lines.size}"
   | ["json"] => jsonLines (← (← IO.getStdin).readBinToEnd) (← IO.getStdout) 0
   | _ => throw <| IO.userError usage
 

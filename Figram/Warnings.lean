@@ -1,20 +1,19 @@
 import Figram.Format
 
 /-!
-# Предупреждения о документе
+# Warnings about a document
 
-То, что проходит проверку `Doc.check`, но, скорее всего, ошибка дизайнера:
-варианты и стрелки, которые никогда не сработают, недостижимые сообщения,
-петли таймеров, которые не дают сработать соседним таймерам
-(`Chart.lintWarnings`). На `check` и на поведение движка предупреждения
-не влияют: документ, корректный раньше, остаётся корректным.
-`figram check` печатает их в stderr с префиксом «предупреждение:» и
-завершается с кодом 0.
+What passes `Doc.check` but is most likely a designer's mistake: variants and
+arrows that never fire, unreachable messages, timer loops that keep sibling
+timers from firing (`Chart.lintWarnings`). Warnings affect neither `check` nor
+the behaviour of the engine: a document that was valid stays valid.
+`figram check` prints them to stderr with the prefix `warning:` and
+exits with status 0.
 -/
 
 namespace Figram.Format
 
-/-- Предупреждения о документе (только для документа без ошибок `check`). -/
+/-- Warnings about a document (only for a document without `check` errors). -/
 def Doc.warnings (d : Doc) : List String := d.toChart.lintWarnings
 
 end Figram.Format

@@ -1,26 +1,26 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Figram: снимок пользователя, версия 1",
-  "description": "То, что хост хранит между событиями. Строгий: неизвестные поля запрещены. Целые поля (`seq`, жетоны) — точные целые; валидатор, хранящий числа как double (jsonschema, ajv), может принять и `1e-400` или `9007199254740990.5` — решает строгий декодер движка (FORMAT.md, «Числа»).",
+  "title": "Figram: user snapshot, version 1",
+  "description": "What the host stores between events. Strict: unknown fields are forbidden. Integer fields (`seq`, tokens) are exact integers; a validator that stores numbers as doubles (jsonschema, ajv) may also accept `1e-400` or `9007199254740990.5`; the strict decoder of the engine decides (docs/format.md, section 3, \"Numbers\").",
   "type": "object",
   "required": ["at"],
   "additionalProperties": false,
   "properties": {
     "v": { "const": 1 },
-    "at": { "type": "string", "minLength": 1, "description": "Текущее сообщение." },
+    "at": { "type": "string", "minLength": 1, "description": "The current message." },
     "resume": {
       "type": "object",
-      "description": "Запомненные места: раздел → сообщение.",
+      "description": "Remembered places: section → message.",
       "propertyNames": { "minLength": 1 },
       "additionalProperties": { "type": "string", "minLength": 1 }
     },
     "timers": {
       "type": "object",
-      "description": "Активные таймеры: имя → жетон запуска.",
+      "description": "Active timers: name → token of the run.",
       "propertyNames": { "minLength": 1 },
       "additionalProperties": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 }
     },
     "seq": { "type": "integer", "minimum": 0, "maximum": 9007199254740991,
-             "description": "Номер последнего перехода." }
+             "description": "The number of the last transition." }
   }
 }

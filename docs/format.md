@@ -427,13 +427,12 @@ and it starts with `{"id":` followed by a scalar value (string, number, `true`, 
 `null`) and then `,` or `}` (JSON whitespace is allowed between all parts), the reply carries
 that `id`; otherwise `id: null`:
 
-<!-- message text: verify after translation -->
 ```sh doctest
 $ printf '%s\n' '{"id":7,"op":"hello"} x' '{"id":8,"op":"step","snapshot":{"at":"cart"},"event":"btn:checkout","gaurds":{}}' '[1]' \
 >   | figram-engine examples/pizza.bot.json
-{"id":7,"error":"...","code":"parse_error"}
-{"id":8,"error":"...","code":"bad_request"}
-{"id":null,"error":"...","code":"bad_request"}
+{"id":7,"error":"extra text after the JSON value","code":"parse_error"}
+{"id":8,"error":"unknown request field `gaurds`","code":"bad_request"}
+{"id":null,"error":"request must be an object","code":"bad_request"}
 ```
 
 The `figram-engine` process reads requests as bytes:

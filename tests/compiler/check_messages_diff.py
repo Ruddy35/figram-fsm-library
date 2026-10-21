@@ -7,8 +7,8 @@ Documents: check_diff.py generator with every injected defect kind (valid ones
 included) plus hand-made cases (FC-07 root names, duplicate ids, empty section).
 Used for P-06: the linear lint must keep the messages of the quadratic one.
 With --fc07 the expected difference of FC-07 is applied to the OLD output
-first (root «» → «bot»; «Узел «X» объявлен несколько раз» once per id).
-Warnings (stderr «предупреждение: …») are ignored: only stdout and exit code."""
+first (root `` → `bot`; "node `X` is declared more than once" once per id).
+Warnings (stderr "warning: …") are ignored: only stdout and exit code."""
 
 import argparse
 import json
@@ -38,10 +38,10 @@ def check(figram, text):
 
 
 def fc07(out):
-    out = out.replace("«»", "«bot»")
+    out = out.replace("``", "`bot`")
     lines, seen = [], set()
     for ln in out.splitlines():
-        if re.match(r"^Узел «.*» объявлен несколько раз$", ln):
+        if re.match(r"^node `.*` is declared more than once$", ln):
             if ln in seen:
                 continue
             seen.add(ln)

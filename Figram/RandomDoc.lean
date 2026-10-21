@@ -1,12 +1,12 @@
 import Figram.Format
 
 /-!
-# Случайные документы
+# Random documents
 
-Генератор корректных документов разной формы: вложенные разделы, стрелки
-на сообщениях и разделах (всплытие), условия по обе стороны, «вернуться туда,
-где был», напоминания с обработчиками. Нужен, чтобы сценарии проверяли
-движок не на одном боте.
+A generator of valid documents of various shapes: nested sections, arrows
+on messages and sections (bubbling), conditions on both sides, "resume where
+the user left off", reminders with handlers. It lets the scenarios test the
+engine on more than one bot.
 -/
 
 namespace Figram.RandomDoc
@@ -92,8 +92,8 @@ def gen (n : Nat) : M Doc := do
   let plan : Plan := ⟨parent, secs, on, timers⟩
   return {
     requires := [],
-    conditions := conds.map fun c => (c, s!"Случайное условие {c}"),
-    calls := calls.map fun c => (c, s!"Случайное действие {c}"),
+    conditions := conds.map fun c => (c, s!"Random condition {c}"),
+    calls := calls.map fun c => (c, s!"Random action {c}"),
     variables := [],
     bot := build plan "",
     ext := [] }

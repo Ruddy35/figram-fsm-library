@@ -328,7 +328,7 @@ def main():
     for g, g2 in zip(re_in, re_out):
         if g2 == g:
             r_idem += 1
-        elif "показатель" in g2:
+        elif "exponent" in g2:
             r_fc01 += 1          # FC-01: printer wrote |exponent| > 1000
             known.append(("R-T3", g[:60], "fc01"))
         else:

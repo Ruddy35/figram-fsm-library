@@ -1,21 +1,21 @@
 import Figram.Lint
 
 /-!
-# Формат документа
+# Document format
 
-Математическая модель JSON (`J`), типы документа, кодировщик `encode`
-и декодер `decode`. Вывод формата и его свойства — в `FORMAT.md`,
-доказательства — в `Figram.FormatProofs`.
+The mathematical model of JSON (`J`), the document types, the encoder `encode`
+and the decoder `decode`. The derivation of the format and its properties are in
+docs/format.md, the proofs in `Figram.FormatProofs`.
 
-Объект JSON моделируется списком пар «ключ — значение» в порядке записи.
-Повторяющиеся ключи отвергает текстовый парсер (`Figram.FormatIO`),
-до этой модели они не доходят.
+A JSON object is modelled as a list of key-value pairs in the order written.
+Duplicate keys are rejected by the text parser (`Figram.FormatIO`) and never
+reach this model.
 -/
 
 namespace Figram.Format
 
-/-- Значение JSON. Число — точное десятичное `m · 10^e`: так модель
-не теряет ни одного числа, которое может встретиться в расширениях. -/
+/-- A JSON value. A number is the exact decimal `m · 10^e`, so the model
+loses no number that may occur in extensions. -/
 inductive J where
   | null
   | bool (b : Bool)
@@ -27,45 +27,45 @@ inductive J where
 
 abbrev Obj := List (String × J)
 
-/-- Значение ключа: первое вхождение. -/
+/-- The value of a key: the first occurrence. -/
 def get (kvs : Obj) (k : String) : Option J :=
   (kvs.find? (fun p => decide (p.1 = k))).map (·.2)
 
-/-- Ключи, которые формат не знает: они сохраняются как есть. -/
+/-- The keys the format does not know: they are kept as they are. -/
 def unknown (known : List String) (kvs : Obj) : Obj :=
   kvs.filter (fun p => decide (p.1 ∉ known))
 
-/-- Дополнительные ключи не совпадают с ключами формата. -/
+/-- The extra keys do not coincide with the format keys. -/
 def extOK (known : List String) (ext : Obj) : Prop := ∀ p ∈ ext, p.1 ∉ known
 
-/-- Поле, которое пишется только когда отличается от значения по умолчанию. -/
+/-- A field that is written only when it differs from the default value. -/
 def field (k : String) (present : Bool) (j : J) : Obj := if present then [(k, j)] else []
 
-/-! ## Ключи формата версии 1 -/
+/-! ## Format keys of version 1 -/
 
 def docKeys : List String := ["figram", "requires", "conditions", "calls", "variables", "bot"]
 def nodeKeys : List String := ["initial", "children", "on", "timers"]
 def variantKeys : List String := ["if", "to", "resume", "do"]
 
-/-- Смысловые расширения, которые понимает этот читатель. В версии 1 их нет. -/
+/-- The semantic extensions this reader understands. Version 1 has none. -/
 def knownFeatures : List String := []
 
-/-! ## Типы документа -/
+/-! ## Document types -/
 
-/-- Вариант стрелки. -/
+/-- A variant of an arrow. -/
 structure Variant where
-  /-- Имя условия из `conditions`; нет — «иначе / всегда». -/
+  /-- The name of a condition from `conditions`; none means "otherwise / always". -/
   cond : Option String
-  /-- Куда вести: сообщение или раздел. -/
+  /-- Where to lead: a message or a section. -/
   to : NodeId
-  /-- `true` — «вернуться в раздел `to` туда, где был». -/
+  /-- `true` means "resume section `to` where the user left off". -/
   resume : Bool
-  /-- Имена действий из `calls`, по порядку. -/
+  /-- The names of actions from `calls`, in order. -/
   calls : List String
   ext : Obj
   deriving Repr
 
-/-- Узел: сообщение или раздел. Раздел — тот, у кого есть `children`. -/
+/-- A node: a message or a section. A section is a node with `children`. -/
 inductive NodeDoc where
   | message (on : List (EventId × List Variant)) (timers : List (String × Nat)) (ext : Obj)
   | sec (initial : NodeId) (children : List (NodeId × NodeDoc))
@@ -74,18 +74,18 @@ inductive NodeDoc where
 
 structure Doc where
   requires : List String
-  /-- Условия: имя → текст, который написал дизайнер. -/
+  /-- Conditions: name → the text the designer wrote. -/
   conditions : List (String × String)
-  /-- Действия: имя → описание. -/
+  /-- Actions: name → description. -/
   calls : List (String × String)
-  /-- Переменные: имя → описание. -/
+  /-- Variables: name → description. -/
   variables : List (String × String)
-  /-- Весь бот — корневой раздел. -/
+  /-- The whole bot is the root section. -/
   bot : NodeDoc
   ext : Obj
   deriving Repr
 
-/-! ## Кодирование -/
+/-! ## Encoding -/
 
 def encStrMap (m : List (String × String)) : Obj := m.map fun p => (p.1, .str p.2)
 def encNatMap (m : List (String × Nat)) : Obj := m.map fun p => (p.1, .num p.2 0)
@@ -125,17 +125,17 @@ def encode (d : Doc) : J :=
     ++ [("bot", encNode d.bot)]
     ++ d.ext)
 
-/-! ## Декодирование -/
+/-! ## Decoding -/
 
 abbrev R := Except String
 
-/-- Наибольшее целое в полях формата: 2^53 − 1. Его точно представляют
-JavaScript (редактор), Go, Rust и Python. -/
+/-- The largest integer in format fields: 2^53 − 1. JavaScript (the editor), Go, Rust
+and Python represent it exactly. -/
 def maxInt : Nat := 9007199254740991
 
-/-- Значение числа как натурального, если оно неотрицательное целое
-(в математическом смысле: `7200000`, `7.2e6` и `7200000.0` — одно число).
-Огромные степени не вычисляются: такое число заведомо больше `maxInt`. -/
+/-- The value of a number as a natural number, if it is a non-negative integer
+(mathematically: `7200000`, `7.2e6` and `7200000.0` are the same number).
+Huge powers are not computed: such a number is certainly larger than `maxInt`. -/
 def numToNat (m e : Int) : Option Nat :=
   if m < 0 then none
   else if m = 0 then some 0
@@ -148,40 +148,40 @@ def numToNat (m e : Int) : Option Nat :=
 def decStrs : List J → R (List String)
   | [] => .ok []
   | .str s :: rest => (decStrs rest).map (s :: ·)
-  | _ :: _ => .error "ожидался список строк"
+  | _ :: _ => .error "expected a list of strings"
 
 def decStrMap : Obj → R (List (String × String))
   | [] => .ok []
   | (k, .str s) :: rest => (decStrMap rest).map ((k, s) :: ·)
-  | (k, _) :: _ => .error s!"«{k}»: ожидалась строка"
+  | (k, _) :: _ => .error s!"`{k}`: expected a string"
 
 def decNatMap : Obj → R (List (String × Nat))
   | [] => .ok []
   | (k, .num m e) :: rest =>
     match numToNat m e with
     | some n => (decNatMap rest).map ((k, n) :: ·)
-    | none => .error s!"«{k}»: ожидалось неотрицательное целое не больше {maxInt}"
-  | (k, _) :: _ => .error s!"«{k}»: ожидалось неотрицательное целое"
+    | none => .error s!"`{k}`: expected a non-negative integer at most {maxInt}"
+  | (k, _) :: _ => .error s!"`{k}`: expected a non-negative integer"
 
 def decVariant : J → R Variant
   | .obj kvs => do
     let cond ← match get kvs "if" with
       | none => pure none
       | some (.str c) => pure (some c)
-      | some _ => throw "«if»: ожидалась строка"
+      | some _ => throw "`if`: expected a string"
     let to ← match get kvs "to" with
       | some (.str t) => pure t
-      | _ => throw "у варианта нужно поле «to»"
+      | _ => throw "variant: missing field `to`"
     let resume ← match get kvs "resume" with
       | none => pure false
       | some (.bool b) => pure b
-      | some _ => throw "«resume»: ожидалось true или false"
+      | some _ => throw "`resume`: expected true or false"
     let calls ← match get kvs "do" with
       | none => pure []
       | some (.arr xs) => decStrs xs
-      | some _ => throw "«do»: ожидался список"
+      | some _ => throw "`do`: expected a list"
     pure ⟨cond, to, resume, calls, unknown variantKeys kvs⟩
-  | _ => .error "вариант должен быть объектом"
+  | _ => .error "variant must be an object"
 
 def decVariants : List J → R (List Variant)
   | [] => .ok []
@@ -190,13 +190,13 @@ def decVariants : List J → R (List Variant)
 def decOn : Obj → R (List (EventId × List Variant))
   | [] => .ok []
   | (e, .arr xs) :: rest => do pure ((e, ← decVariants xs) :: (← decOn rest))
-  | (e, _) :: _ => .error s!"«{e}»: ожидался список вариантов"
+  | (e, _) :: _ => .error s!"`{e}`: expected a list of variants"
 
 def decOnField (kvs : Obj) : R (List (EventId × List Variant)) :=
   match get kvs "on" with
   | none => pure []
   | some (.obj es) => decOn es
-  | some _ => throw "«on» должен быть объектом"
+  | some _ => throw "`on` must be an object"
 
 mutual
 def decNode : J → R NodeDoc
@@ -204,27 +204,27 @@ def decNode : J → R NodeDoc
     let on ← decOnField kvs
     match (← decChildrenIn kvs) with
     | none =>
-      if (get kvs "initial").isSome then throw "«initial» без «children»"
+      if (get kvs "initial").isSome then throw "`initial` without `children`"
       let ts ← match get kvs "timers" with
         | none => pure []
         | some (.obj ts) => decNatMap ts
-        | some _ => throw "«timers» должен быть объектом"
+        | some _ => throw "`timers` must be an object"
       pure (.message on ts (unknown nodeKeys kvs))
     | some cs =>
-      if (get kvs "timers").isSome then throw "у раздела не бывает «timers»"
+      if (get kvs "timers").isSome then throw "section: `timers` is not allowed"
       let i ← match get kvs "initial" with
         | some (.str i) => pure i
-        | _ => throw "у раздела нужно поле «initial»"
+        | _ => throw "section: missing field `initial`"
       pure (.sec i cs on (unknown nodeKeys kvs))
-  | _ => .error "узел должен быть объектом"
-/-- Первое поле `children` (если есть), раскодированное. -/
+  | _ => .error "node must be an object"
+/-- The first `children` field (if any), decoded. -/
 def decChildrenIn : Obj → R (Option (List (NodeId × NodeDoc)))
   | [] => .ok none
   | (k, v) :: rest =>
     if k = "children" then
       match v with
       | .obj cs => (decChildren cs).map some
-      | _ => .error "«children» должен быть объектом"
+      | _ => .error "`children` must be an object"
     else decChildrenIn rest
 def decChildren : Obj → R (List (NodeId × NodeDoc))
   | [] => .ok []
@@ -235,39 +235,39 @@ def decDecl (kvs : Obj) (k : String) : R (List (String × String)) :=
   match get kvs k with
   | none => pure []
   | some (.obj m) => decStrMap m
-  | some _ => throw s!"«{k}» должен быть объектом"
+  | some _ => throw s!"`{k}` must be an object"
 
-/-- Разбор структуры без проверки `requires`. -/
+/-- Decoding of the structure without the `requires` check. -/
 def decodeRaw : J → R Doc
   | .obj kvs => do
     match get kvs "figram" with
-    | some (.num m e) => if numToNat m e = some 1 then pure () else throw "нужно поле «figram»: 1"
-    | _ => throw "нужно поле «figram»: 1"
+    | some (.num m e) => if numToNat m e = some 1 then pure () else throw "field `figram` must be 1"
+    | _ => throw "field `figram` must be 1"
     let req ← match get kvs "requires" with
       | none => pure []
       | some (.arr xs) => decStrs xs
-      | some _ => throw "«requires»: ожидался список"
+      | some _ => throw "`requires`: expected a list"
     let conds ← decDecl kvs "conditions"
     let calls ← decDecl kvs "calls"
     let vars ← decDecl kvs "variables"
     let bot ← match get kvs "bot" with
       | some j => decNode j
-      | none => throw "нужно поле «bot»"
+      | none => throw "missing field `bot`"
     match bot with
     | .sec .. => pure ⟨req, conds, calls, vars, bot, unknown docKeys kvs⟩
-    | .message .. => throw "«bot» должен быть разделом"
-  | _ => .error "документ должен быть объектом"
+    | .message .. => throw "`bot` must be a section"
+  | _ => .error "document must be an object"
 
-/-- **Чтение документа.** Документ, который требует незнакомых
-возможностей, отвергается целиком, а не читается частично. -/
+/-- **Reading a document.** A document that requires unknown extensions
+is rejected as a whole instead of being read partially. -/
 def decode (j : J) : R Doc := do
   let d ← decodeRaw j
   if d.requires.all (fun f => decide (f ∈ knownFeatures)) then pure d
-  else throw "документ требует возможностей, которых этот читатель не знает"
+  else throw "document requires extensions this reader does not know"
 
-/-! ## Смысл документа: схема `Chart` -/
+/-! ## The meaning of a document: the chart `Chart` -/
 
-/-- Идентификатор корневого раздела. Пустой ключ у узлов запрещён проверкой. -/
+/-- The identifier of the root section. The check forbids an empty node key. -/
 def rootId : NodeId := ""
 
 def Variant.toBranch (v : Variant) : Branch :=
@@ -295,53 +295,53 @@ def Doc.toChart (d : Doc) : Chart :=
   let f := flatNode rootId none d.bot
   ⟨f.1, rootId, f.2.1, f.2.2⟩
 
-/-! ## Проверка документа
+/-! ## Checking a document
 
-Смысловые условия, которые не выражены структурой JSON, плюс условия,
-без которых документ нельзя записать текстом и прочитать обратно. -/
+The semantic conditions that the JSON structure does not express, plus the conditions
+without which a document cannot be written as text and read back. -/
 
 def dups (l : List String) : List String :=
   dedup (l.filter fun k => (l.filter (· == k)).length > 1)
 
-/-- Ключи всех объектов внутри значения уникальны. -/
+/-- The keys of all objects inside a value are unique. -/
 partial def J.keysUnique : J → Bool
   | .obj kvs => (dups (kvs.map (·.1))).isEmpty && kvs.all (fun p => J.keysUnique p.2)
   | .arr xs => xs.all J.keysUnique
   | _ => true
 
-/-- Проверка дополнительных ключей одного объекта. -/
+/-- The check of the extra keys of one object. -/
 def extErrors (whereStr : String) (known : List String) (ext : Obj) : List String :=
   (ext.filterMap fun p =>
-    if p.1 ∈ known then some s!"{whereStr}: дополнительный ключ «{p.1}» совпадает с ключом формата"
-    else if !(J.keysUnique p.2) then some s!"{whereStr}: в значении «{p.1}» повторяются ключи"
+    if p.1 ∈ known then some s!"{whereStr}: extra key `{p.1}` collides with a format key"
+    else if !(J.keysUnique p.2) then some s!"{whereStr}: duplicate keys in the value of `{p.1}`"
     else none)
-  ++ (dups (ext.map (·.1))).map fun k => s!"{whereStr}: ключ «{k}» повторяется"
+  ++ (dups (ext.map (·.1))).map fun k => s!"{whereStr}: duplicate key `{k}`"
 
 def mapErrors (whereStr : String) (keys : List String) : List String :=
-  (if keys.contains "" then [s!"{whereStr}: пустое имя"] else [])
-  ++ (dups keys).map fun k => s!"{whereStr}: имя «{k}» повторяется"
+  (if keys.contains "" then [s!"{whereStr}: empty name"] else [])
+  ++ (dups keys).map fun k => s!"{whereStr}: duplicate name `{k}`"
 
 def variantErrors (whereStr : String) (v : Variant) : List String :=
-  (if v.to = "" then [s!"{whereStr}: пустая цель «to»"] else [])
-  ++ (if v.cond = some "" then [s!"{whereStr}: пустое имя условия"] else [])
-  ++ (if v.calls.contains "" then [s!"{whereStr}: пустое имя действия"] else [])
+  (if v.to = "" then [s!"{whereStr}: empty target `to`"] else [])
+  ++ (if v.cond = some "" then [s!"{whereStr}: empty condition name"] else [])
+  ++ (if v.calls.contains "" then [s!"{whereStr}: empty action name"] else [])
   ++ extErrors whereStr variantKeys v.ext
 
 def onErrors (id : NodeId) (on : List (EventId × List Variant)) : List String :=
-  mapErrors s!"события узла «{id}»" (on.map (·.1))
-  ++ on.flatMap fun p => p.2.flatMap (variantErrors s!"«{id}» → «{p.1}»")
+  mapErrors s!"events of node `{id}`" (on.map (·.1))
+  ++ on.flatMap fun p => p.2.flatMap (variantErrors s!"`{id}` → `{p.1}`")
 
 partial def nodeErrors (id : NodeId) : NodeDoc → List String
   | .message on ts ext =>
     onErrors id on
-    ++ mapErrors s!"таймеры сообщения «{id}»" (ts.map (·.1))
+    ++ mapErrors s!"timers of message `{id}`" (ts.map (·.1))
     ++ (ts.filterMap fun p => if p.2 > maxInt then
-          some s!"таймер «{p.1}» в «{id}»: задержка больше {maxInt} мс" else none)
-    ++ extErrors s!"узел «{id}»" nodeKeys ext
+          some s!"timer `{p.1}` in `{id}`: delay exceeds {maxInt} ms" else none)
+    ++ extErrors s!"node `{id}`" nodeKeys ext
   | .sec _ cs on ext =>
     onErrors id on
-    ++ mapErrors s!"вложенные узлы раздела «{id}»" (cs.map (·.1))
-    ++ extErrors s!"узел «{id}»" nodeKeys ext
+    ++ mapErrors s!"children of section `{id}`" (cs.map (·.1))
+    ++ extErrors s!"node `{id}`" nodeKeys ext
     ++ cs.flatMap fun p => nodeErrors p.1 p.2
 
 partial def allTimers : NodeDoc → List String
@@ -352,7 +352,7 @@ partial def allEvents : NodeDoc → List String
   | .message on _ _ => on.map (·.1)
   | .sec _ cs on _ => on.map (·.1) ++ cs.flatMap fun p => allEvents p.2
 
-/-! ### Условия теоремы о записи и чтении в вычислимом виде -/
+/-! ### The hypotheses of the write-and-read theorem in computable form -/
 
 def extOKb (known : List String) (ext : Obj) : Bool := ext.all (fun p => decide (p.1 ∉ known))
 
@@ -378,25 +378,25 @@ def Doc.check (d : Doc) : List String :=
   let branches := c.transitions.flatMap (·.branches)
   let undeclaredCond := (branches.filterMap (·.guard)).filterMap fun n =>
     if n = "" || d.conditions.any (·.1 == n) then none
-    else some s!"Условие «{n}» не описано в «conditions»"
+    else some s!"condition `{n}` is not described in `conditions`"
   let undeclaredCall := (branches.flatMap (·.actions)).filterMap fun
     | .call n => if n = "" || d.calls.any (·.1 == n) then none
-                 else some s!"Действие «{n}» не описано в «calls»"
+                 else some s!"action `{n}` is not described in `calls`"
     | _ => none
   let timers := allTimers d.bot
   let badTimerEvents := (allEvents d.bot).filterMap fun e =>
     if e.startsWith "timer:" && !(timers.contains (e.drop 6).toString) then
-      some s!"Событие «{e}»: такого таймера нет (префикс «timer:» зарезервирован)"
+      some s!"event `{e}`: no such timer (the prefix `timer:` is reserved)"
     else none
   let structural :=
-    (if d.requires.all (· ∈ knownFeatures) then [] else ["Документ требует незнакомых возможностей"])
-    ++ (match d.bot with | .sec .. => [] | .message .. => ["«bot» должен быть разделом"])
+    (if d.requires.all (· ∈ knownFeatures) then [] else ["document requires extensions this reader does not know"])
+    ++ (match d.bot with | .sec .. => [] | .message .. => ["`bot` must be a section"])
     ++ mapErrors "conditions" (d.conditions.map (·.1))
     ++ mapErrors "calls" (d.calls.map (·.1))
     ++ mapErrors "variables" (d.variables.map (·.1))
-    ++ extErrors "документ" docKeys d.ext
+    ++ extErrors "document" docKeys d.ext
     ++ nodeErrors "bot" d.bot
-  (if d.wfOK then [] else ["Документ нарушает условия формата (см. ошибки ниже)"])
+  (if d.wfOK then [] else ["document violates the format rules (see the errors below)"])
   ++ structural ++ dedup undeclaredCond ++ dedup undeclaredCall ++ dedup badTimerEvents ++ c.lint
 
 end Figram.Format

@@ -1,13 +1,13 @@
 import Figram.Core
 
 /-!
-# Свойства ядра
+# Properties of the core
 
-1. `step_state_valid` — после любого шага из **любого** снимка пользователь
-   стоит на существующем сообщении (если автомат прошёл проверку `wf`).
-   Снимок с удалённым сообщением восстанавливается (`recover`).
-2. `start_state_valid` — то же для первого входа.
-3. `step_guard_local` — шаг зависит только от условий из `requiredGuards`.
+1. `step_state_valid` — after any step from **any** snapshot the user is on an
+   existing message (if the machine passed the `wf` check).
+   A snapshot with a deleted message is recovered (`recover`).
+2. `start_state_valid` — the same for the first entry.
+3. `step_guard_local` — a step depends only on the conditions in `requiredGuards`.
 -/
 
 namespace Figram
@@ -35,7 +35,7 @@ theorem lookup_some_mem {α β} [DecidableEq α] {t : List (α × β)} {k : α} 
   rw [← hk]
   exact List.mem_of_find?_eq_some hp
 
-/-- Выбор варианта не зависит от вариантов после первого безусловного. -/
+/-- The choice of a variant does not depend on the variants after the first unconditional one. -/
 theorem find?_untilUnguarded (env : HostEnv) (bs : List FBranch) :
     bs.find? (fun b => guardOK env b.guard) =
       (untilUnguarded (·.guard) bs).find? (fun b => guardOK env b.guard) := by
@@ -66,8 +66,8 @@ theorem neededIn_given {known : String → Option Bool} {bs : List FBranch} {n :
         · exact hg
         · exact ih h
 
-/-- Если недостающих условий нет, выбор варианта одинаков для любых значений,
-согласных с известными. -/
+/-- If no conditions are missing, the choice of a variant is the same for all values
+that agree with the known ones. -/
 theorem find?_neededIn {known : String → Option Bool} {bs : List FBranch} (env₁ env₂ : HostEnv)
     (h : Machine.neededIn known bs = [])
     (h₁ : ∀ n v, known n = some v → env₁ n = v) (h₂ : ∀ n v, known n = some v → env₂ n = v) :
@@ -94,7 +94,7 @@ theorem find?_neededIn {known : String → Option Bool} {bs : List FBranch} (env
 
 namespace Machine
 
-/-- Найденная стрелка — одна из стрелок автомата. -/
+/-- The arrow found is one of the machine's arrows. -/
 theorem row_mem {m : Machine} {s : NodeId} {e : EventId} {r : Row} (h : m.row s e = some r) :
     r ∈ m.rows := by
   unfold row at h
@@ -169,9 +169,9 @@ theorem find?_congr {α} (l : List α) (p q : α → Bool)
     have hxs : ∀ y ∈ xs, p y = q y := fun y hy => h y (by simp [hy])
     simp only [List.find?_cons, hx, ih hxs]
 
-/-- Срабатывание таймера, которым текущее сообщение не владеет (выход из него
-таймер не отменяет), стрелок не читает: снимок остаётся прежним, действий нет.
-Поэтому стрелка `timer:X` сообщения без таймера X недостижима (T-13). -/
+/-- A firing of a timer the current message does not own (its exit does not cancel
+the timer) reads no arrows: the snapshot stays the same and there are no actions.
+So an arrow `timer:X` of a message without timer X is unreachable. -/
 theorem step_unowned_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
     (hs : s.state ∈ m.states) (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
     m.step s (.timer id tok) env = (s, []) := by
