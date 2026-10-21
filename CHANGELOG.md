@@ -7,7 +7,10 @@ command names and the exit statuses; the texts of messages are for humans and ma
 
 ## [0.1.0] - Unreleased
 
-First release.
+First release. It follows an independent audit and fix cycle; the audit reports, logs and
+harnesses are not part of the tree and are preserved at commit
+[`16c885a`](https://github.com/Ruddy35/figram-fsm-library/tree/16c885a). The tests written during
+the audit were kept under `tests/`.
 
 ### Added
 
@@ -31,13 +34,7 @@ First release.
 
 ### Changed
 
-- All user-facing texts are now in English: engine error messages, `figram` diagnostics and CLI
-  output, C ABI error texts, the Go wrapper and the Python client (its `EngineError` messages).
-  Error `code` values, JSON field names, CLI command names and exit statuses are unchanged.
-
-### Audit
-
-- An independent audit and a fix cycle preceded this release. The audit reports, logs and
-  harnesses were removed from the tree and are preserved at commit
-  [`16c885a`](https://github.com/Ruddy35/figram-fsm-library/tree/16c885a).
-- Tests written during the audit were kept and moved under `tests/`.
+- Compared with the pre-release commits, all user-facing texts are in English: engine error
+  messages, `figram` diagnostics and CLI output, C ABI error texts, the Go wrapper and the Python
+  client (its `EngineError` messages). Error `code` values, JSON field names, CLI command names
+  and exit statuses are unchanged.
