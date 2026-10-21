@@ -13,7 +13,7 @@
 #     (the compiler reports the path: $CC -print-file-name), the C++ runtime is the system libstdc++.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-lake build Figram FigramApi:static
+lake build Figram:static FigramApi:static
 P=$(lean --print-prefix)
 O=.lake/build/ir/Figram
 OBJS=""

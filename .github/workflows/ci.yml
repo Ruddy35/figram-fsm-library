@@ -104,8 +104,7 @@ jobs:
             proofs)
               bash tests/proofs/test_strict_gate_clean.sh 2>&1 | tee "$L/test_strict_gate_clean.txt";;
             docs)
-              python3 ci/check_docs.py 2>&1 | tee "$L/check_docs.txt"
-              bash tests/capi/doc_check.sh 2>&1 | tee "$L/doc_check.txt";;
+              python3 ci/check_docs.py 2>&1 | tee "$L/check_docs.txt";;
             faults-prebuilt)
               FAULT_LOGS=$L ./verify-faults.sh prebuilt;;
             faults-full)

@@ -35,6 +35,7 @@ fi
 if command -v go > /dev/null; then
   if (cd clients/go && env -u CGO_LDFLAGS CC=${CC:-gcc} go build -o "$T/gofig" .) > "$T/go.log" 2>&1; then
     ok "go build without CGO_LDFLAGS"
+    [ -x .lake/build/bin/figram ] || lake build figram > "$T/lake.log" 2>&1   # the scenarios come from the CLI
     .lake/build/bin/figram trace examples/pizza.bot.json 20 30 7 > "$T/small.jsonl" 2>/dev/null
     if "$T/gofig" examples/pizza.bot.json "$T/small.jsonl" > "$T/gofig.out" 2>&1; then ok "Go: $(tail -1 "$T/gofig.out")"
     else bad "gofig exited with a code ≠ 0"; tail -5 "$T/gofig.out" | sed 's/^/    /'; fi
@@ -42,8 +43,10 @@ if command -v go > /dev/null; then
   else bad "go build without CGO_LDFLAGS fails"; grep -m5 -E "undefined|cannot find|error" "$T/go.log" | sed 's/^/    /'; fi
 else echo "skip Go: go is not installed"; fi
 if command -v clang > /dev/null; then
-  RES=$(clang -print-resource-dir)/include
   P=$(lean --print-prefix)
+  # The official Lean release keeps clang's builtin headers in its prefix (leanc passes
+  # -isystem $P/include/clang); the resource dir of its bin/clang has no headers.
+  if [ -d "$P/include/clang" ]; then RES=$P/include/clang; else RES=$(clang -print-resource-dir)/include; fi
   for s in ffi/*.c ffi/*.cpp; do
     [ -e "$s" ] || continue
     if clang -nostdinc -isystem "$RES" -I "$P/include" -fPIC -c -o "$T/nostdinc.o" "$s" 2> "$T/nostdinc.log"; then
