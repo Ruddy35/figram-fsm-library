@@ -159,8 +159,8 @@ def doc(path):
 TOP = ("Figram/", "ffi/", "clients/", "schemas/", "examples/", "docs/", "tests/", "ci/", ".github/")
 EXTS = (".lean", ".py", ".sh", ".c", ".h", ".cpp", ".go", ".json", ".jsonl", ".md", ".yml", ".yaml",
         ".txt", ".expected", ".sha256", ".supp", ".mod")
-GENERATED = (".lake/", "ffi/out", "verify-logs", "tests/capi/out", "clients/go/zz_figram_ldflags.go",
-             "clients/go/gofig", "zz_figram_ldflags.go")
+GENERATED = (".lake/", "ffi/out", "verify-logs", "tests/capi/out", "tests/formats/logs", "tests/compiler/logs",
+             "clients/go/zz_figram_ldflags.go", "clients/go/gofig", "zz_figram_ldflags.go")
 _names = None
 
 
