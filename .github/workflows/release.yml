@@ -4,6 +4,8 @@
 # archive, self-contained library archive), then create or update a DRAFT GitHub Release v<version>
 # at the built commit. Publishing the draft is left to a maintainer (docs/releasing.md); this workflow
 # never publishes, deletes or changes a published release.
+# Two jobs: `build` builds, tests and packages with a read-only token; only `draft`, which checks out
+# nothing and runs no code of the repository, gets `contents: write` to create or update the draft.
 # Start: Actions -> release -> Run workflow (version, e.g. 0.1.0) on the commit to release, or push a
 # tag v<version>. The version must equal `version` in lakefile.lean and have a CHANGELOG.md section.
 # Actions are pinned by commit SHA; the tag in the comment is for updating them.
@@ -18,7 +20,7 @@ on:
   push:
     tags: ["v*"]
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: release
   cancel-in-progress: false
@@ -26,14 +28,23 @@ defaults:
   run:
     shell: bash                     # bash --noprofile --norc -eo pipefail {0}
 jobs:
-  release:
+  build:
+    name: build, verify and package
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    permissions:
+      contents: read
     env:
       INPUT_VERSION: ${{ inputs.version }}
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      commit: ${{ steps.version.outputs.commit }}
+      artifact: ${{ steps.version.outputs.artifact }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262   # v4
       - name: Version, CHANGELOG section, commit
+        id: version
         run: |
           case "$GITHUB_EVENT_NAME" in
             workflow_dispatch) v=$INPUT_VERSION;;
@@ -61,6 +72,8 @@ jobs:
           commit=$(git rev-parse HEAD)
           [ "$commit" = "$GITHUB_SHA" ] || echo "::notice::HEAD $commit, GITHUB_SHA $GITHUB_SHA: releasing HEAD"
           { echo "VERSION=$v"; echo "TAG=v$v"; echo "COMMIT=$commit"; echo "DIST=$RUNNER_TEMP/dist"; } >> "$GITHUB_ENV"
+          { echo "version=$v"; echo "tag=v$v"; echo "commit=$commit"
+            echo "artifact=release-v$v-$GITHUB_RUN_ATTEMPT"; } >> "$GITHUB_OUTPUT"
           echo "release v$v of $commit"
       - name: An existing tag v<version> points at this commit
         run: |
@@ -117,7 +130,8 @@ jobs:
           run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT"
           src="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$COMMIT"
           {
-            cat "$RUNNER_TEMP/changelog.md"
+            # Relative links of CHANGELOG.md point at the sources of this commit.
+            sed -E "s#\]\((\./)?([^)#:]+)(\#[^)]*)?\)#]($src/\2\3)#g" "$RUNNER_TEMP/changelog.md"
             echo
             echo "## Downloads"
             echo
@@ -152,32 +166,76 @@ jobs:
       - name: Upload archives, checksums and notes
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
         with:
-          name: release-${{ env.TAG }}-${{ github.run_attempt }}
+          name: ${{ steps.version.outputs.artifact }}
           path: ${{ env.DIST }}/
           if-no-files-found: error
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
+        with:
+          name: release-logs-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            verify-full.log
+            verify-logs-full/
+            test-bundle.log
+            verify-prebuilt.log
+            verify-logs/
+          if-no-files-found: warn
+
+  draft:
+    # The only job with write access: it downloads the verified archives of `build` and creates or
+    # updates the draft release; it checks out nothing and runs no code of the repository.
+    name: draft release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.build.outputs.tag }}
+      VERSION: ${{ needs.build.outputs.version }}
+      COMMIT: ${{ needs.build.outputs.commit }}
+    steps:
+      - name: Download archives, checksums and notes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093   # v4
+        with:
+          name: ${{ needs.build.outputs.artifact }}
+          path: ${{ runner.temp }}/dist
       - name: Create or update the draft release
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
+          DIST=$RUNNER_TEMP/dist
+          notes=$DIST/RELEASE_NOTES.md
           assets=("$DIST/figram-$VERSION-linux-x86_64.tar.gz" "$DIST/libfigram-$VERSION-linux-x86_64.tar.gz"
                   "$DIST/SHA256SUMS" "$DIST/SHA256SUMS.binaries")
+          for f in "$notes" "${assets[@]}"; do [ -s "$f" ] || { echo "::error::$f is missing"; exit 1; }; done
+          (cd "$DIST" && sha256sum --strict -c SHA256SUMS)
           title="Figram $TAG"
           pre=false; case "$VERSION" in *-*) pre=true;; esac
           # Releases with this tag, drafts included (the tag lookup endpoint does not return drafts).
-          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
-            --jq ".[] | select(.tag_name == \"$TAG\") | \"\(.id) \(.draft)\"" > "$RUNNER_TEMP/releases.txt"
+          releases() {
+            gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+              --jq ".[] | select(.tag_name == \"$TAG\") | \"\(.id) \(.draft)\""
+          }
+          releases > "$RUNNER_TEMP/releases.txt"
           case "$(wc -l < "$RUNNER_TEMP/releases.txt")" in
             0)
               gh release create "$TAG" --draft --prerelease="$pre" --target "$COMMIT" --title "$title" \
-                --notes-file "$RUNNER_TEMP/notes.md" "${assets[@]}"
+                --notes-file "$notes" "${assets[@]}"
               echo "created draft release $TAG";;
             1)
-              read -r id draft < "$RUNNER_TEMP/releases.txt"
-              if [ "$draft" != true ]; then
-                echo "::error::release $TAG is already published; this workflow never changes a published release"; exit 1
-              fi
-              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F draft=true -F prerelease="$pre" \
-                -f target_commitish="$COMMIT" -f name="$title" -F body=@"$RUNNER_TEMP/notes.md" > /dev/null
+              read -r id _ < "$RUNNER_TEMP/releases.txt"
+              still_draft() {  # checked again around every change of the release
+                [ "$(releases)" = "$id true" ] \
+                  || { echo "::error::release $TAG is published (not a draft); this workflow never changes a published release"; exit 1; }
+              }
+              still_draft
+              # `draft` is not sent: the release stays a draft, and one published in the meantime is
+              # not turned back into a draft.
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -F prerelease="$pre" \
+                -f target_commitish="$COMMIT" -f name="$title" -F body=@"$notes" > /dev/null
+              still_draft
               # Assets of an earlier run that this run does not produce are removed from the draft.
               keep=" $(for a in "${assets[@]}"; do printf '%s ' "$(basename "$a")"; done)"
               gh api --paginate "repos/$GITHUB_REPOSITORY/releases/$id/assets?per_page=100" --jq '.[] | "\(.id) \(.name)"' |
@@ -194,15 +252,3 @@ jobs:
           esac
           url=$(gh release view "$TAG" --json url --jq .url)
           echo "Draft release: $url" | tee -a "$GITHUB_STEP_SUMMARY"
-      - name: Upload logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02   # v4
-        with:
-          name: release-logs-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            verify-full.log
-            verify-logs-full/
-            test-bundle.log
-            verify-prebuilt.log
-            verify-logs/
-          if-no-files-found: warn
