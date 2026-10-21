@@ -18,7 +18,7 @@ parts it uses.
 | mimalloc (compiled into `libleanrt.a`) | 3.4.5 | executables, archive | `MIT` | <https://github.com/microsoft/mimalloc> |
 | libuv (`libuv.a`) | 1.48.0 | executables, archive | `MIT`, a few files `ISC` | <https://github.com/libuv/libuv> |
 | GNU MP (`libgmp.a`) | 6.3.0 | executables, archive | `LGPL-3.0-or-later OR GPL-2.0-or-later` | <https://gmplib.org/> |
-| LLVM libc++ and libc++abi (`libc++.a`, `libc++abi.a`) | 23.1.0 | executables, archive | `Apache-2.0 WITH LLVM-exception`; code not yet relicensed: `NCSA` | <https://github.com/llvm/llvm-project> |
+| LLVM libc++ and libc++abi (`libc++.a`, `libc++abi.a`) | 23.1.0 (see below) | executables, archive | `Apache-2.0 WITH LLVM-exception`; code not yet relicensed: `NCSA` | <https://github.com/llvm/llvm-project> |
 | LLVM libunwind (`libunwind.a`) and compiler-rt start-up objects (`clang_rt.crtbegin.o`, `clang_rt.crtend.o`) | 23.1.0 | executables | `Apache-2.0 WITH LLVM-exception`; code not yet relicensed: `NCSA` | <https://github.com/llvm/llvm-project> |
 | GNU C Library start-up objects (`Scrt1.o`, `crti.o`, `crtn.o`) and `libc_nonshared.a`, `libpthread_nonshared.a`, as shipped with the Lean toolchain | — | executables | `LGPL-2.1-or-later` | <https://www.gnu.org/software/libc/> |
 
@@ -26,9 +26,29 @@ The C library itself (`libc.so.6`, `libm.so.6`, `libpthread.so.0`, `libdl.so.2`,
 linked dynamically from the system and is not distributed. A host program linked with the library
 archive additionally uses its own C/C++ toolchain's start-up files and `libgcc_s.so.1`.
 
+The LLVM version is the one of the Lean toolchain (its `clang --version`: 23.1.0); `libc++abi.a`
+and `libunwind.a` record that they were built from the `llvm-project` sources of the Lean LLVM
+build, with Ubuntu clang 21.1.5 as the host compiler.
+
 The GNU MP library is dual-licensed; the `LICENSES` file of the Lean release, which bundles it,
 carries the text of the LGPL version 3. The texts of all licenses named above are reproduced at
 the end of this file.
+
+## GNU MP and the LGPL
+
+The release executables, and programs you link with the library archive, contain GNU MP 6.3.0,
+which Figram uses under the GNU LGPL version 3 (one of its two license options). Under that
+license you may use a modified GNU MP with Figram:
+
+* **Source of GNU MP.** The release archive of GNU MP 6.3.0 is published by the GNU MP project at
+  <https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz> and by the GNU project at
+  <https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz>; the official Lean 4.35.0 release, whose
+  `lib/libgmp.a` Figram links, documents its build at <https://github.com/leanprover/lean4>.
+* **Relinking.** The library archive ships `lib/libgmp.a` as a separate, unmodified file: relink
+  your program with another GNU MP by replacing that file or by linking a GNU MP of your choice
+  instead. The executables `figram` and `figram-engine` can be rebuilt from the complete source of
+  this repository at the release tag (README, "Build from source") with a Lean 4.35.0 toolchain
+  whose `lib/libgmp.a` you replaced.
 
 **Toolchain built from source.** A Lean 4.35.0 built from source with gcc (supported for local
 development) links the GNU C++ library (`libstdc++.so.6`, `GPL-3.0-or-later WITH
