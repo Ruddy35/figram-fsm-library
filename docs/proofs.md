@@ -126,6 +126,8 @@ connects the product theorems end to end, among others:
   passed `check` and satisfies `wf` and `namesOK`;
 * `Figram.Audit.engine_step_is_reference` — a `step` request to a loaded engine (at the level of
   the JSON model) computes the reference semantics `Chart.step` of the loaded document;
+* `Figram.Audit.engine_start_is_reference` — the same for `start` with a first event and
+  `Chart.startWith`;
 * `Figram.Audit.start_snapOK`, `Figram.Audit.restart_snapOK` — `start` and `restart` produce
   admissible snapshots;
 * `Figram.Audit.decSnapshot_sound`, `Figram.Audit.step_reply_readable` — every decoded snapshot

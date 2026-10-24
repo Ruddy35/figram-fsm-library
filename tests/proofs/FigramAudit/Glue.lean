@@ -130,6 +130,24 @@ theorem engine_step_is_reference {txt : String} {m : Machine} (hload : Engine.lo
   rw [Chart.compile_correct _ hwf]
   rfl
 
+/-- G7b: end to end — a `start` request with a first event to a loaded engine computes the
+reference semantics `Chart.startWith` of the loaded document (model level). -/
+theorem engine_start_is_reference {txt : String} {m : Machine} (hload : Engine.load txt = .ok m)
+    (kvs : Obj) (n : Nat) (e : EventId) (gs : List (String × Bool))
+    (hop : get kvs "op" = some (.str "start")) (hseq : decStartSeq kvs = .ok n)
+    (hev : (get kvs "event").isSome = true) (he : decStartEvent kvs = .ok e)
+    (hgs : decGuards kvs = .ok gs) (hmiss : missingStart m e gs = [])
+    (hov : (m.startWith n (.named e) (envOf gs)).1.seq ≤ maxInt) :
+    ∃ d : Doc, d.check = [] ∧ m = d.toChart.compile ∧
+      handleObj m kvs = .ok (result ((get kvs "id").getD .null)
+        (d.toChart.startWith n (.named e) (envOf gs)).1
+        (d.toChart.startWith n (.named e) (envOf gs)).2 false) := by
+  obtain ⟨d, hc, hm, hwf, _⟩ := load_sound hload
+  refine ⟨d, hc, hm, ?_⟩
+  rw [handle_start m kvs n e gs hop hseq hev he hgs hmiss hov]
+  subst hm
+  rw [Chart.startWith_correct _ hwf]
+
 /-! ## G8: `start` and `restart` also emit admissible snapshots (the engine never produces a
 snapshot it could not read back; the product theorems state it for `step` and `startAt`). -/
 
