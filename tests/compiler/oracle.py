@@ -27,6 +27,8 @@ Semantics (docs/format.md, section 7):
   * resume arrow into S goes to the message remembered for S; if that
     message is gone -> S's initial message (decision 5);
   * no matching variant -> ignore (decision 6);
+  * start with a first event (decision 9): matched as if the user stood on the
+    initial message, which is neither entered nor left; no variant -> plain start;
   * timer event accepted only with the token of its current launch (7);
   * snapshot pointing at a non-existent message -> start over: cancel all
     snapshot timers, keep remembered places, "recovered": true (8; format.md §8).
@@ -369,6 +371,40 @@ class Bot:
         snap["at"] = m
         self._enter(snap, acts, m, tok)
         return snap, acts
+
+    def start_with(self, ev, guards=None, seq=0, check_need=True, hits=None):
+        """format.md §7, decision 9, and §8 (start with `event`): the first entry with the
+        user's first event, matched as if the user stood on the initial message; that message
+        is neither entered nor left (not sent, its timers not started, not remembered).
+        Returns ('ok', snap, actions) or ('need', set)."""
+        hits = set() if hits is None else hits
+        guards = guards or {}
+        if not isinstance(ev, str) or ev == "" or ev.startswith("timer:"):
+            raise RequestError("start: the event must be a non-empty name, not a timer event")
+        init = self.landing(self.ROOT)
+        here = {"at": init, "resume": {}, "timers": {}, "seq": seq}
+        mn, al = self.need_sets(here, ev, None, guards)
+        want = al if self.opts.need == "all" else mn
+        if want and check_need:
+            return ("need", want)
+        chosen = None
+        for v in self.candidates(init, ev):
+            if v.cond is None or guards.get(v.cond, False):
+                chosen = v
+                break
+        snap = {"at": "", "resume": {}, "timers": {}, "seq": seq}
+        acts = []
+        tok = self._bump(snap)
+        if self.opts.bug == "start-enters-initial" and chosen is not None:
+            self._enter(snap, acts, init, tok)   # deliberately wrong: the initial message is entered
+        if chosen is None:                       # no variant: the plain first entry
+            tgt = init
+        else:
+            tgt = self._resume_target(snap, chosen.to, hits) if chosen.resume else self.landing(chosen.to)
+            acts.extend({"call": c} for c in chosen.calls)
+        snap["at"] = tgt
+        self._enter(snap, acts, tgt, tok)
+        return ("ok", snap, acts)
 
     def _over(self, snap, keep_resume):
         snap = copy_snap(snap)

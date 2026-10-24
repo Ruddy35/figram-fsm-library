@@ -34,6 +34,15 @@ For every Telegram update (it carries an `update_id`):
    cart, and a balance check allows two purchases with the same money. Conditions may also
    depend on the data of the event itself (message text, button payload).
 
+   **A new user** (no snapshot) comes with an update too: `/start ref123`, a button of an old
+   message after the snapshot was lost, a text. Call `start` with the update's event (and `seq`,
+   the high-water mark of section 4, if the user had one) instead of `step`; `need` is
+   answered the same way. The event is matched as if the user stood on the initial message
+   ([format.md](format.md), section 7, decision 9), so one reply both starts the user and
+   processes the update, and the document decides what `/start` does. The engine never sees
+   the parameter `ref123`: a condition (`ref_valid`) and an action (`save_ref`) of the host read
+   it from the update.
+
    **Shared scarce resources.** The per-user barrier does not protect data shared between
    users: the last seat, the remaining stock, a limit. Two users checking `slot_free` at the
    same time both see a free seat and both get "booked", and one of the reservation actions
@@ -184,8 +193,9 @@ early.
 If the snapshot is lost or deleted, keep a separate "high-water mark" — the largest `seq` ever
 issued to the user (one number, not personal data; it can be rebuilt as the maximum `seq` of
 the user's outbox rows) — and, if the snapshot database can roll back, keep it outside that
-database, otherwise the mark rolls back too. Start the user with `start` and this mark, or with
-`restart` and a placeholder snapshot whose `at` names no message:
+database, otherwise the mark rolls back too. Start the user with `start` and this mark (with
+the event of the update, section 1, step 3), or with `restart` and a placeholder snapshot whose
+`at` names no message:
 
 ```sh doctest
 $ printf '%s\n' '{"id":1,"op":"start","seq":41}' '{"id":2,"op":"restart","snapshot":{"at":"-","seq":41}}' \

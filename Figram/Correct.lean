@@ -360,6 +360,42 @@ theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev :
     simp only [hs, hs', not_false_eq_true, ite_true]
     rfl
 
+/-- Entering the bot with an event: the compiled machine agrees with the chart. -/
+theorem enterBot_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) (pre : List Action)
+    (ev : Event) (env : HostEnv) : c.compileSpec.enterBot s pre ev env = c.enterBot s pre ev env := by
+  have hi : c.enter c.root ∈ c.leafIds := (Machine.wf_parts hwf).1
+  unfold Machine.enterBot Chart.enterBot
+  cases ev with
+  | timer => rfl
+  | named e =>
+    have hch : c.compileSpec.choose c.compileSpec.initial (.named e) env =
+        ((c.cands (c.enter c.root) e).find? (fun b : Branch => guardOK env b.guard)).map c.toF := by
+      simp only [Machine.choose]
+      show (match c.compileSpec.row (c.enter c.root) e with
+        | none => none
+        | some r => r.branches.find? (fun b : FBranch => guardOK env b.guard)) = _
+      rw [c.spec_row hi]
+      by_cases hc : c.cands (c.enter c.root) e = []
+      · simp [hc]
+      · simp only [hc, ite_false, compileRow, List.find?_map]
+        rfl
+    rw [hch]
+    simp only [Chart.choose]
+    cases hb : (c.cands (c.enter c.root) e).find? (fun b => guardOK env b.guard) with
+    | none => rfl
+    | some b =>
+      have hbm := List.mem_of_find?_eq_some hb
+      have hT := c.resolve_eq s hbm
+      have hok : c.compileSpec.targetOK (c.toF b).target = true := by
+        obtain ⟨_, hrows, _⟩ := Machine.wf_parts hwf
+        exact hrows _ (c.row_mem hi hbm) _ (List.mem_map.mpr ⟨b, hbm, rfl⟩)
+      have hTmem : c.resolve s b.target ∈ c.leafIds := by
+        rw [← hT]; exact Machine.resolve_mem hwf s _ hok
+      have hen : c.compileSpec.entryOf (c.resolve s b.target) = c.entryActs (c.resolve s b.target) := by
+        simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hTmem, Option.getD_some]
+      simp only [Option.map_some, hT, hen]
+      rfl
+
 /-! ## The `wf` check without building the machine -/
 
 theorem histCands_sub (s : NodeId) : ∀ v ∈ c.histCands s, v ∈ c.leafIds := by
@@ -467,6 +503,20 @@ theorem compile_correct (hwf : c.compile.wf = true) (s : Snapshot) (ev : Event) 
 
 theorem start_correct : c.compile.start = c.start := by
   rw [compile_eq_spec]; rfl
+
+/-- **Entering the bot with a first event**: the compiled machine agrees with the chart. -/
+theorem startWith_correct (hwf : c.compile.wf = true) (n : Nat) (ev : Event) (env : HostEnv) :
+    c.compile.startWith n ev env = c.startWith n ev env := by
+  rw [compile_eq_spec] at hwf ⊢
+  exact c.enterBot_eq hwf _ [] ev env
+
+/-- The first-entry actions of a compiled machine are the entry actions of its initial message,
+the hypothesis of `Machine.startWith_initial`. -/
+theorem compile_initActions (hwf : c.compile.wf = true) :
+    c.compile.entryOf c.compile.initial = c.compile.initActions := by
+  rw [compile_eq_spec] at hwf ⊢
+  have hi : c.enter c.root ∈ c.leafIds := (Machine.wf_parts hwf).1
+  simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hi, Option.getD_some, initActs]
 
 end Chart
 end Figram

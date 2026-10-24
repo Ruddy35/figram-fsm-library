@@ -12,7 +12,7 @@ engine.
 Parts:
 * JSON requests (the `id` field is the case number): result, `need`, errors with
   a machine code (`code`), strict request fields, token and `seq` limits,
-  `start` with `seq`;
+  `start` with `seq` and with a first event;
 * raw byte lines in one process: `id` echo on a parse error, invalid UTF-8,
   blank lines without a reply, the request size limit (1 MiB by default),
   replies strictly in request order;
@@ -39,7 +39,7 @@ IDLE = {"start_timer": "idle", "ms": 60000}
 FIRED = {"snapshot": {"at": "reminder", "resume": {"shop": "reminder"}, "seq": 6},
          "actions": [{"cancel_timer": "remind"}, {"send": "reminder"}]}
 IGNORED = {"snapshot": ITEM, "actions": []}
-HELLO = {"protocol": 1, "states": 8}
+HELLO = {"protocol": 2, "states": 8}
 H = {"at": "home"}
 
 
@@ -58,7 +58,7 @@ def started(seq):
 
 
 CASES = [
-    ("hello: protocol version 1",
+    ("hello: protocol version 2",
      {"op": "hello"}, HELLO),
     ("restart near the limit: seq continues up to 2^53−1, timers cancelled, places cleared",
      {"op": "restart", "snapshot": {"at": "item", "resume": {"shop": "item"}, "timers": {"remind": 7}, "seq": M - 1}},
@@ -136,6 +136,34 @@ CASES = [
     ("start with seq 1.5 — bad_request", {"op": "start", "seq": 1.5}, err("bad_request")),
     ("start with seq as a string — bad_request", {"op": "start", "seq": "1"}, err("bad_request")),
     ("start with seq 7.0 — the same integer 7", {"op": "start", "seq": 7.0}, started(8)),
+    # ---- start with a first event: as if the user stood on the initial message ----
+    ("start with an event that needs a condition: need",
+     {"op": "start", "event": "btn:go"}, {"need": ["is_vip"]}),
+    ("start with an event, condition true: straight to the target, home neither sent nor its timer started",
+     {"op": "start", "event": "btn:go", "guards": {"is_vip": True}},
+     {"snapshot": {"at": "vip", "seq": 1}, "actions": [{"send": "vip"}]}),
+    ("start with an event, condition false, seq 41: the next variant, seq 42",
+     {"op": "start", "event": "btn:go", "guards": {"is_vip": False}, "seq": 41},
+     {"snapshot": {"at": "catalog", "resume": {"shop": "catalog"}, "seq": 42}, "actions": [{"send": "catalog"}]}),
+    ("start with an event, partial conditions: the missing one is asked for",
+     {"op": "start", "event": "btn:go", "guards": {"other": True}}, {"need": ["is_vip"]}),
+    ("start with an event into the initial message: exactly start (home sent once)",
+     {"op": "start", "event": "cmd:start"}, started(1)),
+    ("start with an event of the root section's arrow",
+     {"op": "start", "event": "cmd:help"}, {"snapshot": {"at": "help", "seq": 1}, "actions": [{"send": "help"}]}),
+    ("start with an event without an arrow: the plain start",
+     {"op": "start", "event": "btn:nothing", "seq": 4}, started(5)),
+    ("start with an event and seq 2^53−1 — seq_overflow",
+     {"op": "start", "event": "cmd:help", "seq": M}, {"error": "seq_overflow", "code": "seq_overflow"}),
+    ("start with an event that needs a condition and seq 2^53−1: need first",
+     {"op": "start", "event": "btn:go", "seq": M}, {"need": ["is_vip"]}),
+    ("start with a timer event — bad_request", {"op": "start", "event": "timer:idle"}, err("bad_request")),
+    ("start with an empty event — bad_request", {"op": "start", "event": ""}, err("bad_request")),
+    ("start with an event as a number — bad_request", {"op": "start", "event": 5}, err("bad_request")),
+    ("start with an event and a token — bad_request",
+     {"op": "start", "event": "btn:go", "token": 1}, err("bad_request")),
+    ("start with an event and a non-boolean condition — bad_request",
+     {"op": "start", "event": "btn:go", "guards": {"is_vip": "yes"}}, err("bad_request")),
 ]
 
 ITEM_TXT = json.dumps(ITEM).encode()

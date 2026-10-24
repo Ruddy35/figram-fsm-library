@@ -21,7 +21,7 @@ import time
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
 from figram_client import Engine, EngineError
 
-HELLO = 'read l; echo \'{"id":0,"protocol":1,"states":1}\'; '
+HELLO = 'read l; echo \'{"id":0,"protocol":2,"states":1}\'; '
 FAKES = {
     "invalid JSON": 'read l; echo "{oops"; sleep 30',
     "unknown id": 'read l; echo \'{"id": 999, "snapshot": {}}\'; sleep 30',
@@ -117,7 +117,7 @@ with tempfile.TemporaryDirectory() as d:
         "exit before hello": 'exit 1',
         "crash before hello": 'kill -SEGV $$',
         "does not answer hello": 'sleep 30',
-        "hello of the wrong form": 'read l; echo \'{"id": 0, "protocol": 1}\'; sleep 30',
+        "hello of the wrong form": 'read l; echo \'{"id": 0, "protocol": 2}\'; sleep 30',
     }
     for name, body in START.items():
         path = os.path.join(d, "fake.sh")

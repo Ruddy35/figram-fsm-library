@@ -349,7 +349,7 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		}
 		return "hello", nil
 	}
-	if op == "step" && keysAre(rest, "need") {
+	if (op == "step" || op == "start") && keysAre(rest, "need") {
 		need, ok := rest["need"].([]any)
 		if !ok || len(need) == 0 {
 			return "", fmt.Errorf("need: %v", rest["need"])
@@ -387,6 +387,8 @@ type step struct {
 
 type trace struct {
 	Start *struct {
+		Event    string          `json:"event"` // start with a first event, if set
+		Guards   map[string]bool `json:"guards"`
 		Snapshot json.RawMessage `json:"snapshot"`
 		Actions  json.RawMessage `json:"actions"`
 	} `json:"start"`
@@ -446,7 +448,14 @@ func same(a any, raw json.RawMessage) bool {
 func check(b *Bot, t trace) (n int, bad int) {
 	var snap any
 	if t.Start != nil {
-		r, variant, err := b.Request(map[string]any{"op": "start"})
+		req := map[string]any{"op": "start"}
+		if t.Start.Event != "" {
+			req["event"] = t.Start.Event
+			if len(t.Start.Guards) > 0 {
+				req["guards"] = t.Start.Guards
+			}
+		}
+		r, variant, err := b.Request(req)
 		n++
 		if err != nil || variant != "result" || !same(r["snapshot"], t.Start.Snapshot) || !same(r["actions"], t.Start.Actions) {
 			bad++

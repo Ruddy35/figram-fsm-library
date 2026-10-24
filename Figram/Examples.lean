@@ -141,7 +141,14 @@ def golden : List (String × Doc × Option Snapshot × List In) := [
     .ev "btn:buy" [("in_stock", true)]]),
   ("recover_deleted_current", featuresDoc,
     some ⟨"deleted_message", [("shop", "item")], [("old_timer", 3)], 9⟩,
-    [.ev "btn:go" [("is_vip", true)]])
+    [.ev "btn:go" [("is_vip", true)]]),
+  -- `start` with a first event: as if the user stood on the initial message
+  ("start_event_into_initial", pizzaDoc, none, [.start "cmd:start", .ev "btn:order"]),
+  ("start_event_deep", pizzaDoc, none, [.start "btn:order", .ev "btn:pizza"]),
+  ("start_event_guard_true", featuresDoc, none, [.start "btn:go" [("is_vip", true)], .ev "cmd:start"]),
+  ("start_event_guard_false", featuresDoc, none, [.start "btn:go" [("is_vip", false)], .ev "btn:next"]),
+  ("start_event_root_arrow", featuresDoc, none, [.start "cmd:help", .ev "btn:back"]),
+  ("start_event_unmatched", featuresDoc, none, [.start "btn:nothing", .ev "btn:self"])
 ]
 
 def runGolden (name : String) : Option (Snapshot × List (List Action)) :=
@@ -173,6 +180,20 @@ def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten
 -- action order: exit → the arrow's actions → entry
 #guard ((runGolden "buy_action_order").map (·.2.getLast!)) ==
   some [.cancelTimer "remind", .call "charge", .call "notify", .send "paid"]
+-- `start` with a first event
+#guard finalAt "start_event_deep" == "pick_size"
+#guard finalAt "start_event_guard_true" == "home"
+#guard finalAt "start_event_root_arrow" == "catalog"
+-- a variant into the initial message enters it once: exactly `start`
+#guard pizza.startWith 0 (.named "cmd:start") (fun _ => false) == pizza.start
+-- the initial message is not entered: no `send` of it, its timers are not started
+#guard (pizza.startWith 0 (.named "btn:order") (fun _ => false)).2 == [.send "catalog"]
+#guard (features.startWith 0 (.named "btn:go") (fun _ => true)).2 == [.send "vip"]
+-- no matching variant, or a timer event: the plain first entry
+#guard features.startWith 0 (.named "btn:nothing") (fun _ => true) == features.start
+#guard features.startWith 0 (.timer "idle" 1) (fun _ => true) == features.start
+-- the counter continues from the high-water mark
+#guard (features.startWith 41 (.named "btn:go") (fun _ => true)).1.seq == 42
 -- a self-loop restarts the timer with a new token
 #guard ((runGolden "self_loop_restarts_timer").map (·.2.getLast!)) ==
   some [.cancelTimer "idle", .startTimer "idle" 60000 3, .send "home"]

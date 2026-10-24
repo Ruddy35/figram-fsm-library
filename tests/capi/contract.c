@@ -76,7 +76,7 @@ static void* init_worker(void* arg) {
   long rc = figram_init();
   void* m = figram_load_doc(g_doc);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
-  long ok = rc == 0 && m && r && strstr(r, "\"protocol\":1");
+  long ok = rc == 0 && m && r && strstr(r, "\"protocol\":2");
   if (r) figram_free(r);
   if (m) figram_unload(m);
   return (void*)ok;
@@ -321,7 +321,7 @@ static int t_lazy(const char* path) {
   void* m = figram_load_doc(doc);
   ok_if(m != NULL, "load_doc without figram_init", NULL);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
-  ok_if(r && strstr(r, "\"protocol\":1"), "request without figram_init", r);
+  ok_if(r && strstr(r, "\"protocol\":2"), "request without figram_init", r);
   if (r) figram_free(r);
   if (m) figram_unload(m);
   return n_fail != 0;
@@ -333,7 +333,7 @@ static void* lazy_worker(void* arg) {
   pthread_barrier_wait(&bar);
   void* m = figram_load_doc(g_doc);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
-  long ok = m && r && strstr(r, "\"protocol\":1");
+  long ok = m && r && strstr(r, "\"protocol\":2");
   if (r) figram_free(r);
   if (m) figram_unload(m);
   return (void*)ok;
@@ -395,7 +395,7 @@ static int t_lifetime(const char* path, const char* other) {
   const char* e = figram_last_error ? figram_last_error() : NULL;
   ok_if(e && *e, "double unload is detected (figram_last_error)", e);
   r = figram_request_json(k, HELLO);
-  ok_if(r && strstr(r, "\"protocol\":1"), "other handle unaffected", r);
+  ok_if(r && strstr(r, "\"protocol\":2"), "other handle unaffected", r);
   figram_free(r); figram_unload(k);
   long bad = 0;
   for (int i = 0; i < 2000; i++) {
@@ -431,7 +431,7 @@ static int t_lengths(const char* path) {
         ok_if(is_error_code(r, "parse_error", 1), "request_json_n with embedded NUL → parse_error", r); figram_free(r);
         char unterminated[21]; memcpy(unterminated, "{\"id\":5,\"op\":\"hello\"}", 21);
         r = figram_request_json_n(h, unterminated, 21);
-        ok_if(r && strstr(r, "\"id\":5") && strstr(r, "\"protocol\":1"), "request_json_n without terminating NUL", r); figram_free(r);
+        ok_if(r && strstr(r, "\"id\":5") && strstr(r, "\"protocol\":2"), "request_json_n without terminating NUL", r); figram_free(r);
       }
       figram_unload(h);
     }
@@ -483,7 +483,7 @@ static int t_utf8_strict(const char* path) {
     figram_free(r);
   }
   char* r = figram_request_json(m, "{\"id\":\"пример ✓ \xf0\x9f\x8d\x95\",\"op\":\"hello\"}");
-  ok_if(r && strstr(r, "\"protocol\":1") && strstr(r, "\xf0\x9f\x8d\x95"), "valid multi-byte UTF-8 request works", r);
+  ok_if(r && strstr(r, "\"protocol\":2") && strstr(r, "\xf0\x9f\x8d\x95"), "valid multi-byte UTF-8 request works", r);
   figram_free(r);
   /* A document with invalid UTF-8: the CLI rejects such files, and so does the C ABI. */
   size_t n = strlen(doc);
@@ -522,21 +522,21 @@ static int t_limit(const char* path) {
   figram_free(r);
   char* at = req_of_size(1048576), *over = req_of_size(1048577);
   r = figram_request_json(m, at);
-  ok_if(r && strstr(r, "\"protocol\":1"), "request of exactly 1 MiB is accepted (hello)", r); figram_free(r);
+  ok_if(r && strstr(r, "\"protocol\":2"), "request of exactly 1 MiB is accepted (hello)", r); figram_free(r);
   r = figram_request_json(m, over);
   ok_if(is_error_code(r, "too_large", 1), "request of 1 MiB + 1 → too_large (default limit)", r); figram_free(r);
   if (HAVE(figram_set_max_request)) {
     size_t prev = figram_set_max_request(100);
     ok_if(prev == 1048576, "default limit is 1048576", NULL);
     char* a = req_of_size(100), *b = req_of_size(101);
-    r = figram_request_json(m, a); ok_if(r && strstr(r, "\"protocol\":1"), "limit 100: 100 bytes accepted", r); figram_free(r);
+    r = figram_request_json(m, a); ok_if(r && strstr(r, "\"protocol\":2"), "limit 100: 100 bytes accepted", r); figram_free(r);
     r = figram_request_json(m, b); ok_if(is_error_code(r, "too_large", 1), "limit 100: 101 bytes → too_large", r); figram_free(r);
     if (HAVE(figram_request_json_n)) {
       r = figram_request_json_n(m, b, 101); ok_if(is_error_code(r, "too_large", 1), "limit 100: request_json_n 101 bytes → too_large", r); figram_free(r);
     }
     ok_if(figram_set_max_request(0) == 100, "set_max_request returns the previous limit", NULL);
     char* big = req_of_size(5u << 20);
-    r = figram_request_json(m, big); ok_if(r && strstr(r, "\"protocol\":1"), "limit 0 (unlimited): 5 MiB request accepted", r); figram_free(r);
+    r = figram_request_json(m, big); ok_if(r && strstr(r, "\"protocol\":2"), "limit 0 (unlimited): 5 MiB request accepted", r); figram_free(r);
     figram_set_max_request(1048576);
   }
   figram_unload(m);

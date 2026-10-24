@@ -39,6 +39,9 @@ that the behaviour is the same.
 7. A timer firing is accepted only with the token of the current run.
 8. If the snapshot's message is no longer in the chart, the user starts the bot
    over; the timers of the old place are cancelled, remembered places are kept.
+9. A new user can enter the bot with a first event (`startWith`): the event is matched as
+   if the user stood on the initial message, which is neither entered nor left; without a
+   matching variant this is the plain first entry.
 -/
 
 namespace Figram
@@ -187,6 +190,28 @@ def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × L
     | some b => c.fire s b
 
 def start (c : Chart) : Snapshot × List Action := realize .fresh (c.enter c.root) c.initActs
+
+/-- The variant chosen for a named event at message `L` (bubbling as in `step`). A timer
+firing chooses nothing. -/
+def choose (c : Chart) (L : NodeId) (ev : Event) (env : HostEnv) : Option Branch :=
+  match ev with
+  | .timer .. => none
+  | .named e => (c.cands L e).find? (fun b => guardOK env b.guard)
+
+/-- **Entering the bot with an event** (decision 9): the event is matched as if the user stood
+on the initial message, which is neither entered nor left. A chosen variant gives `pre`, its
+actions and the entry of its target; otherwise `pre` and the first-entry actions. -/
+def enterBot (c : Chart) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
+    Snapshot × List Action :=
+  match c.choose (c.enter c.root) ev env with
+  | some b =>
+    let T := c.resolve s b.target
+    realize s T (pre ++ b.actions ++ c.entryActs T)
+  | none => realize s (c.enter c.root) (pre ++ c.initActs)
+
+/-- The user's first entry with a first event, the counter continued from `n`. -/
+def startWith (c : Chart) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+  c.enterBot ⟨"", [], [], n⟩ [] ev env
 
 end Chart
 end Figram

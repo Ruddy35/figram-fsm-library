@@ -79,7 +79,7 @@ class EngineError(Exception):
         self.retryable = retryable
 
 
-PROTOCOL = 1
+PROTOCOL = 2
 # FormatIO.maxDepth: the maximum nesting of arrays and objects in a request line.
 MAX_DEPTH = 256
 # Default maximum length of a reply line; a longer line is a protocol violation.
@@ -632,9 +632,10 @@ class Engine:
     * `hang_timeout` — a process that prints nothing for this many seconds while
       requests are unanswered counts as hung and is replaced; None — the
       default max(60, 3 × timeout); math.inf — never;
-    * `step_timeout` — the overall deadline of `step` from the process becoming
-      ready: both engine requests (asking for the conditions and repeating with
-      them) and the conditions function; None — 2 × timeout;
+    * `step_timeout` — the overall deadline of `step` and of `start` with an event
+      from the process becoming ready: both engine requests (asking for the
+      conditions and repeating with them) and the conditions function;
+      None — 2 × timeout;
     * `max_line` — the maximum length of a reply line in bytes (0 — no limit);
     * `restart_backoff` — (initial, maximum) delay in seconds before restarting
       a slot again whose processes fail without serving a single request; it
@@ -724,14 +725,27 @@ class Engine:
         raise EngineError(f"engine process restarts in {wait:.1f} s; "
                           f"last failure: {p.error_text()}")
 
-    def start(self, key: str, seq: int | None = None) -> dict:
-        """A new user. `seq` — the number of the last transition to continue the
-        counter from (resetting an existing user, docs/host-contract.md, section 4;
-        needs an engine that accepts `start` with `seq`)."""
+    def start(
+        self,
+        key: str,
+        seq: int | None = None,
+        event: str | None = None,
+        guards: Callable[[Iterable[str]], dict[str, bool]] | None = None,
+    ) -> dict:
+        """A new user. `seq` — the user's high-water mark of `seq` to continue the
+        counter from (docs/host-contract.md, section 4). `event` — the user's first
+        event (for example "cmd:start" or a button of an old message): it is matched
+        as if the user stood on the initial message (docs/format.md, section 8);
+        `guards` computes the conditions it needs, as in `step`."""
         request = {"op": "start"}
         if seq is not None:
             request["seq"] = seq
-        return self._check(self._proc(key).call(request))
+        if event is None:
+            if guards is not None:
+                raise ValueError("guards are used only with an event")
+            return self._check(self._proc(key).call(request))
+        request["event"] = event
+        return self._conditional(self._proc(key), request, guards)
 
     def restart(self, key: str, snapshot: dict) -> dict:
         """Start the user over without resetting the token counter
@@ -752,10 +766,14 @@ class Engine:
         The whole step fits in `step_timeout` from the process becoming ready;
         the conditions function cannot be interrupted, but if it returns after
         the deadline, the second request is not sent and EngineError is raised."""
-        proc = self._proc(key)
         request = {"op": "step", "snapshot": snapshot, "event": event}
         if token is not None:
             request["token"] = token
+        return self._conditional(self._proc(key), request, guards)
+
+    def _conditional(self, proc, request: dict, guards) -> dict:
+        """A request that may answer `need` (`step`, `start` with an event): the
+        conditions are computed with `guards` and the request is repeated once."""
         proc.wait_ready()
         deadline = time.monotonic() + self._step_timeout
         response = proc.call(request, deadline)
@@ -780,7 +798,7 @@ class Engine:
                 raise EngineError(f"the engine asked for conditions again: {response['need']}")
         response = self._check(response)
         if "snapshot" not in response:
-            raise EngineError(f"incomplete step reply: {response}")
+            raise EngineError(f"incomplete {request['op']} reply: {response}")
         return response
 
     @staticmethod

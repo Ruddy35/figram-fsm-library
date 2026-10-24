@@ -66,6 +66,25 @@ example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bo
     missing m s ev gs = [] → (∀ n v, givenOf gs n = some v → env n = v) →
     m.step s ev (envOf gs) = m.step s ev env := @missing_nil_step
 
+-- `start` with a first event: the compiled machine is the chart, it is a step from the initial
+-- message without entering it, a variant into the initial message enters it once, `need` suffices
+example : ∀ (c : Chart), c.compile.wf = true → ∀ (n : Nat) (ev : Event) (env : HostEnv),
+    c.compile.startWith n ev env = c.startWith n ev env := @Chart.startWith_correct
+example : ∀ (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch),
+    m.initial ∈ m.states → m.choose m.initial (.named e) env = some b →
+    (∀ a ∈ m.exitOf m.initial, ∃ id, a = .cancelTimer id) →
+    m.step ⟨m.initial, [], [], n⟩ (.named e) env =
+      ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) :=
+  @Machine.startWith_eq_step
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (b : FBranch),
+    m.choose m.initial ev env = some b → m.resolve ⟨"", [], [], n⟩ b.target = m.initial →
+    m.entryOf m.initial = m.initActions →
+    m.startWith n ev env = realize ⟨"", [], [], n⟩ m.initial (b.actions ++ m.initActions) :=
+  @Machine.startWith_initial
+example : ∀ (m : Machine) (n : Nat) (e : EventId) (gs : List (String × Bool)) (env : HostEnv),
+    missingStart m e gs = [] → (∀ g v, givenOf gs g = some v → env g = v) →
+    m.startWith n (.named e) (envOf gs) = m.startWith n (.named e) env := @missingStart_nil
+
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse
 #print Figram.Format.parseValue

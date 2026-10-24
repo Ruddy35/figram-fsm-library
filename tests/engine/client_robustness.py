@@ -138,11 +138,11 @@ def fake(body):
 
 # The client first sends {"id":0,"op":"hello"} and waits for the reply (start-up phase):
 # a double that must fail on a REQUEST answers the hello first.
-HELLO = 'read l; echo \'{"id":0,"protocol":1,"states":1}\'; '
+HELLO = 'read l; echo \'{"id":0,"protocol":2,"states":1}\'; '
 RESP = '{"id":1,"snapshot":{"at":"a"},"actions":[]}'
 # Echo: a hello reply to hello, a result with the same id to anything else.
 ECHO = (r'''while read l; do id=$(echo "$l" | sed 's/^{"id":\([0-9]*\).*/\1/'); '''
-        r'''case "$l" in *'"op":"hello"'*) echo "{\"id\":$id,\"protocol\":1,\"states\":1}";; '''
+        r'''case "$l" in *'"op":"hello"'*) echo "{\"id\":$id,\"protocol\":2,\"states\":1}";; '''
         r'''*) echo "{\"id\":$id,\"snapshot\":{\"at\":\"a\"},\"actions\":[]}";; esac; done''')
 
 # R1: failures that can be detected at once wake everybody at once (deadline 6 s, threshold 1.5 s).

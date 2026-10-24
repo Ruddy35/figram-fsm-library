@@ -116,7 +116,7 @@ def check_reply(resp, rid: int, op: str) -> str:
                 or not is_int(resp["states"]) or ("mutant" in resp and type(resp["mutant"]) is not str):
             raise ProtocolError(f"hello reply: {resp!r}")
         return "hello"
-    if op == "step" and keys == {"need"}:
+    if op in ("step", "start") and keys == {"need"}:
         need = resp["need"]
         if type(need) is not list or not need or len(set(need)) != len(need):
             raise ProtocolError(f"need: {need!r}")

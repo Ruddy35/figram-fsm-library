@@ -66,5 +66,12 @@ theorem session_correct (c : Chart) (hwf : c.compile.wf = true) (inp : List Inpu
   rw [c.start_correct]
   exact c.run_correct hwf _ inp
 
+/-- A full session from the first entry with a first event. -/
+theorem sessionWith_correct (c : Chart) (hwf : c.compile.wf = true) (n : Nat) (ev : Event)
+    (env : HostEnv) (inp : List Input) :
+    c.compile.run (c.compile.startWith n ev env).1 inp = c.run (c.startWith n ev env).1 inp := by
+  rw [c.startWith_correct hwf]
+  exact c.run_correct hwf _ inp
+
 end Chart
 end Figram

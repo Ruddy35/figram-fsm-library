@@ -2,7 +2,7 @@ import Figram.FormatIO
 import Figram.Compile
 
 /-!
-# Engine: the protocol "one JSON line per request, one JSON line per reply", version 1
+# Engine: the protocol "one JSON line per request, one JSON line per reply", version 2
 
 The document is loaded and compiled once. Every request is one line, every
 reply is one line with the same `id`. The full description is in docs/format.md,
@@ -10,8 +10,9 @@ section 8 "Snapshot and engine protocol".
 
 Requests (no other fields are allowed in a request):
 * `{"id": 1, "op": "hello"}` — the protocol version;
-* `{"id": 2, "op": "start", "seq"?: N}` — the user's first entry (the first
-  transition gets `seq` N + 1; without `seq`, 1);
+* `{"id": 2, "op": "start", "seq"?: N, "event"?: "cmd:start", "guards"?: {...}}` — the
+  user's first entry (the first transition gets `seq` N + 1; without `seq`, 1), with the
+  user's first event matched as if the user stood on the initial message;
 * `{"id": 2, "op": "restart", "snapshot": {...}}` — start the user over,
   continuing the counter (old timer tokens never match new ones);
 * `{"id": 3, "op": "step", "snapshot": {...}, "event": "btn:checkout",
@@ -21,7 +22,8 @@ Requests (no other fields are allowed in a request):
 Replies:
 * `{"id": 3, "snapshot": {...}, "actions": [...]}` — the step is done
   (with `"recovered": true` if the snapshot's message is no longer in the bot);
-* `{"id": 3, "need": ["cart_not_empty"]}` — condition values are needed;
+* `{"id": 3, "need": ["cart_not_empty"]}` — condition values are needed (`step` and `start`
+  with an event);
 * `{"id": 3, "error": "...", "code": "..."}` — a request error: a text for
   humans and a machine code (`ErrCode`). If the line cannot be parsed as JSON,
   the `id` is taken from its beginning (`echoId`), otherwise it is null.
@@ -34,7 +36,7 @@ fields, the line size limit, UTF-8) run before it: in `handle`, in
 namespace Figram.Engine
 open Figram.Format
 
-def protocolVersion : Nat := 1
+def protocolVersion : Nat := 2
 def snapshotKeys : List String := ["v", "at", "resume", "timers", "seq"]
 
 /-! ## Snapshot -/
@@ -149,7 +151,7 @@ def result (id : J) (s : Snapshot) (as : List Action) (recovered : Bool) : J :=
 /-- The request fields of operation `op`; `none` means an unknown operation (`handleObj` rejects it). -/
 def opKeys : String → Option (List String)
   | "hello" => some ["id", "op"]
-  | "start" => some ["id", "op", "seq"]
+  | "start" => some ["id", "op", "seq", "event", "guards"]
   | "restart" => some ["id", "op", "snapshot"]
   | "step" => some ["id", "op", "snapshot", "event", "guards", "token"]
   | _ => none
@@ -201,6 +203,22 @@ def decEvent (kvs : Obj) : R Event := do
     if (get kvs "token").isSome then throw "field `token` is allowed only for a timer event"
     pure (.named name)
 
+/-- The `seq` of `start`: the user's high-water mark, 0 if absent. -/
+def decStartSeq (kvs : Obj) : R Nat :=
+  match get kvs "seq" with
+  | none => pure 0
+  | some j => reqNat "seq" j
+
+/-- The event of `start`: a non-empty string that is not a timer event (a new user has no
+timers). -/
+def decStartEvent (kvs : Obj) : R EventId :=
+  match get kvs "event" with
+  | some (.str e) =>
+    if e.isEmpty then throw "`event` must be a non-empty string"
+    else if e.startsWith "timer:" then throw "a timer event cannot start a user"
+    else pure e
+  | _ => throw "`event` must be a non-empty string"
+
 /-- The condition values from the request; missing ones are `false`. -/
 def envOf (gs : List (String × Bool)) : HostEnv :=
   fun n => ((gs.find? (·.1 == n)).map (·.2)).getD false
@@ -234,6 +252,20 @@ high-water mark of `seq` (docs/host-contract.md, section 4). -/
 def startAt (m : Machine) (n : Nat) : Snapshot × List Action :=
   realize { Snapshot.fresh with seq := n } m.initial m.initActions
 
+/-- The conditions `start` with event `e` needs but the request does not give: those of the
+initial message's arrow for `e` (`missingStart_nil` proves them sufficient). -/
+def missingStart (m : Machine) (e : EventId) (gs : List (String × Bool)) : List String :=
+  (dedup (m.neededGuards m.initial e (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
+
+/-- `start` with a first event after the request has been decoded. -/
+def startReply (m : Machine) (id : J) (n : Nat) (e : EventId) (gs : List (String × Bool)) : RE J :=
+  let miss := missingStart m e gs
+  if !miss.isEmpty then pure (.obj [("id", id), ("need", .arr (miss.map .str))])
+  else
+    let (s, as) := m.startWith n (.named e) (envOf gs)
+    if s.seq > maxInt then throw (.seqOverflow, "seq_overflow")
+    else pure (result id s as false)
+
 def handleObj (m : Machine) (kvs : Obj) : RE J := do
   let id := (get kvs "id").getD .null
   match get kvs "op" with
@@ -241,12 +273,14 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
     pure (.obj [("id", id), ("protocol", .num protocolVersion 0),
       ("states", .num m.states.length 0)])
   | some (.str "start") =>
-    match get kvs "seq" with
+    let n ← withCode .badRequest (decStartSeq kvs)
+    match get kvs "event" with
+    | some _ =>
+      let e ← withCode .badRequest (decStartEvent kvs)
+      let gs ← withCode .badRequest (decGuards kvs)
+      startReply m id n e gs
     | none =>
-      let (s, as) := m.start
-      pure (result id s as false)
-    | some j =>
-      let n ← withCode .badRequest (reqNat "seq" j)
+      if (get kvs "guards").isSome then throw (.badRequest, "field `guards` is allowed only with `event`")
       let (s, as) := startAt m n
       if s.seq > maxInt then throw (.seqOverflow, "seq_overflow")
       pure (result id s as false)

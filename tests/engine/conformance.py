@@ -25,8 +25,18 @@ def plan(trace):
     if "from" in trace:
         snap = trace["from"]
     else:
-        pairs.append(({"op": "start"}, {"result": trace["start"]}))
-        snap = trace["start"]["snapshot"]
+        st = trace["start"]
+        exp = {"result": {"snapshot": st["snapshot"], "actions": st["actions"]}}
+        if "event" not in st:
+            pairs.append(({"op": "start"}, exp))
+        else:   # start with a first event: `need` first, as for a step
+            req = {"op": "start", "event": st["event"]}
+            if st["guards"]:
+                pairs.append((req, {"need": sorted(st["guards"])}))
+                pairs.append(({**req, "guards": st["guards"]}, exp))
+            else:
+                pairs.append((req, exp))
+        snap = st["snapshot"]
     for st in trace["steps"]:
         req = {"op": "step", "snapshot": snap, "event": st["event"]}
         if "token" in st:

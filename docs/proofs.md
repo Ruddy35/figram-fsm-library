@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 23 theorems are pinned: `./verify.sh` elaborates
+The statements of these 34 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -33,6 +33,22 @@ document (`Figram/Format.lean`), `J` is the JSON *model* (a Lean datatype, not t
 | `Figram.Chart.lint_nil_wf` | A chart without `lint` errors compiles to a well-formed machine. |
 | `Figram.Machine.wfFast_eq` | The linear-time check `wfFast` that `Engine.load` runs equals `wf`. |
 
+### Entering the bot with a first event
+
+`start` with `event` ([format.md](format.md), section 7, decision 9) is `Machine.startWith`, defined
+through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`.
+
+| Theorem | Meaning |
+|---|---|
+| `Figram.Chart.startWith_correct` | If `c.compile.wf`, entering with an event on the compiled machine equals the chart's reference semantics, for every counter, event and assignment of condition values. |
+| `Figram.Chart.sessionWith_correct` | The same for a whole session that starts by entering with an event. |
+| `Figram.Machine.startWith_eq_step` | Entering with an event that chooses a variant is a step from the snapshot standing on the initial message (no timers, no places): the same snapshot, and the step's actions are the initial message's exit actions (cancelling timers that were never started) followed by those of `startWith`. |
+| `Figram.Machine.startWith_initial` | If the chosen variant leads to the initial message, entering is exactly the first entry with the variant's actions in front: one entry, one `send` of the initial message. |
+| `Figram.Chart.compile_initActions` | In a compiled machine the first-entry actions are the entry actions of the initial message (the last hypothesis of `startWith_initial`). |
+| `Figram.Machine.startWith_unmatched` | Without a matching variant (or for a timer event), entering is the plain first entry. |
+| `Figram.Machine.enterBot_state_valid` | For a well-formed machine, entering ends on a state of the machine. |
+| `Figram.Machine.enterBot_guard_local` | Entering depends only on the conditions in `requiredGuards` of the initial message and the event. |
+
 ### Document format
 
 | Theorem | Meaning |
@@ -55,6 +71,9 @@ document (`Figram/Format.lean`), `J` is the JSON *model* (a Lean datatype, not t
 | `Figram.Engine.guards_irrelevant` | Conditions in `guards` that are not in `requiredGuards` do not affect the step. |
 | `Figram.Engine.missing_nil_step` | If the engine asks for no conditions (`missing` is empty), the values of conditions that were not passed do not affect the step: answering `need` with exactly the listed conditions is enough. (That `need` lists no condition that cannot change the choice is a property of the algorithm, not a theorem.) |
 | `Figram.Engine.startAt_snapOK` | For a well-formed machine with non-empty names, `start` with `seq` n yields an admissible snapshot whenever n + 1 does not exceed 2^53 − 1. |
+| `Figram.Engine.startWith_snapOK` | The same for `start` with an event. |
+| `Figram.Engine.handle_start` | A `start` request with an event, already decoded into the model — with a decodable `seq`, event and guards, no missing conditions and no `seq` overflow — replies exactly with the result of the proved `Machine.startWith`. |
+| `Figram.Engine.missingStart_nil` | If `start` with an event asks for no conditions, the values of conditions that were not passed do not affect the entry. |
 
 The exact statements are in [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected).
 [`tests/proofs/Statements.lean`](../tests/proofs/Statements.lean) restates most of them in full
@@ -111,7 +130,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (141 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (159 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from

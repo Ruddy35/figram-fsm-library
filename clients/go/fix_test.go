@@ -208,11 +208,11 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":6,"error":"x","code":"bad_request"}`, "ERR"},
 		{"step", `{"id":5,"error":"x"}`, "ERR"}, // code is required
 		{"step", `{"id":null,"error":"x"}`, "ERR"},
-		{"hello", `{"id":5,"protocol":1,"states":11}`, "hello"},
-		{"hello", `{"id":5,"protocol":1,"states":11,"mutant":"drop-call:create_order"}`, "hello"},
-		{"hello", `{"id":5,"protocol":1,"states":11,"mutant":""}`, "ERR"},
-		{"hello", `{"id":5,"protocol":1,"states":11,"mutant":3}`, "ERR"},
-		{"hello", `{"id":5,"protocol":1,"states":11,"extra":"x"}`, "ERR"},
+		{"hello", `{"id":5,"protocol":2,"states":11}`, "hello"},
+		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":"drop-call:create_order"}`, "hello"},
+		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":""}`, "ERR"},
+		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":3}`, "ERR"},
+		{"hello", `{"id":5,"protocol":2,"states":11,"extra":"x"}`, "ERR"},
 		{"start", `{"id":5,"snapshot":{"at":"menu","seq":8},"actions":[{"send":"menu"}]}`, "result"},
 	}
 	for _, c := range cases {

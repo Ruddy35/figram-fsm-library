@@ -238,7 +238,7 @@ expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mis
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 106 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 120 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
 
 step "JSON text layer: differential against Python json"
 logged json_fuzz python3 $P/json_fuzz.py $F 30000 1

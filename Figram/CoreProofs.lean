@@ -8,6 +8,10 @@ import Figram.Core
    A snapshot with a deleted message is recovered (`recover`).
 2. `start_state_valid` — the same for the first entry.
 3. `step_guard_local` — a step depends only on the conditions in `requiredGuards`.
+4. Entering the bot with an event (`startWith`): `enterBot_state_valid`,
+   `enterBot_guard_local`, `startWith_eq_step` (a step from the initial message without its
+   entry), `startWith_initial` (a variant into the initial message enters it once) and
+   `startWith_unmatched` (no variant: the plain first entry).
 -/
 
 namespace Figram
@@ -202,6 +206,135 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
             simp only [guardOK]
             exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
         rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
+
+/-! ## Entering the bot with an event -/
+
+theorem choose_mem {m : Machine} {n : NodeId} {ev : Event} {env : HostEnv} {b : FBranch}
+    (h : m.choose n ev env = some b) : ∃ r ∈ m.rows, b ∈ r.branches := by
+  cases ev with
+  | timer => simp [choose] at h
+  | named e =>
+    simp only [choose] at h
+    split at h
+    · cases h
+    · rename_i r hr
+      exact ⟨r, row_mem hr, List.mem_of_find?_eq_some h⟩
+
+/-- The choice depends only on the conditions in `requiredGuards`, as in `step_guard_local`. -/
+theorem choose_guard_local (m : Machine) (n : NodeId) (ev : Event) (env₁ env₂ : HostEnv)
+    (h : ∀ g ∈ m.requiredGuards n ev.key, env₁ g = env₂ g) :
+    m.choose n ev env₁ = m.choose n ev env₂ := by
+  cases ev with
+  | timer => rfl
+  | named e =>
+    simp only [choose]
+    unfold requiredGuards at h
+    split
+    · rfl
+    · rename_i r hr
+      simp only [Event.key, hr] at h
+      have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
+          = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
+        apply find?_congr
+        intro b hb
+        cases hg : b.guard with
+        | none => rfl
+        | some g =>
+          simp only [guardOK]
+          exact h g (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
+      rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
+
+/-- **Entering the bot depends only on the conditions of the initial message's arrow.** -/
+theorem enterBot_guard_local (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
+    (env₁ env₂ : HostEnv) (h : ∀ g ∈ m.requiredGuards m.initial ev.key, env₁ g = env₂ g) :
+    m.enterBot s pre ev env₁ = m.enterBot s pre ev env₂ := by
+  simp only [enterBot, m.choose_guard_local m.initial ev env₁ env₂ h]
+
+/-- **After entering the bot with an event the user is on an existing message.** -/
+theorem enterBot_state_valid (m : Machine) (hwf : m.wf = true) (s : Snapshot)
+    (pre : List Action) (ev : Event) (env : HostEnv) :
+    (m.enterBot s pre ev env).1.state ∈ m.states := by
+  obtain ⟨hinit, hrows, _⟩ := wf_parts hwf
+  unfold enterBot
+  split
+  · rename_i b hb
+    obtain ⟨r, hr, hbr⟩ := choose_mem hb
+    simp only [realize_state]
+    exact resolve_mem hwf s _ (hrows r hr b hbr)
+  · simp only [realize_state]; exact hinit
+
+/-- `realize` appends the actions for the host to what it was given. -/
+theorem foldl_realize_out (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action) :
+    acts.foldl (realizeOne tok) (x, out) =
+      ((acts.foldl (realizeOne tok) (x, [])).1, out ++ (acts.foldl (realizeOne tok) (x, [])).2) := by
+  induction acts generalizing x out with
+  | nil => simp
+  | cons a as ih =>
+    simp only [List.foldl_cons]
+    have h1 : realizeOne tok (x, out) a =
+        ((realizeOne tok (x, []) a).1, out ++ (realizeOne tok (x, []) a).2) := by
+      cases a <;> simp [realizeOne]
+    rw [h1, ih, ih (realizeOne tok (x, []) a).1 (realizeOne tok (x, []) a).2]
+    simp
+
+/-- Cancelling timers of a snapshot that has none changes nothing in it. -/
+theorem foldl_cancels (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action)
+    (hx : x.timers = []) (h : ∀ a ∈ acts, ∃ id, a = .cancelTimer id) :
+    acts.foldl (realizeOne tok) (x, out) = (x, out ++ acts) := by
+  induction acts generalizing out with
+  | nil => simp
+  | cons a as ih =>
+    obtain ⟨id, rfl⟩ := h a (by simp)
+    have hx' : { x with timers := erase x.timers id } = x := by
+      obtain ⟨st, res, tms, seq⟩ := x
+      simp only at hx
+      subst hx
+      rfl
+    simp only [List.foldl_cons, realizeOne, hx']
+    rw [ih _ (fun b hb => h b (by simp [hb]))]
+    simp
+
+/-- **Entering the bot with an event is a step from the initial message without entering it.**
+From the snapshot `v` that stands on the initial message with no timers and no remembered
+places, a step on an event that chooses a variant gives the snapshot of `startWith`, and its
+actions are the exit actions of the initial message (they only cancel its timers, which were
+never started) followed by the actions of `startWith`. -/
+theorem startWith_eq_step (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch)
+    (hi : m.initial ∈ m.states) (hb : m.choose m.initial (.named e) env = some b)
+    (hexit : ∀ a ∈ m.exitOf m.initial, ∃ id, a = .cancelTimer id) :
+    m.step ⟨m.initial, [], [], n⟩ (.named e) env =
+      ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) := by
+  have hrow : ∃ r, m.row m.initial e = some r ∧ r.branches.find? (fun b => guardOK env b.guard) = some b := by
+    simp only [choose] at hb
+    split at hb
+    · cases hb
+    · rename_i r hr; exact ⟨r, hr, hb⟩
+  obtain ⟨r, hr, hfb⟩ := hrow
+  have hstale : staleCancels (m.exitOf m.initial) ⟨m.initial, [], [], n⟩ = [] := rfl
+  simp only [step, startWith, enterBot, hb, fire, hi, not_true_eq_false, ite_false, Snapshot.accepts,
+    ownsTimer, Bool.and_self, Bool.not_true, Bool.false_eq_true, Event.key, hr, hfb, hstale,
+    List.append_nil, List.nil_append]
+  show List.foldl _ _ ((m.exitOf m.initial ++ b.actions) ++ _) = _
+  rw [List.append_assoc, List.foldl_append,
+    foldl_cancels _ _ _ _ rfl hexit, foldl_realize_out]
+  rfl
+
+/-- **A variant into the initial message enters it once**: if the chosen variant leads to the
+initial message, entering with the event is the first entry with the variant's actions in
+front (one entry, one `send` of the initial message). -/
+theorem startWith_initial (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (b : FBranch)
+    (hb : m.choose m.initial ev env = some b)
+    (hT : m.resolve ⟨"", [], [], n⟩ b.target = m.initial)
+    (hinit : m.entryOf m.initial = m.initActions) :
+    m.startWith n ev env =
+      realize ⟨"", [], [], n⟩ m.initial (b.actions ++ m.initActions) := by
+  simp only [startWith, enterBot, hb, hT, hinit, List.nil_append]
+
+/-- Without a matching variant, entering with an event is the plain first entry. -/
+theorem startWith_unmatched (m : Machine) (n : Nat) (ev : Event) (env : HostEnv)
+    (hb : m.choose m.initial ev env = none) :
+    m.startWith n ev env = realize ⟨"", [], [], n⟩ m.initial m.initActions := by
+  simp only [startWith, enterBot, hb, List.nil_append]
 
 end Machine
 end Figram

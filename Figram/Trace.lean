@@ -10,12 +10,14 @@ not by the compiled machine. The names of the needed conditions are also taken f
 The format of a scenario line (JSONL, one line per scenario):
 
 ```
-{"name"?: "...", "from"?: <snapshot>, "start"?: {"snapshot": ..., "actions": [...]},
+{"name"?: "...", "from"?: <snapshot>,
+ "start"?: {"event"?: "...", "guards"?: {...}, "snapshot": ..., "actions": [...]},
  "steps": [{"event": "...", "token"?: n, "guards": {...},
             "snapshot": ..., "actions": [...], "recovered"?: true}]}
 ```
 
-With `from`, the scenario starts from that snapshot, otherwise from `start`.
+With `from`, the scenario starts from that snapshot, otherwise from `start` (with its first
+event, if `start` has one: the request `start` with `event` and `guards`).
 -/
 
 namespace Figram.Trace
@@ -53,6 +55,16 @@ def stepJ (c : Chart) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) :
 def startJ (c : Chart) : J :=
   let (s, a) := c.start
   .obj [("snapshot", Engine.encSnapshot s), ("actions", Engine.encActions a)]
+
+/-- The names of the conditions needed to enter with event `e`, by the reference semantics. -/
+def startGuardNames (c : Chart) (e : EventId) : List String :=
+  dedup ((untilUnguarded (·.guard) (c.cands (c.enter c.root) e)).filterMap (·.guard))
+
+/-- The first entry with event `e`: the new snapshot and the JSON of `start`. -/
+def startWithJ (c : Chart) (e : EventId) (gs : List (String × Bool)) : Snapshot × J :=
+  let (s, a) := c.startWith 0 (.named e) (envOf gs)
+  (s, .obj [("event", .str e), ("guards", .obj (gs.map fun p => (p.1, .bool p.2))),
+    ("snapshot", Engine.encSnapshot s), ("actions", Engine.encActions a)])
 
 /-! ## Random scenario -/
 
@@ -122,6 +134,8 @@ def totalBranches (c : Chart) : Nat :=
 
 inductive In where
   | ev (name : String) (guards : List (String × Bool) := [])
+  /-- As the first input of a scenario without `from`: `start` with this first event. -/
+  | start (name : String) (guards : List (String × Bool) := [])
   /-- A timer firing with the current token. -/
   | timerNow (id : String)
   /-- A timer firing with a stale token. -/
@@ -129,16 +143,24 @@ inductive In where
 
 def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List In) :
     J × Snapshot × List (List Action) := Id.run do
-  let mut s := from?.getD c.start.1
+  -- the scenario gets exactly the conditions the entry or the step needs (by the reference semantics)
+  let pick (names : List String) (given : List (String × Bool)) : List (String × Bool) :=
+    names.map fun n => (n, ((given.find? (·.1 == n)).map (·.2)).getD false)
+  let (s0, startHead, ins) := match from?, ins with
+    | none, .start e given :: rest =>
+      let gs := pick (startGuardNames c e) given
+      let (s, j) := startWithJ c e gs
+      (s, j, rest)
+    | _, _ => (from?.getD c.start.1, startJ c, ins)
+  let mut s := s0
   let mut steps : Array J := #[]
   let mut acts : List (List Action) := []
   for i in ins do
     let (ev, given) := match i with
-      | .ev n gs => (Event.named n, gs)
+      | .ev n gs | .start n gs => (Event.named n, gs)
       | .timerNow id => (Event.timer id ((lookup s.timers id).getD 0), [])
       | .timerStale id t => (Event.timer id t, [])
-    -- the scenario gets exactly the conditions the step needs (by the reference semantics)
-    let gs := (guardNames c s ev).map fun n => (n, ((given.find? (·.1 == n)).map (·.2)).getD false)
+    let gs := pick (guardNames c s ev) given
     let a := (c.step s ev (envOf gs)).2
     let (s', j) := stepJ c s ev gs
     steps := steps.push j
@@ -146,7 +168,7 @@ def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List I
     s := s'
   let head : Obj := match from? with
     | some f => [("from", Engine.encSnapshot f)]
-    | none => [("start", startJ c)]
+    | none => [("start", startHead)]
   return (.obj ([("name", .str name)] ++ head ++ [("steps", .arr steps.toList)]), s, acts)
 
 end Figram.Trace

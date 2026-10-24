@@ -234,6 +234,32 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
 /-- The user's first entry. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
 
+/-- The variant chosen for a named event at message `n`, by the arrows of `n` (with those of
+its sections). A timer firing chooses nothing: it belongs to a message the user entered. -/
+def choose (m : Machine) (n : NodeId) (ev : Event) (env : HostEnv) : Option FBranch :=
+  match ev with
+  | .timer .. => none
+  | .named e =>
+    match m.row n e with
+    | none => none
+    | some r => r.branches.find? (fun b => guardOK env b.guard)
+
+/-- **Entering the bot with an event.** The event is matched as if the user stood on the
+initial message, which is neither entered nor left: if a variant is chosen, `pre`, the
+variant's actions and the entry of its target; otherwise `pre` and the first-entry actions.
+`s` gives the counter and the remembered places. -/
+def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
+    Snapshot × List Action :=
+  match m.choose m.initial ev env with
+  | some b =>
+    let T := m.resolve s b.target
+    realize s T (pre ++ b.actions ++ m.entryOf T)
+  | none => realize s m.initial (pre ++ m.initActions)
+
+/-- The user's first entry with a first event, the counter continued from `n`. -/
+def startWith (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+  m.enterBot ⟨"", [], [], n⟩ [] ev env
+
 /-- The developer's conditions needed for a step from `st` on the event with key `e`:
 the conditions of the variants up to and including the first one without a condition.
 Later variants cannot be chosen, so their conditions do not affect the step (`step_guard_local`). -/

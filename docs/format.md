@@ -1,4 +1,4 @@
-# Figram document format and engine protocol, version 1
+# Figram document format (version 1) and engine protocol (version 2)
 
 This document specifies two formats:
 
@@ -306,6 +306,19 @@ Decisions of the specification:
    remembered places are kept, except those overwritten by the entry into the initial
    message (decision 4). Recovery replaces the step: the event itself is not processed, and
    recovery happens for any event, including a timer event with a stale token.
+9. **First event.** A new user can enter the bot with the update that brought them (`start`
+   with `event`, section 8): the event is matched as if the user stood on the initial message,
+   by the arrows of the initial message and then of its sections up to the root (decision 1).
+   The initial message itself is neither entered nor left: if a variant is chosen, the actions
+   are the variant's actions and the entry into its target, so the initial message is not sent,
+   its timers are not started and it is not remembered in `resume`; a variant into the initial
+   message enters it once, which is exactly the first entry with the variant's actions in front.
+   Not remembering the initial message changes nothing: it is the initial message of every
+   section on its path, where "resume" would lead without a remembered place. If no variant is
+   chosen, this is the plain first entry. A timer event cannot start a user (a new user has no
+   timers). An arrow of the initial message or of a section around it therefore also fires
+   for a new user, for example a button of an old message pressed after the host lost the
+   user's snapshot.
 
 The correctness theorems assume `c.compile.wf`. `figram check` establishes it on the chart,
 without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
@@ -314,7 +327,7 @@ without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
 the core model the event `.named "timer:x"` is accepted without a token, and the theorems do
 not exclude it.
 
-## 8. Snapshot and engine protocol, version 1
+## 8. Snapshot and engine protocol, version 2
 
 The document is the exchange format between the editor and the developer. The snapshot and the
 protocol are the exchange format between the engine and the host. The flat machine into which
@@ -356,19 +369,24 @@ returned by value (`-0` becomes `0`); a request without `id` gets a reply with `
 
 | Request | Reply |
 |---|---|
-| `{"op": "hello"}` | `{"protocol": 1, "states": N}` — N is the number of messages of the loaded document |
+| `{"op": "hello"}` | `{"protocol": 2, "states": N}` — N is the number of messages of the loaded document |
 | `{"op": "start", "seq"?: N}` | `{"snapshot": …, "actions": […]}` — first entry; the first transition gets `seq` N + 1 (without `seq` — 1) |
+| `{"op": "start", "seq"?: N, "event": "cmd:start", "guards"?: {…}}` | as above, or `{"need": [conditions]}` — first entry with the user's first event (decision 9 of section 7) |
 | `{"op": "restart", "snapshot": …}` | `{"snapshot": …, "actions": […]}` — start over without resetting the counter |
 | `{"op": "step", "snapshot": …, "event": "btn:x", "guards"?: {…}}` | `{"snapshot": …, "actions": […], "recovered"?: true}` or `{"need": [conditions]}` |
 | `{"op": "step", …, "event": "timer:<name>", "token": n}` | as above |
 
 Requests are strict: only the fields in the table and `id` are allowed (`hello` — `id`, `op`;
-`start` — also `seq`; `restart` — also `snapshot`; `step` — also `snapshot`, `event`, `guards`,
-`token`). Any other field, such as the typo `gaurds`, is a `bad_request` error. `event` is a
-non-empty string. `token` is allowed only with a timer event (`timer:<name>` with a non-empty
-name) and is required there; `token` and the `seq` of `start` are integers from 0 to 2^53 − 1
-by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object "condition → true/false";
-extra conditions do no harm, but every value must be a boolean.
+`start` — also `seq`, `event`, `guards`; `restart` — also `snapshot`; `step` — also
+`snapshot`, `event`, `guards`, `token`). Any other field, such as the typo `gaurds`, is a
+`bad_request` error. `event` is a non-empty string. `token` is allowed only with a timer event
+(`timer:<name>` with a non-empty name) and is required there; `start` takes no timer event and
+no `token`, and takes `guards` only with `event`. `token` and the `seq` of `start` are integers
+from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object
+"condition → true/false"; extra conditions do no harm, but every value must be a boolean.
+
+The protocol version in `hello` grows when requests are added: version 2 added `start` with
+`event` and `guards`. A host that sends them checks `"protocol": 2` (or higher) first.
 
 Actions for the host, in execution order:
 `{"send": message}`, `{"call": action}`,
@@ -384,7 +402,7 @@ $ printf '%s\n' \
 >   '{"id":4,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout"}' \
 >   '{"id":5,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}' \
 >   | figram-engine examples/pizza.bot.json
-{"id":1,"protocol":1,"states":11}
+{"id":1,"protocol":2,"states":11}
 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
 {"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 {"id":4,"need":["cart_not_empty"]}
@@ -418,6 +436,34 @@ Rules of a step:
    never produces a snapshot it could not read back (the same holds for `restart` and for
    `start` with `seq` 2^53 − 1). At one transition per millisecond the limit is about
    285 000 years away.
+
+Rules of `start` with an event (decision 9 of section 7):
+
+1. The event is matched as if the user stood on the initial message: by the arrows of the
+   initial message, then of its sections up to the root.
+2. If a variant needs conditions that are not in `guards`, the reply is `{"need": [...]}`, as
+   in rule 3 of a step; the host repeats the same request with them in `guards`. `need` comes
+   before the `seq_overflow` check.
+3. If a variant is chosen, the actions are its actions and the entry into its target; the
+   initial message is not sent and its timers are not started. Otherwise the reply is that of
+   `start` without an event.
+4. The reply is one result, and its transition gets `seq` N + 1, as for `start` with `seq` N
+   (`seq_overflow` likewise).
+
+```sh doctest
+$ printf '%s\n' \
+>   '{"id":1,"op":"start","event":"btn:go"}' \
+>   '{"id":2,"op":"start","event":"btn:go","guards":{"is_vip":true}}' \
+>   '{"id":3,"op":"start","event":"cmd:start"}' \
+>   | figram-engine examples/features.bot.json
+{"id":1,"need":["is_vip"]}
+{"id":2,"snapshot":{"at":"vip","seq":1},"actions":[{"send":"vip"}]}
+{"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+```
+
+The arrow `cmd:start` of the root section leads to the initial message `home`, so request 3 is
+exactly `start`; with the event `btn:go` the user goes straight to `vip`, and `home` is neither
+sent nor has its timer started.
 
 `restart` cancels the snapshot's timers, clears the remembered places and performs the
 first-entry actions, but continues the `seq` counter. The tokens of new timers are therefore

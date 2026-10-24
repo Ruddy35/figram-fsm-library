@@ -127,6 +127,44 @@ def do_start(bot, eng, stats):
     return rep["snapshot"]
 
 
+def do_start_with(bot, eng, ev, rng, stats, seq=0):
+    """`start` with a first event on the engine (answering `need` like a host), compared with
+    the oracle evaluated with the guards the engine actually received."""
+    given = {}
+    if rng.random() < 0.3:
+        _, al = bot.need_sets({"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": seq}, ev, None, {})
+        given = {g: rng.random() < 0.5 for g in sorted(al)}
+    req = {"op": "start", "event": ev}
+    if seq:
+        req["seq"] = seq
+    for rounds in (1, 2):
+        if given:
+            req["guards"] = dict(given)
+        rep = eng.req(req)
+        stats["requests"] = stats.get("requests", 0) + 1
+        if rep is None:
+            raise Divergence("engine died", request=req)
+        here = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": seq}
+        mn, al = bot.need_sets(here, ev, None, given)
+        if "need" in rep:
+            ns = set(rep["need"])
+            if not ns or len(ns) != len(rep["need"]) or not (mn <= ns <= al) or rounds > 1:
+                raise Divergence("start with event: need outside [minimal, all]", engine=rep,
+                                 minimal=sorted(mn), all=sorted(al), request=req)
+            stats["need_replies"] = stats.get("need_replies", 0) + 1
+            for g in rep["need"]:
+                given[g] = rng.random() < 0.5
+            continue
+        if mn:
+            raise Divergence("start with event: engine did not ask for a needed guard", engine=rep,
+                             minimal=sorted(mn), request=req)
+        _, s, acts = bot.start_with(ev, given, seq, check_need=False)
+        if "error" in rep or norm_snap(rep["snapshot"]) != s or rep["actions"] != acts or "recovered" in rep:
+            raise Divergence("start with event differs", engine=rep, oracle=(s, acts), request=req)
+        stats["start_events"] = stats.get("start_events", 0) + 1
+        return rep["snapshot"]
+
+
 def do_restart(bot, eng, snap_json, stats):
     rep = eng.req({"op": "restart", "snapshot": snap_json})
     stats["requests"] = stats.get("requests", 0) + 1

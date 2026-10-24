@@ -1,6 +1,6 @@
 /* figram.h — C ABI of the embeddable Figram engine (libfigram.a, built by ffi/build.sh).
  *
- * JSON strings in and out; the request protocol is version 1 of docs/format.md, section 8.
+ * JSON strings in and out; the request protocol is version 2 of docs/format.md, section 8.
  * Build: ffi/build.sh → ffi/out/libfigram.a, linker flags in ffi/out/LDFLAGS; with F the
  * repository root:
  *     cc host.c -I "$F/ffi" $(cat "$F/ffi/out/LDFLAGS")

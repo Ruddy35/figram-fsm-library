@@ -149,6 +149,13 @@ theorem realize_seq (s : Snapshot) (T : NodeId) (acts : List Action) :
     (realize s T acts).1.seq = s.seq + 1 := by
   simp only [realize, foldl_seq]
 
+/-- `realize` from a snapshot whose places and timers are admissible (any state). -/
+theorem realize_inv_snapOK (s : Snapshot) (T : NodeId) (acts : List Action)
+    (hs : Inv s) (hT : T ≠ "") (ha : ∀ a ∈ acts, actionOK a = true)
+    (hseq : s.seq + 1 ≤ maxInt) : SnapOK (realize s T acts).1 := by
+  have hinv := foldl_inv (s.seq + 1) hseq acts ha ({ s with state := T, seq := s.seq + 1 }, []) hs
+  exact ⟨by rw [realize_state]; exact hT, hinv.1, hinv.2, by rw [realize_seq]; exact hseq⟩
+
 theorem realize_snapOK (s : Snapshot) (T : NodeId) (acts : List Action)
     (hs : SnapOK s) (hT : T ≠ "") (ha : ∀ a ∈ acts, actionOK a = true)
     (hseq : s.seq + 1 ≤ maxInt) : SnapOK (realize s T acts).1 := by
@@ -323,5 +330,86 @@ theorem startAt_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
   · show (realize _ m.initial m.initActions).1.seq ≤ maxInt
     rw [realize_seq]
     exact hseq
+
+/-! ## `start` with a first event -/
+
+/-- Without a matching variant, `start` with an event is `start` with `seq`. -/
+theorem startWith_unmatched_startAt (m : Machine) (n : Nat) (ev : Event) (env : HostEnv)
+    (hb : m.choose m.initial ev env = none) : m.startWith n ev env = startAt m n :=
+  m.startWith_unmatched n ev env hb
+
+/-- **`start` with an event produces an admissible snapshot** if the next `seq` does not
+overflow (otherwise the engine replies `seq_overflow`). -/
+theorem startWith_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) (n : Nat)
+    (ev : Event) (env : HostEnv) (hseq : n + 1 ≤ maxInt) : SnapOK (m.startWith n ev env).1 := by
+  have hvalid := m.enterBot_state_valid hwf ⟨"", [], [], n⟩ [] ev env
+  simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
+  obtain ⟨⟨⟨⟨hstates, hinit⟩, hrows⟩, hentry⟩, _⟩ := hn
+  have hs : Inv ⟨"", [], [], n⟩ := ⟨fun p hp => by simp at hp, fun p hp => by simp at hp⟩
+  revert hvalid
+  simp only [Machine.startWith, Machine.enterBot]
+  split
+  · rename_i b hb
+    intro hvalid
+    rw [realize_state] at hvalid
+    obtain ⟨r, hr, hbr⟩ := Machine.choose_mem hb
+    refine realize_inv_snapOK _ _ _ hs (ne_of_not_isEmpty (hstates _ hvalid)) ?_ (by simpa using hseq)
+    intro a ha
+    simp only [List.nil_append, List.mem_append] at ha
+    rcases ha with ha | ha
+    · exact hrows r hr b hbr a ha
+    · exact table_ok (List.all_eq_true.mpr fun e he => List.all_eq_true.mpr (hentry e he)) _ a ha
+  · intro hvalid
+    rw [realize_state] at hvalid
+    exact realize_inv_snapOK _ _ _ hs (ne_of_not_isEmpty (hstates _ hvalid))
+      (by intro a ha; simp only [List.nil_append] at ha; exact hinit a ha) (by simpa using hseq)
+
+/-- **The protocol executes exactly `Machine.startWith`**: if the event and the conditions are
+decoded, all needed conditions are given and the counter does not overflow, the reply to
+`start` with an event is the result of the proved entry. -/
+theorem handle_start (m : Machine) (kvs : Obj) (n : Nat) (e : EventId) (gs : List (String × Bool))
+    (hop : get kvs "op" = some (.str "start")) (hn : decStartSeq kvs = .ok n)
+    (hj : (get kvs "event").isSome = true) (hev : decStartEvent kvs = .ok e)
+    (hgs : decGuards kvs = .ok gs) (hmiss : missingStart m e gs = [])
+    (hseq : (m.startWith n (.named e) (envOf gs)).1.seq ≤ maxInt) :
+    handleObj m kvs = .ok (result ((get kvs "id").getD .null) (m.startWith n (.named e) (envOf gs)).1
+      (m.startWith n (.named e) (envOf gs)).2 false) := by
+  have hle : ¬ (m.startWith n (.named e) (envOf gs)).1.seq > maxInt := by omega
+  obtain ⟨j, hj⟩ := Option.isSome_iff_exists.mp hj
+  simp only [handleObj, hop, hn, hj, withCode, Except.mapError, hev, hgs, startReply, hmiss,
+    List.isEmpty_nil, Bool.not_true, bind, Except.bind, pure, Except.pure]
+  simp [hle]
+
+/-- **The `need` of `start` is sufficient**: if the engine asks for no condition, `start` with
+the event gives the same result for all condition values that agree with the given ones. -/
+theorem missingStart_nil (m : Machine) (n : Nat) (e : EventId) (gs : List (String × Bool))
+    (env : HostEnv) (h : missingStart m e gs = [])
+    (hagree : ∀ g v, givenOf gs g = some v → env g = v) :
+    m.startWith n (.named e) (envOf gs) = m.startWith n (.named e) env := by
+  have hgiven : ∀ g v, givenOf gs g = some v → envOf gs g = v := by
+    intro g v hv
+    simp only [givenOf] at hv
+    simp [envOf, hv]
+  suffices hch : m.choose m.initial (.named e) (envOf gs) = m.choose m.initial (.named e) env by
+    simp only [Machine.startWith, Machine.enterBot, hch]
+  simp only [Machine.choose]
+  split
+  · rfl
+  · rename_i r hr
+    have hneed : m.neededGuards m.initial e (givenOf gs) = [] := by
+      apply List.eq_nil_iff_forall_not_mem.mpr
+      intro g hg
+      have hnone : givenOf gs g = none := by
+        simp only [Machine.neededGuards, hr] at hg
+        exact neededIn_given hg
+      have hmem : g ∈ missingStart m e gs := by
+        refine List.mem_filter.mpr ⟨(mem_dedup _ _).mpr hg, ?_⟩
+        simp only [givenOf, Option.map_eq_none_iff, List.find?_eq_none] at hnone
+        simp only [Bool.not_eq_true', List.any_eq_false]
+        exact hnone
+      rw [h] at hmem
+      simp at hmem
+    simp only [Machine.neededGuards, hr] at hneed
+    rw [find?_neededIn (envOf gs) env hneed hgiven hagree]
 
 end Figram.Engine

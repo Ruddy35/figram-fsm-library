@@ -36,7 +36,18 @@ open Lean Elab Command Meta in
       ``Figram.Engine.reply_readable,
       ``Figram.Engine.guards_irrelevant,
       ``Figram.Engine.missing_nil_step,
-      ``Figram.Engine.startAt_snapOK
+      ``Figram.Engine.startAt_snapOK,
+      ``Figram.Chart.startWith_correct,
+      ``Figram.Chart.sessionWith_correct,
+      ``Figram.Chart.compile_initActions,
+      ``Figram.Machine.enterBot_state_valid,
+      ``Figram.Machine.enterBot_guard_local,
+      ``Figram.Machine.startWith_eq_step,
+      ``Figram.Machine.startWith_initial,
+      ``Figram.Machine.startWith_unmatched,
+      ``Figram.Engine.handle_start,
+      ``Figram.Engine.missingStart_nil,
+      ``Figram.Engine.startWith_snapOK
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -65,3 +76,14 @@ open Lean Elab Command Meta in
 #print axioms Figram.Engine.guards_irrelevant
 #print axioms Figram.Engine.missing_nil_step
 #print axioms Figram.Engine.startAt_snapOK
+#print axioms Figram.Chart.startWith_correct
+#print axioms Figram.Chart.sessionWith_correct
+#print axioms Figram.Chart.compile_initActions
+#print axioms Figram.Machine.enterBot_state_valid
+#print axioms Figram.Machine.enterBot_guard_local
+#print axioms Figram.Machine.startWith_eq_step
+#print axioms Figram.Machine.startWith_initial
+#print axioms Figram.Machine.startWith_unmatched
+#print axioms Figram.Engine.handle_start
+#print axioms Figram.Engine.missingStart_nil
+#print axioms Figram.Engine.startWith_snapOK

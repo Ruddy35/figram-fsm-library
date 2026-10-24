@@ -50,7 +50,7 @@ P=$W/$lib
 DOC='{"figram":1,"bot":{"initial":"a","children":{"a":{"on":{"btn:go":[{"to":"b"}]}},"b":{}}}}'
 REQS=('{"id":1,"op":"hello"}' '{"id":2,"op":"start"}'
       '{"id":3,"op":"step","snapshot":{"at":"a","seq":1},"event":"btn:go"}' '{"id":4,"op":"no_such_op"}')
-WANT=('"protocol":1' '"snapshot":{"at":"a","seq":1}' '"snapshot":{"at":"b","seq":2}' '"code":"bad_request"')
+WANT=('"protocol":2' '"snapshot":{"at":"a","seq":1}' '"snapshot":{"at":"b","seq":2}' '"code":"bad_request"')
 run() { env -i PATH=/usr/bin:/bin "$@"; }
 
 echo "== CLI archive: figram and figram-engine"

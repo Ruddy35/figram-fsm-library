@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file. The format is b
 snapshot formats, the engine protocol (operations, JSON field names, error `code` values), the CLI
 command names and the exit statuses; the texts of messages are for humans and may change.
 
+## [Unreleased]
+
+### Added
+
+- `start` with the user's first event: the optional fields `event` and `guards`, and the reply
+  `need` as for `step`. The event is matched as if the user stood on the initial message, which
+  is neither entered nor left: a chosen variant gives its actions and the entry into its target
+  in one reply with one `seq`; without a variant the reply is that of `start`
+  ([docs/format.md](docs/format.md), section 7, decision 9, and [docs/format.md](docs/format.md),
+  section 8). A deep link
+  (`/start ref123` with `"if": "ref_valid"`) or a button of an old message now works for a new
+  user, and the host no longer treats `cmd:start` specially.
+- Proofs of it: the compiled machine equals the reference semantics (`startWith_correct`), it is
+  a step from the initial message without entering it (`startWith_eq_step`), a variant into the
+  initial message enters it once (`startWith_initial`), `need` is sufficient
+  (`missingStart_nil`) and the protocol executes it (`handle_start`); 34 theorem statements are
+  pinned ([docs/proofs.md](docs/proofs.md)).
+- Python client: `Engine.start(key, seq, event, guards)`.
+
+### Changed
+
+- Protocol version 2: `hello` replies `"protocol": 2`. The Python client requires version 2.
+
 ## [0.1.0] - 2026-10-21
 
 First release. It follows an independent audit and fix cycle; the audit reports, logs and
