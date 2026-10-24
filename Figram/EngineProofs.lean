@@ -28,6 +28,7 @@ structure SnapOK (s : Snapshot) : Prop where
   resume : ∀ p ∈ s.resume, p.1 ≠ "" ∧ p.2 ≠ ""
   timers : ∀ p ∈ s.timers, p.1 ≠ "" ∧ p.2 ≤ maxInt
   seq : s.seq ≤ maxInt
+  back : ∀ v, s.back = some v → v ≠ ""
 
 theorem isEmpty_false {s : String} (h : s ≠ "") : s.isEmpty = false := by
   simpa [String.isEmpty_iff] using h
@@ -64,9 +65,9 @@ theorem mapM_timers (t : List (String × Nat)) (h : ∀ p ∈ t, p.1 ≠ "" ∧ 
 /-- **A snapshot written by the engine is read back as exactly the same snapshot.** -/
 theorem decSnapshot_encSnapshot (s : Snapshot) (h : SnapOK s) :
     decSnapshot (encSnapshot s) = .ok s := by
-  obtain ⟨st, res, tms, seq⟩ := s
-  obtain ⟨hst, hres, htms, hseq⟩ := h
-  simp only at hst hres htms hseq
+  obtain ⟨st, res, tms, seq, bk⟩ := s
+  obtain ⟨hst, hres, htms, hseq, hbk⟩ := h
+  simp only at hst hres htms hseq hbk
   have hkeys : ∀ (A : Obj), (∀ p ∈ A, p.1 ∈ snapshotKeys) → checkKeys A = .ok () := by
     intro A hA
     simp only [checkKeys]
@@ -76,21 +77,31 @@ theorem decSnapshot_encSnapshot (s : Snapshot) (h : SnapOK s) :
   rw [hkeys _ (by
     intro p hp
     simp only [List.mem_append, List.mem_singleton] at hp
-    rcases hp with ((rfl | hp) | hp) | hp
+    rcases hp with (((rfl | hp) | hp) | hp) | hp
     · simp [snapshotKeys]
     all_goals (rw [field_keys _ _ _ p hp]; simp [snapshotKeys]))]
   have h1 := mapM_resume _ hres
   have h2 := mapM_timers _ htms
-  by_cases hr : res = [] <;> by_cases ht : tms = [] <;> by_cases hz : seq = 0 <;>
-    simp [checkVersion, Format.get, field, hr, ht, hz, nonEmpty_str _ _ hst,
-      h1, h2, boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure] <;>
-    (try subst hr) <;> (try subst ht) <;> (try subst hz) <;> rfl
+  cases bk with
+  | none =>
+    by_cases hr : res = [] <;> by_cases ht : tms = [] <;> by_cases hz : seq = 0 <;>
+      simp [checkVersion, Format.get, field, hr, ht, hz, nonEmpty_str _ _ hst,
+        h1, h2, boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure] <;>
+      (try subst hr) <;> (try subst ht) <;> (try subst hz) <;> rfl
+  | some b =>
+    have hb := nonEmpty_str "`back`" b (hbk b rfl)
+    by_cases hr : res = [] <;> by_cases ht : tms = [] <;> by_cases hz : seq = 0 <;>
+      simp [checkVersion, Format.get, field, hr, ht, hz, nonEmpty_str _ _ hst, hb,
+        h1, h2, boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure, Functor.map,
+        Except.map] <;>
+      (try subst hr) <;> (try subst ht) <;> (try subst hz) <;> rfl
 
 /-! ## A step keeps the snapshot admissible -/
 
-/-- Admissibility of the places and timers. -/
+/-- Admissibility of the places, the timers and the place to go back to. -/
 def Inv (x : Snapshot) : Prop :=
-  (∀ p ∈ x.resume, p.1 ≠ "" ∧ p.2 ≠ "") ∧ (∀ p ∈ x.timers, p.1 ≠ "" ∧ p.2 ≤ maxInt)
+  (∀ p ∈ x.resume, p.1 ≠ "" ∧ p.2 ≠ "") ∧ (∀ p ∈ x.timers, p.1 ≠ "" ∧ p.2 ≤ maxInt) ∧
+    (∀ v, x.back = some v → v ≠ "")
 
 theorem mem_assign {α β} [DecidableEq α] {t : List (α × β)} {k : α} {v : β} {p : α × β}
     (h : p ∈ assign t k v) : p = (k, v) ∨ p ∈ t := by
@@ -109,22 +120,22 @@ theorem ne_of_not_isEmpty {s : String} (h : (!s.isEmpty) = true) : s ≠ "" := b
 
 theorem realizeOne_inv (tok : Nat) (htok : tok ≤ maxInt) (acc : Snapshot × List Action)
     (a : Action) (ha : actionOK a = true) (h : Inv acc.1) : Inv (realizeOne tok acc a).1 := by
-  obtain ⟨hr, ht⟩ := h
+  obtain ⟨hr, ht, hb⟩ := h
   cases a with
   | remember sec n =>
     simp only [actionOK, Bool.and_eq_true] at ha
-    refine ⟨fun p hp => ?_, ht⟩
+    refine ⟨fun p hp => ?_, ht, hb⟩
     rcases mem_assign hp with rfl | hp
     · exact ⟨ne_of_not_isEmpty ha.1, ne_of_not_isEmpty ha.2⟩
     · exact hr p hp
   | startTimer id ms _ =>
-    refine ⟨hr, fun p hp => ?_⟩
+    refine ⟨hr, fun p hp => ?_, hb⟩
     rcases mem_assign hp with rfl | hp
     · exact ⟨ne_of_not_isEmpty ha, htok⟩
     · exact ht p hp
-  | cancelTimer id => exact ⟨hr, fun p hp => ht p (mem_erase hp)⟩
-  | send _ => exact ⟨hr, ht⟩
-  | call _ => exact ⟨hr, ht⟩
+  | cancelTimer id => exact ⟨hr, fun p hp => ht p (mem_erase hp), hb⟩
+  | send _ => exact ⟨hr, ht, hb⟩
+  | call _ => exact ⟨hr, ht, hb⟩
 
 theorem foldl_inv (tok : Nat) (htok : tok ≤ maxInt) (acts : List Action)
     (ha : ∀ a ∈ acts, actionOK a = true) (acc : Snapshot × List Action) (h : Inv acc.1) :
@@ -154,14 +165,26 @@ theorem realize_inv_snapOK (s : Snapshot) (T : NodeId) (acts : List Action)
     (hs : Inv s) (hT : T ≠ "") (ha : ∀ a ∈ acts, actionOK a = true)
     (hseq : s.seq + 1 ≤ maxInt) : SnapOK (realize s T acts).1 := by
   have hinv := foldl_inv (s.seq + 1) hseq acts ha ({ s with state := T, seq := s.seq + 1 }, []) hs
-  exact ⟨by rw [realize_state]; exact hT, hinv.1, hinv.2, by rw [realize_seq]; exact hseq⟩
+  exact ⟨by rw [realize_state]; exact hT, hinv.1, hinv.2.1, by rw [realize_seq]; exact hseq,
+    hinv.2.2⟩
 
 theorem realize_snapOK (s : Snapshot) (T : NodeId) (acts : List Action)
     (hs : SnapOK s) (hT : T ≠ "") (ha : ∀ a ∈ acts, actionOK a = true)
     (hseq : s.seq + 1 ≤ maxInt) : SnapOK (realize s T acts).1 := by
   have hinv := foldl_inv (s.seq + 1) hseq acts ha
-    ({ s with state := T, seq := s.seq + 1 }, []) ⟨hs.resume, hs.timers⟩
-  exact ⟨by rw [realize_state]; exact hT, hinv.1, hinv.2, by rw [realize_seq]; exact hseq⟩
+    ({ s with state := T, seq := s.seq + 1 }, []) ⟨hs.resume, hs.timers, hs.back⟩
+  exact ⟨by rw [realize_state]; exact hT, hinv.1, hinv.2.1, by rw [realize_seq]; exact hseq,
+    hinv.2.2⟩
+
+/-- Remembering the message left as the place to go back to keeps the snapshot admissible. -/
+theorem markBack_snapOK (m : Machine) (s : Snapshot) (T : NodeId) (hs : SnapOK s) :
+    SnapOK (m.markBack s T) := by
+  unfold Machine.markBack
+  split
+  · exact hs
+  · refine ⟨hs.state, hs.resume, hs.timers, hs.seq, fun v hv => ?_⟩
+    simp only [Snapshot.withBack, Option.some.injEq] at hv
+    exact hv ▸ hs.state
 
 theorem lookup_mem {α β} [DecidableEq α] {t : List (α × β)} {k : α} {v : β}
     (h : lookup t k = some v) : (k, v) ∈ t := by
@@ -233,7 +256,7 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
   split
   · intro h1 _ _
     rw [enterBot_seq] at h1
-    refine enterBot_snapOK m hwf hn0 s _ ev env ⟨hs.resume, hs.timers⟩ ?_ h1
+    refine enterBot_snapOK m hwf hn0 s _ ev env ⟨hs.resume, hs.timers, hs.back⟩ ?_ h1
     intro a ha
     simp only [List.mem_map] at ha
     obtain ⟨_, _, rfl⟩ := ha
@@ -250,7 +273,7 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
           simp only [Machine.fire] at h1 h2 h3 ⊢
           rw [realize_seq] at h1
           rw [realize_state] at h3
-          refine realize_snapOK _ _ _ hs h3 ?_ h1
+          refine realize_snapOK _ _ _ (markBack_snapOK m s _ hs) h3 ?_ h1
           intro a ha
           simp only [List.mem_append] at ha
           rcases ha with ((ha | ha) | ha) | ha
@@ -389,8 +412,9 @@ theorem startAt_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
   have hi := (Machine.wf_parts hwf).1
   have hinv := foldl_inv (n + 1) hseq m.initActions hinit
     ({ Snapshot.fresh with state := m.initial, seq := n + 1 }, [])
-    ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp⟩
-  refine ⟨?_, hinv.1, hinv.2, ?_⟩
+    ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp,
+      fun v hv => by simp [Snapshot.fresh] at hv⟩
+  refine ⟨?_, hinv.1, hinv.2.1, ?_, hinv.2.2⟩
   · show (realize _ m.initial m.initActions).1.state ≠ ""
     rw [realize_state]
     exact ne_of_not_isEmpty (hstates _ hi)
@@ -409,8 +433,9 @@ theorem startWith_unmatched_startAt (m : Machine) (n : Nat) (ev : Event) (env : 
 overflow (otherwise the engine replies `seq_overflow`). -/
 theorem startWith_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) (n : Nat)
     (ev : Event) (env : HostEnv) (hseq : n + 1 ≤ maxInt) : SnapOK (m.startWith n ev env).1 :=
-  enterBot_snapOK m hwf hn ⟨"", [], [], n⟩ [] ev env
-    ⟨fun p hp => by simp at hp, fun p hp => by simp at hp⟩ (fun a ha => by simp at ha) hseq
+  enterBot_snapOK m hwf hn ⟨"", [], [], n, none⟩ [] ev env
+    ⟨fun p hp => by simp at hp, fun p hp => by simp at hp, fun v hv => by simp at hv⟩
+    (fun a ha => by simp at ha) hseq
 
 /-- **The protocol executes exactly `Machine.startWith`**: if the event and the conditions are
 decoded, all needed conditions are given and the counter does not overflow, the reply to

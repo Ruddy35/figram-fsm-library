@@ -105,7 +105,7 @@ theorem field_keys (k : String) (b : Bool) (j : J) : ∀ p ∈ field k b j, p.1 
 
 theorem dec_enc_variant (v : Variant) (h : extOK variantKeys v.ext) :
     decVariant (encVariant v) = .ok v := by
-  obtain ⟨cond, to, resume, calls, ext⟩ := v
+  obtain ⟨cond, to, resume, back, calls, ext⟩ := v
   simp only at h
   have hA : ∀ (A : Obj) k, k ∈ variantKeys → get (A ++ ext) k = get A k :=
     fun A k hk => get_append_ext h A hk
@@ -113,16 +113,18 @@ theorem dec_enc_variant (v : Variant) (h : extOK variantKeys v.ext) :
     fun A hAk => unknown_append_ext h A hAk
   simp only [encVariant, decVariant]
   rw [hA _ "if" (by simp [variantKeys]), hA _ "to" (by simp [variantKeys]),
-    hA _ "resume" (by simp [variantKeys]), hA _ "do" (by simp [variantKeys])]
+    hA _ "resume" (by simp [variantKeys]), hA _ "back" (by simp [variantKeys]),
+    hA _ "do" (by simp [variantKeys])]
   rw [hU _ (by
     intro p hp
     simp only [List.mem_append, List.mem_singleton] at hp
-    rcases hp with ((hp | rfl) | hp) | hp
+    rcases hp with (((hp | rfl) | hp) | hp) | hp
     · rw [field_keys _ _ _ p hp]; simp [variantKeys]
     · simp [variantKeys]
     · rw [field_keys _ _ _ p hp]; simp [variantKeys]
+    · rw [field_keys _ _ _ p hp]; simp [variantKeys]
     · rw [field_keys _ _ _ p hp]; simp [variantKeys])]
-  cases cond <;> cases resume <;> cases calls <;>
+  cases cond <;> cases resume <;> cases back <;> cases calls <;>
     simp [field, get, decStrs_cons_map, bind, Except.bind, pure, Except.pure] <;> rfl
 
 theorem dec_enc_variants (vs : List Variant) (h : ∀ v ∈ vs, extOK variantKeys v.ext) :

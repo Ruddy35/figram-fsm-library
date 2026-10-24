@@ -43,8 +43,8 @@
         "on": {
           "btn:back": [
             {
-              "to": "order",
-              "resume": true
+              "to": "menu",
+              "back": true
             }
           ]
         }

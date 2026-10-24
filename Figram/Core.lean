@@ -10,11 +10,13 @@ This is everything the engine executes. The building blocks:
 * **condition** — the name of a developer's condition; the host computes its value;
 * **action** (`Action`).
 
-The target of a variant is a message or "resume the section where the user left
-off" (`Target.resume`): the place is read from the snapshot during the step.
+The target of a variant is a message, "resume the section where the user left
+off" (`Target.resume`) or "back to the previous section" (`Target.back`): the place
+is read from the snapshot during the step.
 
 The user snapshot (`Snapshot`) holds the current message, the remembered places
-of sections, the active timers with their tokens and the step counter.
+of sections, the active timers with their tokens, the step counter and the place to
+go back to.
 
 A step is the pure function `Machine.step`. Effects are only returned to the host.
 
@@ -100,9 +102,15 @@ structure Snapshot where
   /-- The number of the last transition. Grows by 1 with every transition;
   serves as the timer token and as the basis of the host's idempotency keys. -/
   seq : Nat
+  /-- The place to go back to: the message the user left when they last crossed a section
+  boundary (`Machine.markBack`). -/
+  back : Option NodeId
   deriving DecidableEq, Repr
 
-def Snapshot.fresh : Snapshot := ⟨"", [], [], 0⟩
+def Snapshot.fresh : Snapshot := ⟨"", [], [], 0, none⟩
+
+/-- The snapshot with another place to go back to. -/
+def Snapshot.withBack (s : Snapshot) (b : Option NodeId) : Snapshot := { s with back := b }
 
 /-- Whether the event is accepted: a timer firing only with the current token. -/
 def Snapshot.accepts (s : Snapshot) : Event → Bool
@@ -153,7 +161,15 @@ inductive Target where
   | node (n : NodeId)
   /-- "Resume section `sec` where the user left off". -/
   | resume (sec : NodeId)
+  /-- "Back to the previous section": the place to go back to (`Snapshot.back`) if it is a
+  message of the machine, otherwise `fallback`. -/
+  | back (fallback : Target)
   deriving DecidableEq, Repr
+
+/-- The target without "back": where a "back" leads when there is no place to go back to. -/
+def Target.base : Target → Target
+  | .back fb => fb.base
+  | t => t
 
 /-- A variant of an arrow: condition, target, the arrow's actions. -/
 structure FBranch where
@@ -186,6 +202,8 @@ structure Machine where
   entry : List (NodeId × List Action)
   /-- Exit actions of a message: cancel its timers. -/
   exit : List (NodeId × List Action)
+  /-- The section that directly contains a message (`none` outside any section). -/
+  zone : List (NodeId × Option NodeId)
   deriving Repr
 
 namespace Machine
@@ -206,16 +224,28 @@ def resolve (m : Machine) (s : Snapshot) : Target → NodeId
       match lookup s.resume sec with
       | some v => if v ∈ r.members then v else r.default
       | none => r.default
+  | .back fb =>
+    match s.back with
+    | some v => if v ∈ m.states then v else m.resolve s fb
+    | none => m.resolve s fb
 
 def entryOf (m : Machine) (n : NodeId) : List Action := (lookup m.entry n).getD []
 def exitOf (m : Machine) (n : NodeId) : List Action := (lookup m.exit n).getD []
+def zoneOf (m : Machine) (n : NodeId) : Option NodeId := (lookup m.zone n).getD none
+
+/-- A move from the snapshot's message to `T` that crosses a section boundary (the sections
+that directly contain the two messages differ) makes the message left the place to go back
+to; a move inside a section keeps it. -/
+def markBack (m : Machine) (s : Snapshot) (T : NodeId) : Snapshot :=
+  if m.zoneOf s.state = m.zoneOf T then s else s.withBack (some s.state)
 
 def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
   let T := m.resolve s b.target
-  realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
+  realize (m.markBack s T) T
+    (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
 
 /-- Start the bot over from snapshot `s` without an event (`restart`): cancel its timers,
-keep its remembered places. -/
+keep its remembered places and the place to go back to. -/
 def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
   realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions)
 
@@ -235,7 +265,8 @@ def choose (m : Machine) (n : NodeId) (ev : Event) (env : HostEnv) : Option FBra
 /-- **Entering the bot with an event.** The event is matched as if the user stood on the
 initial message, which is neither entered nor left: if a variant is chosen, `pre`, the
 variant's actions and the entry of its target; otherwise `pre` and the first-entry actions.
-`s` gives the counter and the remembered places. -/
+`s` gives the counter, the remembered places and the place to go back to, which entering
+the bot does not change (the user leaves no message of the machine). -/
 def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
     Snapshot × List Action :=
   match m.choose m.initial ev env with
@@ -246,7 +277,7 @@ def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env 
 
 /-- The user's first entry with a first event, the counter continued from `n`. -/
 def startWith (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  m.enterBot ⟨"", [], [], n⟩ [] ev env
+  m.enterBot ⟨"", [], [], n, none⟩ [] ev env
 
 /-- **A step of the machine.** If the snapshot's message no longer exists, the user enters the
 bot again with the event (`enterBot`), the timers of the old place cancelled and the remembered
@@ -299,6 +330,7 @@ def neededGuards (m : Machine) (st : NodeId) (e : EventId) (known : String → O
 def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)
   | .resume sec => m.resumes.any (fun r => decide (r.sec = sec))
+  | .back fb => m.targetOK fb
 
 /-- The export check: all targets exist. -/
 def wf (m : Machine) : Bool :=

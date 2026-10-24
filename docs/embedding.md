@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 
 ```text output
 {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
-{"id":2,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+{"id":2,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 ```
 
 **Static linking only.** `libleanrt.a` is compiled with `-ftls-model=local-exec`, so the

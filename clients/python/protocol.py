@@ -45,12 +45,14 @@ def check_snapshot(s) -> None:
     """Strictly by schemas/snapshot.schema.json."""
     if type(s) is not dict:
         raise ProtocolError(f"snapshot is not an object: {s!r}")
-    extra = set(s) - {"v", "at", "resume", "timers", "seq"}
+    extra = set(s) - {"v", "at", "back", "resume", "timers", "seq"}
     if extra:
         raise ProtocolError(f"snapshot: extra fields {sorted(extra)}")
     if "v" in s and (not is_int(s["v"]) or s["v"] != 1):
         raise ProtocolError(f"snapshot: version {s['v']!r}")
     name(s.get("at"), "snapshot.at")
+    if "back" in s:
+        name(s["back"], "snapshot.back")
     for k, field in (("resume", "resume"), ("timers", "timers")):
         if k in s and type(s[k]) is not dict:
             raise ProtocolError(f"snapshot.{field} is not an object")

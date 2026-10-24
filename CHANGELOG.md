@@ -20,13 +20,30 @@ command names and the exit statuses; the texts of messages are for humans and ma
 - Proofs of it: the compiled machine equals the reference semantics (`startWith_correct`), it is
   a step from the initial message without entering it (`startWith_eq_step`), a variant into the
   initial message enters it once (`startWith_initial`), `need` is sufficient
-  (`missingStart_nil`) and the protocol executes it (`handle_start`); 36 theorem statements are
-  pinned ([docs/proofs.md](docs/proofs.md)).
+  (`missingStart_nil`) and the protocol executes it (`handle_start`).
+- "Back to the previous section": the variant flag `"back": true` leads back to the message the
+  user left when they last crossed a section boundary, wherever they came from; a move between
+  messages of one section keeps that place, and "back" from it returns again. Without a place
+  (a new user, or its message was removed), the variant leads to its `to`, with `resume` as
+  usual. The snapshot gets the optional field `"back": <message>`; `restart` clears it, the first
+  entry and recovery keep it ([docs/format.md](docs/format.md), section 7, decision 10). A reader
+  of version 0.1.0 rejects a document with `back` as an unknown key.
+- Proofs of it: the place after a move (`fire_back`), "back" and back again (`fire_back_swap`),
+  the place is always a message the user left (`step_back`), entering the bot keeps it
+  (`enterBot_back`), the compiled machine compares the chart's sections (`compile_zoneOf`), and
+  `compile_correct` covers it; 41 theorem statements are pinned ([docs/proofs.md](docs/proofs.md)).
 - Python client: `Engine.start(key, seq, event, guards)`.
 
 ### Changed
 
 - Protocol version 2: `hello` replies `"protocol": 2`. The Python client requires version 2.
+- Snapshots now carry `back` after a move across a section boundary, also for documents without
+  "back" arrows; the Python and Go client validators accept it. An engine of version 0.1.0
+  rejects such a snapshot as an unknown field, so roll the engine back only together with the
+  snapshots.
+- The pizza example: "Back" on the help message is now `back` (to the section the user opened
+  help from, otherwise the menu) instead of "resume the order". The features example gained
+  "back" arrows (`btn:prev`) and eight golden scenarios.
 - Recovery processes the event: a step from a snapshot whose message was removed from the
   document (`"recovered": true`) cancels the old timers, keeps the remembered places and then
   handles a named event as `start` with that event does, so it may ask `need`; before, the event

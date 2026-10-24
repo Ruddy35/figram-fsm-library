@@ -73,13 +73,14 @@ example : ∀ (c : Chart), c.compile.wf = true → ∀ (n : Nat) (ev : Event) (e
 example : ∀ (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch),
     m.initial ∈ m.states → m.choose m.initial (.named e) env = some b →
     (∀ a ∈ m.exitOf m.initial, ∃ id, a = .cancelTimer id) →
-    m.step ⟨m.initial, [], [], n⟩ (.named e) env =
+    ((m.step ⟨m.initial, [], [], n, none⟩ (.named e) env).1.withBack none,
+      (m.step ⟨m.initial, [], [], n, none⟩ (.named e) env).2) =
       ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) :=
   @Machine.startWith_eq_step
 example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (b : FBranch),
-    m.choose m.initial ev env = some b → m.resolve ⟨"", [], [], n⟩ b.target = m.initial →
+    m.choose m.initial ev env = some b → m.resolve ⟨"", [], [], n, none⟩ b.target = m.initial →
     m.entryOf m.initial = m.initActions →
-    m.startWith n ev env = realize ⟨"", [], [], n⟩ m.initial (b.actions ++ m.initActions) :=
+    m.startWith n ev env = realize ⟨"", [], [], n, none⟩ m.initial (b.actions ++ m.initActions) :=
   @Machine.startWith_initial
 example : ∀ (m : Machine) (n : Nat) (e : EventId) (gs : List (String × Bool)) (env : HostEnv),
     missingStart m e gs = [] → (∀ g v, givenOf gs g = some v → env g = v) →
@@ -88,6 +89,23 @@ example : ∀ (m : Machine) (n : Nat) (e : EventId) (gs : List (String × Bool))
 example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv), s.state ∉ m.states →
     m.step s ev env = m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env :=
   @Machine.step_recover
+
+-- "back to the previous section": a move across a section boundary remembers the message left,
+-- "back" leads there and back again, the place is always a message the user left, entering
+-- the bot keeps it, and the compiled machine compares the sections of the chart
+example : ∀ (m : Machine) (s : Snapshot) (b : FBranch), (m.fire s b).1.back =
+    if m.zoneOf s.state = m.zoneOf (m.resolve s b.target) then s.back else some s.state :=
+  @Machine.fire_back
+example : ∀ (m : Machine) (s : Snapshot) (b : FBranch) (fb : Target) (v : NodeId),
+    b.target = .back fb → s.back = some v → v ∈ m.states → m.zoneOf s.state ≠ m.zoneOf v →
+    (m.fire s b).1.state = v ∧ (m.fire s b).1.back = some s.state := @Machine.fire_back_swap
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    (m.step s ev env).1.back = s.back ∨
+      (s.state ∈ m.states ∧ (m.step s ev env).1.back = some s.state) := @Machine.step_back
+example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv),
+    (m.enterBot s pre ev env).1.back = s.back := @Machine.enterBot_back
+example : ∀ (c : Chart) {L : NodeId}, L ∈ c.leafIds → c.compile.zoneOf L = c.parent L :=
+  @Chart.compile_zoneOf
 
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse

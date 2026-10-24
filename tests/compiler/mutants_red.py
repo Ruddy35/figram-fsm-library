@@ -139,7 +139,7 @@ def classify(bot, mutant, text=None):
         if kind == "drop-guard":
             from oracle import Variant
             mc = list(c)
-            mc[i] = Variant(None, c[i].to, c[i].resume, c[i].calls)
+            mc[i] = Variant(None, c[i].to, c[i].resume, c[i].calls, c[i].back)
             names = sorted({v.cond for v in c if v.cond})
             for bits in itertools.product([False, True], repeat=len(names)):
                 g = dict(zip(names, bits))

@@ -12,7 +12,7 @@ engine.
 Parts:
 * JSON requests (the `id` field is the case number): result, `need`, errors with
   a machine code (`code`), strict request fields, token and `seq` limits,
-  `start` with `seq` and with a first event;
+  `start` with `seq` and with a first event, "back to the previous section";
 * raw byte lines in one process: `id` echo on a parse error, invalid UTF-8,
   blank lines without a reply, the request size limit (1 MiB by default),
   replies strictly in request order;
@@ -36,7 +36,7 @@ M = 9007199254740991          # 2^53 − 1, the upper limit of seq and tokens
 MIB = 1048576                 # default request size limit
 ITEM = {"at": "item", "resume": {"shop": "item"}, "timers": {"remind": 3}, "seq": 5}
 IDLE = {"start_timer": "idle", "ms": 60000}
-FIRED = {"snapshot": {"at": "reminder", "resume": {"shop": "reminder"}, "seq": 6},
+FIRED = {"snapshot": {"at": "reminder", "back": "item", "resume": {"shop": "reminder"}, "seq": 6},
          "actions": [{"cancel_timer": "remind"}, {"send": "reminder"}]}
 IGNORED = {"snapshot": ITEM, "actions": []}
 HELLO = {"protocol": 2, "states": 8}
@@ -174,11 +174,48 @@ CASES = [
      {"op": "start", "event": "btn:go", "token": 1}, err("bad_request")),
     ("start with an event and a non-boolean condition — bad_request",
      {"op": "start", "event": "btn:go", "guards": {"is_vip": "yes"}}, err("bad_request")),
+    # ---- "back to the previous section" (decision 10) ----------------------
+    ("back: a move into another section remembers the message left",
+     step(H, "btn:go", guards={"is_vip": False}),
+     {"snapshot": {"at": "catalog", "back": "home", "resume": {"shop": "catalog"}, "seq": 1},
+      "actions": [{"cancel_timer": "idle"}, {"send": "catalog"}]}),
+    ("back: a move inside a section keeps the place",
+     step({**ITEM, "back": "catalog"}, "btn:other"),
+     {"snapshot": {"at": "item2", "back": "catalog", "resume": {"shop": "item2"}, "seq": 6},
+      "actions": [{"cancel_timer": "remind"}, {"send": "item2"}]}),
+    ("back: leads to the place and remembers the message left",
+     step({"at": "help", "back": "item", "seq": 4}, "btn:prev"),
+     {"snapshot": {"at": "item", "back": "help", "resume": {"shop": "item"}, "timers": {"remind": 5}, "seq": 5},
+      "actions": [{"start_timer": "remind", "ms": 5000, "token": 5}, {"send": "item"}]}),
+    ("back without a place: the fallback `to`",
+     step({"at": "help", "seq": 4}, "btn:prev"),
+     {"snapshot": {"at": "home", "timers": {"idle": 5}, "seq": 5}, "actions": [{**IDLE, "token": 5}, {"send": "home"}]}),
+    ("back to a message no longer in the bot: the fallback, the place kept",
+     step({"at": "help", "back": "gone", "seq": 4}, "btn:prev"),
+     {"snapshot": {"at": "home", "back": "gone", "timers": {"idle": 5}, "seq": 5},
+      "actions": [{**IDLE, "token": 5}, {"send": "home"}]}),
+    ("back with `resume`: without a place, resume the section",
+     step({"at": "paid", "resume": {"shop": "item2"}, "seq": 4}, "btn:prev"),
+     {"snapshot": {"at": "item2", "back": "paid", "resume": {"shop": "item2"}, "seq": 5}, "actions": [{"send": "item2"}]}),
+    ("back: start with an event leaves no message, so there is no place",
+     {"op": "start", "event": "btn:go", "guards": {"is_vip": False}},
+     {"snapshot": {"at": "catalog", "resume": {"shop": "catalog"}, "seq": 1}, "actions": [{"send": "catalog"}]}),
+    ("back: recovery keeps the place and an event of the root uses it",
+     step({"at": "gone", "back": "item2", "seq": 3}, "btn:prev"),
+     {"snapshot": {"at": "item2", "back": "item2", "resume": {"shop": "item2"}, "seq": 4},
+      "actions": [{"send": "item2"}], "recovered": True}),
+    ("restart clears the place to go back to",
+     {"op": "restart", "snapshot": {"at": "catalog", "back": "home"}}, started(1)),
+    ("an ignored event keeps the place",
+     step({"at": "home", "back": "item"}, "btn:nothing"), {"snapshot": {"at": "home", "back": "item"}, "actions": []}),
+    ("back as an empty string — bad_snapshot", step({"at": "home", "back": ""}, "btn:self"), err("bad_snapshot")),
+    ("back as a number — bad_snapshot", step({"at": "home", "back": 1}, "btn:self"), err("bad_snapshot")),
+    ("back null — bad_snapshot", step({"at": "home", "back": None}, "btn:self"), err("bad_snapshot")),
 ]
 
 ITEM_TXT = json.dumps(ITEM).encode()
 ZERO_TXT = b'{"at":"item","resume":{"shop":"item"},"timers":{"remind":0}}'
-FIRED_ZERO = {"snapshot": {"at": "reminder", "resume": {"shop": "reminder"}, "seq": 1},
+FIRED_ZERO = {"snapshot": {"at": "reminder", "back": "item", "resume": {"shop": "reminder"}, "seq": 1},
               "actions": [{"cancel_timer": "remind"}, {"send": "reminder"}]}
 
 

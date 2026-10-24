@@ -14,7 +14,8 @@ class Divergence(Exception):
 
 def norm_snap(j):
     s = snap_from_json(j)
-    return {"at": s["at"], "resume": dict(s["resume"]), "timers": dict(s["timers"]), "seq": s["seq"]}
+    return {"at": s["at"], "resume": dict(s["resume"]), "timers": dict(s["timers"]), "seq": s["seq"],
+            "back": s["back"]}
 
 
 def compare_result(bot, snap_in, rep, ev, token, guards, hits, stats):
@@ -132,7 +133,8 @@ def do_start_with(bot, eng, ev, rng, stats, seq=0):
     the oracle evaluated with the guards the engine actually received."""
     given = {}
     if rng.random() < 0.3:
-        _, al = bot.need_sets({"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": seq}, ev, None, {})
+        _, al = bot.need_sets({"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": seq,
+                               "back": None}, ev, None, {})
         given = {g: rng.random() < 0.5 for g in sorted(al)}
     req = {"op": "start", "event": ev}
     if seq:
@@ -144,7 +146,7 @@ def do_start_with(bot, eng, ev, rng, stats, seq=0):
         stats["requests"] = stats.get("requests", 0) + 1
         if rep is None:
             raise Divergence("engine died", request=req)
-        here = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": seq}
+        here = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": seq, "back": None}
         mn, al = bot.need_sets(here, ev, None, given)
         if "need" in rep:
             ns = set(rep["need"])

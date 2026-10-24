@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 36 theorems are pinned: `./verify.sh` elaborates
+The statements of these 41 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -42,7 +42,7 @@ through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`
 |---|---|
 | `Figram.Chart.startWith_correct` | If `c.compile.wf`, entering with an event on the compiled machine equals the chart's reference semantics, for every counter, event and assignment of condition values. |
 | `Figram.Chart.sessionWith_correct` | The same for a whole session that starts by entering with an event. |
-| `Figram.Machine.startWith_eq_step` | Entering with an event that chooses a variant is a step from the snapshot standing on the initial message (no timers, no places): the same snapshot, and the step's actions are the initial message's exit actions (cancelling timers that were never started) followed by those of `startWith`. |
+| `Figram.Machine.startWith_eq_step` | Entering with an event that chooses a variant is a step from the snapshot standing on the initial message (no timers, no places, no place to go back to): the same snapshot except that the step may remember the initial message as the place to go back to (it leaves the initial message, entering does not), and the step's actions are the initial message's exit actions (cancelling timers that were never started) followed by those of `startWith`. |
 | `Figram.Machine.startWith_initial` | If the chosen variant leads to the initial message, entering is exactly the first entry with the variant's actions in front: one entry, one `send` of the initial message. |
 | `Figram.Chart.compile_initActions` | In a compiled machine the first-entry actions are the entry actions of the initial message (the last hypothesis of `startWith_initial`). |
 | `Figram.Machine.startWith_unmatched` | Without a matching variant (or for a timer event), entering is the plain first entry. |
@@ -50,6 +50,22 @@ through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`
 | `Figram.Machine.enterBot_guard_local` | Entering depends only on the conditions in `requiredGuards` of the initial message and the event. |
 | `Figram.Machine.step_recover` | A step from a snapshot whose message no longer exists is entering the bot with the event, after cancelling the snapshot's timers and keeping its remembered places (decision 8). |
 | `Figram.Machine.step_recover_timer` | For a timer event that recovery is the plain start over that `restart` also uses (with the places kept). |
+
+### Back to the previous section
+
+"Back" ([format.md](format.md), section 7, decision 10) is the target `Target.back`, the snapshot
+field `Snapshot.back` and `Machine.markBack` in `Machine.fire`; the section of a message in the
+machine is `Machine.zoneOf`.
+
+| Theorem | Meaning |
+|---|---|
+| `Figram.Machine.fire_back` | After a move the place to go back to is the message left if the two messages are in different sections, and the old place otherwise. |
+| `Figram.Machine.fire_back_swap` | If the place to go back to is a message of another section, a "back" variant leads to it and makes the message left the place, so the next "back" returns. |
+| `Figram.Machine.step_back` | After any step the place to go back to is the old one or the message of the snapshot, which is then a message of the machine: the place is always a message the user left. |
+| `Figram.Machine.enterBot_back` | Entering the bot (the first entry with an event, recovery) keeps the place to go back to. |
+| `Figram.Chart.compile_zoneOf` | In the compiled machine the section of a message is the section that directly contains it in the chart, so the machine compares the designer's sections. |
+
+Together with `compile_correct` these hold for the chart's reference semantics as well.
 
 ### Document format
 
@@ -66,7 +82,7 @@ through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`
 
 | Theorem | Meaning |
 |---|---|
-| `Figram.Engine.decSnapshot_encSnapshot` | An admissible snapshot (`SnapOK`: non-empty names, integers within 2^53 − 1) written into the model `J` is read back as exactly the same snapshot. |
+| `Figram.Engine.decSnapshot_encSnapshot` | An admissible snapshot (`SnapOK`: non-empty names, including the place to go back to, integers within 2^53 − 1) written into the model `J` is read back as exactly the same snapshot. |
 | `Figram.Engine.step_snapOK` | For a well-formed machine with non-empty names (`namesOK`), a step from an admissible snapshot whose new `seq` does not overflow yields an admissible snapshot. |
 | `Figram.Engine.handle_step` | A `step` request already decoded into the model (`handleObj`) — with a decodable snapshot, event and guards, no missing conditions and no `seq` overflow — replies exactly with the result of the proved `Machine.step`. |
 | `Figram.Engine.reply_readable` | Under the hypotheses of `step_snapOK`, the snapshot in a `step` reply is read back by the engine unchanged. |
@@ -132,7 +148,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (164 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (184 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from

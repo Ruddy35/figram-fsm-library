@@ -8,6 +8,8 @@ import Figram.Chart
 * entering a section → the target is replaced in advance by its initial message;
 * "resume where the user left off" → the core operation `Target.resume` plus one
   `ResumeSpec` entry per section (the size grows linearly, not quadratically);
+* "back to the previous section" → the core operation `Target.back` and the table `zone`
+  (the section that directly contains each message);
 * entry and exit of a message → the tables `entry` and `exit`, one entry per message.
 
 The specification is `compileSpec`: plain list definitions (`cands`,
@@ -280,6 +282,7 @@ namespace Machine
 def targetIn (st secs : Tab Unit) : Target → Bool
   | .node n => st.contains n
   | .resume sec => secs.contains sec
+  | .back fb => targetIn st secs fb
 
 /-- `wf` in linear time: membership goes through hash tables
 (`wfFast_eq : m.wfFast = m.wf` in `Figram.Correct`). -/
@@ -294,10 +297,12 @@ end Machine
 
 namespace Chart
 
-def toF (c : Chart) (b : Branch) : FBranch :=
-  ⟨b.guard, (match b.target with
-    | .node n => .node (c.enter n)
-    | .history s => .resume s), b.actions⟩
+def toTarget (c : Chart) : Dest → Target
+  | .node n => .node (c.enter n)
+  | .history s => .resume s
+  | .back fb => .back (c.toTarget fb)
+
+def toF (c : Chart) (b : Branch) : FBranch := ⟨b.guard, c.toTarget b.target, b.actions⟩
 
 def events (c : Chart) : List EventId :=
   dedup (c.transitions.map (·.event))
@@ -321,6 +326,7 @@ def compileSpec (c : Chart) : Machine where
   resumes := (dedup c.histSecs).map c.mkResume
   entry := c.leafIds.map fun L => (L, c.entryActs L)
   exit := c.leafIds.map fun L => (L, c.exitActs L)
+  zone := c.leafIds.map fun L => (L, c.parent L)
 
 /-! ## Fast implementation -/
 
@@ -358,10 +364,12 @@ def enterAux (ix : Index) : Nat → NodeId → NodeId
 
 def enter (ix : Index) (n : NodeId) : NodeId := ix.enterAux ix.fuel n
 
-def toF (ix : Index) (b : Branch) : FBranch :=
-  ⟨b.guard, (match b.target with
-    | .node n => .node (ix.enter n)
-    | .history s => .resume s), b.actions⟩
+def toTarget (ix : Index) : Dest → Target
+  | .node n => .node (ix.enter n)
+  | .history s => .resume s
+  | .back fb => .back (ix.toTarget fb)
+
+def toF (ix : Index) (b : Branch) : FBranch := ⟨b.guard, ix.toTarget b.target, b.actions⟩
 
 def timersOf (ix : Index) (n : NodeId) : List Timer := ix.timers.concat n
 
@@ -378,6 +386,7 @@ def exitActs (ix : Index) (L : NodeId) : List Action :=
 def destIn (ix : Index) (leaves : Tab Unit) : Dest → Bool
   | .node n => leaves.contains (ix.enter n)
   | .history _ => true
+  | .back fb => ix.destIn leaves fb
 
 end Index
 
@@ -414,7 +423,8 @@ def compile (c : Chart) : Machine :=
     table := leaves.map fun L => (L, leafRows evs tr ix L)
     resumes := (dedupFast c.histSecs).map fun s => ⟨s, ix.enter s, mem.concat s⟩
     entry := leaves.map fun L => (L, ix.entryActs L)
-    exit := leaves.map fun L => (L, ix.exitActs L) }
+    exit := leaves.map fun L => (L, ix.exitActs L)
+    zone := leaves.map fun L => (L, ix.parent L) }
 
 /-- The check `compile.wf` without building the machine (`wfDirect_eq` in
 `Figram.Correct`): the initial message, the arrow targets of the messages' ancestors and

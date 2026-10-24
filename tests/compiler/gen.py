@@ -59,7 +59,7 @@ def dumps(doc):
 
 
 def gen_model(rng, n_msgs=8, n_secs=3, max_depth=4, p_hist=0.3, p_timer=0.35,
-              p_ann=0.2, n_events=None, shared_timers=True):
+              p_ann=0.2, n_events=None, shared_timers=True, p_back=0.15):
     nodes = {"": {"parent": None, "sec": True, "initial": None, "on": {}, "timers": {}, "ann": {}}}
     depth = {"": 0}
     secs = [""]
@@ -117,6 +117,8 @@ def gen_model(rng, n_msgs=8, n_secs=3, max_depth=4, p_hist=0.3, p_timer=0.35,
                 v["to"] = owner  # self loop
             else:
                 v["to"] = rng.choice(allnodes)
+            if rng.random() < p_back:
+                v["back"] = True
             if rng.random() < 0.4:
                 v["do"] = [rng.choice(CALLS) for _ in range(rng.choice([1, 2, 3]))]
             if rng.random() < p_ann:
@@ -159,7 +161,7 @@ def upgrade(rng, model, focus=None):
     msgs = [n for n, x in nodes.items() if not x["sec"]]
     secs = [n for n, x in nodes.items() if x["sec"]]
     ops = ["delete_msg", "move_msg", "rename_timer", "move_timer", "add_hist", "drop_hist",
-           "msg_to_sec", "drop_timer"]
+           "msg_to_sec", "drop_timer", "add_back"]
     op = rng.choice(ops)
     pick = lambda pool: rng.choice([x for x in (focus or []) if x in pool] or pool)
     desc = op
@@ -219,6 +221,10 @@ def upgrade(rng, model, focus=None):
         src = rng.choice([n for n in nodes if n != ""])
         nodes[src]["on"]["btn:hist"] = [{"to": s, "resume": True}]
         desc = f"add resume arrow {src}->{s}"
+    elif op == "add_back":
+        src = rng.choice([n for n in nodes if n != ""])
+        nodes[src]["on"]["btn:back"] = [{"to": rng.choice([n for n in nodes if n != ""]), "back": True}]
+        desc = f"add back arrow on {src}"
     elif op == "drop_hist":
         for x in nodes.values():
             for ev in list(x["on"]):
@@ -276,14 +282,19 @@ def guard_plan(rng, need):
 def perturb_snapshot(rng, bot, snap, older, doc_names):
     """Stale / forged snapshots the host might hand us."""
     s = {"at": snap["at"], "resume": dict(snap["resume"]), "timers": dict(snap["timers"]),
-         "seq": snap["seq"]}
+         "seq": snap["seq"], "back": snap.get("back")}
     secs = [n for n, x in bot.nodes.items() if x.is_section and n != ""]
     msgs = [n for n, x in bot.nodes.items() if not x.is_section]
     k = rng.choice(["older", "deleted_at", "section_at", "bad_resume", "foreign_resume",
-                    "extra_timer", "seq_edge"])
+                    "extra_timer", "seq_edge", "bad_back", "other_back"])
     if k == "older" and older:
         o = rng.choice(older)
-        s = {"at": o["at"], "resume": dict(o["resume"]), "timers": dict(o["timers"]), "seq": o["seq"]}
+        s = {"at": o["at"], "resume": dict(o["resume"]), "timers": dict(o["timers"]), "seq": o["seq"],
+             "back": o.get("back")}
+    elif k == "bad_back":
+        s["back"] = rng.choice(["gone_msg"] + secs) if secs else "gone_msg"
+    elif k == "other_back":
+        s["back"] = rng.choice(msgs + [None])
     elif k == "deleted_at":
         s["at"] = "gone_" + str(rng.randint(0, 9))
     elif k == "section_at" and secs:

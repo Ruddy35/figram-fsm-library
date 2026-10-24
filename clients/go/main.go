@@ -225,7 +225,7 @@ func checkSnapshot(v any) error {
 	}
 	for k := range s {
 		switch k {
-		case "v", "at", "resume", "timers", "seq":
+		case "v", "at", "back", "resume", "timers", "seq":
 		default:
 			return fmt.Errorf("snapshot: unknown field %q", k)
 		}
@@ -235,6 +235,9 @@ func checkSnapshot(v any) error {
 	}
 	if !nameOK(s["at"]) {
 		return fmt.Errorf("snapshot.at: %v", s["at"])
+	}
+	if b, ok := s["back"]; ok && !nameOK(b) {
+		return fmt.Errorf("snapshot.back: %v", b)
 	}
 	if r, ok := s["resume"]; ok {
 		m, ok := r.(map[string]any)

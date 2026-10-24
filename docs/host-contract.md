@@ -174,8 +174,9 @@ A separate executor takes actions from the outbox in order and marks them execut
 To start a user over (a support command, "delete my data" while keeping the account), the `seq`
 counter must continue, not restart from zero. Use `restart` with the **latest committed**
 snapshot (read under the user's lock, section 1), not `start` without `seq`. `restart` cancels
-the old timers and continues `seq`, so the tokens of new timers do not match the tokens of late
-old events, and the keys `user:seq:index` of new actions do not match keys of executed ones.
+the old timers, clears the remembered places and the place to go back to, and continues `seq`,
+so the tokens of new timers do not match the tokens of late old events, and the keys
+`user:seq:index` of new actions do not match keys of executed ones.
 
 A snapshot from a lagging replica or a backup is not suitable for `restart`: the engine does
 not cancel timers started after that snapshot and reissues `seq` values that were already used.
@@ -270,7 +271,8 @@ concurrently, with one shared `timeout`.
   request is processed as at the bot's initial message, as for a new user (section 1, step 3):
   an arrow of the initial message or of a section around it leads straight to its target,
   otherwise the user lands on the initial message. The step can therefore answer `need`.
-* If a remembered place no longer exists, "resume" leads to the section's initial message.
+* If a remembered place no longer exists, "resume" leads to the section's initial message. If
+  the place to go back to (`back`) no longer exists, "back" leads to the arrow's `to`.
 * The engine rejects a snapshot with an unknown field or version: such a snapshot was written
   by a newer engine, so the engine must not be rolled back without rolling back the snapshots.
 * A message that became a section also counts as gone: the user starts over from the bot's

@@ -69,7 +69,7 @@ def one_doc(args, seed, stats, hits, divs):
                     stats["hits_steps"][x + "@exhaustive"] = stats["hits_steps"].get(x + "@exhaustive", 0) + 1
                 hits |= h
         if rng.random() < 0.5:   # a new user with a first event (format.md §7, decision 9)
-            first = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": 0}
+            first = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": 0, "back": None}
             ev, token, _ = pick_event(rng, bot, first, {})
             snap = do_start_with(bot, eng, ev if token is None else "btn:zz", rng, stats,
                                  seq=rng.choice([0, 0, 41]))
@@ -82,7 +82,8 @@ def one_doc(args, seed, stats, hits, divs):
         for i in range(args.steps):
             if not getattr(args, "no_upgrade", False) and not upgraded and i == args.steps // 2 and rng.random() < 0.6:
                 s = snap_from_json(snap)
-                focus = [s["at"]] + list(s["resume"].values()) + list(s["resume"].keys())
+                focus = [s["at"]] + list(s["resume"].values()) + list(s["resume"].keys()) + \
+                    ([s["back"]] if s.get("back") else [])
                 for _ in range(6):
                     m2, desc = upgrade(rng, model, focus=focus)
                     if m2:

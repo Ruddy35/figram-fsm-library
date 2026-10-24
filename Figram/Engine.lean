@@ -37,12 +37,13 @@ namespace Figram.Engine
 open Figram.Format
 
 def protocolVersion : Nat := 2
-def snapshotKeys : List String := ["v", "at", "resume", "timers", "seq"]
+def snapshotKeys : List String := ["v", "at", "back", "resume", "timers", "seq"]
 
 /-! ## Snapshot -/
 
 def encSnapshot (s : Snapshot) : J :=
   .obj ([("at", .str s.state)]
+    ++ field "back" s.back.isSome (.str (s.back.getD ""))
     ++ field "resume" (!s.resume.isEmpty) (.obj (s.resume.map fun p => (p.1, .str p.2)))
     ++ field "timers" (!s.timers.isEmpty) (.obj (s.timers.map fun p => (p.1, .num p.2 0)))
     ++ field "seq" (s.seq != 0) (.num s.seq 0))
@@ -85,6 +86,9 @@ def decSnapshot : J → R Snapshot
     let st ← match get kvs "at" with
       | some j => nonEmpty "`at`" j
       | none => throw "snapshot: missing field `at`"
+    let bk ← match get kvs "back" with
+      | none => pure none
+      | some j => some <$> nonEmpty "`back`" j
     let res ← match get kvs "resume" with
       | none => pure []
       | some (.obj m) => m.mapM decResumeEntry
@@ -96,7 +100,7 @@ def decSnapshot : J → R Snapshot
     let seq ← match get kvs "seq" with
       | none => pure 0
       | some j => boundedNat "`seq`" j
-    pure ⟨st, res, tms, seq⟩
+    pure ⟨st, res, tms, seq, bk⟩
   | _ => throw "snapshot must be an object"
 
 /-! ## Request errors -/
@@ -291,12 +295,12 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
       pure (result id s as false)
   | some (.str "restart") =>
     -- Start the user over without resetting the counter: cancel the user's timers,
-    -- run the first-entry actions, clear the remembered places. Tokens keep growing,
-    -- so late events of old timers never match new ones.
+    -- run the first-entry actions, clear the remembered places and the place to go back to.
+    -- Tokens keep growing, so late events of old timers never match new ones.
     let s ← match get kvs "snapshot" with
       | some j => withCode .badSnapshot (decSnapshot j)
       | none => throw (.badRequest, "missing field `snapshot`")
-    let (s', as) := m.recover { s with resume := [] }
+    let (s', as) := m.recover { s with resume := [], back := none }
     if s'.seq > maxInt then throw (.seqOverflow, "seq_overflow")
     pure (result id s' as false)
   | some (.str "step") =>
