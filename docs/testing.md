@@ -53,7 +53,7 @@ Steps, in order:
 8. **Random documents** — `tests/engine/random_docs.py`: 100 random valid documents
    (`figram random`) with 12 messages each, every one checked on 20 reference scenarios of length 30.
 9. **Mutation testing** — `tests/engine/mutation.py` runs every mutant of the compiled machine
-   (`figram-engine --mutants`, at least 107 on the two example documents) and requires that the
+   (`figram-engine --mutants`, at least 118 on the two example documents) and requires that the
    scenarios detect each one.
 10. **Host contract** — `tests/engine/host_sim.py` ([host-contract.md](host-contract.md),
     section 7).
@@ -63,7 +63,7 @@ Steps, in order:
 13. **Engine memory** — `tests/engine/engine_memory.py`: the engine starts under `ulimit -v` 32,
     64 and 256 MiB, reserves at most 64 MiB of address space, uses at most 16 MiB after 2000
     requests, runs one thread, and aborts with Lean's stack overflow message on a tiny stack.
-14. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 24
+14. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 30
     snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones;
     the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 136 hand-written cases:
     error codes, strict fields, tokens and `seq` by value, `start` with `seq`, "back", `restart`, `id`
