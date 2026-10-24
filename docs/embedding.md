@@ -238,7 +238,9 @@ python3 tests/engine/engine_memory.py .lake/build/bin/figram-engine examples/piz
 The same script checks that the engine answers under `ulimit -v` 32, 64 and 256 MiB, and that
 with a 24 or 32 KiB stack a document nested 250 levels deep aborts it with Lean's stack overflow
 message. Recursion depth of Lean code is bounded by the stack of the calling thread (for Go
-threads, the system thread stack size).
+threads, the system thread stack size): a request nested 256 levels deep (the limit of the
+parser) needs about 56 KiB of stack in the calling thread and crashes the host process with
+`SIGSEGV` on a thread with 52 KiB or less; give threads that call the library at least 64 KiB.
 
 ## Go
 

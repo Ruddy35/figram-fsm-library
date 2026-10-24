@@ -42,7 +42,8 @@ def name(x, what: str) -> None:
 
 
 def check_snapshot(s) -> None:
-    """Strictly by schemas/snapshot.schema.json."""
+    """By schemas/snapshot.schema.json, for the snapshots the engine writes: integers must be
+    written as integers (the schema and the engine also accept `5.0` and `5e0`)."""
     if type(s) is not dict:
         raise ProtocolError(f"snapshot is not an object: {s!r}")
     extra = set(s) - {"v", "at", "back", "resume", "timers", "seq"}

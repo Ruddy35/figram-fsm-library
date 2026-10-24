@@ -217,7 +217,8 @@ func keysAre(m map[string]any, keys ...string) bool {
 	return true
 }
 
-// checkSnapshot validates strictly by schemas/snapshot.schema.json.
+// checkSnapshot validates by schemas/snapshot.schema.json, for the snapshots the engine writes:
+// integers must be written as integers (the schema and the engine also accept 5.0 and 5e0).
 func checkSnapshot(v any) error {
 	s, ok := v.(map[string]any)
 	if !ok {

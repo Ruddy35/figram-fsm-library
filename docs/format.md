@@ -341,7 +341,16 @@ Decisions of the specification:
    keeps the place; `restart` clears it. The place is remembered whether or not the document has
    "back" arrows, so the host can read it too. Moves between two messages that are directly in
    the root section (`bot`) cross no boundary: a screen that "back" should return to exactly
-   wherever it was opened from — help, settings — goes into a section of its own.
+   wherever it was opened from — help, settings — goes into a section of its own (as `help` in
+   [`examples/pizza.bot.json`](../examples/pizza.bot.json)). Entering or leaving a subsection is
+   a crossing too, so inside a section with subsections the place is the last subsection
+   boundary the user crossed, not where they entered the outer section.
+   "The next back returns" needs the place to be in another section than the current message,
+   which every move keeps true; entering the bot does not. After recovery (decision 8), or
+   with a snapshot of an earlier document version in which the place was in another section,
+   the place can be in the user's own section or be the current message (`back` equal to
+   `at`): "back" then leads there without crossing a boundary and keeps the place, so on that
+   message "back" is a self-loop (decision 3) until the user crosses a boundary.
 
 The correctness theorems assume `c.compile.wf`. `figram check` establishes it on the chart,
 without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
@@ -411,7 +420,8 @@ from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an obj
 "condition → true/false"; extra conditions do no harm, but every value must be a boolean.
 
 The protocol version in `hello` grows when requests are added: version 2 added `start` with
-`event` and `guards`. A host that sends them checks `"protocol": 2` (or higher) first. Version 2
+`event` and `guards`. A host that sends them checks the version in `hello` first (the Python
+client accepts only version 2 and refuses any other). Version 2
 is not only an addition: a recovered step now processes its event and may answer `need` (rule 1
 of a step), and snapshots carry `back`, which an engine of version 1 rejects.
 
@@ -563,9 +573,12 @@ The `figram-engine` process reads requests as bytes:
 
 The embedded library (C, Go) takes one request per call, with the same limit and the same
 UTF-8 check; an empty request gets `parse_error` (the process skips an empty line without a
-reply). The library produces these three errors itself, before parsing, always with
-`id: null` (no `id` echo: the reply already belongs to the call); all other errors, including
-`parse_error` for invalid JSON, are produced as in the process, with the `id` echo. See
+reply). The library produces four errors itself, before parsing, always with `id: null` (no
+`id` echo: the reply already belongs to the call): an empty request and, in the `_n` functions,
+a request with a NUL byte (`parse_error`), invalid UTF-8 (`parse_error`) and a request over the
+limit (`too_large`). All other errors, including `parse_error` for invalid JSON, are produced as
+in the process, with the `id` echo; a request of only spaces, tabs and `\r`, which the process
+skips without a reply, gets `parse_error` ("unexpected end of input"). See
 [embedding.md](embedding.md).
 
 ### Test mode

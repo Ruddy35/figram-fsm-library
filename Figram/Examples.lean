@@ -238,6 +238,17 @@ def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten
 -- entering the bot with an event leaves no message; recovery keeps the place
 #guard finalAt "back_after_start_event" == "home"
 #guard finalAt "back_recovery_kept" == "catalog"
+-- pizza: help is in a section of its own, so "Back" returns to wherever help was opened
+#guard (pizza.step (pizza.step ⟨"done", [("order", "pay")], [], 6, some "pay"⟩ (.named "cmd:help")
+  (fun _ => false)).1 (.named "btn:back") (fun _ => false)).1.state == "done"
+#guard (pizza.step (pizza.step ⟨"menu", [("order", "cart")], [], 6, some "cart"⟩ (.named "cmd:help")
+  (fun _ => false)).1 (.named "btn:back") (fun _ => false)).1.state == "menu"
+-- recovery can leave the place in the user's own section, even the current message: "back"
+-- then does not return but repeats that message (docs/format.md, section 7, decision 10)
+#guard (features.step ⟨"gone", [], [], 3, some "item2"⟩ (.named "btn:prev") (fun _ => false)).1 ==
+  ⟨"item2", [("shop", "item2")], [], 4, some "item2"⟩
+#guard features.step ⟨"item2", [("shop", "item2")], [], 4, some "item2"⟩ (.named "btn:prev") (fun _ => false) ==
+  (⟨"item2", [("shop", "item2")], [], 5, some "item2"⟩, [.send "item2"])
 -- a self-loop restarts the timer with a new token
 #guard ((runGolden "self_loop_restarts_timer").map (·.2.getLast!)) ==
   some [.cancelTimer "idle", .startTimer "idle" 60000 3, .send "home"]

@@ -54,8 +54,10 @@ For every Telegram update (it carries an `update_id`):
    committed but not yet executed (outbox rows); do not count cancellations that are not yet
    executed as free. Or reserve the resource directly in the step's transaction. Lock several
    resources in one fixed order, after the user's lock.
-4. **Atomic write.** One transaction stores: the new snapshot, the mark "`update_id`
-   processed", and the reply's actions in an outbox. An outbox row stores the `seq` of the new
+4. **Atomic write.** One transaction stores: the new snapshot (the JSON the engine returned,
+   unchanged — a host that maps it to a record type of its own drops the fields it does not
+   know, such as `back` added in 0.2.0, and "back" then always takes its fallback), the mark
+   "`update_id` processed", and the reply's actions in an outbox. An outbox row stores the `seq` of the new
    snapshot, the action's position in the reply (execution follows them, section 2) and an
    idempotency key. The key must name the logical action uniquely and must never be given to
    another action — including after a rollback of the snapshot database (failover to an
@@ -238,7 +240,8 @@ distinguishes a failure of one call from a failure of the process.
   process that answered at least one request is replaced immediately after a failure.
 
 Every client failure is an `EngineError` (an exception raised by the host's own `guards`
-function propagates unchanged). `retryable = True` means a process failure or a
+function propagates unchanged; a misuse of the client API, such as `processes` below 1 or
+`guards` passed to `start` without `event`, raises `ValueError` at the call). `retryable = True` means a process failure or a
 timeout: the host repeats such requests under the rules of section 1 (an engine step is a pure
 function; repeating it is safe while the transaction is not committed), with a pause between
 attempts. Limit retries after timeouts (for example to three): the process is single-threaded,
