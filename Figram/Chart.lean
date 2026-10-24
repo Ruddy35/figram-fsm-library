@@ -1,7 +1,7 @@
 import Figram.Core
 
 /-!
-# The designer's level: the base and three simplifications
+# The designer's level: the base and four simplifications
 
 What the designer draws. The base is the same five building blocks as in the core:
 message, event, arrow with variants (conditions are written as text),
