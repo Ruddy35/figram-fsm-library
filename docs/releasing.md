@@ -65,13 +65,13 @@ version is final: fix problems with a new version.
 |---|---|
 | `figram-X.Y.Z-linux-x86_64.tar.gz` | `bin/figram` (CLI) and `bin/figram-engine` (line-delimited JSON engine), stripped; the documents `LICENSE`, `THIRD_PARTY_NOTICES.md`, `README.md`, `CHANGELOG.md`, `docs/*.md`; `schemas/`; `examples/` |
 | `libfigram-X.Y.Z-linux-x86_64.tar.gz` | `include/figram.h`; `lib/libfigram.a` and the Lean runtime archives it needs (`lib/*.a`); `lib/pkgconfig/figram.pc`; `share/figram/LDFLAGS`; the documents `LICENSE`, `THIRD_PARTY_NOTICES.md`, `README.md`, `CHANGELOG.md`, `docs/*.md` |
+| `SHA256SUMS` | SHA-256 of the two archives |
+| `SHA256SUMS.binaries` | SHA-256 of the stripped `figram` and `figram-engine` (the format `verify.sh` reads from `FIGRAM_SHA256SUMS`) |
 
 In the shipped Markdown files, a relative link to a file that is not in the same archive (a source
 file such as `ffi/figram.h`) is rewritten to the repository at the packaged commit
 (`https://github.com/OWNER/REPO/blob/COMMIT/PATH`), so the documentation in an archive stays
 navigable and matches the release.
-| `SHA256SUMS` | SHA-256 of the two archives |
-| `SHA256SUMS.binaries` | SHA-256 of the stripped `figram` and `figram-engine` (the format `verify.sh` reads from `FIGRAM_SHA256SUMS`) |
 
 Each archive unpacks into one directory named like the archive. The binaries need Linux x86_64 with
 glibc; `ldd bin/figram` lists the shared libraries they use.

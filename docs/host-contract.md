@@ -278,8 +278,9 @@ concurrently, with one shared `timeout`.
   otherwise the user lands on the initial message. The step can therefore answer `need`.
   Do not deliver the event again after `"recovered": true`: version 0.1.0 dropped the event, and
   this document then suggested delivering it again from the new snapshot; with 0.2.0 that
-  processes it twice — an arrow of the root section, such as `/start` with `save_ref`, runs its
-  actions twice under different keys.
+  processes it twice under a new `seq` — an arrow of the root section, such as `/start` with
+  `save_ref`, makes two transitions, and with the keys `user:seq:index` of section 1 its actions
+  run twice.
 * If a remembered place no longer exists, "resume" leads to the section's initial message. If
   the place to go back to (`back`) no longer exists, "back" leads to the arrow's `to`.
   Recovery keeps `back`, so after it `back` can name the message the user landed on: "back"

@@ -411,7 +411,9 @@ from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an obj
 "condition → true/false"; extra conditions do no harm, but every value must be a boolean.
 
 The protocol version in `hello` grows when requests are added: version 2 added `start` with
-`event` and `guards`. A host that sends them checks `"protocol": 2` (or higher) first.
+`event` and `guards`. A host that sends them checks `"protocol": 2` (or higher) first. Version 2
+is not only an addition: a recovered step now processes its event and may answer `need` (rule 1
+of a step), and snapshots carry `back`, which an engine of version 1 rejects.
 
 Actions for the host, in execution order:
 `{"send": message}`, `{"call": action}`,

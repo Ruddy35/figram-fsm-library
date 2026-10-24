@@ -245,7 +245,10 @@ threads, the system thread stack size).
 For Go programs use the module [`github.com/Ruddy35/ffl-go`](https://github.com/Ruddy35/ffl-go)
 (`go get github.com/Ruddy35/ffl-go@v0.1.0`): a typed API (`Load`, `Start`, `Step`, `Timer`,
 `Restart`, `Decide`, `Check`, `Fmt`) over this C ABI that bundles the static libraries of the
-release for linux/amd64, so no build of this repository is needed.
+release for linux/amd64, so no build of this repository is needed. A version of the module
+bundles one release: v0.1.0 speaks protocol 1, has no `start` with an event and rejects every
+reply whose snapshot carries `back` ("unknown field"), also when it is built with
+`-tags figram_system` against a newer library. Use the module version that matches the library.
 
 The reference wrapper used by the tests of this repository lives in
 [`clients/go`](../clients/go). It is a cgo wrapper (`Init`, `SetMaxRequest`, `Load`,

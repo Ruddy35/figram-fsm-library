@@ -72,7 +72,7 @@ inject() {  # inject FAULT — in the current directory (a copy)
   local P=tests/engine
   case $1 in
     none) ;;
-    golden-truncated)     # 10 of the 12 golden scenarios removed (timers, recovery…)
+    golden-truncated)     # 24 of the 26 golden scenarios removed (timers, recovery…)
       head -2 examples/golden.jsonl > examples/g.tmp && mv examples/g.tmp examples/golden.jsonl;;
     sums-tampered)        # the reference checksums are corrupted
       local f=${FIGRAM_SHA256SUMS:-prebuilt/SHA256SUMS}
@@ -84,14 +84,14 @@ inject() {  # inject FAULT — in the current directory (a copy)
       cp prebuilt/figram prebuilt/figram-engine;;
     selftest-shrunk)      # the harness self-test checks 1 kind of corruption instead of 13
       sub $P/harness_selftest.py '    for name, code in CORRUPT.items():' '    for name, code in list(CORRUPT.items())[:1]:';;
-    fixtures-shrunk)      # 2 edge snapshots instead of 24
+    fixtures-shrunk)      # 2 edge snapshots instead of 30
       sub $P/snapshot_fixtures.py 'engine, doc, schema_path = sys.argv[1:4]' 'FIXTURES = FIXTURES[:2]
 engine, doc, schema_path = sys.argv[1:4]';;
     random-docs-shrunk)   # 1 random document instead of 100
       sub $P/random_docs.py '    for seed in range(count):' '    for seed in range(min(count, 1)):';;
     json-fuzz-shrunk)     # 10 fuzzing cases instead of 30000
       sub $P/json_fuzz.py '    for i in range(n):' '    for i in range(min(n, 10)):';;
-    mutants-shrunk)       # 1 mutation per document instead of 56 and 51
+    mutants-shrunk)       # 1 mutation per document instead of 57 and 61
       sub $P/mutation.py '        if len(mutants) < MIN_MUTANTS:' '        mutants = mutants[:1]
         if len(mutants) < MIN_MUTANTS:';;
     custom-axiom)         # a listed theorem relies on an axiom of its own

@@ -53,8 +53,9 @@ command names and the exit statuses; the texts of messages are for humans and ma
   handles a named event as `start` with that event does, so it may ask `need`; before, the event
   was dropped and the user always landed on the initial message. A timer event still gives the
   plain start over (theorems `step_recover`, `step_recover_timer`; [docs/format.md](docs/format.md),
-  section 7, decision 8). A host that delivered the event again after `recovered`, as the 0.1.0
-  host contract suggested, must stop: the event would be processed twice
+  section 7, decision 8). A host that delivered the event again after `"recovered": true`, as the
+  0.1.0 host contract allowed, must stop: the second delivery processes the event once more
+  (with the idempotency keys `user:seq:index` its actions run twice)
   ([docs/host-contract.md](docs/host-contract.md), section 6).
 - The reference host `tests/engine/host_sim.py` starts a user without a snapshot with the
   update's event and the high-water mark, drops a timer event of a lost snapshot, and tests a
