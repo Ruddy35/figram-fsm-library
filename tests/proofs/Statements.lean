@@ -84,6 +84,10 @@ example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (b : FBranch)
 example : ∀ (m : Machine) (n : Nat) (e : EventId) (gs : List (String × Bool)) (env : HostEnv),
     missingStart m e gs = [] → (∀ g v, givenOf gs g = some v → env g = v) →
     m.startWith n (.named e) (envOf gs) = m.startWith n (.named e) env := @missingStart_nil
+-- a step from a snapshot whose message no longer exists enters the bot again with the event
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv), s.state ∉ m.states →
+    m.step s ev env = m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env :=
+  @Machine.step_recover
 
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse

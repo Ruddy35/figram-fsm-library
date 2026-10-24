@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 34 theorems are pinned: `./verify.sh` elaborates
+The statements of these 36 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -48,6 +48,8 @@ through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`
 | `Figram.Machine.startWith_unmatched` | Without a matching variant (or for a timer event), entering is the plain first entry. |
 | `Figram.Machine.enterBot_state_valid` | For a well-formed machine, entering ends on a state of the machine. |
 | `Figram.Machine.enterBot_guard_local` | Entering depends only on the conditions in `requiredGuards` of the initial message and the event. |
+| `Figram.Machine.step_recover` | A step from a snapshot whose message no longer exists is entering the bot with the event, after cancelling the snapshot's timers and keeping its remembered places (decision 8). |
+| `Figram.Machine.step_recover_timer` | For a timer event that recovery is the plain start over that `restart` also uses (with the places kept). |
 
 ### Document format
 
@@ -130,7 +132,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (159 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (164 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from

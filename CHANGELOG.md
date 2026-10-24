@@ -20,13 +20,19 @@ command names and the exit statuses; the texts of messages are for humans and ma
 - Proofs of it: the compiled machine equals the reference semantics (`startWith_correct`), it is
   a step from the initial message without entering it (`startWith_eq_step`), a variant into the
   initial message enters it once (`startWith_initial`), `need` is sufficient
-  (`missingStart_nil`) and the protocol executes it (`handle_start`); 34 theorem statements are
+  (`missingStart_nil`) and the protocol executes it (`handle_start`); 36 theorem statements are
   pinned ([docs/proofs.md](docs/proofs.md)).
 - Python client: `Engine.start(key, seq, event, guards)`.
 
 ### Changed
 
 - Protocol version 2: `hello` replies `"protocol": 2`. The Python client requires version 2.
+- Recovery processes the event: a step from a snapshot whose message was removed from the
+  document (`"recovered": true`) cancels the old timers, keeps the remembered places and then
+  handles a named event as `start` with that event does, so it may ask `need`; before, the event
+  was dropped and the user always landed on the initial message. A timer event still gives the
+  plain start over (theorems `step_recover`, `step_recover_timer`; [docs/format.md](docs/format.md),
+  section 7, decision 8).
 
 ## [0.1.0] - 2026-10-21
 

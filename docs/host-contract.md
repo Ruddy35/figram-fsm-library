@@ -266,14 +266,15 @@ concurrently, with one shared `timeout`.
 
 * Load the new document version into the engine as a whole; user snapshots are not migrated.
 * If the snapshot's message no longer exists, the engine starts the user over and replies
-  `"recovered": true` — worth logging. The event of that request is not processed: the user
-  lands on the bot's initial message, and the host decides whether to tell the user or to
-  deliver the event again from the new snapshot.
+  `"recovered": true` — worth logging. The old timers are cancelled and the event of that
+  request is processed as at the bot's initial message, as for a new user (section 1, step 3):
+  an arrow of the initial message or of a section around it leads straight to its target,
+  otherwise the user lands on the initial message. The step can therefore answer `need`.
 * If a remembered place no longer exists, "resume" leads to the section's initial message.
 * The engine rejects a snapshot with an unknown field or version: such a snapshot was written
   by a newer engine, so the engine must not be rolled back without rolling back the snapshots.
-* A message that became a section also counts as gone: the user starts at the bot's initial
-  message (`"recovered": true`), not at the section's. A remembered place moved to another
+* A message that became a section also counts as gone: the user starts over from the bot's
+  initial message (`"recovered": true`), not from the section's. A remembered place moved to another
   section counts as gone.
 * Snapshot timers are not migrated. If the user's current message has a timer that was renamed,
   removed or moved to another message in the new version, the firing `timer:<old name>` is

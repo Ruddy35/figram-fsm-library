@@ -227,11 +227,21 @@ def envOf (gs : List (String × Bool)) : HostEnv :=
 def givenOf (gs : List (String × Bool)) (n : String) : Option Bool :=
   (gs.find? (·.1 == n)).map (·.2)
 
+/-- The conditions `start` with event `e` needs but the request does not give: those of the
+initial message's arrow for `e` (`missingStart_nil` proves them sufficient). -/
+def missingStart (m : Machine) (e : EventId) (gs : List (String × Bool)) : List String :=
+  (dedup (m.neededGuards m.initial e (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
+
 /-- The conditions the step needs but the request does not give: only those that
 can affect the choice of the variant given the values already passed
-(`Machine.neededGuards`; sufficiency is `missing_nil_step`). -/
+(`Machine.neededGuards`; sufficiency is `missing_nil_step`). A step from a snapshot whose
+message no longer exists enters the bot again with the event, as `start` does. -/
 def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) : List String :=
-  if decide (s.state ∈ m.states) && s.accepts ev && ownsTimer (m.exitOf s.state) ev then
+  if s.state ∉ m.states then
+    match ev with
+    | .named e => missingStart m e gs
+    | .timer .. => []
+  else if s.accepts ev && ownsTimer (m.exitOf s.state) ev then
     (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
   else []
 
@@ -251,11 +261,6 @@ A host that starts an existing user over passes the user's persistent
 high-water mark of `seq` (docs/host-contract.md, section 4). -/
 def startAt (m : Machine) (n : Nat) : Snapshot × List Action :=
   realize { Snapshot.fresh with seq := n } m.initial m.initActions
-
-/-- The conditions `start` with event `e` needs but the request does not give: those of the
-initial message's arrow for `e` (`missingStart_nil` proves them sufficient). -/
-def missingStart (m : Machine) (e : EventId) (gs : List (String × Bool)) : List String :=
-  (dedup (m.neededGuards m.initial e (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
 
 /-- `start` with a first event after the request has been decoded. -/
 def startReply (m : Machine) (id : J) (n : Nat) (e : EventId) (gs : List (String × Bool)) : RE J :=

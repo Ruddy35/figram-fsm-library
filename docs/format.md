@@ -302,10 +302,13 @@ Decisions of the specification:
 7. **Timer tokens.** A timer firing is accepted only with the token of the current run and only
    on the message that owns the timer.
 8. **Recovery.** If the snapshot's message no longer exists in the document (or `at` names a
-   section), the user starts the bot again: the timers of the old place are cancelled and the
-   remembered places are kept, except those overwritten by the entry into the initial
-   message (decision 4). Recovery replaces the step: the event itself is not processed, and
-   recovery happens for any event, including a timer event with a stale token.
+   section), the user starts the bot again: the timers of the old place are cancelled first,
+   the remembered places are kept, and the event is processed as in decision 9, as if the user
+   stood on the initial message — a chosen variant leads straight to its target (the
+   remembered places are used by "resume"), otherwise the user enters the initial message
+   (except the places overwritten by its entry, decision 4). A timer event chooses no variant:
+   for it recovery is the plain start over. Recovery happens for any event, including a timer
+   event with a stale token.
 9. **First event.** A new user can enter the bot with the update that brought them (`start`
    with `event`, section 8): the event is matched as if the user stood on the initial message,
    by the arrows of the initial message and then of its sections up to the root (decision 1).
@@ -412,9 +415,10 @@ $ printf '%s\n' \
 Rules of a step:
 
 1. If the snapshot's message is not in the document, the user starts the bot again: all of the
-   user's timers are cancelled, then the first-entry actions follow; the reply carries
-   `"recovered": true`. Remembered places are kept. The event of the request is not processed
-   (decision 8 of section 7); `need` is never asked in this case.
+   user's timers are cancelled, then the event is processed as for `start` with that event
+   (decisions 8 and 9 of section 7, the rules of `start` with an event below), with the
+   remembered places kept and `seq` continued; `need` can be asked as for a step. The reply
+   carries `"recovered": true`.
 2. A timer event is ignored (the snapshot does not change, no actions) if its token differs
    from the current one or if the timer does not belong to the current message (this happens
    only with a snapshot written under a previous document version). Leaving a message cancels

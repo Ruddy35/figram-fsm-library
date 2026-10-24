@@ -28,7 +28,12 @@ def lcg (s : Nat) : Nat := (s * 6364136223846793005 + 1442695040888963407) % 2 ^
 /-- The names of the conditions needed for a step, by the reference semantics: the conditions
 of the candidates up to and including the first unconditional one (the choice never gets further). -/
 def guardNames (c : Chart) (s : Snapshot) (ev : Event) : List String :=
-  if s.state ∈ c.leafIds && s.accepts ev && ownsTimer (c.exitActs s.state) ev then
+  if s.state ∉ c.leafIds then
+    -- the step enters the bot again with the event, matched at the initial message
+    match ev with
+    | .named e => dedup ((untilUnguarded (·.guard) (c.cands (c.enter c.root) e)).filterMap (·.guard))
+    | .timer .. => []
+  else if s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     dedup ((untilUnguarded (·.guard) (c.cands s.state ev.key)).filterMap (·.guard))
   else []
 

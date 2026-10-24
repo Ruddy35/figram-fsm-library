@@ -38,7 +38,8 @@ that the behaviour is the same.
 6. An event without a matching arrow is ignored.
 7. A timer firing is accepted only with the token of the current run.
 8. If the snapshot's message is no longer in the chart, the user starts the bot
-   over; the timers of the old place are cancelled, remembered places are kept.
+   over; the timers of the old place are cancelled, remembered places are kept, and the
+   event is processed as in decision 9.
 9. A new user can enter the bot with a first event (`startWith`): the event is matched as
    if the user stood on the initial message, which is neither entered nor left; without a
    matching variant this is the plain first entry.
@@ -177,18 +178,6 @@ def fire (c : Chart) (s : Snapshot) (b : Branch) : Snapshot × List Action :=
 
 def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
 
-def recover (c : Chart) (s : Snapshot) : Snapshot × List Action :=
-  realize s (c.enter c.root) (s.timers.map (fun p => .cancelTimer p.1) ++ c.initActs)
-
-/-- **The reference semantics of the designer's chart.** -/
-def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  if s.state ∉ c.leafIds then c.recover s
-  else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
-  else
-    match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
-    | none => (s, [])
-    | some b => c.fire s b
-
 def start (c : Chart) : Snapshot × List Action := realize .fresh (c.enter c.root) c.initActs
 
 /-- The variant chosen for a named event at message `L` (bubbling as in `step`). A timer
@@ -212,6 +201,16 @@ def enterBot (c : Chart) (s : Snapshot) (pre : List Action) (ev : Event) (env : 
 /-- The user's first entry with a first event, the counter continued from `n`. -/
 def startWith (c : Chart) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   c.enterBot ⟨"", [], [], n⟩ [] ev env
+
+/-- **The reference semantics of the designer's chart.** A snapshot whose message is no longer
+in the chart enters the bot again with the event (decisions 8 and 9). -/
+def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+  if s.state ∉ c.leafIds then c.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
+  else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
+  else
+    match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
+    | none => (s, [])
+    | some b => c.fire s b
 
 end Chart
 end Figram

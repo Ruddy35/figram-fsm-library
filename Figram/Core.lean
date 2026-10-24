@@ -214,22 +214,10 @@ def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
   let T := m.resolve s b.target
   realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
 
-/-- The snapshot points to a message that no longer exists: start the bot over,
-cancelling the timers of the old place. Remembered places are kept. -/
+/-- Start the bot over from snapshot `s` without an event (`restart`): cancel its timers,
+keep its remembered places. -/
 def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
   realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions)
-
-/-- **A step of the machine.** -/
-def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  if s.state ∉ m.states then m.recover s
-  else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
-  else
-    match m.row s.state ev.key with
-    | none => (s, [])
-    | some r =>
-      match r.branches.find? (fun b => guardOK env b.guard) with
-      | none => (s, [])
-      | some b => m.fire s b
 
 /-- The user's first entry. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
@@ -260,13 +248,33 @@ def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env 
 def startWith (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   m.enterBot ⟨"", [], [], n⟩ [] ev env
 
-/-- The developer's conditions needed for a step from `st` on the event with key `e`:
-the conditions of the variants up to and including the first one without a condition.
-Later variants cannot be chosen, so their conditions do not affect the step (`step_guard_local`). -/
-def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
-  match m.row st e with
+/-- **A step of the machine.** If the snapshot's message no longer exists, the user enters the
+bot again with the event (`enterBot`), the timers of the old place cancelled and the remembered
+places kept. -/
+def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+  if s.state ∉ m.states then m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
+  else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
+  else
+    match m.row s.state ev.key with
+    | none => (s, [])
+    | some r =>
+      match r.branches.find? (fun b => guardOK env b.guard) with
+      | none => (s, [])
+      | some b => m.fire s b
+
+/-- The conditions of the arrow of message `n` for the event with key `e`: those of the
+variants up to and including the first one without a condition. Later variants cannot be
+chosen, so their conditions do not affect the choice (`choose_guard_local`). -/
+def rowGuards (m : Machine) (n : NodeId) (e : EventId) : List String :=
+  match m.row n e with
   | none => []
   | some r => (untilUnguarded (·.guard) r.branches).filterMap (·.guard)
+
+/-- The developer's conditions needed for a step from `st` on the event with key `e`: those of
+the arrow of `st` or, if `st` no longer exists, of the initial message (the step enters the bot
+again). They are all the step depends on (`step_guard_local`). -/
+def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
+  m.rowGuards (if st ∈ m.states then st else m.initial) e
 
 /-- The conditions whose values are needed to choose a variant when the values of
 some conditions are already known (`known`): the variants are scanned in order up to

@@ -47,7 +47,9 @@ open Lean Elab Command Meta in
       ``Figram.Machine.startWith_unmatched,
       ``Figram.Engine.handle_start,
       ``Figram.Engine.missingStart_nil,
-      ``Figram.Engine.startWith_snapOK
+      ``Figram.Engine.startWith_snapOK,
+      ``Figram.Machine.step_recover,
+      ``Figram.Machine.step_recover_timer
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -87,3 +89,5 @@ open Lean Elab Command Meta in
 #print axioms Figram.Engine.handle_start
 #print axioms Figram.Engine.missingStart_nil
 #print axioms Figram.Engine.startWith_snapOK
+#print axioms Figram.Machine.step_recover
+#print axioms Figram.Machine.step_recover_timer

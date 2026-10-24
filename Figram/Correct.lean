@@ -332,34 +332,6 @@ theorem fire_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) {e : EventId} {b 
   simp only [Machine.fire, fire, hT, hex, hen]
   rfl
 
-theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev : Event)
-    (env : HostEnv) : c.compileSpec.step s ev env = c.step s ev env := by
-  unfold Machine.step Chart.step
-  by_cases hs : s.state ∈ c.leafIds
-  · have hs' : s.state ∈ c.compileSpec.states := hs
-    -- The acceptance condition of an event reads the exit actions (`ownsTimer`):
-    -- they are the same for the compiled machine and the chart.
-    have hex : c.compileSpec.exitOf s.state = c.exitActs s.state := by
-      simp only [Machine.exitOf, compileSpec, lookup_map _ _ _ hs, Option.getD_some]
-    simp only [hs, hs', not_true_eq_false, ite_false, hex]
-    split
-    · rfl
-    · rw [c.spec_row hs]
-      by_cases hc : c.cands s.state ev.key = []
-      · simp [hc]
-      · simp only [hc, ite_false, compileRow, List.find?_map]
-        have hp : ((fun b : FBranch => guardOK env b.guard) ∘ c.toF) =
-            fun b => guardOK env b.guard := by funext b; rfl
-        rw [hp]
-        cases hb : (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
-        | none => rfl
-        | some b =>
-          simp only [Option.map_some]
-          exact c.fire_eq hwf s hs (List.mem_of_find?_eq_some hb)
-  · have hs' : s.state ∉ c.compileSpec.states := hs
-    simp only [hs, hs', not_false_eq_true, ite_true]
-    rfl
-
 /-- Entering the bot with an event: the compiled machine agrees with the chart. -/
 theorem enterBot_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) (pre : List Action)
     (ev : Event) (env : HostEnv) : c.compileSpec.enterBot s pre ev env = c.enterBot s pre ev env := by
@@ -395,6 +367,34 @@ theorem enterBot_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) (pre : List A
         simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hTmem, Option.getD_some]
       simp only [Option.map_some, hT, hen]
       rfl
+
+theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev : Event)
+    (env : HostEnv) : c.compileSpec.step s ev env = c.step s ev env := by
+  unfold Machine.step Chart.step
+  by_cases hs : s.state ∈ c.leafIds
+  · have hs' : s.state ∈ c.compileSpec.states := hs
+    -- The acceptance condition of an event reads the exit actions (`ownsTimer`):
+    -- they are the same for the compiled machine and the chart.
+    have hex : c.compileSpec.exitOf s.state = c.exitActs s.state := by
+      simp only [Machine.exitOf, compileSpec, lookup_map _ _ _ hs, Option.getD_some]
+    simp only [hs, hs', not_true_eq_false, ite_false, hex]
+    split
+    · rfl
+    · rw [c.spec_row hs]
+      by_cases hc : c.cands s.state ev.key = []
+      · simp [hc]
+      · simp only [hc, ite_false, compileRow, List.find?_map]
+        have hp : ((fun b : FBranch => guardOK env b.guard) ∘ c.toF) =
+            fun b => guardOK env b.guard := by funext b; rfl
+        rw [hp]
+        cases hb : (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
+        | none => rfl
+        | some b =>
+          simp only [Option.map_some]
+          exact c.fire_eq hwf s hs (List.mem_of_find?_eq_some hb)
+  · have hs' : s.state ∉ c.compileSpec.states := hs
+    simp only [hs, hs', not_false_eq_true, ite_true]
+    exact c.enterBot_eq hwf s _ ev env
 
 /-! ## The `wf` check without building the machine -/
 

@@ -31,7 +31,8 @@ Semantics (docs/format.md, section 7):
     initial message, which is neither entered nor left; no variant -> plain start;
   * timer event accepted only with the token of its current launch (7);
   * snapshot pointing at a non-existent message -> start over: cancel all
-    snapshot timers, keep remembered places, "recovered": true (8; format.md §8).
+    snapshot timers, keep remembered places, "recovered": true, and process a
+    named event as at the initial message, like start with an event (8, 9).
 """
 
 import json
@@ -441,9 +442,12 @@ class Bot:
 
     def need_sets(self, snap, ev, token, given):
         """(minimal, all) sets of guard names the step needs and that are not
-        in `given`.  Empty if the step is a recovery or an ignored timer."""
+        in `given`.  Empty for an ignored timer; for a recovery, those of the
+        initial message's arrow (decisions 8 and 9; none for a timer event)."""
         if not self.is_message(snap["at"]):
-            return set(), set()
+            if token is not None or self.opts.bug == "recover-drops-event":
+                return set(), set()
+            snap = {"at": self.landing(self.ROOT), "resume": {}, "timers": {}, "seq": snap["seq"]}
         if not self.accepts(snap, ev, token, set()):
             return set(), set()
         cands = self.candidates(snap["at"], ev)
@@ -471,8 +475,29 @@ class Bot:
             # strict protocol (docs/format.md, section 8): checked while decoding the request,
             # i.e. before recovery and before the token is compared
             raise RequestError(f"`token` must be an integer from 0 to {MAX_INT}")
-        if not self.is_message(snap["at"]):          # decision 8
-            s2, acts = self._over(snap, keep_resume=True)
+        if not self.is_message(snap["at"]):          # decisions 8 and 9
+            init = self.landing(self.ROOT)
+            chosen = None
+            if token is None and self.opts.bug != "recover-drops-event":
+                mn, al = self.need_sets(snap, ev, token, guards)
+                want = al if self.opts.need == "all" else mn
+                if want and check_need:
+                    return ("need", want)
+                for v in self.candidates(init, ev):
+                    if v.cond is None or guards.get(v.cond, False):
+                        chosen = v
+                        break
+            if chosen is None:
+                s2, acts = self._over(snap, keep_resume=True)
+                return ("ok", s2, acts, True)
+            s2 = copy_snap(snap)
+            tok = self._bump(s2)
+            acts = [{"cancel_timer": t} for t in s2["timers"]]
+            s2["timers"] = {}
+            tgt = self._resume_target(snap, chosen.to, hits) if chosen.resume else self.landing(chosen.to)
+            acts.extend({"call": c} for c in chosen.calls)
+            s2["at"] = tgt
+            self._enter(s2, acts, tgt, tok)
             return ("ok", s2, acts, True)
         if not self.accepts(snap, ev, token, hits):  # decision 7
             return ("ok", copy_snap(snap), [], False)

@@ -11,7 +11,9 @@ import Figram.Core
 4. Entering the bot with an event (`startWith`): `enterBot_state_valid`,
    `enterBot_guard_local`, `startWith_eq_step` (a step from the initial message without its
    entry), `startWith_initial` (a variant into the initial message enters it once) and
-   `startWith_unmatched` (no variant: the plain first entry).
+   `startWith_unmatched` (no variant: the plain first entry); `step_recover` (a step from a
+   snapshot whose message no longer exists enters the bot again with the event) and
+   `step_recover_timer` (a timer event there is the plain recovery).
 -/
 
 namespace Figram
@@ -139,31 +141,6 @@ theorem resolve_mem {m : Machine} (hwf : m.wf = true) (s : Snapshot) (t : Target
         · exact hr.1
       · exact hr.1
 
-theorem start_state_valid (m : Machine) (hwf : m.wf = true) : m.start.1.state ∈ m.states := by
-  simp only [start, realize_state]
-  exact (wf_parts hwf).1
-
-theorem step_state_valid (m : Machine) (hwf : m.wf = true)
-    (s : Snapshot) (ev : Event) (env : HostEnv) :
-    (m.step s ev env).1.state ∈ m.states := by
-  obtain ⟨hinit, hrows, _⟩ := wf_parts hwf
-  unfold step
-  split
-  · simp only [recover, realize_state]; exact hinit
-  · rename_i hs
-    have hs : s.state ∈ m.states := by simpa using hs
-    split
-    · exact hs
-    · split
-      · exact hs
-      · rename_i r hr
-        split
-        · exact hs
-        · rename_i b hb
-          simp only [fire, realize_state]
-          exact resolve_mem hwf s _ (hrows r (row_mem hr) b
-            (List.mem_of_find?_eq_some hb))
-
 theorem find?_congr {α} (l : List α) (p q : α → Bool)
     (h : ∀ x ∈ l, p x = q x) : l.find? p = l.find? q := by
   induction l with
@@ -172,40 +149,6 @@ theorem find?_congr {α} (l : List α) (p q : α → Bool)
     have hx := h x (by simp)
     have hxs : ∀ y ∈ xs, p y = q y := fun y hy => h y (by simp [hy])
     simp only [List.find?_cons, hx, ih hxs]
-
-/-- A firing of a timer the current message does not own (its exit does not cancel
-the timer) reads no arrows: the snapshot stays the same and there are no actions.
-So an arrow `timer:X` of a message without timer X is unreachable. -/
-theorem step_unowned_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
-    (hs : s.state ∈ m.states) (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
-    m.step s (.timer id tok) env = (s, []) := by
-  unfold step
-  simp only [hs, not_true_eq_false, ite_false, ownsTimer, h, Bool.and_false, Bool.not_false,
-    ite_true]
-
-theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)
-    (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :
-    m.step s ev env₁ = m.step s ev env₂ := by
-  unfold step
-  unfold requiredGuards at h
-  split
-  · rfl
-  · split
-    · rfl
-    · split
-      · rfl
-      · rename_i r hr
-        simp only [hr] at h
-        have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
-            = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
-          apply find?_congr
-          intro b hb
-          cases hg : b.guard with
-          | none => rfl
-          | some n =>
-            simp only [guardOK]
-            exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
-        rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
 
 /-! ## Entering the bot with an event -/
 
@@ -222,13 +165,13 @@ theorem choose_mem {m : Machine} {n : NodeId} {ev : Event} {env : HostEnv} {b : 
 
 /-- The choice depends only on the conditions in `requiredGuards`, as in `step_guard_local`. -/
 theorem choose_guard_local (m : Machine) (n : NodeId) (ev : Event) (env₁ env₂ : HostEnv)
-    (h : ∀ g ∈ m.requiredGuards n ev.key, env₁ g = env₂ g) :
+    (h : ∀ g ∈ m.rowGuards n ev.key, env₁ g = env₂ g) :
     m.choose n ev env₁ = m.choose n ev env₂ := by
   cases ev with
   | timer => rfl
   | named e =>
     simp only [choose]
-    unfold requiredGuards at h
+    unfold rowGuards at h
     split
     · rfl
     · rename_i r hr
@@ -248,7 +191,9 @@ theorem choose_guard_local (m : Machine) (n : NodeId) (ev : Event) (env₁ env�
 theorem enterBot_guard_local (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
     (env₁ env₂ : HostEnv) (h : ∀ g ∈ m.requiredGuards m.initial ev.key, env₁ g = env₂ g) :
     m.enterBot s pre ev env₁ = m.enterBot s pre ev env₂ := by
-  simp only [enterBot, m.choose_guard_local m.initial ev env₁ env₂ h]
+  have h' : ∀ g ∈ m.rowGuards m.initial ev.key, env₁ g = env₂ g := by
+    simpa [requiredGuards] using h
+  simp only [enterBot, m.choose_guard_local m.initial ev env₁ env₂ h']
 
 /-- **After entering the bot with an event the user is on an existing message.** -/
 theorem enterBot_state_valid (m : Machine) (hwf : m.wf = true) (s : Snapshot)
@@ -262,6 +207,71 @@ theorem enterBot_state_valid (m : Machine) (hwf : m.wf = true) (s : Snapshot)
     simp only [realize_state]
     exact resolve_mem hwf s _ (hrows r hr b hbr)
   · simp only [realize_state]; exact hinit
+
+theorem start_state_valid (m : Machine) (hwf : m.wf = true) : m.start.1.state ∈ m.states := by
+  simp only [start, realize_state]
+  exact (wf_parts hwf).1
+
+theorem step_state_valid (m : Machine) (hwf : m.wf = true)
+    (s : Snapshot) (ev : Event) (env : HostEnv) :
+    (m.step s ev env).1.state ∈ m.states := by
+  obtain ⟨hinit, hrows, _⟩ := wf_parts hwf
+  unfold step
+  split
+  · exact enterBot_state_valid m hwf s _ ev env
+  · rename_i hs
+    have hs : s.state ∈ m.states := by simpa using hs
+    split
+    · exact hs
+    · split
+      · exact hs
+      · rename_i r hr
+        split
+        · exact hs
+        · rename_i b hb
+          simp only [fire, realize_state]
+          exact resolve_mem hwf s _ (hrows r (row_mem hr) b
+            (List.mem_of_find?_eq_some hb))
+
+/-- A firing of a timer the current message does not own (its exit does not cancel
+the timer) reads no arrows: the snapshot stays the same and there are no actions.
+So an arrow `timer:X` of a message without timer X is unreachable. -/
+theorem step_unowned_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
+    (hs : s.state ∈ m.states) (h : (m.exitOf s.state).contains (.cancelTimer id) = false) :
+    m.step s (.timer id tok) env = (s, []) := by
+  unfold step
+  simp only [hs, not_true_eq_false, ite_false, ownsTimer, h, Bool.and_false, Bool.not_false,
+    ite_true]
+
+theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)
+    (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :
+    m.step s ev env₁ = m.step s ev env₂ := by
+  by_cases hn : s.state ∉ m.states
+  · have h' : ∀ g ∈ m.requiredGuards m.initial ev.key, env₁ g = env₂ g := by
+      simpa [requiredGuards, hn] using h
+    simp only [step, hn]
+    exact enterBot_guard_local m s _ ev env₁ env₂ h'
+  have hs : s.state ∈ m.states := by simpa using hn
+  unfold step
+  simp only [requiredGuards, hs, ite_true, rowGuards] at h
+  split
+  · contradiction
+  · split
+    · rfl
+    · split
+      · rfl
+      · rename_i r hr
+        simp only [hr] at h
+        have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
+            = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
+          apply find?_congr
+          intro b hb
+          cases hg : b.guard with
+          | none => rfl
+          | some n =>
+            simp only [guardOK]
+            exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
+        rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
 
 /-- `realize` appends the actions for the host to what it was given. -/
 theorem foldl_realize_out (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action) :
@@ -329,6 +339,19 @@ theorem startWith_initial (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (
     m.startWith n ev env =
       realize ⟨"", [], [], n⟩ m.initial (b.actions ++ m.initActions) := by
   simp only [startWith, enterBot, hb, hT, hinit, List.nil_append]
+
+/-- **A snapshot whose message no longer exists enters the bot again with the event**: the
+timers of the old place are cancelled first and the remembered places are kept. -/
+theorem step_recover (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv)
+    (hs : s.state ∉ m.states) :
+    m.step s ev env = m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env := by
+  simp only [step, hs, not_false_eq_true, ite_true]
+
+/-- A timer event does not move a recovered user: it is the plain recovery that `restart` also
+uses (with the remembered places kept). -/
+theorem step_recover_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
+    (hs : s.state ∉ m.states) : m.step s (.timer id tok) env = m.recover s := by
+  simp only [step, hs, not_false_eq_true, ite_true, enterBot, choose, recover]
 
 /-- Without a matching variant, entering with an event is the plain first entry. -/
 theorem startWith_unmatched (m : Machine) (n : Nat) (ev : Event) (env : HostEnv)

@@ -52,7 +52,7 @@ for m in drop-exit drop-remember resume-default drop-timer-start; do
   step 0 red-directed-$m python3 directed.py --engine "$ENGINE" --mutate $m --expect-red; done
 step 0 diff-random timeout 840 python3 diff_random.py --engine "$ENGINE" --docs 600 --steps 120 --seed 1 $D
 for b in no-exit resume-initial accept-any-token need-own-only first-variant-only calls-after-entry no-restart-self \
-    start-enters-initial; do
+    start-enters-initial recover-drops-event; do
   step 0 red-oracle-$b timeout 300 python3 diff_random.py --engine "$ENGINE" --docs 40 --steps 60 --seed 5 \
        --oracle-bug $b --expect-red $D; done
 # the CC01 timer semantics (designer reading of the oracle) == the baseline within ONE document version ...

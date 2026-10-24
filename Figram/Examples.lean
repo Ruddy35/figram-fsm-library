@@ -174,9 +174,15 @@ def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten
 #guard finalAt "stale_resume_value" == "catalog"
 -- a stale token is ignored, the current one fires
 #guard finalAt "timer_tokens" == "reminder"
--- a deleted current message: the bot starts over and the old timers are cancelled
-#guard finalAt "recover_deleted_current" == "home"
-#guard (allActs "recover_deleted_current").take 1 == [.cancelTimer "old_timer"]
+-- a deleted current message: the bot starts over, the old timers are cancelled first and the
+-- event is processed as at the initial message (`btn:go` with `is_vip`: straight to `vip`)
+#guard finalAt "recover_deleted_current" == "vip"
+#guard allActs "recover_deleted_current" == [.cancelTimer "old_timer", .send "vip"]
+-- recovery with an event without an arrow, or with a timer event: the plain start over
+#guard (features.step ⟨"gone", [("shop", "item")], [("t", 3)], 9⟩ (.named "btn:nothing") (fun _ => true)).2 ==
+  [.cancelTimer "t", .startTimer "idle" 60000 10, .send "home"]
+#guard (features.step ⟨"gone", [], [("t", 3)], 9⟩ (.timer "t" 3) (fun _ => true)).2 ==
+  [.cancelTimer "t", .startTimer "idle" 60000 10, .send "home"]
 -- action order: exit → the arrow's actions → entry
 #guard ((runGolden "buy_action_order").map (·.2.getLast!)) ==
   some [.cancelTimer "remind", .call "charge", .call "notify", .send "paid"]
