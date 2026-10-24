@@ -116,6 +116,12 @@ D_RECOVER = doc(sec("H", {
     "H": sec("i", {"i": msg(timers={"it": 4}), "j": msg()}),
     "o": msg(on={"btn:back": [go("H", resume=True)]})}))
 
+# Recovery with an event whose arrow (of the root section) resumes H: the kept remembered place is used.
+D_RECOVER_RES = doc(sec("H", {
+    "H": sec("i", {"i": msg(), "j": msg()}),
+    "o": msg()},
+    on={"btn:r": [go("H", resume=True)]}))
+
 # "Back to the previous section" (decision 10): sections CAT (with the subsection SUB) and HELP;
 # menu and x are directly in the root section.
 D_BACK = doc(sec("menu", {
@@ -251,6 +257,10 @@ case("recover_deleted_current", "conformance", D_RECOVER,
 case("recover_at_is_section", "conformance", D_RECOVER,
      [("timer:it", 2, {}, {"recovered": True, "at": "i"})], start=False,
      snapshot={"at": "H", "timers": {"it": 2}, "seq": 2}, spec="snapshot points at a section, not a message")
+case("recover_resume_uses_kept_place", "conformance", D_RECOVER_RES,
+     [("btn:r", None, {}, {"recovered": True, "at": "j", "seq": 5, "actions": [S("j")], "resume": {"H": "j"}})],
+     start=False, snapshot={"at": "gone", "resume": {"H": "j"}, "seq": 4},
+     spec="decisions 5, 8, 9: the event of a recovered step resumes H at the kept place")
 case("recover_ignores_token", "conformance", D_RECOVER,
      [("timer:zz", 77, {}, {"recovered": True, "at": "i"})], start=False,
      snapshot={"at": "gone", "seq": 2}, spec="recovery happens before token check")

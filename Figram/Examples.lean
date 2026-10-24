@@ -278,6 +278,16 @@ def textRoundTrip (d : Doc) : Bool :=
       && d.check.contains "`a` → `go`: unknown key `iff` (annotation keys start with `x-`)"
   | .error _ => false
 
+-- V3 holds for the fallback of a "back" variant as well: `resume` into a message and a missing
+-- `to` are rejected with the errors they get without `back` (the final well-formedness check
+-- alone accepts the first one)
+#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"on\": {\"btn:b\": [{\"to\": \"c\", \"resume\": true, \"back\": true}]}}, \"c\": {}}}}" >>= decode with
+  | .ok d => d.check.contains "arrow `a` → `c` with `resume`: not a section"
+  | .error _ => false
+#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"on\": {\"btn:b\": [{\"to\": \"nope\", \"back\": true}]}}, \"c\": {}}}}" >>= decode with
+  | .ok d => d.check.contains "arrow `a` → `nope`: target does not exist"
+  | .error _ => false
+
 -- a document with an unknown extension is rejected as a whole
 #guard match parse "{\"figram\": 1, \"requires\": [\"parallel\"], \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {}}}}" >>= decode with
   | .ok _ => false
