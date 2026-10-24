@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Directed, table-driven edge cases for the decisions of the specification 1-8
+"""Directed, table-driven edge cases for the decisions of the specification 1-10
 (docs/format.md, section 7) and the engine protocol (section 8).
 
 Every expectation below is written BY HAND from the prose spec, and is
@@ -54,13 +54,15 @@ def msg(on=None, timers=None, **ann):
     return o
 
 
-def go(to, cond=None, resume=False, do=None):
+def go(to, cond=None, resume=False, do=None, back=False):
     v = {}
     if cond:
         v["if"] = cond
     v["to"] = to
     if resume:
         v["resume"] = True
+    if back:
+        v["back"] = True
     if do:
         v["do"] = do
     return v
@@ -113,6 +115,18 @@ D_TIMERS = doc(sec("S", {
 D_RECOVER = doc(sec("H", {
     "H": sec("i", {"i": msg(timers={"it": 4}), "j": msg()}),
     "o": msg(on={"btn:back": [go("H", resume=True)]})}))
+
+# "Back to the previous section" (decision 10): sections CAT (with the subsection SUB) and HELP;
+# menu and x are directly in the root section.
+D_BACK = doc(sec("menu", {
+    "menu": msg(on={"btn:cat": [go("CAT")], "btn:help": [go("HELP")]}),
+    "CAT": sec("c1", {
+        "c1": msg(on={"btn:n": [go("c2")]}),
+        "c2": msg(on={"btn:sub": [go("SUB")]}),
+        "SUB": sec("s1", {"s1": msg(on={"btn:up": [go("c2")]})})}),
+    "HELP": sec("h", {"h": msg()}),
+    "x": msg()},
+    on={"btn:back": [go("menu", back=True)], "btn:backres": [go("CAT", resume=True, back=True)]}))
 
 # Document upgrade (docs/host-contract.md, section 6): v1 -- reminder "remind" on A; v2 -- the designer moved
 # that reminder to B.  Section S handles timer:remind for any message inside.
@@ -269,6 +283,37 @@ case("restart_clears_places", "conformance", D_RECOVER,
                                 "actions": [CANCEL("x"), START("it", 4, 8), S("i")]})], start=False,
      snapshot={"at": "o", "resume": {"H": "j"}, "timers": {"x": 1}, "seq": 7}, spec="format.md §8, restart")
 
+case("back_cross_records_inside_keeps", "conformance", D_BACK,
+     [("btn:cat", None, {}, {"at": "c1", "back": "menu"}),
+      ("btn:n", None, {}, {"at": "c2", "back": "menu"}),
+      ("btn:back", None, {}, {"at": "menu", "back": "c2", "actions": [S("menu")]}),
+      ("btn:back", None, {}, {"at": "c2", "back": "menu"})],
+     spec="decision 10: crossing remembers the message left, inside a section it stays, back twice returns")
+case("back_subsection", "conformance", D_BACK,
+     [("btn:cat", None, {}, {"at": "c1"}), ("btn:n", None, {}, {"at": "c2"}),
+      ("btn:sub", None, {}, {"at": "s1", "back": "c2"}),
+      ("btn:up", None, {}, {"at": "c2", "back": "s1"}),
+      ("btn:back", None, {}, {"at": "s1", "back": "c2"})],
+     spec="decision 10: entering and leaving a subsection are crossings")
+case("back_new_user_fallback", "conformance", D_BACK,
+     [("btn:back", None, {}, {"at": "menu", "back": None, "actions": [S("menu")]})],
+     spec="decision 10: no place yet -> `to`; menu to menu crosses nothing")
+case("back_root_messages_cross_nothing", "conformance", D_BACK,
+     [("btn:back", None, {}, {"at": "menu", "back": None})], start=False,
+     snapshot={"at": "x", "seq": 3}, spec="decision 10: x and menu are both directly in the root")
+case("back_place_gone", "conformance", D_BACK,
+     [("btn:back", None, {}, {"at": "menu", "back": "h"})], start=False,
+     snapshot={"at": "h", "back": "gone", "seq": 3}, spec="decision 10: a place no longer in the document -> `to`")
+case("back_resume_fallback", "conformance", D_BACK,
+     [("btn:backres", None, {}, {"at": "c2", "back": "h", "resume": {"CAT": "c2"}})], start=False,
+     snapshot={"at": "h", "resume": {"CAT": "c2"}, "seq": 3}, spec="decision 10 with resume: no place -> resume CAT")
+case("back_restart_clears", "conformance", D_BACK,
+     [("@restart", None, None, {"at": "menu", "back": None, "seq": 3})], start=False,
+     snapshot={"at": "c1", "back": "menu", "seq": 2}, spec="format.md §8, restart clears the place")
+case("back_recovery_keeps", "conformance", D_BACK,
+     [("btn:back", None, {}, {"at": "c2", "back": "c2", "recovered": True})], start=False,
+     snapshot={"at": "gone", "back": "c2", "seq": 4}, spec="decisions 8, 10: recovery keeps the place")
+
 # ------------- findings: designer-level expectations the baseline violates
 case("H2_upgrade_moved_timer_fires_on_other_message", "findings", D_UP_V2,
      [("btn:next", None, {}, {"at": "C", "timers_excludes": {"remind"}}),
@@ -331,6 +376,8 @@ def check(exp, before, rep, oracle_res, where):
         errs.append(f"{where}: timers={s['timers']}, expected {exp['timers']}")
     if "timers_excludes" in exp and set(s["timers"]) & exp["timers_excludes"]:
         errs.append(f"{where}: timers={s['timers']} still contain {exp['timers_excludes']}")
+    if "back" in exp and s.get("back") != exp["back"]:
+        errs.append(f"{where}: back={s.get('back')!r}, expected {exp['back']!r}")
     if "resume" in exp and s["resume"] != exp["resume"]:
         errs.append(f"{where}: resume={s['resume']}, expected {exp['resume']}")
     for k, v in exp.get("resume_has", {}).items():

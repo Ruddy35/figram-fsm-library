@@ -167,6 +167,8 @@ def map_out(rep, m):
     if "snapshot" in rep:
         s = rep["snapshot"]
         s2 = {"at": fn(s["at"])}
+        if "back" in s:
+            s2["back"] = fn(s["back"])
         if "resume" in s:
             s2["resume"] = {fn(k): fn(v) for k, v in s["resume"].items()}
         if "timers" in s:
