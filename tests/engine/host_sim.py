@@ -419,8 +419,10 @@ if __name__ == "__main__":
     ok2 = scenario_stale_timer(engine_path, doc)
     print("--- control: a host without duplicate filtering and without idempotency keys")
     # The control is probabilistic (a duplicate order happens only with a failure at the right
-    # place): up to three attempts, one red one is enough. The main scenario is not repeated.
-    for attempt in range(3):
+    # place; one attempt catches it about 85 % of the time): up to eight attempts, one red one is
+    # enough, so a correct test fails by chance about once in 10^7 runs. The main scenario is not
+    # repeated.
+    for attempt in range(8):
         control = scenario_orders(engine_path, doc, naive=True)
         if not control:
             break
