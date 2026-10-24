@@ -41,8 +41,11 @@ command names and the exit statuses; the texts of messages are for humans and ma
   "back" arrows; the Python and Go client validators accept it. An engine of version 0.1.0
   rejects such a snapshot as an unknown field, so roll the engine back only together with the
   snapshots.
-- The pizza example: "Back" on the help message is now `back` (to the section the user opened
-  help from, otherwise the menu) instead of "resume the order". The features example gained
+- The pizza example: "Back" on the help message is now `back` (to the message the user opened
+  help from, otherwise the menu) instead of "resume the order". Help is in a section of its own
+  (`help_section`): directly in the root section next to `menu` and `done`, opening it there
+  would cross no boundary, and "Back" would return to an old place in the order (the cart of a
+  cancelled order, the payment of a finished one). The features example gained
   "back" arrows (`btn:prev` on the root section, `btn:back` with `resume` on `paid`) and eight
   golden scenarios.
 - Recovery processes the event: a step from a snapshot whose message was removed from the

@@ -12,7 +12,8 @@ Shows all the shortcuts:
 
 * the section `bot` around everything — the global command `/start` from any screen;
 * the section `order` — the "Cancel" button once for the whole order;
-* `/help` from anywhere and "Back" to the section the user came from, otherwise to the menu;
+* `/help` from anywhere and "Back" to the message the user opened help from, otherwise to the menu
+  (help is in a section of its own, so opening it always crosses a section boundary);
 * "Back" from the reminder to where the user left off in the order;
 * a reminder on the cart;
 * conditions as text: "the cart is not empty", "the address is in the delivery zone".
@@ -50,7 +51,7 @@ def pizzaDoc : Doc where
     ("address", "Delivery address")]
   bot := .sec "menu" [
       ("menu", msg [("btn:order", [v "order"])]),
-      ("help", msg [("btn:back", [goBack "menu"])]),
+      ("help_section", .sec "help" [("help", msg [("btn:back", [goBack "menu"])])] [] []),
       ("done", msg []),
       ("reminder", msg [("btn:back", [resume "order"])]),
       ("order", .sec "catalog" [
