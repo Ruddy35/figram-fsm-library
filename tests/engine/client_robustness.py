@@ -490,7 +490,7 @@ def out(o):
     sys.stdout.write(json.dumps(o, ensure_ascii=False) + "\\n"); sys.stdout.flush()
 def raw(b):
     sys.stdout.buffer.write(b + b"\\n"); sys.stdout.buffer.flush()
-def hello(rid, protocol=1, **extra):
+def hello(rid, protocol=2, **extra):
     out({{"id": rid, "protocol": protocol, "states": 1, **extra}})
 def result(rid, at="a"):
     out({{"id": rid, "snapshot": {{"at": at}}, "actions": []}})
@@ -706,7 +706,8 @@ def r10_options():
            f"R10 wait_ready=False: constructor {created:.2f} s, calls during loading — start {r}, "
            f"step {got.get('step')} after {took:.1f} s (timeout 0.5 s and the step deadline count from readiness)")
 
-    for what, hello_args, expect_ok in (("protocol 2", "protocol=2", False),
+    for what, hello_args, expect_ok in (("protocol 1", "protocol=1", False),
+                                        ("protocol 3", "protocol=3", False),
                                         ("field mutant (test engine)", "mutant='x'", True)):
         fake = pyfake("for line in sys.stdin:\n    r = json.loads(line)\n"
                       f"    if r.get('op') == 'hello':\n        hello(r['id'], {hello_args})\n"
@@ -717,7 +718,7 @@ def r10_options():
             eng.close()
         except EngineError as e:
             r = f"EngineError: {e}"
-        good = r == "ok" if expect_ok else (r.startswith("EngineError") and "engine protocol 2" in r)
+        good = r == "ok" if expect_ok else (r.startswith("EngineError") and f"engine {what}" in r)
         report(good, f"R10 hello with {what}: {r[:100]}")
 
 
