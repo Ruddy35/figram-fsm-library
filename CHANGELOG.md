@@ -43,7 +43,8 @@ command names and the exit statuses; the texts of messages are for humans and ma
   snapshots.
 - The pizza example: "Back" on the help message is now `back` (to the section the user opened
   help from, otherwise the menu) instead of "resume the order". The features example gained
-  "back" arrows (`btn:prev`) and eight golden scenarios.
+  "back" arrows (`btn:prev` on the root section, `btn:back` with `resume` on `paid`) and eight
+  golden scenarios.
 - Recovery processes the event: a step from a snapshot whose message was removed from the
   document (`"recovered": true`) cancels the old timers, keeps the remembered places and then
   handles a named event as `start` with that event does, so it may ask `need`; before, the event

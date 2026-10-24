@@ -64,7 +64,7 @@
       "vip": {},
       "paid": {
         "on": {
-          "btn:prev": [
+          "btn:back": [
             {
               "to": "shop",
               "resume": true,

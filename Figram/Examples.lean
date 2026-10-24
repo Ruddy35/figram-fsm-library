@@ -90,7 +90,7 @@ def featuresDoc : Doc where
         ] [("idle", 60000)] []),
       ("help", msg [("btn:back", [resume "shop"])]),
       ("vip", msg []),
-      ("paid", msg [("btn:prev", [goBackResume "shop"])]),
+      ("paid", msg [("btn:back", [goBackResume "shop"])]),
       ("shop", .sec "catalog" [
           ("catalog", msg [
               ("btn:next", [v "sub"]),
@@ -164,7 +164,7 @@ def golden : List (String × Doc × Option Snapshot × List In) := [
   ("back_fallback", featuresDoc, none, [.ev "btn:prev"]),
   ("back_stale_place", featuresDoc, some ⟨"help", [], [], 7, some "deleted_message"⟩, [.ev "btn:prev"]),
   ("back_resume_fallback", featuresDoc, some ⟨"paid", [("shop", "item")], [], 4, none⟩,
-    [.ev "btn:prev"]),
+    [.ev "btn:back"]),
   ("back_after_start_event", featuresDoc, none, [.start "btn:go" [("is_vip", false)], .ev "btn:prev"]),
   ("back_recovery_kept", featuresDoc, some ⟨"deleted_message", [], [], 3, some "catalog"⟩,
     [.ev "btn:prev"])

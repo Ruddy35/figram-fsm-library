@@ -195,7 +195,7 @@ CASES = [
      {"snapshot": {"at": "home", "back": "gone", "timers": {"idle": 5}, "seq": 5},
       "actions": [{**IDLE, "token": 5}, {"send": "home"}]}),
     ("back with `resume`: without a place, resume the section",
-     step({"at": "paid", "resume": {"shop": "item2"}, "seq": 4}, "btn:prev"),
+     step({"at": "paid", "resume": {"shop": "item2"}, "seq": 4}, "btn:back"),
      {"snapshot": {"at": "item2", "back": "paid", "resume": {"shop": "item2"}, "seq": 5}, "actions": [{"send": "item2"}]}),
     ("back: start with an event leaves no message, so there is no place",
      {"op": "start", "event": "btn:go", "guards": {"is_vip": False}},
