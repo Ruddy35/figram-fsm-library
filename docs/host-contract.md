@@ -41,7 +41,9 @@ For every Telegram update (it carries an `update_id`):
    ([format.md](format.md), section 7, decision 9), so one reply both starts the user and
    processes the update, and the document decides what `/start` does. The engine never sees
    the parameter `ref123`: a condition (`ref_valid`) and an action (`save_ref`) of the host read
-   it from the update.
+   it from the update. A timer event for a user without a snapshot is not such an update: a new
+   user has no timers, the event belongs to a lost or deleted snapshot, and `start` rejects it
+   (`bad_request`). Drop it and record its mark as processed; do not start the user with it.
 
    **Shared scarce resources.** The per-user barrier does not protect data shared between
    users: the last seat, the remaining stock, a limit. Two users checking `slot_free` at the
@@ -194,9 +196,12 @@ early.
 If the snapshot is lost or deleted, keep a separate "high-water mark" — the largest `seq` ever
 issued to the user (one number, not personal data; it can be rebuilt as the maximum `seq` of
 the user's outbox rows) — and, if the snapshot database can roll back, keep it outside that
-database, otherwise the mark rolls back too. Start the user with `start` and this mark (with
-the event of the update, section 1, step 3), or with `restart` and a placeholder snapshot whose
-`at` names no message:
+database, otherwise the mark rolls back too. Raise the mark no later than the commit of the
+snapshot that issues the new `seq` (in the same transaction, or before it when the mark is kept
+elsewhere: a mark that is too high is harmless, one that lags reissues `seq` values), and rebuild
+it from the outbox only if executed outbox rows are kept. Start the user with `start` and this
+mark (with the event of the update, section 1, step 3), or with `restart` and a placeholder
+snapshot whose `at` names no message:
 
 ```sh doctest
 $ printf '%s\n' '{"id":1,"op":"start","seq":41}' '{"id":2,"op":"restart","snapshot":{"at":"-","seq":41}}' \
@@ -271,8 +276,14 @@ concurrently, with one shared `timeout`.
   request is processed as at the bot's initial message, as for a new user (section 1, step 3):
   an arrow of the initial message or of a section around it leads straight to its target,
   otherwise the user lands on the initial message. The step can therefore answer `need`.
+  Do not deliver the event again after `"recovered": true`: version 0.1.0 dropped the event, and
+  this document then suggested delivering it again from the new snapshot; with 0.2.0 that
+  processes it twice — an arrow of the root section, such as `/start` with `save_ref`, runs its
+  actions twice under different keys.
 * If a remembered place no longer exists, "resume" leads to the section's initial message. If
   the place to go back to (`back`) no longer exists, "back" leads to the arrow's `to`.
+  Recovery keeps `back`, so after it `back` can name the message the user landed on: "back"
+  there sends the same message again until the user leaves it another way.
 * The engine rejects a snapshot with an unknown field or version: such a snapshot was written
   by a newer engine, so the engine must not be rolled back without rolling back the snapshots.
 * A message that became a section also counts as gone: the user starts over from the bot's
@@ -304,10 +315,16 @@ zone. The test requires that
 every user ends where their data leads (`done` with exactly one order, or `pickup` without
 one), that no update is lost (the final snapshot equals a sequential replay of the processed
 events with the same conditions) and that no action stays unexecuted. A stale timer event after
-a restart is ignored. `./verify.sh` runs it.
+a restart is ignored. A second scenario loses the snapshot row of 12 users (after an order, or
+at the cart while the reminder runs): the old timer event that arrives without a snapshot is
+dropped, and the user comes back with a button of an old message, started with `start`, the
+update's event and the high-water mark (section 1, step 3; section 4), and orders again with
+every action executed. `./verify.sh` runs it.
 
-Two controls show that the test detects violations: a host without duplicate filtering and
-without idempotency keys (run by the test itself) produces duplicate orders, and a host without
+Controls show that the test detects violations: a host without duplicate filtering and
+without idempotency keys (run by the test itself) produces duplicate orders; a host that starts a
+user without a snapshot without the update's event, or without the high-water mark (both run by
+the test itself), loses the button or the actions of the second order; and a host without
 the barrier (`host_sim.py ENGINE DOC --no-barrier`, conditions read before the previous step's
 actions are executed; not part of `./verify.sh`) takes wrong branches.
 
