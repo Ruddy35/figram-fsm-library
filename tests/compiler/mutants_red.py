@@ -79,7 +79,7 @@ def oracle_ignores(text, L, e):
     current token: the row (L, timer:X) is never taken (cross-check of owned_ok)."""
     from oracle import Bot, Options
     b = Bot(text, Options(timer_accept="owned", exit_cancels="snapshot"))
-    snap = {"at": L, "resume": {}, "timers": {e[6:]: 5}, "seq": 5}
+    snap = {"at": L, "resume": {}, "timers": {e[6:]: 5}, "seq": 5, "back": None}
     r = b.step(snap, e, 5, {}, check_need=False)
     return r[0] == "ok" and r[1] == snap and r[2] == [] and not r[3]
 
