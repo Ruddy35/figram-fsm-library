@@ -203,17 +203,25 @@ snapshot that issues the new `seq` (in the same transaction, or before it when t
 elsewhere: a mark that is too high is harmless, one that lags reissues `seq` values), and rebuild
 it from the outbox only if executed outbox rows are kept. Start the user with `start` and this
 mark (with the event of the update, section 1, step 3), or with `restart` and a placeholder
-snapshot whose `at` names no message:
+snapshot whose `at` names no message. `restart` takes no event: a user who comes back with an
+update (a button of an old message) loses it there and lands on the initial message; `step`
+with the placeholder and the update's event processes it as `start` with the event does (it is
+a recovery, section 6, and the reply carries `"recovered": true`):
 
 ```sh doctest
 $ printf '%s\n' '{"id":1,"op":"start","seq":41}' '{"id":2,"op":"restart","snapshot":{"at":"-","seq":41}}' \
+>   '{"id":3,"op":"start","seq":41,"event":"btn:order"}' \
+>   '{"id":4,"op":"step","snapshot":{"at":"-","seq":41},"event":"btn:order"}' \
 >   | figram-engine examples/pizza.bot.json
 {"id":1,"snapshot":{"at":"menu","seq":42},"actions":[{"send":"menu"}]}
 {"id":2,"snapshot":{"at":"menu","seq":42},"actions":[{"send":"menu"}]}
+{"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":42},"actions":[{"send":"catalog"}]}
+{"id":4,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":42},"actions":[{"send":"catalog"}],"recovered":true}
 ```
 
 Here 41 is the high-water mark: the engine starts the user at the initial message, and the
-first transition gets `seq` 42. Neither `start` nor the placeholder knows the old timers: in the
+first transition gets `seq` 42; with the update's event `btn:order` (an arrow of the initial
+message) the user goes straight to the catalog. Neither `start` nor the placeholder knows the old timers: in the
 same operation remove from the scheduler all of the user's events with a token not greater than
 the mark (new timers get greater tokens, so the order of these operations does not matter).
 
