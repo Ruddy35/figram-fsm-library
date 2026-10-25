@@ -84,7 +84,7 @@ for Linux x86_64:
   executables.
 
 ```sh
-VERSION=0.1.0
+VERSION=0.2.0
 BASE=https://github.com/Ruddy35/figram-fsm-library/releases/download/v$VERSION
 curl -LO "$BASE/figram-$VERSION-linux-x86_64.tar.gz" -LO "$BASE/SHA256SUMS"
 sha256sum --ignore-missing -c SHA256SUMS
