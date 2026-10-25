@@ -75,6 +75,11 @@ CASES = [
     ("an extra condition does no harm",
      step(H, "btn:go", guards={"is_vip": True, "other": False}),
      {"snapshot": {"at": "vip", "seq": 1}, "actions": [{"cancel_timer": "idle"}, {"send": "vip"}]}),
+    ("leaving a message cancels its timers, then the snapshot's other timers (leftovers of an "
+     "older document version; format.md section 7, decision 2)",
+     step({"at": "home", "timers": {"old": 2, "idle": 1}, "seq": 2}, "btn:go", guards={"is_vip": True}),
+     {"snapshot": {"at": "vip", "seq": 3},
+      "actions": [{"cancel_timer": "idle"}, {"cancel_timer": "old"}, {"send": "vip"}]}),
     ("a non-boolean condition value — bad_request",
      step(H, "btn:go", guards={"is_vip": 1}), err("bad_request")),
     ("'guards' is not an object — bad_request",

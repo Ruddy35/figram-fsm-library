@@ -65,13 +65,16 @@ Steps, in order:
     requests, runs one thread, and aborts with Lean's stack overflow message on a tiny stack.
 14. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 30
     snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones;
-    the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 136 hand-written cases:
+    the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 137 hand-written cases:
     error codes, strict fields, tokens and `seq` by value, `start` with `seq`, "back", `restart`, `id`
     echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating), and
-    `tests/engine/snapshot_scaling.py`: leaving a message, recovery and `restart` with 20 000
-    and 80 000 snapshot timers, and entering a message among as many remembered places, take
-    time linear in the snapshot size (at most 8 times longer for 4 times the entries, at most
-    3 s; the quadratic engine before 0.2.0 took 42 s).
+    `tests/engine/snapshot_scaling.py`: leaving a message, recovery (with and without a variant
+    for the event at the initial message, and with a late timer event) and `restart` with
+    20 000 and 80 000 snapshot timers, and entering a message among as many remembered places,
+    take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
+    most 3 s; the quadratic engine before 0.2.0 took 42 s). The time is the CPU time of an
+    engine process that answers only that request, so load on the machine does not turn the
+    check red.
 15. **JSON text layer** — `tests/engine/json_fuzz.py`: 30 000 random inputs, `figram json`
     against Python `json` with the format's restrictions (same accept/reject decision, same
     value, printing reads back). A deliberately lax parser must be detected (sensitivity

@@ -238,9 +238,9 @@ expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mis
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 136 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 137 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
 logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
-expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 4 and g[1] == 0' \
+expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 6 and g[1] == 0' \
   "time linear in the snapshot size"
 
 step "JSON text layer: differential against Python json"
