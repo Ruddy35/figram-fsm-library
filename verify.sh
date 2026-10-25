@@ -231,7 +231,7 @@ expect "$LOGS/engine_memory.log" '^engine memory: address space (\d+) MiB, in us
   'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
 expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2$' 'True' "engine under ulimit -v 32 MiB"
 
-step "Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello"
+step "Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello; time linear in the snapshot size"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
   'g[0] >= 30 and g[0] == g[1] and g[2] == 0' "snapshots"
@@ -239,6 +239,9 @@ expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
   'g[0] >= 136 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
+expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 4 and g[1] == 0' \
+  "time linear in the snapshot size"
 
 step "JSON text layer: differential against Python json"
 logged json_fuzz python3 $P/json_fuzz.py $F 30000 1

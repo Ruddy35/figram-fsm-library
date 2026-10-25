@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 41 theorems are pinned: `./verify.sh` elaborates
+The statements of these 46 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -66,6 +66,21 @@ machine is `Machine.zoneOf`.
 | `Figram.Chart.compile_zoneOf` | In the compiled machine the section of a message is the section that directly contains it in the chart, so the machine compares the designer's sections. |
 
 Together with `compile_correct` these hold for the chart's reference semantics as well.
+
+### Linear-time execution
+
+`realize` is the specification of executing actions; it takes time quadratic in the number of
+actions. The machine clears the snapshot's timers at once where all of them are cancelled
+(`realizeClear`), so leaving a message, recovery and `restart` take time linear in the size of
+the snapshot. These theorems show that the machine still computes exactly `realize`:
+
+| Theorem | Meaning |
+|---|---|
+| `Figram.Machine.realize_clear` | If `pre` only cancels timers and cancels every timer of the snapshot, `realize` of `pre` and then `acts` is `realizeClear`: the timers cleared at once, `pre` in front of the reply. |
+| `Figram.Machine.fire_eq_realize` | A move of the machine is `realize` of the exit actions, the cancels of the snapshot's other timers, the variant's actions and the entry actions. |
+| `Figram.Machine.enterBot_eq_realize_some` | Entering the bot with a chosen variant is `realize` of `pre`, the variant's actions and the entry of its target. |
+| `Figram.Machine.enterBot_eq_realize_none` | Entering the bot without a chosen variant is `realize` of `pre` and the first-entry actions. |
+| `Figram.Machine.recover_eq_realize` | `restart` is `realize` of cancelling all the snapshot's timers and the first-entry actions. |
 
 ### Document format
 
@@ -150,7 +165,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (184 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (194 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from

@@ -352,14 +352,16 @@ theorem fire_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) {e : EventId} {b 
     simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hTmem, Option.getD_some]
   have hmb : c.compileSpec.markBack s (c.resolve s b.target) = c.markBack s (c.resolve s b.target) := by
     simp only [Machine.markBack, markBack, c.spec_zoneOf hs, c.spec_zoneOf hTmem]
-  simp only [Machine.fire, fire, hT, hex, hen, hmb]
+  rw [Machine.fire_eq_realize]
+  simp only [fire, hT, hex, hen, hmb]
   rfl
 
 /-- Entering the bot with an event: the compiled machine agrees with the chart. -/
 theorem enterBot_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) (pre : List Action)
     (ev : Event) (env : HostEnv) : c.compileSpec.enterBot s pre ev env = c.enterBot s pre ev env := by
   have hi : c.enter c.root ∈ c.leafIds := (Machine.wf_parts hwf).1
-  unfold Machine.enterBot Chart.enterBot
+  rw [Machine.enterBot_eq_realize]
+  unfold Chart.enterBot
   cases ev with
   | timer => rfl
   | named e =>

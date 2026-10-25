@@ -36,12 +36,12 @@ Steps, in order:
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
    the variable the step is skipped (not a waiver).
-4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 41 pinned theorems
+4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 46 pinned theorems
    must equal `tests/proofs/THEOREMS.expected` and depend only on `propext`, `Quot.sound` and
    `Classical.choice`; the Lean sources must not contain `axiom`, `sorry`, `admit`,
    `native_decide`, `implemented_by`, `@[extern`, `skipKernelTC`, `ofReduceBool`,
    `ofReduceNat` ([proofs.md](proofs.md)).
-5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 184 source theorems and
+5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 194 source theorems and
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
 6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (26 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
@@ -67,7 +67,11 @@ Steps, in order:
     snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones;
     the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 136 hand-written cases:
     error codes, strict fields, tokens and `seq` by value, `start` with `seq`, "back", `restart`, `id`
-    echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating).
+    echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating), and
+    `tests/engine/snapshot_scaling.py`: leaving a message, recovery and `restart` with 20 000
+    and 80 000 snapshot timers, and entering a message among as many remembered places, take
+    time linear in the snapshot size (at most 8 times longer for 4 times the entries, at most
+    3 s; the quadratic engine before 0.2.0 took 42 s).
 15. **JSON text layer** — `tests/engine/json_fuzz.py`: 30 000 random inputs, `figram json`
     against Python `json` with the format's restrictions (same accept/reject decision, same
     value, printing reads back). A deliberately lax parser must be detected (sensitivity

@@ -207,7 +207,7 @@ theorem table_ok {t : List (NodeId × List Action)} (ht : t.all (fun e => e.2.al
 
 theorem enterBot_seq (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
     (m.enterBot s pre ev env).1.seq = s.seq + 1 := by
-  unfold Machine.enterBot
+  rw [Machine.enterBot_eq_realize]
   split <;> exact realize_seq _ _ _
 
 /-- Entering the bot keeps the places and timers admissible and the state non-empty. -/
@@ -219,7 +219,7 @@ theorem enterBot_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true
   simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
   obtain ⟨⟨⟨⟨hstates, hinit⟩, hrows⟩, hentry⟩, _⟩ := hn
   revert hvalid
-  simp only [Machine.enterBot]
+  rw [Machine.enterBot_eq_realize]
   split
   · rename_i b hb
     intro hvalid
@@ -270,7 +270,7 @@ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
         · intro _ _ _; exact hs
         · rename_i b hb
           intro h1 h2 h3
-          simp only [Machine.fire] at h1 h2 h3 ⊢
+          simp only [Machine.fire_eq_realize] at h1 h2 h3 ⊢
           rw [realize_seq] at h1
           rw [realize_state] at h3
           refine realize_snapOK _ _ _ (markBack_snapOK m s _ hs) h3 ?_ h1

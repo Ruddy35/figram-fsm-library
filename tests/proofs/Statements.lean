@@ -107,6 +107,18 @@ example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env
 example : ∀ (c : Chart) {L : NodeId}, L ∈ c.leafIds → c.compile.zoneOf L = c.parent L :=
   @Chart.compile_zoneOf
 
+-- linear-time execution: clearing the snapshot's timers at once computes exactly `realize`
+example : ∀ (s : Snapshot) (T : NodeId) (pre acts : List Action),
+    (∀ a ∈ pre, a.isCancel = true) → (∀ p ∈ s.timers, Action.cancelTimer p.1 ∈ pre) →
+    realize s T (pre ++ acts) = realizeClear s T pre acts := @Machine.realize_clear
+example : ∀ (m : Machine) (s : Snapshot) (b : FBranch), m.fire s b =
+    realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+      (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+        m.entryOf (m.resolve s b.target)) := @Machine.fire_eq_realize
+example : ∀ (m : Machine) (s : Snapshot), m.recover s =
+    realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions) :=
+  @Machine.recover_eq_realize
+
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse
 #print Figram.Format.parseValue

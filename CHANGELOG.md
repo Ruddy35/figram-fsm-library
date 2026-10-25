@@ -31,8 +31,19 @@ command names and the exit statuses; the texts of messages are for humans and ma
 - Proofs of it: the place after a move (`fire_back`), "back" and back again (`fire_back_swap`),
   the place is always a message the user left (`step_back`), entering the bot keeps it
   (`enterBot_back`), the compiled machine compares the chart's sections (`compile_zoneOf`), and
-  `compile_correct` covers it; 41 theorem statements are pinned ([docs/proofs.md](docs/proofs.md)).
+  `compile_correct` covers it; 46 theorem statements are pinned ([docs/proofs.md](docs/proofs.md)).
 - Python client: `Engine.start(key, seq, event, guards)`.
+
+### Fixed
+
+- Leaving a message, recovery and `restart` took time quadratic in the number of the snapshot's
+  timers: a snapshot of 1 MiB with about 96 000 timers kept the engine busy for about a minute
+  (the engine never writes such a snapshot; a corrupted or forged one is enough). The machine now
+  clears the snapshot's timers at once, linear in the size of the snapshot (80 000 timers:
+  0.2 s instead of 42 s), and still computes exactly the specification `realize`
+  (`realize_clear`, `fire_eq_realize`, `enterBot_eq_realize_some`, `enterBot_eq_realize_none`,
+  `recover_eq_realize`;
+  [docs/proofs.md](docs/proofs.md)). `tests/engine/snapshot_scaling.py` checks the growth.
 
 ### Changed
 

@@ -24,7 +24,7 @@ per user, evaluates conditions when the engine asks for them, executes the actio
 schedules timers ([docs/host-contract.md](docs/host-contract.md)).
 
 **What is proved.** The reference semantics of the designer's chart, the compiler to a flat
-machine and the document format are specified in Lean 4; 41 pinned theorems state, among other
+machine and the document format are specified in Lean 4; 46 pinned theorems state, among other
 things, that the compiled machine takes exactly the steps of the chart for every snapshot, event
 and condition values, that a checked document is encoded and decoded back unchanged, and that a
 `step` request runs exactly the proved step and returns a snapshot the engine can read back. All

@@ -140,6 +140,9 @@ expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
   'g[0] >= 136 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
+expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 4 and g[1] == 0' \
+  "time linear in the snapshot size"
 NFUZZ=$([ $QUICK = 1 ] && echo 5000 || echo 30000)
 logged json_fuzz python3 $P/json_fuzz.py $F $NFUZZ 1
 expect "$LOGS/json_fuzz.log" '^cases (\d+): accepted by both (\d+), rejected by both (\d+), mismatches (\d+), outputs not read back (\d+) of (\d+)$' \

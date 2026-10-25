@@ -171,7 +171,7 @@ theorem restart_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
   simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
   obtain ⟨⟨⟨⟨hstates, hinit⟩, _⟩, _⟩, _⟩ := hn
   have hi := (Machine.wf_parts hwf).1
-  unfold Machine.recover
+  rw [Machine.recover_eq_realize]
   have hs' : SnapOK { s with resume := [], back := none } :=
     ⟨hs.state, by simp, hs.timers, hs.seq, by simp⟩
   refine realize_snapOK { s with resume := [], back := none } m.initial _ hs'

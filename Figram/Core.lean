@@ -136,9 +136,30 @@ def ownsTimer (exit : List Action) : Event → Bool
   | .named _ => true
   | .timer id _ => exit.contains (.cancelTimer id)
 
-/-- A transition to `T` with actions `acts`: the new snapshot and the actions for the host. -/
+/-- A transition to `T` with actions `acts`: the new snapshot and the actions for the host.
+This is the specification: every cancelled timer is a pass over the timers and every action a
+copy of the reply, so it takes time quadratic in the number of actions. The machine runs
+`realizeClear` where that number grows with the snapshot. -/
 def realize (s : Snapshot) (T : NodeId) (acts : List Action) : Snapshot × List Action :=
   acts.foldl (realizeOne (s.seq + 1)) ({ s with state := T, seq := s.seq + 1 }, [])
+
+def Action.isCancel : Action → Bool
+  | .cancelTimer _ => true
+  | _ => false
+
+/-- `realize s T (pre ++ acts)` for a `pre` that only cancels timers and cancels every timer of
+`s` (`realize_clear` in `Figram.CoreProofs`): the timers are cleared at once and `pre` goes in
+front of the reply. Leaving a message, recovery and `restart` cancel all the snapshot's timers
+this way, so they take time linear in the size of the snapshot. -/
+def realizeClear (s : Snapshot) (T : NodeId) (pre acts : List Action) : Snapshot × List Action :=
+  let r := realize { s with timers := [] } T acts
+  (r.1, pre ++ r.2)
+
+/-- `realize s T (pre ++ acts)` (`realizeAfter_eq`), with the timers cleared at once when `pre`
+cancels exactly the snapshot's timers, as recovery does. -/
+def realizeAfter (s : Snapshot) (T : NodeId) (pre acts : List Action) : Snapshot × List Action :=
+  if pre = s.timers.map (fun p => .cancelTimer p.1) then realizeClear s T pre acts
+  else realize s T (pre ++ acts)
 
 /-! ## Machine -/
 
@@ -239,15 +260,21 @@ to; a move inside a section keeps it. -/
 def markBack (m : Machine) (s : Snapshot) (T : NodeId) : Snapshot :=
   if m.zoneOf s.state = m.zoneOf T then s else s.withBack (some s.state)
 
+/-- A move along variant `b`: `realize` of the exit actions, the cancels of the snapshot's
+other timers, the variant's actions and the entry actions (`fire_eq_realize`). When the exit
+actions only cancel timers (always in a compiled machine), all the snapshot's timers are cleared
+at once. -/
 def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
   let T := m.resolve s b.target
-  realize (m.markBack s T) T
-    (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
+  let exit := m.exitOf s.state
+  if exit.all Action.isCancel then
+    realizeClear (m.markBack s T) T (exit ++ staleCancels exit s) (b.actions ++ m.entryOf T)
+  else realize (m.markBack s T) T (exit ++ staleCancels exit s ++ b.actions ++ m.entryOf T)
 
 /-- Start the bot over from snapshot `s` without an event (`restart`): cancel its timers,
 keep its remembered places and the place to go back to. -/
 def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
-  realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions)
+  realizeClear s m.initial (s.timers.map (fun p => .cancelTimer p.1)) m.initActions
 
 /-- The user's first entry. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
@@ -272,8 +299,8 @@ def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env 
   match m.choose m.initial ev env with
   | some b =>
     let T := m.resolve s b.target
-    realize s T (pre ++ b.actions ++ m.entryOf T)
-  | none => realize s m.initial (pre ++ m.initActions)
+    realizeAfter s T pre (b.actions ++ m.entryOf T)
+  | none => realizeAfter s m.initial pre m.initActions
 
 /-- The user's first entry with a first event, the counter continued from `n`. -/
 def startWith (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=

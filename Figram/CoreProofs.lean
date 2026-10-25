@@ -136,6 +136,139 @@ theorem find?_neededIn {known : String → Option Bool} {bs : List FBranch} (env
 
 namespace Machine
 
+/-- `realize` appends the actions for the host to what it was given. -/
+theorem foldl_realize_out (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action) :
+    acts.foldl (realizeOne tok) (x, out) =
+      ((acts.foldl (realizeOne tok) (x, [])).1, out ++ (acts.foldl (realizeOne tok) (x, [])).2) := by
+  induction acts generalizing x out with
+  | nil => simp
+  | cons a as ih =>
+    simp only [List.foldl_cons]
+    have h1 : realizeOne tok (x, out) a =
+        ((realizeOne tok (x, []) a).1, out ++ (realizeOne tok (x, []) a).2) := by
+      cases a <;> simp [realizeOne]
+    rw [h1, ih, ih (realizeOne tok (x, []) a).1 (realizeOne tok (x, []) a).2]
+    simp
+
+/-! ## Clearing the timers at once
+
+`realize` is the specification of executing actions; the machine clears the snapshot's timers
+at once where all of them are cancelled (`realizeClear`). These lemmas show that it computes
+exactly `realize`, so every theorem about the machine is a theorem about `realize`. -/
+
+/-- Actions that only cancel timers remove the cancelled names and go to the reply. -/
+theorem foldl_cancels_only (tok : Nat) (pre : List Action) (x : Snapshot) (out : List Action)
+    (h : ∀ a ∈ pre, a.isCancel = true) :
+    pre.foldl (realizeOne tok) (x, out) =
+      ({ x with timers := x.timers.filter (fun p => !pre.contains (.cancelTimer p.1)) }, out ++ pre) := by
+  induction pre generalizing x out with
+  | nil =>
+    obtain ⟨st, res, tms, seq, bk⟩ := x
+    simp only [List.foldl_nil, List.contains_nil, Bool.not_false, List.append_nil,
+      List.filter_eq_self.mpr (fun _ _ => rfl)]
+  | cons a as ih =>
+    cases a with
+    | cancelTimer id =>
+      simp only [List.foldl_cons, realizeOne]
+      rw [ih _ _ (fun b hb => h b (List.mem_cons_of_mem _ hb))]
+      simp only [erase, List.filter_filter, List.append_assoc, List.singleton_append]
+      congr 2
+      apply List.filter_congr
+      intro p _
+      by_cases hp : p.1 = id <;> simp [hp]
+    | _ => exact absurd (h _ List.mem_cons_self) (by simp [Action.isCancel])
+
+/-- **Clearing the timers at once is `realize`**: if `pre` only cancels timers and cancels every
+timer of the snapshot, `realize` of `pre` and then `acts` is `realizeClear`. -/
+theorem realize_clear (s : Snapshot) (T : NodeId) (pre acts : List Action)
+    (hpre : ∀ a ∈ pre, a.isCancel = true) (hcov : ∀ p ∈ s.timers, Action.cancelTimer p.1 ∈ pre) :
+    realize s T (pre ++ acts) = realizeClear s T pre acts := by
+  have hnil : s.timers.filter (fun p => !pre.contains (.cancelTimer p.1)) = [] := by
+    apply List.filter_eq_nil_iff.mpr
+    intro p hp
+    simpa using hcov p hp
+  simp only [realize, realizeClear, List.foldl_append]
+  rw [foldl_cancels_only _ _ _ _ hpre, foldl_realize_out]
+  simp only [hnil, List.nil_append]
+
+theorem realizeAfter_eq (s : Snapshot) (T : NodeId) (pre acts : List Action) :
+    realizeAfter s T pre acts = realize s T (pre ++ acts) := by
+  unfold realizeAfter
+  split
+  · rename_i h
+    subst h
+    refine (realize_clear s T _ acts ?_ (fun p hp => List.mem_map.mpr ⟨p, hp, rfl⟩)).symm
+    intro a ha
+    obtain ⟨_, _, rfl⟩ := List.mem_map.mp ha
+    rfl
+  · rfl
+
+theorem staleCancels_cancel (exit : List Action) (s : Snapshot) :
+    ∀ a ∈ staleCancels exit s, a.isCancel = true := by
+  intro a ha
+  simp only [staleCancels, List.mem_map] at ha
+  obtain ⟨_, _, rfl⟩ := ha
+  rfl
+
+theorem markBack_timers (m : Machine) (s : Snapshot) (T : NodeId) :
+    (m.markBack s T).timers = s.timers := by
+  unfold markBack; split <;> rfl
+
+/-- **A move is `realize`** of the exit actions, the cancels of the other timers, the variant's
+actions and the entry actions. -/
+theorem fire_eq_realize (m : Machine) (s : Snapshot) (b : FBranch) :
+    m.fire s b = realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+      (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+        m.entryOf (m.resolve s b.target)) := by
+  simp only [fire]
+  split
+  · rename_i hx
+    rw [List.append_assoc (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s)]
+    refine (realize_clear _ _ _ _ ?_ ?_).symm
+    · intro a ha
+      rcases List.mem_append.mp ha with ha | ha
+      · exact List.all_eq_true.mp hx a ha
+      · exact staleCancels_cancel _ _ a ha
+    · intro p hp
+      rw [markBack_timers] at hp
+      by_cases hc : (m.exitOf s.state).contains (.cancelTimer p.1) = true
+      · exact List.mem_append_left _ (by simpa using hc)
+      · refine List.mem_append_right _ (List.mem_map.mpr ⟨p, ?_, rfl⟩)
+        exact List.mem_filter.mpr ⟨hp, by simpa using hc⟩
+  · rfl
+
+/-- `restart` is `realize` of cancelling all the snapshot's timers and the first-entry actions. -/
+theorem recover_eq_realize (m : Machine) (s : Snapshot) :
+    m.recover s = realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions) := by
+  unfold recover
+  rw [← realizeAfter_eq]
+  simp [realizeAfter]
+
+/-- Entering the bot is `realize` of `pre`, the chosen variant's actions and the entry of its
+target, or of `pre` and the first-entry actions. -/
+theorem enterBot_eq_realize (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
+    (env : HostEnv) :
+    m.enterBot s pre ev env =
+      match m.choose m.initial ev env with
+      | some b => realize s (m.resolve s b.target) (pre ++ b.actions ++ m.entryOf (m.resolve s b.target))
+      | none => realize s m.initial (pre ++ m.initActions) := by
+  unfold enterBot
+  cases m.choose m.initial ev env <;> simp only [realizeAfter_eq, List.append_assoc]
+
+/-- Entering the bot with a chosen variant is `realize` of `pre`, its actions and the entry of
+its target. -/
+theorem enterBot_eq_realize_some (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
+    (env : HostEnv) (b : FBranch) (hb : m.choose m.initial ev env = some b) :
+    m.enterBot s pre ev env =
+      realize s (m.resolve s b.target) (pre ++ b.actions ++ m.entryOf (m.resolve s b.target)) := by
+  rw [enterBot_eq_realize, hb]
+
+/-- Entering the bot without a chosen variant is `realize` of `pre` and the first-entry actions. -/
+theorem enterBot_eq_realize_none (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
+    (env : HostEnv) (hb : m.choose m.initial ev env = none) :
+    m.enterBot s pre ev env = realize s m.initial (pre ++ m.initActions) := by
+  rw [enterBot_eq_realize, hb]
+
 /-- The arrow found is one of the machine's arrows. -/
 theorem row_mem {m : Machine} {s : NodeId} {e : EventId} {r : Row} (h : m.row s e = some r) :
     r ∈ m.rows := by
@@ -244,7 +377,7 @@ theorem enterBot_state_valid (m : Machine) (hwf : m.wf = true) (s : Snapshot)
     (pre : List Action) (ev : Event) (env : HostEnv) :
     (m.enterBot s pre ev env).1.state ∈ m.states := by
   obtain ⟨hinit, hrows, _⟩ := wf_parts hwf
-  unfold enterBot
+  rw [enterBot_eq_realize]
   split
   · rename_i b hb
     obtain ⟨r, hr, hbr⟩ := choose_mem hb
@@ -273,7 +406,7 @@ theorem step_state_valid (m : Machine) (hwf : m.wf = true)
         split
         · exact hs
         · rename_i b hb
-          simp only [fire, realize_state]
+          simp only [fire_eq_realize, realize_state]
           exact resolve_mem hwf s _ (hrows r (row_mem hr) b
             (List.mem_of_find?_eq_some hb))
 
@@ -317,20 +450,6 @@ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env�
             exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
         rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
 
-/-- `realize` appends the actions for the host to what it was given. -/
-theorem foldl_realize_out (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action) :
-    acts.foldl (realizeOne tok) (x, out) =
-      ((acts.foldl (realizeOne tok) (x, [])).1, out ++ (acts.foldl (realizeOne tok) (x, [])).2) := by
-  induction acts generalizing x out with
-  | nil => simp
-  | cons a as ih =>
-    simp only [List.foldl_cons]
-    have h1 : realizeOne tok (x, out) a =
-        ((realizeOne tok (x, []) a).1, out ++ (realizeOne tok (x, []) a).2) := by
-      cases a <;> simp [realizeOne]
-    rw [h1, ih, ih (realizeOne tok (x, []) a).1 (realizeOne tok (x, []) a).2]
-    simp
-
 /-- Cancelling timers of a snapshot that has none changes nothing in it. -/
 theorem foldl_cancels (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action)
     (hx : x.timers = []) (h : ∀ a ∈ acts, ∃ id, a = .cancelTimer id) :
@@ -371,7 +490,8 @@ theorem fire_withBack_none (m : Machine) (s : Snapshot) (b : FBranch) (hs : s.ba
           m.entryOf (m.resolve s b.target)) := by
   have hb : ∀ acts T, (realize s T acts).1.withBack none = (realize s T acts).1 := fun acts T =>
     withBack_eq_self (by rw [realize_back, hs])
-  simp only [fire, markBack]
+  rw [fire_eq_realize]
+  simp only [markBack]
   split
   · rw [hb]
   · rw [realize_withBack, withBack_withBack, hb]
@@ -400,7 +520,7 @@ theorem startWith_eq_step (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) 
     simp only [step, hi, not_true_eq_false, ite_false, Snapshot.accepts, ownsTimer, Bool.and_self,
       Bool.not_true, Bool.false_eq_true, Event.key, hr, hfb]
   rw [hstep, fire_withBack_none m _ b rfl]
-  simp only [startWith, enterBot, hb, hstale, List.append_nil, List.nil_append]
+  simp only [startWith, enterBot, hb, hstale, realizeAfter_eq, List.append_nil, List.nil_append]
   show List.foldl _ _ ((m.exitOf m.initial ++ b.actions) ++ _) = _
   rw [List.append_assoc, List.foldl_append,
     foldl_cancels _ _ _ _ rfl hexit, foldl_realize_out,
@@ -416,7 +536,7 @@ theorem startWith_initial (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (
     (hinit : m.entryOf m.initial = m.initActions) :
     m.startWith n ev env =
       realize ⟨"", [], [], n, none⟩ m.initial (b.actions ++ m.initActions) := by
-  simp only [startWith, enterBot, hb, hT, hinit, List.nil_append]
+  simp only [startWith, enterBot, hb, hT, hinit, realizeAfter_eq, List.nil_append]
 
 /-- **A snapshot whose message no longer exists enters the bot again with the event**: the
 timers of the old place are cancelled first and the remembered places are kept. -/
@@ -429,13 +549,13 @@ theorem step_recover (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv)
 uses (with the remembered places kept). -/
 theorem step_recover_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
     (hs : s.state ∉ m.states) : m.step s (.timer id tok) env = m.recover s := by
-  simp only [step, hs, not_false_eq_true, ite_true, enterBot, choose, recover]
+  simp only [step, hs, not_false_eq_true, ite_true, enterBot_eq_realize, choose, recover_eq_realize]
 
 /-- Without a matching variant, entering with an event is the plain first entry. -/
 theorem startWith_unmatched (m : Machine) (n : Nat) (ev : Event) (env : HostEnv)
     (hb : m.choose m.initial ev env = none) :
     m.startWith n ev env = realize ⟨"", [], [], n, none⟩ m.initial m.initActions := by
-  simp only [startWith, enterBot, hb, List.nil_append]
+  simp only [startWith, enterBot, hb, realizeAfter_eq, List.nil_append]
 
 /-! ## Back to the previous section -/
 
@@ -444,7 +564,8 @@ boundary, otherwise the place stays. -/
 theorem fire_back (m : Machine) (s : Snapshot) (b : FBranch) :
     (m.fire s b).1.back =
       if m.zoneOf s.state = m.zoneOf (m.resolve s b.target) then s.back else some s.state := by
-  simp only [fire, realize_back, markBack]
+  rw [fire_eq_realize, realize_back]
+  simp only [markBack]
   split <;> rfl
 
 /-- **"Back" and back again**: if the place to go back to is a message of another section,
@@ -454,7 +575,7 @@ theorem fire_back_swap (m : Machine) (s : Snapshot) (b : FBranch) (fb : Target) 
     (hz : m.zoneOf s.state ≠ m.zoneOf v) :
     (m.fire s b).1.state = v ∧ (m.fire s b).1.back = some s.state := by
   have hT : m.resolve s b.target = v := by simp [ht, resolve, hb, hv]
-  refine ⟨by simp only [fire, realize_state, hT], ?_⟩
+  refine ⟨by simp only [fire_eq_realize, realize_state, hT], ?_⟩
   rw [fire_back, hT]
   simp [hz]
 
@@ -462,7 +583,7 @@ theorem fire_back_swap (m : Machine) (s : Snapshot) (b : FBranch) (fb : Target) 
 recovery of a snapshot whose message no longer exists leave no message of the machine). -/
 theorem enterBot_back (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
     (env : HostEnv) : (m.enterBot s pre ev env).1.back = s.back := by
-  unfold enterBot
+  rw [enterBot_eq_realize]
   split <;> exact realize_back _ _ _
 
 /-- **The place to go back to is always a message the user left**: after a step it is the old
