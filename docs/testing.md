@@ -92,7 +92,7 @@ Steps, in order:
     `tests/engine/client_robustness.py`, each with an empty stderr
     ([host-contract.md](host-contract.md), section 7).
 20. **Harness self-test** — `tests/engine/harness_selftest.py`: corrupted, incomplete, empty and
-    hanging fake engines must make the conformance, load and snapshot tests fail (at least 37
+    hanging fake engines must make the conformance, load and snapshot tests fail (at least 39
     checks).
 21. **Load test** — `tests/engine/loadtest.py`: 64 Python threads over 2 engine processes,
     every step compared with the reference.

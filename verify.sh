@@ -18,7 +18,7 @@ E=.lake/build/bin/figram-engine
 P=tests/engine
 # Lower bounds of the number of checks (values of the baseline; fewer is a failure).
 MIN_MUTANTS=118        # mutations in the two example documents
-MIN_SELFTEST_OK=37     # passed checks of the harness self-test
+MIN_SELFTEST_OK=39     # passed checks of the harness self-test
 WAIVED=()
 fail() { echo "FAIL: $*"; exit 1; }
 python3 -c "import jsonschema" 2>/dev/null || fail "the Python package jsonschema is required: pip install jsonschema"

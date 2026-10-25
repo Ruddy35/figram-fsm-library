@@ -82,7 +82,7 @@ inject() {  # inject FAULT — in the current directory (a copy)
     bin-swapped)          # prebuilt/figram-engine replaced by figram, prebuilt/SHA256SUMS untouched
       [ -d prebuilt ] || { echo "bin-swapped: prebuilt mode only"; exit 2; }
       cp prebuilt/figram prebuilt/figram-engine;;
-    selftest-shrunk)      # the harness self-test checks 1 kind of corruption instead of 13
+    selftest-shrunk)      # the harness self-test checks 1 kind of corruption instead of 14
       sub $P/harness_selftest.py '    for name, code in CORRUPT.items():' '    for name, code in list(CORRUPT.items())[:1]:';;
     fixtures-shrunk)      # 2 edge snapshots instead of 30
       sub $P/snapshot_fixtures.py 'engine, doc, schema_path = sys.argv[1:4]' 'FIXTURES = FIXTURES[:2]

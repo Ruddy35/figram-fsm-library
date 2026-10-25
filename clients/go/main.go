@@ -365,7 +365,8 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		}
 		return "need", nil
 	}
-	if !keysAre(rest, "snapshot", "actions") && !keysAre(rest, "snapshot", "actions", "recovered") {
+	// "recovered" only in a reply to step (docs/format.md, section 8)
+	if !keysAre(rest, "snapshot", "actions") && (op != "step" || !keysAre(rest, "snapshot", "actions", "recovered")) {
 		return "", fmt.Errorf("reply to %s: fields %v", op, rest)
 	}
 	if rec, ok := rest["recovered"]; ok && rec != true {

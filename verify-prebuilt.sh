@@ -35,7 +35,7 @@ for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an e
 BIN=$(cd "$BIN" && pwd)
 cd "$(dirname "$0")"
 MIN_MUTANTS=118        # mutations in the two example documents (fewer is a failure)
-MIN_SELFTEST_OK=37     # passed checks of the harness self-test
+MIN_SELFTEST_OK=39     # passed checks of the harness self-test
 F=$BIN/figram
 E=$BIN/figram-engine
 P=tests/engine

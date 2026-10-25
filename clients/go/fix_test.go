@@ -222,6 +222,10 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"start", `{"id":5,"snapshot":{"at":"vip","back":"home","seq":1},"actions":[{"send":"vip"}]}`, "result"},
 		{"step", `{"id":5,"snapshot":{"at":"vip","back":"","seq":1},"actions":[]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"vip","back":1,"seq":1},"actions":[]}`, "ERR"},
+		// recovered only in a reply to step
+		{"step", `{"id":5,"snapshot":{"at":"vip","seq":1},"actions":[],"recovered":true}`, "result"},
+		{"start", `{"id":5,"snapshot":{"at":"vip","seq":1},"actions":[],"recovered":true}`, "ERR"},
+		{"restart", `{"id":5,"snapshot":{"at":"vip","seq":1},"actions":[],"recovered":true}`, "ERR"},
 	}
 	for _, c := range cases {
 		v, err := checkReply(decodeReply(t, c.reply), 5, c.op)

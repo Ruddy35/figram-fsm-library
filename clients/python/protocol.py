@@ -126,7 +126,8 @@ def check_reply(resp, rid: int, op: str) -> str:
         for n in need:
             name(n, "need")
         return "need"
-    if keys not in ({"snapshot", "actions"}, {"snapshot", "actions", "recovered"}):
+    # "recovered" only in a reply to step (docs/format.md, section 8)
+    if keys != {"snapshot", "actions"} and (op != "step" or keys != {"snapshot", "actions", "recovered"}):
         raise ProtocolError(f"{op} reply: fields {sorted(keys)}")
     if "recovered" in resp and resp["recovered"] is not True:
         raise ProtocolError(f"recovered: {resp['recovered']!r}")
