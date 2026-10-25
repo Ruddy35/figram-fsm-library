@@ -386,11 +386,11 @@ if command -v go >/dev/null; then
   logged go_reload $G/gofig -reload 5000 examples/pizza.bot.json "$T/small.jsonl"
   # One request map used by many goroutines: Request must not modify it.
   (cd $G && CC=${CC:-gcc} GOMAXPROCS=4 go test -race -count=1 -v \
-      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges)$' .) \
+      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges|TestFixStartWithEvent)$' .) \
       > "$LOGS/go_shared_map.log" 2>&1 \
     || { grep -m3 -A3 "DATA RACE" "$LOGS/go_shared_map.log" || tail -20 "$LOGS/go_shared_map.log"; fail "a race on the shared request map"; }
   for t in TestSharedRequestMap TestAuditHelloAlwaysError TestAuditRequestBadOp TestAuditLoadNUL TestAuditRequestNUL \
-           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges; do
+           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges TestFixStartWithEvent; do
     grep -q "^--- PASS: $t " "$LOGS/go_shared_map.log" \
       || { tail -5 "$LOGS/go_shared_map.log"; fail "test $t did not run or did not pass"; }
   done

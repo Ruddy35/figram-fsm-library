@@ -214,6 +214,14 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":3}`, "ERR"},
 		{"hello", `{"id":5,"protocol":2,"states":11,"extra":"x"}`, "ERR"},
 		{"start", `{"id":5,"snapshot":{"at":"menu","seq":8},"actions":[{"send":"menu"}]}`, "result"},
+		// Protocol 2: start with an event may answer need; snapshots carry back.
+		{"start", `{"id":5,"need":["is_vip"]}`, "need"},
+		{"start", `{"id":5,"need":[]}`, "ERR"},
+		{"restart", `{"id":5,"need":["is_vip"]}`, "ERR"},
+		{"hello", `{"id":5,"need":["is_vip"]}`, "ERR"},
+		{"start", `{"id":5,"snapshot":{"at":"vip","back":"home","seq":1},"actions":[{"send":"vip"}]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"vip","back":"","seq":1},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"vip","back":1,"seq":1},"actions":[]}`, "ERR"},
 	}
 	for _, c := range cases {
 		v, err := checkReply(decodeReply(t, c.reply), 5, c.op)
@@ -225,4 +233,41 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 			t.Errorf("checkReply(%s, op=%s) = %q (%v), want %q", c.reply, c.op, v, err, c.want)
 		}
 	}
+}
+
+// Protocol 2 through the embedded engine: start with a first event asks for its conditions
+// (need), goes straight to the target, rejects a timer event; a recovered step processes its event.
+func TestFixStartWithEvent(t *testing.T) {
+	doc, err := os.ReadFile("../../examples/features.bot.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := Load(string(doc))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer b.Close()
+	want := func(req map[string]any, variant, reply string) {
+		t.Helper()
+		r, v, err := b.Request(req)
+		if err != nil || v != variant {
+			t.Fatalf("%v: variant %q (%v), want %q", req, v, err, variant)
+		}
+		delete(r, "id")
+		if variant == "error" { // the text is for humans: compare the code
+			r = map[string]any{"code": r["code"]}
+		}
+		got, _ := json.Marshal(r)
+		if string(got) != reply {
+			t.Fatalf("%v: reply %s, want %s", req, got, reply)
+		}
+	}
+	want(map[string]any{"op": "start", "event": "btn:go"}, "need", `{"need":["is_vip"]}`)
+	want(map[string]any{"op": "start", "event": "btn:go", "seq": 41, "guards": map[string]bool{"is_vip": true}},
+		"result", `{"actions":[{"send":"vip"}],"snapshot":{"at":"vip","seq":42}}`)
+	want(map[string]any{"op": "start", "event": "timer:idle"}, "error", `{"code":"bad_request"}`)
+	gone := map[string]any{"at": "gone", "back": "item", "timers": map[string]any{"old": 4}, "seq": 9}
+	want(map[string]any{"op": "step", "snapshot": gone, "event": "btn:go"}, "need", `{"need":["is_vip"]}`)
+	want(map[string]any{"op": "step", "snapshot": gone, "event": "btn:go", "guards": map[string]bool{"is_vip": true}},
+		"result", `{"actions":[{"cancel_timer":"old"},{"send":"vip"}],"recovered":true,"snapshot":{"at":"vip","back":"item","seq":10}}`)
 }
