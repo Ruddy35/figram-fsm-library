@@ -74,7 +74,8 @@ Steps, in order:
     take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
     most 3 s; the quadratic engine before 0.2.0 took 42 s). The time is the CPU time of an
     engine process that answers only that request, so load on the machine does not turn the
-    check red.
+    check red; the larger request must cancel every snapshot timer and keep every remembered
+    place.
 15. **JSON text layer** — `tests/engine/json_fuzz.py`: 30 000 random inputs, `figram json`
     against Python `json` with the format's restrictions (same accept/reject decision, same
     value, printing reads back). A deliberately lax parser must be detected (sensitivity
