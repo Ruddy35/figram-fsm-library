@@ -13,7 +13,8 @@ A bot is one JSON document (`examples/*.bot.json`, schema
 [`schemas/figram.schema.json`](schemas/figram.schema.json)), meant to be written by a visual
 editor (not part of this repository) or by hand; the engine executes the document. The document
 describes messages, events, arrows with ordered variants guarded by named conditions, actions,
-nested sections, "resume where the user left off" arrows, and timers
+nested sections, "resume where the user left off" and "back to the previous section" arrows,
+and timers
 ([docs/format.md](docs/format.md)).
 
 The engine is **stateless**. It loads and compiles a document once and then answers requests:

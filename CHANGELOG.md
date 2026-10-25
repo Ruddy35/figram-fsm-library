@@ -33,6 +33,9 @@ command names and the exit statuses; the texts of messages are for humans and ma
   (`enterBot_back`), the compiled machine compares the chart's sections (`compile_zoneOf`), and
   `compile_correct` covers it; 46 theorem statements are pinned ([docs/proofs.md](docs/proofs.md)).
 - Python client: `Engine.start(key, seq, event, guards)`.
+- `figram check` for "back": a "back" arrow counts for reachability as leading to the initial
+  message (its real target is a message the user has already been on), and warning 3 ("resume"
+  drawn only from inside the section) ignores sections that only the fallbacks of "back" resume.
 
 ### Fixed
 
@@ -68,6 +71,16 @@ command names and the exit statuses; the texts of messages are for humans and ma
   0.1.0 host contract allowed, must stop: the second delivery processes the event once more
   (with the idempotency keys `user:seq:index` its actions run twice)
   ([docs/host-contract.md](docs/host-contract.md), section 6).
+- The scenarios of `examples/golden.jsonl` (`figram golden`, shipped in the archive): `start`
+  may carry `event` and `guards`, the request is then `start` with that event (seven
+  scenarios: `start_event_*` and `back_after_start_event`); a replayer that ignores them sends the
+  plain `start` and gets other replies.
+- The validators of the Python and Go clients accept `"recovered": true` only in a reply to
+  `step`.
+- Documentation: a host thread that calls the library needs up to about 68 KiB of stack at the
+  parser's nesting limit, give it at least 128 KiB ([docs/embedding.md](docs/embedding.md));
+  `restart` with a placeholder snapshot drops the update's event, `step` with the placeholder
+  and the event processes it ([docs/host-contract.md](docs/host-contract.md), section 4).
 - The reference host `tests/engine/host_sim.py` starts a user without a snapshot with the
   update's event and the high-water mark, drops a timer event of a lost snapshot, and tests a
   lost snapshot with two controls ([docs/host-contract.md](docs/host-contract.md), sections 1
