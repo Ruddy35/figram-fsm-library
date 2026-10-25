@@ -624,11 +624,72 @@ static int t_host_state(const char* path) {
   return n_fail != 0;
 }
 
+/* deep_stack KB: calls at the nesting limit of the parser (256 levels) from a thread with a KB KiB
+   stack — the size docs/embedding.md recommends (regress.sh reads it from there). A document with
+   126 nested sections (figram_load_doc, figram_check_json, figram_fmt_json) and requests nested
+   with objects and with arrays (an echoed id, a snapshot field). A too small stack is a SIGSEGV
+   of this process, so the check fails with exit code 139. */
+static char* deep_doc;
+static char* deep_req[3];
+static void* deep_calls(void* unused) {
+  (void)unused;
+  void* m = figram_load_doc(deep_doc);
+  ok_if(m != NULL, "load a document with 126 nested sections", err_or(NULL));
+  char* r = figram_check_json(deep_doc);
+  ok_if(r != NULL && !strcmp(r, "ok"), "check it", r);
+  figram_free(r);
+  r = figram_fmt_json(deep_doc);
+  ok_if(r != NULL && r[0] == '{', "fmt it", NULL);
+  figram_free(r);
+  for (int i = 0; i < 3; i++) {
+    r = m ? figram_request_json(m, deep_req[i]) : NULL;
+    ok_if(r != NULL && r[0] == '{', i == 0 ? "request with an id of nested objects"
+          : i == 1 ? "request with a snapshot field of nested objects" : "request with nested arrays", NULL);
+    figram_free(r);
+  }
+  figram_unload(m);
+  return NULL;
+}
+static int t_deep_stack(int kb) {
+  int k = 126, d = 253;
+  char* p = deep_doc = malloc(64 + 48 * k);
+  p += sprintf(p, "{\"figram\":1,\"bot\":{\"initial\":\"s\",\"children\":{\"s\":");
+  for (int i = 1; i <= k; i++) p += sprintf(p, "{\"initial\":\"n%d\",\"children\":{\"n%d\":", i, i);
+  p += sprintf(p, "{}");
+  for (int i = 0; i < k; i++) p += sprintf(p, "}}");
+  strcpy(p, "}}}");
+  for (int i = 0; i < 3; i++) deep_req[i] = malloc(160 + 8 * d);
+  p = deep_req[0] + sprintf(deep_req[0], "{\"id\":");          /* levels 2..256: 255 objects */
+  for (int i = 0; i < d + 1; i++) p += sprintf(p, "{\"a\":");
+  p += sprintf(p, "{}");
+  for (int i = 0; i < d + 1; i++) *p++ = '}';
+  strcpy(p, ",\"op\":\"hello\"}");
+  p = deep_req[1] + sprintf(deep_req[1], "{\"id\":1,\"op\":\"step\",\"event\":\"x\",\"snapshot\":{\"at\":\"s\",\"back\":");
+  for (int i = 0; i < d; i++) p += sprintf(p, "{\"a\":");     /* levels 3..256: 254 objects */
+  p += sprintf(p, "{}");
+  for (int i = 0; i < d; i++) *p++ = '}';
+  strcpy(p, "}}");
+  p = deep_req[2] + sprintf(deep_req[2], "{\"id\":1,\"op\":\"step\",\"event\":\"x\",\"snapshot\":{\"at\":\"s\",\"back\":");
+  for (int i = 0; i < d + 1; i++) *p++ = '[';                  /* levels 3..256: 254 arrays */
+  for (int i = 0; i < d + 1; i++) *p++ = ']';
+  strcpy(p, "}}");
+  if (figram_init()) { ok_if(0, "figram_init", err_or(NULL)); return 1; }
+  pthread_attr_t at;
+  pthread_attr_init(&at);
+  if (pthread_attr_setstacksize(&at, (size_t)kb * 1024)) { ok_if(0, "pthread_attr_setstacksize", NULL); return 1; }
+  pthread_t t;
+  if (pthread_create(&t, &at, deep_calls, NULL)) { ok_if(0, "pthread_create", NULL); return 1; }
+  pthread_join(t, NULL);
+  printf("thread stack %d KiB: the calls returned\n", kb);
+  return n_fail != 0;
+}
+
 static int usage(void) {
   fprintf(stderr, "usage: contract init_twice | init_race DOC | before_init check|fmt|load DOC |\n"
                   "  null check|fmt|load|line|handle|unload|free|unload_failed_load DOC |\n"
                   "  unload_twice DOC | use_after_unload DOC [OTHER] | threads DOC N |\n"
-                  "  side_effects | nul DOC | utf8 DOC | signals default|custom | host_state DOC\n");
+                  "  side_effects | nul DOC | utf8 DOC | signals default|custom | host_state DOC |\n"
+                  "  deep_stack KB\n");
   return 2;
 }
 
@@ -656,5 +717,6 @@ int main(int argc, char** argv) {
   if (!strcmp(t, "limit") && argc > 2) return t_limit(argv[2]);
   if (!strcmp(t, "signals") && argc > 2) return t_signals(argv[2]);
   if (!strcmp(t, "host_state") && argc > 2) return t_host_state(argv[2]);
+  if (!strcmp(t, "deep_stack") && argc > 2) return t_deep_stack(atoi(argv[2]));
   return usage();
 }

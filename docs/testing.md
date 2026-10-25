@@ -80,7 +80,7 @@ Steps, in order:
     and UBSan: invalid UTF-8, a 5 MB request, 16 threads calling one machine; then, in a plain
     build, 5000 loads and unloads must grow memory by less than 2 MiB, while a control run without
     unloading must grow it by more than 8 MiB.
-17. **C ABI** — `tests/capi/regress.sh`, at least 44 checks, each in its own process:
+17. **C ABI** — `tests/capi/regress.sh`, at least 45 checks, each in its own process:
     initialization under `RLIMIT_AS`, concurrent and lazy initialization (300 processes each),
     `NULL` arguments, foreign and unloaded handles, NUL bytes, strict UTF-8, the size limit,
     signal dispositions and `sigaltstack`, no threads or file descriptors from initialization,
