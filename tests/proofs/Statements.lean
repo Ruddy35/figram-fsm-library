@@ -118,6 +118,15 @@ example : ∀ (m : Machine) (s : Snapshot) (b : FBranch), m.fire s b =
 example : ∀ (m : Machine) (s : Snapshot), m.recover s =
     realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions) :=
   @Machine.recover_eq_realize
+example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv)
+    (b : FBranch), m.choose m.initial ev env = some b →
+    m.enterBot s pre ev env =
+      realize s (m.resolve s b.target) (pre ++ b.actions ++ m.entryOf (m.resolve s b.target)) :=
+  @Machine.enterBot_eq_realize_some
+example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv),
+    m.choose m.initial ev env = none →
+    m.enterBot s pre ev env = realize s m.initial (pre ++ m.initActions) :=
+  @Machine.enterBot_eq_realize_none
 
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse
