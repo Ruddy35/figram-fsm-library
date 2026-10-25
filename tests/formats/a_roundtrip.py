@@ -49,7 +49,7 @@ DEFAULT_KEYS = {
     "doc": [("requires", []), ("variables", Obj()), ("conditions", Obj()), ("calls", Obj())],
     "msg": [("on", Obj()), ("timers", Obj())],
     "sec": [("on", Obj())],
-    "var": [("resume", False), ("do", [])],
+    "var": [("resume", False), ("back", False), ("do", [])],
 }
 
 
@@ -119,10 +119,10 @@ def transform(j, r, shuffle, defaults, annotate, numbers, plain=False):
                     insert_at(r, v, (k, d))
         if annotate:
             for _ in range(r.randint(0, 2)):
-                k = ann_key(r, [kk for kk, _ in v] + ["if", "to", "resume", "do"], plain)
+                k = ann_key(r, [kk for kk, _ in v] + ["if", "to", "resume", "back", "do"], plain)
                 insert_at(r, v, (k, rand_value(r)))
         if shuffle:
-            v = shuffle_known(v, ["if", "to", "resume", "do"])
+            v = shuffle_known(v, ["if", "to", "resume", "back", "do"])
         return v
 
     def on(o):

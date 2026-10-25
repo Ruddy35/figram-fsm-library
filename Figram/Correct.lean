@@ -52,12 +52,13 @@ theorem wfFast_eq (m : Machine) : m.wfFast = m.wf := by
   have htgt : ∀ t : Target, targetIn (keySet m.states) (keySet (m.resumes.map (·.sec))) t =
       m.targetOK t := by
     intro t
-    cases t with
+    induction t with
     | node n => simp only [targetIn, targetOK, hst]
     | resume sec =>
       simp only [targetIn, targetOK, keySet_contains]
       apply Bool.eq_iff_iff.mpr
       simp only [decide_eq_true_eq, List.mem_map, List.any_eq_true]
+    | back fb ih => simpa only [targetIn, targetOK] using ih
   unfold wfFast wf rows
   simp only [List.all_flatMap, htgt, hst]
 
@@ -101,8 +102,14 @@ theorem index_enterAux (k : Nat) (n : NodeId) : c.index.enterAux k n = c.enterAu
 theorem index_enter (n : NodeId) : c.index.enter n = c.enter n := by
   unfold Index.enter enter; rw [index_enterAux]; rfl
 
+theorem index_toTarget (d : Dest) : c.index.toTarget d = c.toTarget d := by
+  induction d with
+  | node n => simp only [Index.toTarget, toTarget, index_enter]
+  | history _ => rfl
+  | back fb ih => simp only [Index.toTarget, toTarget, ih]
+
 theorem index_toF (b : Branch) : c.index.toF b = c.toF b := by
-  simp only [Index.toF, toF, index_enter]
+  simp only [Index.toF, toF, index_toTarget]
 
 /-- Grouping singletons: key `f t`, value `[g t]`. -/
 theorem singletons_get {α β} (l : List α) (f : α → String) (g : α → β) (k : String) :
@@ -229,7 +236,7 @@ theorem memberIndex_get (s : NodeId) (hs : s ∈ c.histSecs) :
 theorem compile_eq_spec : c.compile = c.compileSpec := by
   unfold compile compileSpec
   simp only [leafRows_eq]
-  simp only [index_enter, index_entryActs, index_exitActs, dedupFast_eq, initActs]
+  simp only [index_enter, index_entryActs, index_exitActs, index_parent, dedupFast_eq, initActs]
   congr 1
   apply List.map_congr_left
   intro s hs
@@ -245,11 +252,11 @@ theorem mem_cands {L : NodeId} {e : EventId} {b : Branch} (hb : b ∈ c.cands L 
   exact ⟨t, ht, he, hbt⟩
 
 theorem hist_mem {L : NodeId} {e : EventId} {b : Branch} {s : NodeId}
-    (hb : b ∈ c.cands L e) (ht : b.target = .history s) : s ∈ dedup c.histSecs := by
+    (hb : b ∈ c.cands L e) (ht : b.target.histSec = some s) : s ∈ dedup c.histSecs := by
   obtain ⟨t, htr, _, hbt⟩ := c.mem_cands hb
   rw [mem_dedup]
   simp only [histSecs, List.mem_flatMap, List.mem_filterMap]
-  exact ⟨t, htr, b, hbt, by simp [ht]⟩
+  exact ⟨t, htr, b, hbt, ht⟩
 
 theorem event_mem {L : NodeId} {e : EventId} (h : c.cands L e ≠ []) : e ∈ c.events := by
   obtain ⟨b, hb⟩ := List.exists_mem_of_ne_nil _ h
@@ -299,20 +306,34 @@ theorem row_mem {L : NodeId} {e : EventId} {b : Branch} (hL : L ∈ c.leafIds)
   refine ⟨⟨e, c.event_mem hne, rfl⟩, ?_⟩
   simp [compileRow, hne]
 
-theorem resolve_eq (s : Snapshot) {L : NodeId} {e : EventId} {b : Branch}
-    (hb : b ∈ c.cands L e) : c.compileSpec.resolve s (c.toF b).target = c.resolve s b.target := by
-  cases ht : b.target with
-  | node n => simp [toF, ht, Machine.resolve, resolve]
+/-- A target whose "resume" section has a `ResumeSpec` resolves as in the chart. -/
+theorem resolve_toTarget (s : Snapshot) (d : Dest)
+    (hd : ∀ s0, d.histSec = some s0 → s0 ∈ dedup c.histSecs) :
+    c.compileSpec.resolve s (c.toTarget d) = c.resolve s d := by
+  induction d with
+  | node n => simp [toTarget, Machine.resolve, resolve]
   | history s0 =>
-    have hm := c.hist_mem hb ht
+    have hm := hd s0 rfl
     have hf : c.compileSpec.resumes.find? (fun r => decide (r.sec = s0)) = some (c.mkResume s0) := by
       simp only [compileSpec, List.find?_map]
       have : ((fun r : ResumeSpec => decide (r.sec = s0)) ∘ c.mkResume) =
           fun x => decide (x = s0) := by funext x; rfl
       rw [this, find?_eq_self _ _ hm]
       rfl
-    simp only [toF, ht, Machine.resolve, hf, resolve, restoreTarget, mkResume]
+    simp only [toTarget, Machine.resolve, hf, resolve, restoreTarget, mkResume]
     cases lookup s.resume s0 <;> rfl
+  | back fb ih =>
+    simp only [toTarget, Machine.resolve, resolve]
+    rw [ih hd]
+    rfl
+
+theorem resolve_eq (s : Snapshot) {L : NodeId} {e : EventId} {b : Branch}
+    (hb : b ∈ c.cands L e) : c.compileSpec.resolve s (c.toF b).target = c.resolve s b.target :=
+  c.resolve_toTarget s b.target (fun _ h => c.hist_mem hb h)
+
+/-- The section of a message in the compiled machine is its parent in the chart. -/
+theorem spec_zoneOf {L : NodeId} (hL : L ∈ c.leafIds) : c.compileSpec.zoneOf L = c.parent L := by
+  simp only [Machine.zoneOf, compileSpec, lookup_map _ _ _ hL, Option.getD_some]
 
 /-- For the chosen variant the step of the compiled machine agrees with the chart. -/
 theorem fire_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) {e : EventId} {b : Branch}
@@ -329,8 +350,48 @@ theorem fire_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) {e : EventId} {b 
     simp only [Machine.exitOf, compileSpec, lookup_map _ _ _ hs, Option.getD_some]
   have hen : c.compileSpec.entryOf (c.resolve s b.target) = c.entryActs (c.resolve s b.target) := by
     simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hTmem, Option.getD_some]
-  simp only [Machine.fire, fire, hT, hex, hen]
+  have hmb : c.compileSpec.markBack s (c.resolve s b.target) = c.markBack s (c.resolve s b.target) := by
+    simp only [Machine.markBack, markBack, c.spec_zoneOf hs, c.spec_zoneOf hTmem]
+  rw [Machine.fire_eq_realize]
+  simp only [fire, hT, hex, hen, hmb]
   rfl
+
+/-- Entering the bot with an event: the compiled machine agrees with the chart. -/
+theorem enterBot_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) (pre : List Action)
+    (ev : Event) (env : HostEnv) : c.compileSpec.enterBot s pre ev env = c.enterBot s pre ev env := by
+  have hi : c.enter c.root ∈ c.leafIds := (Machine.wf_parts hwf).1
+  rw [Machine.enterBot_eq_realize]
+  unfold Chart.enterBot
+  cases ev with
+  | timer => rfl
+  | named e =>
+    have hch : c.compileSpec.choose c.compileSpec.initial (.named e) env =
+        ((c.cands (c.enter c.root) e).find? (fun b : Branch => guardOK env b.guard)).map c.toF := by
+      simp only [Machine.choose]
+      show (match c.compileSpec.row (c.enter c.root) e with
+        | none => none
+        | some r => r.branches.find? (fun b : FBranch => guardOK env b.guard)) = _
+      rw [c.spec_row hi]
+      by_cases hc : c.cands (c.enter c.root) e = []
+      · simp [hc]
+      · simp only [hc, ite_false, compileRow, List.find?_map]
+        rfl
+    rw [hch]
+    simp only [Chart.choose]
+    cases hb : (c.cands (c.enter c.root) e).find? (fun b => guardOK env b.guard) with
+    | none => rfl
+    | some b =>
+      have hbm := List.mem_of_find?_eq_some hb
+      have hT := c.resolve_eq s hbm
+      have hok : c.compileSpec.targetOK (c.toF b).target = true := by
+        obtain ⟨_, hrows, _⟩ := Machine.wf_parts hwf
+        exact hrows _ (c.row_mem hi hbm) _ (List.mem_map.mpr ⟨b, hbm, rfl⟩)
+      have hTmem : c.resolve s b.target ∈ c.leafIds := by
+        rw [← hT]; exact Machine.resolve_mem hwf s _ hok
+      have hen : c.compileSpec.entryOf (c.resolve s b.target) = c.entryActs (c.resolve s b.target) := by
+        simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hTmem, Option.getD_some]
+      simp only [Option.map_some, hT, hen]
+      rfl
 
 theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev : Event)
     (env : HostEnv) : c.compileSpec.step s ev env = c.step s ev env := by
@@ -358,7 +419,7 @@ theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev :
           exact c.fire_eq hwf s hs (List.mem_of_find?_eq_some hb)
   · have hs' : s.state ∉ c.compileSpec.states := hs
     simp only [hs, hs', not_false_eq_true, ite_true]
-    rfl
+    exact c.enterBot_eq hwf s _ ev env
 
 /-! ## The `wf` check without building the machine -/
 
@@ -387,6 +448,21 @@ theorem mem_cands_iff {L : NodeId} {e : EventId} {b : Branch} :
     exact ⟨t, ht, hs ▸ ha, he, hb⟩
   · rintro ⟨t, ht, ha, he, hb⟩
     exact ⟨t.src, ha, t, ⟨ht, rfl, he⟩, hb⟩
+
+/-- The target check of the compiled machine is `destIn` of the chart's target. -/
+theorem targetOK_toTarget (d : Dest) (hd : ∀ s0, d.histSec = some s0 → s0 ∈ dedup c.histSecs) :
+    c.compileSpec.targetOK (c.toTarget d) = c.index.destIn (keySet c.leafIds) d := by
+  induction d with
+  | node n =>
+    simp only [toTarget, Machine.targetOK, Index.destIn, keySet_contains, index_enter]
+    rfl
+  | history s0 =>
+    have hm := hd s0 rfl
+    show c.compileSpec.targetOK (.resume s0) = true
+    simp only [Machine.targetOK, compileSpec, List.any_map, List.any_eq_true, Function.comp_def,
+      mkResume]
+    exact ⟨s0, hm, by simp⟩
+  | back fb ih => simpa only [toTarget, Machine.targetOK, Index.destIn] using ih hd
 
 /-- **`wfDirect` is `wf` of the compiled machine.** -/
 theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
@@ -425,12 +501,8 @@ theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
         obtain ⟨L, hL, ha⟩ := (hanc _).mp hs
         have hbc : b ∈ c.cands L t.event := c.mem_cands_iff.mpr ⟨t, ht, ha, rfl, hb⟩
         have := h _ (c.row_mem hL hbc) (c.toF b) (List.mem_map.mpr ⟨b, hbc, rfl⟩)
-        cases hbt : b.target with
-        | node n =>
-          simp only [toF, hbt, Machine.targetOK, compileSpec] at this
-          simp only [Index.destIn, hleaf, index_enter]
-          exact this
-        | history _ => rfl
+        rw [← c.targetOK_toTarget b.target (fun _ h => c.hist_mem hbc h)]
+        exact this
       · left; simpa using hs
     · intro h r hr b' hb'
       obtain ⟨L, hL, e, rfl⟩ := c.mem_specRows hr
@@ -442,15 +514,9 @@ theorem wfDirect_spec : c.compileSpec.wf = c.wfDirect := by
       rcases h t ht with h | h
       · rw [hs] at h; cases h
       · have hd := h b hbt
-        cases htg : b.target with
-        | node n =>
-          simp only [Index.destIn, htg, hleaf, index_enter, decide_eq_true_eq] at hd
-          simp [toF, htg, Machine.targetOK, compileSpec, hd]
-        | history s0 =>
-          have hm := c.hist_mem hb htg
-          simp only [toF, htg, Machine.targetOK, compileSpec, List.any_map, List.any_eq_true,
-            Function.comp_def, mkResume]
-          exact ⟨s0, hm, by simp⟩
+        show c.compileSpec.targetOK (c.toTarget b.target) = true
+        rw [c.targetOK_toTarget b.target (fun _ h => c.hist_mem hb h)]
+        exact hd
   unfold Machine.wf wfDirect
   simp only [compileSpec, hleaf, index_enter] at h2 h3 ⊢
   rw [h2, h3]
@@ -467,6 +533,25 @@ theorem compile_correct (hwf : c.compile.wf = true) (s : Snapshot) (ev : Event) 
 
 theorem start_correct : c.compile.start = c.start := by
   rw [compile_eq_spec]; rfl
+
+/-- **The sections that "back" compares are those of the chart**: the section of a message in
+the compiled machine is the section that directly contains it in the chart. -/
+theorem compile_zoneOf {L : NodeId} (hL : L ∈ c.leafIds) : c.compile.zoneOf L = c.parent L := by
+  rw [compile_eq_spec]; exact c.spec_zoneOf hL
+
+/-- **Entering the bot with a first event**: the compiled machine agrees with the chart. -/
+theorem startWith_correct (hwf : c.compile.wf = true) (n : Nat) (ev : Event) (env : HostEnv) :
+    c.compile.startWith n ev env = c.startWith n ev env := by
+  rw [compile_eq_spec] at hwf ⊢
+  exact c.enterBot_eq hwf _ [] ev env
+
+/-- The first-entry actions of a compiled machine are the entry actions of its initial message,
+the hypothesis of `Machine.startWith_initial`. -/
+theorem compile_initActions (hwf : c.compile.wf = true) :
+    c.compile.entryOf c.compile.initial = c.compile.initActions := by
+  rw [compile_eq_spec] at hwf ⊢
+  have hi : c.enter c.root ∈ c.leafIds := (Machine.wf_parts hwf).1
+  simp only [Machine.entryOf, compileSpec, lookup_map _ _ _ hi, Option.getD_some, initActs]
 
 end Chart
 end Figram

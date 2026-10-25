@@ -39,14 +39,19 @@
           ]
         }
       },
-      "help": {
-        "on": {
-          "btn:back": [
-            {
-              "to": "order",
-              "resume": true
+      "help_section": {
+        "initial": "help",
+        "children": {
+          "help": {
+            "on": {
+              "btn:back": [
+                {
+                  "to": "menu",
+                  "back": true
+                }
+              ]
             }
-          ]
+          }
         }
       },
       "done": {},

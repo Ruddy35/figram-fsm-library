@@ -13,7 +13,8 @@ A bot is one JSON document (`examples/*.bot.json`, schema
 [`schemas/figram.schema.json`](schemas/figram.schema.json)), meant to be written by a visual
 editor (not part of this repository) or by hand; the engine executes the document. The document
 describes messages, events, arrows with ordered variants guarded by named conditions, actions,
-nested sections, "resume where the user left off" arrows, and timers
+nested sections, "resume where the user left off" and "back to the previous section" arrows,
+and timers
 ([docs/format.md](docs/format.md)).
 
 The engine is **stateless**. It loads and compiles a document once and then answers requests:
@@ -24,7 +25,7 @@ per user, evaluates conditions when the engine asks for them, executes the actio
 schedules timers ([docs/host-contract.md](docs/host-contract.md)).
 
 **What is proved.** The reference semantics of the designer's chart, the compiler to a flat
-machine and the document format are specified in Lean 4; 23 pinned theorems state, among other
+machine and the document format are specified in Lean 4; 46 pinned theorems state, among other
 things, that the compiled machine takes exactly the steps of the chart for every snapshot, event
 and condition values, that a checked document is encoded and decoded back unchanged, and that a
 `step` request runs exactly the proved step and returns a snapshot the engine can read back. All
@@ -46,6 +47,10 @@ The proved Lean code is what runs: it is compiled into
   extension rules: annotations under `x-` keys are kept and never change behaviour, any other
   unknown key is an error (a misspelt field is reported, not ignored); semantic extensions must
   be declared in `requires`.
+* Designer shortcuts on top of messages and arrows: nested sections whose arrows work on every
+  message inside, "resume where the user left off", "back to the previous section" (to the
+  message the user left when they last crossed a section boundary) and timers on messages
+  ([docs/format.md](docs/format.md), section 7).
 * `figram check` reports the errors that the structure cannot rule out and warns about probable
   mistakes, such as variants that can never fire, unreachable messages and self-defeating timer
   loops.
@@ -139,7 +144,7 @@ $ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram
   }
 }
 $ figram trace examples/pizza.bot.json 1 3 7 2>/dev/null
-{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"cmd:help","guards":{},"snapshot":{"at":"help","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"help"}]}]}
+{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","back":"menu","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"cmd:help","guards":{},"snapshot":{"at":"help","back":"cart","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"help"}]}]}
 $ figram random 7 5 2>/dev/null | figram check /dev/stdin 2>/dev/null
 ok
 $ out=$(mktemp -d) && figram golden "$out" > /dev/null && ls "$out" && rm -r "$out"
@@ -173,11 +178,11 @@ parallelism.
 $ printf '%s\n' '{"id":1,"op":"start"}' '{"id":2,"op":"step","snapshot":{"at":"menu","seq":1},"event":"btn:order"}' \
 >   | figram-engine examples/pizza.bot.json
 {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
-{"id":2,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+{"id":2,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 ```
 
-The operations are `hello`, `start`, `restart` and `step`; a `step` may answer
-`{"need": [...]}` when it needs condition values, and errors carry a machine-readable `code`
+The operations are `hello`, `start`, `restart` and `step`; a `step` (and a `start` with the
+user's first event) may answer `{"need": [...]}` when it needs condition values, and errors carry a machine-readable `code`
 (`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`). The complete
 protocol, the snapshot format and the error rules are in [docs/format.md](docs/format.md),
 section 8; the rules a host must follow (per-user ordering, transactions, idempotency, timers,
@@ -231,7 +236,7 @@ finally:
 
 ```text output
 [{'send': 'menu'}]
-{'at': 'catalog', 'resume': {'order': 'catalog'}, 'seq': 2} [{'send': 'catalog'}]
+{'at': 'catalog', 'back': 'menu', 'resume': {'order': 'catalog'}, 'seq': 2} [{'send': 'catalog'}]
 address
 bad_snapshot False
 ```

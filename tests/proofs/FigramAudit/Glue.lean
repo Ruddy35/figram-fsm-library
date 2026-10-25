@@ -130,6 +130,24 @@ theorem engine_step_is_reference {txt : String} {m : Machine} (hload : Engine.lo
   rw [Chart.compile_correct _ hwf]
   rfl
 
+/-- G7b: end to end — a `start` request with a first event to a loaded engine computes the
+reference semantics `Chart.startWith` of the loaded document (model level). -/
+theorem engine_start_is_reference {txt : String} {m : Machine} (hload : Engine.load txt = .ok m)
+    (kvs : Obj) (n : Nat) (e : EventId) (gs : List (String × Bool))
+    (hop : get kvs "op" = some (.str "start")) (hseq : decStartSeq kvs = .ok n)
+    (hev : (get kvs "event").isSome = true) (he : decStartEvent kvs = .ok e)
+    (hgs : decGuards kvs = .ok gs) (hmiss : missingStart m e gs = [])
+    (hov : (m.startWith n (.named e) (envOf gs)).1.seq ≤ maxInt) :
+    ∃ d : Doc, d.check = [] ∧ m = d.toChart.compile ∧
+      handleObj m kvs = .ok (result ((get kvs "id").getD .null)
+        (d.toChart.startWith n (.named e) (envOf gs)).1
+        (d.toChart.startWith n (.named e) (envOf gs)).2 false) := by
+  obtain ⟨d, hc, hm, hwf, _⟩ := load_sound hload
+  refine ⟨d, hc, hm, ?_⟩
+  rw [handle_start m kvs n e gs hop hseq hev he hgs hmiss hov]
+  subst hm
+  rw [Chart.startWith_correct _ hwf]
+
 /-! ## G8: `start` and `restart` also emit admissible snapshots (the engine never produces a
 snapshot it could not read back; the product theorems state it for `step` and `startAt`). -/
 
@@ -140,21 +158,23 @@ theorem start_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) :
   have hmem := m.start_state_valid hwf
   have hinv := foldl_inv 1 (by decide) m.initActions hinit
     ({ Snapshot.fresh with state := m.initial, seq := Snapshot.fresh.seq + 1 }, [])
-    ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp⟩
-  refine ⟨?_, hinv.1, hinv.2, ?_⟩
+    ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp,
+      fun v hv => by simp [Snapshot.fresh] at hv⟩
+  refine ⟨?_, hinv.1, hinv.2.1, ?_, hinv.2.2⟩
   · exact ne_of_not_isEmpty (hstates _ hmem)
   · show (realize Snapshot.fresh m.initial m.initActions).1.seq ≤ maxInt
     rw [realize_seq]; decide
 
 theorem restart_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
     (s : Snapshot) (hs : SnapOK s) (hseq : s.seq + 1 ≤ maxInt) :
-    SnapOK (m.recover { s with resume := [] }).1 := by
+    SnapOK (m.recover { s with resume := [], back := none }).1 := by
   simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
   obtain ⟨⟨⟨⟨hstates, hinit⟩, _⟩, _⟩, _⟩ := hn
   have hi := (Machine.wf_parts hwf).1
-  unfold Machine.recover
-  have hs' : SnapOK { s with resume := [] } := ⟨hs.state, by simp, hs.timers, hs.seq⟩
-  refine realize_snapOK { s with resume := [] } m.initial _ hs'
+  rw [Machine.recover_eq_realize]
+  have hs' : SnapOK { s with resume := [], back := none } :=
+    ⟨hs.state, by simp, hs.timers, hs.seq, by simp⟩
+  refine realize_snapOK { s with resume := [], back := none } m.initial _ hs'
     (ne_of_not_isEmpty (hstates _ hi)) ?_ hseq
   · intro a ha
     simp only [List.mem_append, List.mem_map] at ha
@@ -183,6 +203,9 @@ theorem except_bind_ok {ε α β : Type} {x : Except ε α} {f : α → Except �
   cases x <;> simp [bind, Except.bind]
 theorem except_pure_ok {ε α : Type} {a b : α} : (pure a : Except ε α) = .ok b ↔ a = b := by
   simp [pure, Except.pure]
+theorem except_map_ok {ε α β : Type} {f : α → β} {x : Except ε α} {b : β} :
+    (f <$> x) = .ok b ↔ ∃ a, x = .ok a ∧ f a = b := by
+  cases x <;> simp [Functor.map, Except.map]
 theorem boundedNat_ok {w : String} {j : J} {n : Nat} (h : boundedNat w j = .ok n) : n ≤ maxInt := by
   cases j with
   | num m e =>
@@ -249,9 +272,16 @@ theorem decSnapshot_sound {j : J} {s : Snapshot} (h : decSnapshot j = .ok s) : S
     simp only [hat] at h
     rw [except_bind_ok] at h; obtain ⟨st, hst, h⟩ := h
     have hst := nonEmpty_ok hst
-    rcases hr : Format.get kvs "resume" with _ | (_ | _ | _ | _ | _ | mr) <;>
+    rcases hbk : Format.get kvs "back" with _ | jb <;>
+      simp only [hbk] at h <;> rw [except_bind_ok] at h <;> obtain ⟨bk, hbk', h⟩ := h
+    all_goals (have hB : ∀ v, bk = some v → v ≠ "" := by
+                 first
+                 | (rw [except_pure_ok] at hbk'; subst hbk'; simp)
+                 | (rw [except_map_ok] at hbk'; obtain ⟨b, hb, rfl⟩ := hbk'
+                    intro v hv; cases hv; exact nonEmpty_ok hb))
+    all_goals (rcases hr : Format.get kvs "resume" with _ | (_ | _ | _ | _ | _ | mr) <;>
       simp only [hr] at h <;> rw [except_bind_ok] at h <;> obtain ⟨res, hres, h⟩ := h <;>
-      (try exact absurd hres except_throw_ne)
+      (try exact absurd hres except_throw_ne))
     all_goals (have hR : ∀ p ∈ res, p.1 ≠ "" ∧ p.2 ≠ "" := by
                  first
                  | (rw [except_pure_ok] at hres; subst hres; simp)
@@ -271,7 +301,7 @@ theorem decSnapshot_sound {j : J} {s : Snapshot} (h : decSnapshot j = .ok s) : S
                  first
                  | (rw [except_pure_ok] at hseq; subst hseq; simp [maxInt])
                  | exact boundedNat_ok hseq)
-    all_goals (rw [except_pure_ok] at h; subst h; exact ⟨hst, hR, hT, hS⟩)
+    all_goals (rw [except_pure_ok] at h; subst h; exact ⟨hst, hR, hT, hS, hB⟩)
   | _ => exact absurd h except_throw_ne
 
 /-- G10: closed protocol for `step` without an external `SnapOK` hypothesis: the snapshot

@@ -34,6 +34,17 @@ For every Telegram update (it carries an `update_id`):
    cart, and a balance check allows two purchases with the same money. Conditions may also
    depend on the data of the event itself (message text, button payload).
 
+   **A new user** (no snapshot) comes with an update too: `/start ref123`, a button of an old
+   message after the snapshot was lost, a text. Call `start` with the update's event (and `seq`,
+   the high-water mark of section 4, if the user had one) instead of `step`; `need` is
+   answered the same way. The event is matched as if the user stood on the initial message
+   ([format.md](format.md), section 7, decision 9), so one reply both starts the user and
+   processes the update, and the document decides what `/start` does. The engine never sees
+   the parameter `ref123`: a condition (`ref_valid`) and an action (`save_ref`) of the host read
+   it from the update. A timer event for a user without a snapshot is not such an update: a new
+   user has no timers, the event belongs to a lost or deleted snapshot, and `start` rejects it
+   (`bad_request`). Drop it and record its mark as processed; do not start the user with it.
+
    **Shared scarce resources.** The per-user barrier does not protect data shared between
    users: the last seat, the remaining stock, a limit. Two users checking `slot_free` at the
    same time both see a free seat and both get "booked", and one of the reservation actions
@@ -43,8 +54,10 @@ For every Telegram update (it carries an `update_id`):
    committed but not yet executed (outbox rows); do not count cancellations that are not yet
    executed as free. Or reserve the resource directly in the step's transaction. Lock several
    resources in one fixed order, after the user's lock.
-4. **Atomic write.** One transaction stores: the new snapshot, the mark "`update_id`
-   processed", and the reply's actions in an outbox. An outbox row stores the `seq` of the new
+4. **Atomic write.** One transaction stores: the new snapshot (the JSON the engine returned,
+   unchanged — a host that maps it to a record type of its own drops the fields it does not
+   know, such as `back` added in 0.2.0, and "back" then always takes its fallback), the mark
+   "`update_id` processed", and the reply's actions in an outbox. An outbox row stores the `seq` of the new
    snapshot, the action's position in the reply (execution follows them, section 2) and an
    idempotency key. The key must name the logical action uniquely and must never be given to
    another action — including after a rollback of the snapshot database (failover to an
@@ -165,8 +178,9 @@ A separate executor takes actions from the outbox in order and marks them execut
 To start a user over (a support command, "delete my data" while keeping the account), the `seq`
 counter must continue, not restart from zero. Use `restart` with the **latest committed**
 snapshot (read under the user's lock, section 1), not `start` without `seq`. `restart` cancels
-the old timers and continues `seq`, so the tokens of new timers do not match the tokens of late
-old events, and the keys `user:seq:index` of new actions do not match keys of executed ones.
+the old timers, clears the remembered places and the place to go back to, and continues `seq`,
+so the tokens of new timers do not match the tokens of late old events, and the keys
+`user:seq:index` of new actions do not match keys of executed ones.
 
 A snapshot from a lagging replica or a backup is not suitable for `restart`: the engine does
 not cancel timers started after that snapshot and reissues `seq` values that were already used.
@@ -184,18 +198,30 @@ early.
 If the snapshot is lost or deleted, keep a separate "high-water mark" — the largest `seq` ever
 issued to the user (one number, not personal data; it can be rebuilt as the maximum `seq` of
 the user's outbox rows) — and, if the snapshot database can roll back, keep it outside that
-database, otherwise the mark rolls back too. Start the user with `start` and this mark, or with
-`restart` and a placeholder snapshot whose `at` names no message:
+database, otherwise the mark rolls back too. Raise the mark no later than the commit of the
+snapshot that issues the new `seq` (in the same transaction, or before it when the mark is kept
+elsewhere: a mark that is too high is harmless, one that lags reissues `seq` values), and rebuild
+it from the outbox only if executed outbox rows are kept. Start the user with `start` and this
+mark (with the event of the update, section 1, step 3), or with `restart` and a placeholder
+snapshot whose `at` names no message. `restart` takes no event: a user who comes back with an
+update (a button of an old message) loses it there and lands on the initial message; `step`
+with the placeholder and the update's event processes it as `start` with the event does (it is
+a recovery, section 6, and the reply carries `"recovered": true`):
 
 ```sh doctest
 $ printf '%s\n' '{"id":1,"op":"start","seq":41}' '{"id":2,"op":"restart","snapshot":{"at":"-","seq":41}}' \
+>   '{"id":3,"op":"start","seq":41,"event":"btn:order"}' \
+>   '{"id":4,"op":"step","snapshot":{"at":"-","seq":41},"event":"btn:order"}' \
 >   | figram-engine examples/pizza.bot.json
 {"id":1,"snapshot":{"at":"menu","seq":42},"actions":[{"send":"menu"}]}
 {"id":2,"snapshot":{"at":"menu","seq":42},"actions":[{"send":"menu"}]}
+{"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":42},"actions":[{"send":"catalog"}]}
+{"id":4,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":42},"actions":[{"send":"catalog"}],"recovered":true}
 ```
 
 Here 41 is the high-water mark: the engine starts the user at the initial message, and the
-first transition gets `seq` 42. Neither `start` nor the placeholder knows the old timers: in the
+first transition gets `seq` 42; with the update's event `btn:order` (an arrow of the initial
+message) the user goes straight to the catalog. Neither `start` nor the placeholder knows the old timers: in the
 same operation remove from the scheduler all of the user's events with a token not greater than
 the mark (new timers get greater tokens, so the order of these operations does not matter).
 
@@ -222,7 +248,8 @@ distinguishes a failure of one call from a failure of the process.
   process that answered at least one request is replaced immediately after a failure.
 
 Every client failure is an `EngineError` (an exception raised by the host's own `guards`
-function propagates unchanged). `retryable = True` means a process failure or a
+function propagates unchanged; a misuse of the client API, such as `processes` below 1 or
+`guards` passed to `start` without `event`, raises `ValueError` at the call). `retryable = True` means a process failure or a
 timeout: the host repeats such requests under the rules of section 1 (an engine step is a pure
 function; repeating it is safe while the transaction is not committed), with a pause between
 attempts. Limit retries after timeouts (for example to three): the process is single-threaded,
@@ -256,14 +283,23 @@ concurrently, with one shared `timeout`.
 
 * Load the new document version into the engine as a whole; user snapshots are not migrated.
 * If the snapshot's message no longer exists, the engine starts the user over and replies
-  `"recovered": true` — worth logging. The event of that request is not processed: the user
-  lands on the bot's initial message, and the host decides whether to tell the user or to
-  deliver the event again from the new snapshot.
-* If a remembered place no longer exists, "resume" leads to the section's initial message.
+  `"recovered": true` — worth logging. The old timers are cancelled and the event of that
+  request is processed as at the bot's initial message, as for a new user (section 1, step 3):
+  an arrow of the initial message or of a section around it leads straight to its target,
+  otherwise the user lands on the initial message. The step can therefore answer `need`.
+  Do not deliver the event again after `"recovered": true`: version 0.1.0 dropped the event, and
+  this document then suggested delivering it again from the new snapshot; with 0.2.0 that
+  processes it twice under a new `seq` — an arrow of the root section, such as `/start` with
+  `save_ref`, makes two transitions, and with the keys `user:seq:index` of section 1 its actions
+  run twice.
+* If a remembered place no longer exists, "resume" leads to the section's initial message. If
+  the place to go back to (`back`) no longer exists, "back" leads to the arrow's `to`.
+  Recovery keeps `back`, so after it `back` can name the message the user landed on: "back"
+  there sends the same message again until the user leaves it another way.
 * The engine rejects a snapshot with an unknown field or version: such a snapshot was written
   by a newer engine, so the engine must not be rolled back without rolling back the snapshots.
-* A message that became a section also counts as gone: the user starts at the bot's initial
-  message (`"recovered": true`), not at the section's. A remembered place moved to another
+* A message that became a section also counts as gone: the user starts over from the bot's
+  initial message (`"recovered": true`), not from the section's. A remembered place moved to another
   section counts as gone.
 * Snapshot timers are not migrated. If the user's current message has a timer that was renamed,
   removed or moved to another message in the new version, the firing `timer:<old name>` is
@@ -291,10 +327,16 @@ zone. The test requires that
 every user ends where their data leads (`done` with exactly one order, or `pickup` without
 one), that no update is lost (the final snapshot equals a sequential replay of the processed
 events with the same conditions) and that no action stays unexecuted. A stale timer event after
-a restart is ignored. `./verify.sh` runs it.
+a restart is ignored. A second scenario loses the snapshot row of 12 users (after an order, or
+at the cart while the reminder runs): the old timer event that arrives without a snapshot is
+dropped, and the user comes back with a button of an old message, started with `start`, the
+update's event and the high-water mark (section 1, step 3; section 4), and orders again with
+every action executed. `./verify.sh` runs it.
 
-Two controls show that the test detects violations: a host without duplicate filtering and
-without idempotency keys (run by the test itself) produces duplicate orders, and a host without
+Controls show that the test detects violations: a host without duplicate filtering and
+without idempotency keys (run by the test itself) produces duplicate orders; a host that starts a
+user without a snapshot without the update's event, or without the high-water mark (both run by
+the test itself), loses the button or the actions of the second order; and a host without
 the barrier (`host_sim.py ENGINE DOC --no-barrier`, conditions read before the previous step's
 actions are executed; not part of `./verify.sh`) takes wrong branches.
 

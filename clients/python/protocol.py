@@ -42,15 +42,18 @@ def name(x, what: str) -> None:
 
 
 def check_snapshot(s) -> None:
-    """Strictly by schemas/snapshot.schema.json."""
+    """By schemas/snapshot.schema.json, for the snapshots the engine writes: integers must be
+    written as integers (the schema and the engine also accept `5.0` and `5e0`)."""
     if type(s) is not dict:
         raise ProtocolError(f"snapshot is not an object: {s!r}")
-    extra = set(s) - {"v", "at", "resume", "timers", "seq"}
+    extra = set(s) - {"v", "at", "back", "resume", "timers", "seq"}
     if extra:
         raise ProtocolError(f"snapshot: extra fields {sorted(extra)}")
     if "v" in s and (not is_int(s["v"]) or s["v"] != 1):
         raise ProtocolError(f"snapshot: version {s['v']!r}")
     name(s.get("at"), "snapshot.at")
+    if "back" in s:
+        name(s["back"], "snapshot.back")
     for k, field in (("resume", "resume"), ("timers", "timers")):
         if k in s and type(s[k]) is not dict:
             raise ProtocolError(f"snapshot.{field} is not an object")
@@ -116,14 +119,15 @@ def check_reply(resp, rid: int, op: str) -> str:
                 or not is_int(resp["states"]) or ("mutant" in resp and type(resp["mutant"]) is not str):
             raise ProtocolError(f"hello reply: {resp!r}")
         return "hello"
-    if op == "step" and keys == {"need"}:
+    if op in ("step", "start") and keys == {"need"}:
         need = resp["need"]
         if type(need) is not list or not need or len(set(need)) != len(need):
             raise ProtocolError(f"need: {need!r}")
         for n in need:
             name(n, "need")
         return "need"
-    if keys not in ({"snapshot", "actions"}, {"snapshot", "actions", "recovered"}):
+    # "recovered" only in a reply to step (docs/format.md, section 8)
+    if keys != {"snapshot", "actions"} and (op != "step" or keys != {"snapshot", "actions", "recovered"}):
         raise ProtocolError(f"{op} reply: fields {sorted(keys)}")
     if "recovered" in resp and resp["recovered"] is not True:
         raise ProtocolError(f"recovered: {resp['recovered']!r}")

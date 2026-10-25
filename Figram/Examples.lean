@@ -12,7 +12,9 @@ Shows all the shortcuts:
 
 * the section `bot` around everything — the global command `/start` from any screen;
 * the section `order` — the "Cancel" button once for the whole order;
-* `/help` from anywhere and "Back" to where the user left off;
+* `/help` from anywhere and "Back" to the message the user opened help from, otherwise to the menu
+  (help is in a section of its own, so opening it always crosses a section boundary);
+* "Back" from the reminder to where the user left off in the order;
 * a reminder on the cart;
 * conditions as text: "the cart is not empty", "the address is in the delivery zone".
 -/
@@ -21,10 +23,15 @@ namespace Figram.Examples
 
 open Figram Figram.Format
 
-private def v (to : NodeId) (calls : List String := []) : Variant := ⟨none, to, false, calls, []⟩
+private def v (to : NodeId) (calls : List String := []) : Variant := ⟨none, to, false, false, calls, []⟩
 private def vIf (c : String) (to : NodeId) (calls : List String := []) : Variant :=
-  ⟨some c, to, false, calls, []⟩
-private def back (s : NodeId) : Variant := ⟨none, s, true, [], []⟩
+  ⟨some c, to, false, false, calls, []⟩
+/-- "Resume section `s` where the user left off". -/
+private def resume (s : NodeId) : Variant := ⟨none, s, true, false, [], []⟩
+/-- "Back to the previous section", otherwise to `fallback`. -/
+private def goBack (fallback : NodeId) : Variant := ⟨none, fallback, false, true, [], []⟩
+/-- "Back to the previous section", otherwise resume section `s`. -/
+private def goBackResume (s : NodeId) : Variant := ⟨none, s, true, true, [], []⟩
 private def msg (on : List (EventId × List Variant)) : NodeDoc := .message on [] []
 
 /-- The pizza shop bot in the document format. -/
@@ -44,9 +51,9 @@ def pizzaDoc : Doc where
     ("address", "Delivery address")]
   bot := .sec "menu" [
       ("menu", msg [("btn:order", [v "order"])]),
-      ("help", msg [("btn:back", [back "order"])]),
+      ("help_section", .sec "help" [("help", msg [("btn:back", [goBack "menu"])])] [] []),
       ("done", msg []),
-      ("reminder", msg [("btn:back", [back "order"])]),
+      ("reminder", msg [("btn:back", [resume "order"])]),
       ("order", .sec "catalog" [
           ("catalog", msg [("btn:pizza", [v "pizza"]), ("btn:cart", [v "cart"])]),
           ("pizza", .sec "pick_size" [
@@ -82,9 +89,9 @@ def featuresDoc : Doc where
           ("btn:go", [vIf "is_vip" "vip", v "shop"]),
           ("btn:self", [v "home"])
         ] [("idle", 60000)] []),
-      ("help", msg [("btn:back", [back "shop"])]),
+      ("help", msg [("btn:back", [resume "shop"])]),
       ("vip", msg []),
-      ("paid", msg []),
+      ("paid", msg [("btn:back", [goBackResume "shop"])]),
       ("shop", .sec "catalog" [
           ("catalog", msg [
               ("btn:next", [v "sub"]),
@@ -97,9 +104,9 @@ def featuresDoc : Doc where
                 ] [("remind", 5000)] []),
               ("item2", msg [("btn:back_item", [v "item"])])
             ] [] []),
-          ("reminder", msg [("btn:back", [back "shop"])])
+          ("reminder", msg [("btn:back", [resume "shop"])])
         ] [("btn:cancel", [v "home"]), ("btn:x", [v "reminder"])] [])
-    ] [("cmd:start", [v "home"]), ("cmd:help", [v "help"])] []
+    ] [("cmd:start", [v "home"]), ("cmd:help", [v "help"]), ("btn:prev", [goBack "home"])] []
   ext := []
 
 def features : Chart := featuresDoc.toChart
@@ -130,7 +137,7 @@ def golden : List (String × Doc × Option Snapshot × List In) := [
     .ev "btn:go" [("is_vip", false)], .ev "btn:next", .ev "btn:other",
     .ev "cmd:help", .ev "btn:back"]),
   ("stale_resume_value", featuresDoc,
-    some ⟨"help", [("shop", "deleted_message")], [], 7⟩, [.ev "btn:back"]),
+    some ⟨"help", [("shop", "deleted_message")], [], 7, none⟩, [.ev "btn:back"]),
   ("self_loop_restarts_timer", featuresDoc, none, [.ev "btn:self", .ev "btn:self"]),
   ("timer_tokens", featuresDoc, none, [
     .ev "btn:go" [("is_vip", false)], .ev "btn:next",
@@ -140,8 +147,28 @@ def golden : List (String × Doc × Option Snapshot × List In) := [
     .ev "btn:go" [("is_vip", false)], .ev "btn:next",
     .ev "btn:buy" [("in_stock", true)]]),
   ("recover_deleted_current", featuresDoc,
-    some ⟨"deleted_message", [("shop", "item")], [("old_timer", 3)], 9⟩,
-    [.ev "btn:go" [("is_vip", true)]])
+    some ⟨"deleted_message", [("shop", "item")], [("old_timer", 3)], 9, none⟩,
+    [.ev "btn:go" [("is_vip", true)]]),
+  -- `start` with a first event: as if the user stood on the initial message
+  ("start_event_into_initial", pizzaDoc, none, [.start "cmd:start", .ev "btn:order"]),
+  ("start_event_deep", pizzaDoc, none, [.start "btn:order", .ev "btn:pizza"]),
+  ("start_event_guard_true", featuresDoc, none, [.start "btn:go" [("is_vip", true)], .ev "cmd:start"]),
+  ("start_event_guard_false", featuresDoc, none, [.start "btn:go" [("is_vip", false)], .ev "btn:next"]),
+  ("start_event_root_arrow", featuresDoc, none, [.start "cmd:help", .ev "btn:back"]),
+  ("start_event_unmatched", featuresDoc, none, [.start "btn:nothing", .ev "btn:self"]),
+  -- "back to the previous section"
+  ("back_toggle", featuresDoc, none, [
+    .ev "btn:go" [("is_vip", false)], .ev "btn:next", .ev "btn:other", .ev "btn:prev", .ev "btn:prev"]),
+  ("back_from_help", featuresDoc, none, [
+    .ev "btn:go" [("is_vip", false)], .ev "btn:next", .ev "cmd:help", .ev "btn:prev"]),
+  ("back_same_section", featuresDoc, none, [.ev "cmd:help", .ev "btn:prev"]),
+  ("back_fallback", featuresDoc, none, [.ev "btn:prev"]),
+  ("back_stale_place", featuresDoc, some ⟨"help", [], [], 7, some "deleted_message"⟩, [.ev "btn:prev"]),
+  ("back_resume_fallback", featuresDoc, some ⟨"paid", [("shop", "item")], [], 4, none⟩,
+    [.ev "btn:back"]),
+  ("back_after_start_event", featuresDoc, none, [.start "btn:go" [("is_vip", false)], .ev "btn:prev"]),
+  ("back_recovery_kept", featuresDoc, some ⟨"deleted_message", [], [], 3, some "catalog"⟩,
+    [.ev "btn:prev"])
 ]
 
 def runGolden (name : String) : Option (Snapshot × List (List Action)) :=
@@ -150,6 +177,7 @@ def runGolden (name : String) : Option (Snapshot × List (List Action)) :=
     (s, acts)
 
 def finalAt (name : String) : String := ((runGolden name).map (·.1.state)).getD "?"
+def finalBack (name : String) : Option NodeId := ((runGolden name).map (·.1.back)).getD (some "?")
 def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten)).getD []
 
 -- a successful order reaches the end and calls create_order
@@ -167,12 +195,60 @@ def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten
 #guard finalAt "stale_resume_value" == "catalog"
 -- a stale token is ignored, the current one fires
 #guard finalAt "timer_tokens" == "reminder"
--- a deleted current message: the bot starts over and the old timers are cancelled
-#guard finalAt "recover_deleted_current" == "home"
-#guard (allActs "recover_deleted_current").take 1 == [.cancelTimer "old_timer"]
+-- a deleted current message: the bot starts over, the old timers are cancelled first and the
+-- event is processed as at the initial message (`btn:go` with `is_vip`: straight to `vip`)
+#guard finalAt "recover_deleted_current" == "vip"
+#guard allActs "recover_deleted_current" == [.cancelTimer "old_timer", .send "vip"]
+-- recovery with an event without an arrow, or with a timer event: the plain start over
+#guard (features.step ⟨"gone", [("shop", "item")], [("t", 3)], 9, none⟩ (.named "btn:nothing") (fun _ => true)).2 ==
+  [.cancelTimer "t", .startTimer "idle" 60000 10, .send "home"]
+#guard (features.step ⟨"gone", [], [("t", 3)], 9, none⟩ (.timer "t" 3) (fun _ => true)).2 ==
+  [.cancelTimer "t", .startTimer "idle" 60000 10, .send "home"]
 -- action order: exit → the arrow's actions → entry
 #guard ((runGolden "buy_action_order").map (·.2.getLast!)) ==
   some [.cancelTimer "remind", .call "charge", .call "notify", .send "paid"]
+-- `start` with a first event
+#guard finalAt "start_event_deep" == "pick_size"
+#guard finalAt "start_event_guard_true" == "home"
+#guard finalAt "start_event_root_arrow" == "catalog"
+-- a variant into the initial message enters it once: exactly `start`
+#guard pizza.startWith 0 (.named "cmd:start") (fun _ => false) == pizza.start
+-- the initial message is not entered: no `send` of it, its timers are not started
+#guard (pizza.startWith 0 (.named "btn:order") (fun _ => false)).2 == [.send "catalog"]
+#guard (features.startWith 0 (.named "btn:go") (fun _ => true)).2 == [.send "vip"]
+-- no matching variant, or a timer event: the plain first entry
+#guard features.startWith 0 (.named "btn:nothing") (fun _ => true) == features.start
+#guard features.startWith 0 (.timer "idle" 1) (fun _ => true) == features.start
+-- the counter continues from the high-water mark
+#guard (features.startWith 41 (.named "btn:go") (fun _ => true)).1.seq == 42
+-- "back": a move into another section remembers the message left, a move inside a section
+-- keeps the place, "back" leads there and back again
+#guard (features.step ⟨"home", [], [], 1, none⟩ (.named "btn:go") (fun _ => false)).1.back == some "home"
+#guard finalAt "back_toggle" == "item2" && finalBack "back_toggle" == some "catalog"
+#guard (runGolden "back_toggle").map (·.2.getLast!) == some [.send "item2"]
+-- "back" from a message of another section returns to the message the user left
+#guard finalAt "back_from_help" == "item" && finalBack "back_from_help" == some "help"
+-- `home` and `help` are both directly in the root section: no boundary is crossed, so "back"
+-- has no place and leads to its fallback
+#guard finalAt "back_same_section" == "home" && finalBack "back_same_section" == none
+-- nothing to go back to yet, or the place is gone: the fallback `to`
+#guard finalAt "back_fallback" == "home" && finalBack "back_fallback" == none
+#guard finalAt "back_stale_place" == "home"
+#guard finalAt "back_resume_fallback" == "item"
+-- entering the bot with an event leaves no message; recovery keeps the place
+#guard finalAt "back_after_start_event" == "home"
+#guard finalAt "back_recovery_kept" == "catalog"
+-- pizza: help is in a section of its own, so "Back" returns to wherever help was opened
+#guard (pizza.step (pizza.step ⟨"done", [("order", "pay")], [], 6, some "pay"⟩ (.named "cmd:help")
+  (fun _ => false)).1 (.named "btn:back") (fun _ => false)).1.state == "done"
+#guard (pizza.step (pizza.step ⟨"menu", [("order", "cart")], [], 6, some "cart"⟩ (.named "cmd:help")
+  (fun _ => false)).1 (.named "btn:back") (fun _ => false)).1.state == "menu"
+-- recovery can leave the place in the user's own section, even the current message: "back"
+-- then does not return but repeats that message (docs/format.md, section 7, decision 10)
+#guard (features.step ⟨"gone", [], [], 3, some "item2"⟩ (.named "btn:prev") (fun _ => false)).1 ==
+  ⟨"item2", [("shop", "item2")], [], 4, some "item2"⟩
+#guard features.step ⟨"item2", [("shop", "item2")], [], 4, some "item2"⟩ (.named "btn:prev") (fun _ => false) ==
+  (⟨"item2", [("shop", "item2")], [], 5, some "item2"⟩, [.send "item2"])
 -- a self-loop restarts the timer with a new token
 #guard ((runGolden "self_loop_restarts_timer").map (·.2.getLast!)) ==
   some [.cancelTimer "idle", .startTimer "idle" 60000 3, .send "home"]
@@ -211,6 +287,16 @@ def textRoundTrip (d : Doc) : Bool :=
       && d.check.contains "document: unknown key `Bot` (annotation keys start with `x-`)"
       && d.check.contains "node `a`: unknown key `tiemrs` (annotation keys start with `x-`)"
       && d.check.contains "`a` → `go`: unknown key `iff` (annotation keys start with `x-`)"
+  | .error _ => false
+
+-- V3 holds for the fallback of a "back" variant as well: `resume` into a message and a missing
+-- `to` are rejected with the errors they get without `back` (the final well-formedness check
+-- alone accepts the first one)
+#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"on\": {\"btn:b\": [{\"to\": \"c\", \"resume\": true, \"back\": true}]}}, \"c\": {}}}}" >>= decode with
+  | .ok d => d.check.contains "arrow `a` → `c` with `resume`: not a section"
+  | .error _ => false
+#guard match parse "{\"figram\": 1, \"bot\": {\"initial\": \"a\", \"children\": {\"a\": {\"on\": {\"btn:b\": [{\"to\": \"nope\", \"back\": true}]}}, \"c\": {}}}}" >>= decode with
+  | .ok d => d.check.contains "arrow `a` → `nope`: target does not exist"
   | .error _ => false
 
 -- a document with an unknown extension is rejected as a whole

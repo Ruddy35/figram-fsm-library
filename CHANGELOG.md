@@ -5,6 +5,98 @@ All notable changes to this project are documented in this file. The format is b
 snapshot formats, the engine protocol (operations, JSON field names, error `code` values), the CLI
 command names and the exit statuses; the texts of messages are for humans and may change.
 
+## [Unreleased]
+
+### Added
+
+- `start` with the user's first event: the optional fields `event` and `guards`, and the reply
+  `need` as for `step`. The event is matched as if the user stood on the initial message, which
+  is neither entered nor left: a chosen variant gives its actions and the entry into its target
+  in one reply with one `seq`; without a variant the reply is that of `start`
+  ([docs/format.md](docs/format.md), section 7, decision 9, and [docs/format.md](docs/format.md),
+  section 8). A deep link
+  (`/start ref123` with `"if": "ref_valid"`) or a button of an old message now works for a new
+  user, and the host no longer treats `cmd:start` specially.
+- Proofs of it: the compiled machine equals the reference semantics (`startWith_correct`), it is
+  a step from the initial message without entering it (`startWith_eq_step`), a variant into the
+  initial message enters it once (`startWith_initial`), `need` is sufficient
+  (`missingStart_nil`) and the protocol executes it (`handle_start`).
+- "Back to the previous section": the variant flag `"back": true` leads back to the message the
+  user left when they last crossed a section boundary, wherever they came from; a move between
+  messages of one section keeps that place, and "back" from it returns again. Without a place
+  (a new user, or its message was removed), the variant leads to its `to`, with `resume` as
+  usual. The snapshot gets the optional field `"back": <message>`; `restart` clears it, the first
+  entry and recovery keep it ([docs/format.md](docs/format.md), section 7, decision 10). A reader
+  of version 0.1.0 rejects a document with `back` as an unknown key.
+- Proofs of it: the place after a move (`fire_back`), "back" and back again (`fire_back_swap`),
+  the place is always a message the user left (`step_back`), entering the bot keeps it
+  (`enterBot_back`), the compiled machine compares the chart's sections (`compile_zoneOf`), and
+  `compile_correct` covers it; 46 theorem statements are pinned ([docs/proofs.md](docs/proofs.md)).
+- Python client: `Engine.start(key, seq, event, guards)`.
+- `figram check` for "back": a "back" arrow counts for reachability as leading to the initial
+  message (its real target is a message the user has already been on), and warning 3 ("resume"
+  drawn only from inside the section) ignores sections that only the fallbacks of "back" resume.
+
+### Fixed
+
+- Leaving a message, recovery and `restart` took time quadratic in the number of the snapshot's
+  timers: a snapshot of 1 MiB with about 96 000 timers kept the engine busy for about a minute
+  (the engine never writes such a snapshot; a corrupted or forged one is enough). The machine now
+  clears the snapshot's timers at once, linear in the size of the snapshot (80 000 timers:
+  0.2 s instead of 42 s), and still computes exactly the specification `realize`
+  (`realize_clear`, `fire_eq_realize`, `enterBot_eq_realize_some`, `enterBot_eq_realize_none`,
+  `recover_eq_realize`;
+  [docs/proofs.md](docs/proofs.md)). `tests/engine/snapshot_scaling.py` checks the growth.
+
+### Changed
+
+- Protocol version 2: `hello` replies `"protocol": 2`. The Python client requires version 2.
+- Snapshots now carry `back` after a move across a section boundary, also for documents without
+  "back" arrows; the Python and Go client validators accept it. An engine of version 0.1.0
+  rejects such a snapshot as an unknown field, so roll the engine back only together with the
+  snapshots.
+- The pizza example: "Back" on the help message is now `back` (to the message the user opened
+  help from, otherwise the menu) instead of "resume the order". Help is in a section of its own
+  (`help_section`): directly in the root section next to `menu` and `done`, opening it there
+  would cross no boundary, and "Back" would return to an old place in the order (the cart of a
+  cancelled order, the payment of a finished one). The features example gained
+  "back" arrows (`btn:prev` on the root section, `btn:back` with `resume` on `paid`) and eight
+  golden scenarios.
+- Recovery processes the event: a step from a snapshot whose message was removed from the
+  document (`"recovered": true`) cancels the old timers, keeps the remembered places and then
+  handles a named event as `start` with that event does, so it may ask `need`; before, the event
+  was dropped and the user always landed on the initial message. A timer event still gives the
+  plain start over (theorems `step_recover`, `step_recover_timer`; [docs/format.md](docs/format.md),
+  section 7, decision 8). A host that delivered the event again after `"recovered": true`, as the
+  0.1.0 host contract allowed, must stop: the second delivery processes the event once more
+  (with the idempotency keys `user:seq:index` its actions run twice)
+  ([docs/host-contract.md](docs/host-contract.md), section 6).
+- The scenarios of `examples/golden.jsonl` (`figram golden`, shipped in the archive): `start`
+  may carry `event` and `guards`, the request is then `start` with that event (seven
+  scenarios: `start_event_*` and `back_after_start_event`); a replayer that ignores them sends the
+  plain `start` and gets other replies.
+- The validators of the Python and Go clients accept `"recovered": true` only in a reply to
+  `step`.
+- Documentation: a host thread that calls the library needs up to about 68 KiB of stack at the
+  parser's nesting limit, give it at least 128 KiB ([docs/embedding.md](docs/embedding.md));
+  `restart` with a placeholder snapshot drops the update's event, `step` with the placeholder
+  and the event processes it ([docs/host-contract.md](docs/host-contract.md), section 4).
+- The reference host `tests/engine/host_sim.py` starts a user without a snapshot with the
+  update's event and the high-water mark, drops a timer event of a lost snapshot, and tests a
+  lost snapshot with two controls ([docs/host-contract.md](docs/host-contract.md), sections 1
+  and 7).
+
+### Known issues
+
+- The JSON reader finds duplicate keys of an object with a hash set: O(1) per key on average,
+  but keys chosen so that their hashes collide make one request take time quadratic in the
+  number of keys of one object (about 12 s within the default limit of 1 MiB). It is in 0.1.0
+  as well, and the fix (a check that does not depend on the hash) comes with the next release.
+  Until then a host that does not trust its stored snapshots can lower `--max-request` (the
+  time falls with the square of the limit) and run more than one engine process, so that one
+  slow request does not hold up the requests of other users
+  ([docs/host-contract.md](docs/host-contract.md), section 5).
+
 ## [0.1.0] - 2026-10-21
 
 First release. It follows an independent audit and fix cycle; the audit reports, logs and

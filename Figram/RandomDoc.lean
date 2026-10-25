@@ -5,7 +5,7 @@ import Figram.Format
 
 A generator of valid documents of various shapes: nested sections, arrows
 on messages and sections (bubbling), conditions on both sides, "resume where
-the user left off", reminders with handlers. It lets the scenarios test the
+the user left off", "back to the previous section", reminders with handlers. It lets the scenarios test the
 engine on more than one bot.
 -/
 
@@ -32,10 +32,11 @@ def variants (nodes secs : List String) : M (List Variant) := do
     let cond ← if guarded then some <$> pick conds else pure none
     let resume ← if secs.isEmpty then pure false else chance 20
     let to ← if resume then pick secs else pick nodes
+    let back ← chance 15
     let mut cs : List String := []
     for _ in List.range (← rnd 3) do
       cs := cs ++ [← pick calls]
-    vs := vs ++ [⟨cond, to, resume, cs, []⟩]
+    vs := vs ++ [⟨cond, to, resume, back, cs, []⟩]
   return vs
 
 def handlers (nodes secs : List String) (pool : List String) (p : Nat) :

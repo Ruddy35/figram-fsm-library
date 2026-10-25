@@ -295,7 +295,7 @@ def to_j(py):
 
 DOC_KEYS = ["figram", "requires", "conditions", "calls", "variables", "bot"]
 NODE_KEYS = ["initial", "children", "on", "timers"]
-VARIANT_KEYS = ["if", "to", "resume", "do"]
+VARIANT_KEYS = ["if", "to", "resume", "back", "do"]
 KNOWN_FEATURES: list[str] = []
 
 
@@ -361,6 +361,9 @@ class Canon:
         resume = v.get("resume", False) if v.has("resume") else False
         if not isinstance(resume, bool):
             raise DecodeError("resume")
+        back = v.get("back", False) if v.has("back") else False
+        if not isinstance(back, bool):
+            raise DecodeError("back")
         calls = self.strs(v.get("do")) if v.has("do") else []
         if v.has("do") and not isinstance(v.get("do"), list):
             raise DecodeError("do")
@@ -370,6 +373,8 @@ class Canon:
         out.append(("to", to))
         if resume or (self.brk == "keep-resume-false" and v.has("resume")):
             out.append(("resume", resume))
+        if back:
+            out.append(("back", back))
         if calls:
             out.append(("do", list(calls)))
         out.extend(self.unknown(VARIANT_KEYS, v))

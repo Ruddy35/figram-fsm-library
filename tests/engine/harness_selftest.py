@@ -50,6 +50,9 @@ CORRUPT = {
     "unknown code": f'if "error" in r: r["code"] = "oops"\n    {EMIT}',
     "skipped reply": f'if n != 3: {EMIT}',
     "duplicate reply": f'{EMIT}\n    if n == 3: {EMIT}',
+    # "recovered" belongs only to a reply to step
+    "recovered on start": f'if json.loads(line).get("op") in ("start", "restart") and "snapshot" in r: '
+                          f'r["recovered"] = True\n    {EMIT}',
 }
 TOOLS = {
     "conformance": lambda fake: [fake, f"{doc}={traces}"],
@@ -63,7 +66,7 @@ TOOLS = {
 # snapshots are rejected.
 SKIP = {("loadtest", "skipped reply"), ("loadtest", "duplicate reply"),
         ("snapshot_fixtures", "need + error"), ("snapshot_fixtures", "need + snapshot"),
-        ("snapshot_fixtures", "token = true"),
+        ("snapshot_fixtures", "token = true"), ("snapshot_fixtures", "recovered on start"),
         ("conformance", "error without code"), ("conformance", "unknown code"),
         ("loadtest", "error without code"), ("loadtest", "unknown code")}
 

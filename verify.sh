@@ -17,8 +17,8 @@ F=.lake/build/bin/figram
 E=.lake/build/bin/figram-engine
 P=tests/engine
 # Lower bounds of the number of checks (values of the baseline; fewer is a failure).
-MIN_MUTANTS=107        # mutations in the two example documents
-MIN_SELFTEST_OK=37     # passed checks of the harness self-test
+MIN_MUTANTS=118        # mutations in the two example documents
+MIN_SELFTEST_OK=39     # passed checks of the harness self-test
 WAIVED=()
 fail() { echo "FAIL: $*"; exit 1; }
 python3 -c "import jsonschema" 2>/dev/null || fail "the Python package jsonschema is required: pip install jsonschema"
@@ -231,14 +231,17 @@ expect "$LOGS/engine_memory.log" '^engine memory: address space (\d+) MiB, in us
   'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
 expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2$' 'True' "engine under ulimit -v 32 MiB"
 
-step "Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello"
+step "Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello; time linear in the snapshot size"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
-  'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "snapshots"
+  'g[0] >= 30 and g[0] == g[1] and g[2] == 0' "snapshots"
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 106 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 137 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
+expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 6 and g[1] == 0' \
+  "time linear in the snapshot size"
 
 step "JSON text layer: differential against Python json"
 logged json_fuzz python3 $P/json_fuzz.py $F 30000 1
@@ -293,7 +296,7 @@ done
 ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" tests/capi/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
 logged c_contract bash tests/capi/regress.sh "$CA"
-expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 44 and g[1] == 0' "C ABI"
+expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 45 and g[1] == 0' "C ABI"
 # The header with the contract is self-contained for C and C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h
@@ -383,11 +386,11 @@ if command -v go >/dev/null; then
   logged go_reload $G/gofig -reload 5000 examples/pizza.bot.json "$T/small.jsonl"
   # One request map used by many goroutines: Request must not modify it.
   (cd $G && CC=${CC:-gcc} GOMAXPROCS=4 go test -race -count=1 -v \
-      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges)$' .) \
+      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges|TestFixStartWithEvent)$' .) \
       > "$LOGS/go_shared_map.log" 2>&1 \
     || { grep -m3 -A3 "DATA RACE" "$LOGS/go_shared_map.log" || tail -20 "$LOGS/go_shared_map.log"; fail "a race on the shared request map"; }
   for t in TestSharedRequestMap TestAuditHelloAlwaysError TestAuditRequestBadOp TestAuditLoadNUL TestAuditRequestNUL \
-           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges; do
+           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges TestFixStartWithEvent; do
     grep -q "^--- PASS: $t " "$LOGS/go_shared_map.log" \
       || { tail -5 "$LOGS/go_shared_map.log"; fail "test $t did not run or did not pass"; }
   done

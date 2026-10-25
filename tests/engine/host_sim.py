@@ -11,7 +11,10 @@ A production setup in miniature:
   `in_delivery_zone` from the message text; before a step of a user the host
   waits until that user's unfinished actions have run (the barrier,
   docs/host-contract.md, section 1, step 3);
-* a timer scheduler sends events with tokens.
+* a timer scheduler sends events with tokens;
+* a user without a snapshot (new, or the snapshot was lost) is started with the
+  update's event and the high-water mark of `seq`; a timer event of a lost
+  snapshot is dropped (docs/host-contract.md, section 1, step 3; section 4).
 
 Failures are injected at random: before the transaction commits, after the
 commit before the execution, between the execution and the "done" mark. Repeated
@@ -53,6 +56,7 @@ class DB:
         self.outbox = []       # {"key", "user", "action", "payload", "done"}
         self.data = {}         # user -> {"cart": int, "address": str | None}
         self.applied = set()   # keys of the local calls already run (a unique index)
+        self.hwm = {}          # user -> the largest seq ever issued (docs/host-contract.md, section 4)
 
     def read(self, user):
         with self._lock:
@@ -65,6 +69,8 @@ class DB:
     def commit(self, user, record, actions, payload):
         with self._lock:
             self.users[user] = record
+            if record["snapshot"] is not None:
+                self.hwm[user] = max(self.hwm.get(user, 0), record["snapshot"]["seq"])
             for i, a in enumerate(actions):
                 self.outbox.append({"key": f"{user}:{record['snapshot']['seq']}:{i}",
                                     "user": user, "action": a, "payload": payload, "done": False})
@@ -105,9 +111,11 @@ class CRM:
 
 
 class Host:
-    def __init__(self, engine, crash_rate, naive=False, barrier=True):
+    def __init__(self, engine, crash_rate, naive=False, barrier=True, first_event=True, hwm=True):
         self.naive = naive         # control host without the contract
         self.barrier = barrier     # host contract, section 1, step 3: earlier actions run before the conditions
+        self.first_event = first_event  # section 1, step 3: a new user is started with the update's event
+        self.hwm = hwm             # section 4: a user without a snapshot continues the high-water mark
         self.crashes = 0
         self.engine = engine
         self.db = DB()
@@ -151,15 +159,28 @@ class Host:
             if update_id in rec["seen"] and not self.naive:  # 2. repeated delivery
                 return "duplicate"
             used = {}
+            start = None
+            if rec["snapshot"] is None and token is not None and self.first_event:
+                # a new user has no timers: the event belongs to a lost snapshot (section 1, step 3)
+                rec["seen"].add(update_id)
+                self.db.commit(user, rec, [], payload)
+                return "dropped"
             if rec["snapshot"] is None:
-                r = self.engine.start(user)
+                start = (self.db.hwm.get(user) if self.hwm else None,)
+                if self.first_event:
+                    r = self.engine.start(user, start[0], event, self.guards(user, payload, used))
+                else:
+                    r = self.engine.start(user, start[0])
+                    event = None
+                for k in [k for k, t in self.timers.items() if k[0] == user and start[0] is not None and t <= start[0]]:
+                    self.timers.pop(k, None)             # section 4: timers of the lost snapshot
             else:
                 r = self.engine.step(user, rec["snapshot"], event, self.guards(user, payload, used), token)
             self._maybe_crash("before commit")           # failure: nothing written
             rec["snapshot"] = r["snapshot"]
             rec["seen"].add(update_id)
             self.db.commit(user, rec, r["actions"], payload)  # 3. atomically: snapshot + outbox
-            self.order_log.setdefault(user, []).append((event, token, used))
+            self.order_log.setdefault(user, []).append((event, token, used, start))
         self._maybe_crash("after commit")                 # failure: the actions are in the outbox
         return "ok"
 
@@ -213,10 +234,10 @@ def deliver(host, user, update_id, event, token=None, payload=None, attempts=50)
     raise RuntimeError("delivery failed")
 
 
-ORDER = ["/start", "btn:order", "btn:pizza", "btn:size", "btn:add",
+ORDER = ["cmd:start", "btn:order", "btn:pizza", "btn:size", "btn:add",
          "btn:checkout", "msg:text", "payment:success"]
 # "Checkout" with an empty cart first (the false branch → catalog), then the order.
-EMPTY_FIRST = ["/start", "btn:order", "btn:cart", "btn:checkout", "btn:pizza", "btn:size",
+EMPTY_FIRST = ["cmd:start", "btn:order", "btn:cart", "btn:checkout", "btn:pizza", "btn:size",
                "btn:add", "btn:checkout", "msg:text", "payment:success"]
 
 
@@ -274,9 +295,10 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
     lost = 0
     for u in range(users):
         snap = None
-        for ev, tok, used in host.order_log[f"u{u}"]:
-            snap = (engine.start("ref") if snap is None
-                    else engine.step("ref", snap, ev, lambda ns, used=used: {n: used[n] for n in ns}, tok))["snapshot"]
+        for ev, tok, used, start in host.order_log[f"u{u}"]:
+            g = (lambda ns, used=used: {n: used[n] for n in ns})
+            snap = (engine.start("ref", start[0], ev, g if ev else None) if start
+                    else engine.step("ref", snap, ev, g, tok))["snapshot"]
         if snap != host.db.users[f"u{u}"]["snapshot"]:
             lost += 1
     engine.close()
@@ -299,7 +321,7 @@ def scenario_stale_timer(engine_path, doc):
         host.drain()
 
     u = "t"
-    step(0, "/start")
+    step(0, "cmd:start")
     for i, ev in enumerate(["btn:order", "btn:cart"], 1):  # the cart starts the reminder
         step(i, ev)
     old = host.timers[(u, "cart_reminder")]
@@ -318,6 +340,78 @@ def scenario_stale_timer(engine_path, doc):
     return old != new and after_old == before == "cart" and after_new == "reminder"
 
 
+SECOND = ["btn:order", "btn:pizza", "btn:size", "btn:add", "btn:checkout", "msg:text", "payment:success"]
+
+
+def plan_lost(u):
+    """A user whose snapshot is lost (the row only: update marks, data and outbox survive).
+    Even users: an order, the loss, then a button of an old menu message (`btn:order`) and a
+    second order to another address. Odd users: the loss at the cart while the reminder runs,
+    the old timer fires while there is no snapshot, then `btn:order` from an old message and
+    the order. The cart is never cleared, so every order after the loss has 2 pizzas."""
+    a1, a2 = "zone:1 Main St", "zone:2 Second Ave"
+    first = ORDER if u % 2 == 0 else ORDER[:5]
+    events = [(ev, a1 if ev == "msg:text" else None) for ev in first]
+    events += [("LOSE", None)] + ([] if u % 2 == 0 else [("TIMER-OLD", None)])
+    events += [(ev, a2 if ev == "msg:text" else None) for ev in SECOND]
+    return events, ([(1, a1)] if u % 2 == 0 else []) + [(2, a2)]
+
+
+def scenario_lost_snapshot(engine_path, doc, users=12, crash_rate=0.15, **host_args):
+    """A new user with an update (docs/host-contract.md, section 1, step 3; section 4): the host
+    starts a user without a snapshot with the update's event and the high-water mark of `seq`,
+    and drops a timer event of the lost snapshot."""
+    random.seed(2)
+    engine = Engine(engine_path, doc, processes=2)
+    host = Host(engine, crash_rate, **host_args)
+    host.start_executor()
+    old_token = {}
+
+    def user_stream(u):
+        user = f"l{u}"
+        for i, (ev, payload) in enumerate(plan_lost(u)[0]):
+            token = None
+            if ev == "LOSE":
+                with host._user_lock(user):
+                    host.drain(user)
+                    old_token[user] = host.timers.get((user, "cart_reminder"))
+                    with host.db._lock:
+                        host.db.users[user]["snapshot"] = None
+                continue
+            if ev == "TIMER-OLD":
+                ev, token = "timer:cart_reminder", old_token[user]
+            uid = f"timer:cart_reminder:{token}" if token is not None else i
+            with ThreadPoolExecutor(2) as pool:
+                list(pool.map(lambda _: deliver(host, user, uid, ev, token, payload), range(2)))
+
+    with ThreadPoolExecutor(8) as pool:
+        list(pool.map(user_stream, range(users)))
+    host.stop_executor()
+    for _ in range(100):
+        try:
+            host.drain()
+            break
+        except Crash:
+            pass
+    host.crash_rate = 0
+    host.drain()
+    orders = [v for v in host.crm.executed.values() if v[1] == "create_order"]
+    wrong = []
+    for u in range(users):
+        user = f"l{u}"
+        got = sorted((o[2]["cart"], o[2]["address"]) for o in orders if o[0] == user)
+        snap = host.db.users[user]["snapshot"]
+        if snap is None or snap["at"] != "done" or got != sorted(plan_lost(u)[1]):
+            wrong.append((user, snap and snap["at"], got))
+    pending = len(host.db.pending())
+    engine.close()
+    print(f"lost snapshot ({host_args or 'host by the contract'}), failures injected {host.crashes}: "
+          f"users {users}, not as expected {len(wrong)}, actions not run {pending}")
+    if wrong:
+        print(f"  not as expected: {wrong[:4]}{' …' if len(wrong) > 4 else ''}")
+    return not wrong and pending == 0
+
+
 if __name__ == "__main__":
     engine_path, doc = sys.argv[1], sys.argv[2]
     barrier = "--no-barrier" not in sys.argv[3:]
@@ -325,12 +419,21 @@ if __name__ == "__main__":
     ok2 = scenario_stale_timer(engine_path, doc)
     print("--- control: a host without duplicate filtering and without idempotency keys")
     # The control is probabilistic (a duplicate order happens only with a failure at the right
-    # place): up to three attempts, one red one is enough. The main scenario is not repeated.
-    for attempt in range(3):
+    # place; one attempt catches it about 85 % of the time): up to eight attempts, one red one is
+    # enough, so a correct test fails by chance about once in 10^7 runs. The main scenario is not
+    # repeated.
+    for attempt in range(8):
         control = scenario_orders(engine_path, doc, naive=True)
         if not control:
             break
     print("  the test catches the violation:", "yes" if not control else "FAIL", f"(control attempts: {attempt + 1})")
     ok2 = ok2 and not control
+    ok3 = scenario_lost_snapshot(engine_path, doc)
+    print("--- controls: a host that starts a user without a snapshot without the update's event, "
+          "or without the high-water mark")
+    lost_controls = [scenario_lost_snapshot(engine_path, doc, first_event=False),
+                     scenario_lost_snapshot(engine_path, doc, hwm=False)]
+    print("  the test catches the violations:", "yes" if not any(lost_controls) else "FAIL")
+    ok2 = ok2 and ok3 and not any(lost_controls)
     print("contract holds" if ok1 and ok2 else "CONTRACT VIOLATED")
     sys.exit(0 if ok1 and ok2 else 1)

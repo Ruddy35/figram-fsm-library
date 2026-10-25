@@ -62,13 +62,14 @@ def lintCore (c : Chart) : List String := Id.run do
     if !found t.src then
       errs := errs.push s!"arrow on `{t.event}` starts at nonexistent `{shown t.src}`"
     for b in t.branches do
-      match b.target with
+      match b.target.base with
       | .node n =>
         if !found n then errs := errs.push s!"arrow `{shown t.src}` → `{shown n}`: target does not exist"
       | .history s =>
         if !sec s then
           errs := errs.push
             s!"arrow `{shown t.src}` → `{shown s}` with `resume`: not a section"
+      | .back _ => pure ()
   let leaves := keySet c.leafIds
   for tm in c.timers do
     if !leaves.contains tm.node then
@@ -123,10 +124,10 @@ def lintWarnings (c : Chart) : List String := Id.run do
       unless os.any (fun o => (ix.anc o).contains t.src) do
         ws := ws.push (s!"arrow `{t.event}` on `{shown t.src}` never fires: only other messages start " ++
           s!"timer `{x}`, and a firing is accepted only by the message that started it")
-  -- 3. "Resume" drawn only from inside the section.
+  -- 3. "Resume" drawn only from inside the section (not counting the fallbacks of "back").
   for s in dedupFast c.histSecs do
     let srcs := c.transitions.filter fun t => t.branches.any fun b => b.target == .history s
-    if srcs.all (fun t => (ix.anc t.src).contains s) then
+    if !srcs.isEmpty && srcs.all (fun t => (ix.anc t.src).contains s) then
       ws := ws.push (s!"arrows with `resume` into `{shown s}` are drawn only from inside the section: " ++
         "they always leave the user on the current message")
   -- 4. Reachability of messages from the start of the bot through arrows that can fire.
@@ -134,9 +135,11 @@ def lintWarnings (c : Chart) : List String := Id.run do
   let owns (L : NodeId) (e : EventId) : Bool := match timerOfEvent e with
     | none => true
     | some x => (m.exitOf L).contains (.cancelTimer x)
-  let target (b : FBranch) : NodeId := match b.target with
+  -- "back" leads to a message the user has already been on, or to its fallback
+  let target (b : FBranch) : NodeId := match b.target.base with
     | .node n => n
     | .resume sec => ((m.resumes.find? (·.sec == sec)).map (·.default)).getD sec
+    | .back _ => m.initial
   let mut seen : Tab Unit := (Tab.empty m.states.length).insert m.initial ()
   let mut queue : Array NodeId := #[m.initial]
   let mut i := 0

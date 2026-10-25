@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 
 ```text output
 {"id":1,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
-{"id":2,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+{"id":2,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 ```
 
 **Static linking only.** `libleanrt.a` is compiled with `-ftls-model=local-exec`, so the
@@ -238,14 +238,22 @@ python3 tests/engine/engine_memory.py .lake/build/bin/figram-engine examples/piz
 The same script checks that the engine answers under `ulimit -v` 32, 64 and 256 MiB, and that
 with a 24 or 32 KiB stack a document nested 250 levels deep aborts it with Lean's stack overflow
 message. Recursion depth of Lean code is bounded by the stack of the calling thread (for Go
-threads, the system thread stack size).
+threads, the system thread stack size): a request or a document nested 256 levels deep (the
+limit of the parser) needs up to about 68 KiB of stack in the calling thread — nested objects,
+such as a document with 126 nested sections, about 68 KiB, nested arrays about 56 KiB — and
+crashes the host process with `SIGSEGV` on a thread with 64 KiB (measured with a Lean built from
+source); give threads that call the library at least 128 KiB. `tests/capi/regress.sh` makes
+such calls on a thread of the size recommended here.
 
 ## Go
 
 For Go programs use the module [`github.com/Ruddy35/ffl-go`](https://github.com/Ruddy35/ffl-go)
 (`go get github.com/Ruddy35/ffl-go@v0.1.0`): a typed API (`Load`, `Start`, `Step`, `Timer`,
 `Restart`, `Decide`, `Check`, `Fmt`) over this C ABI that bundles the static libraries of the
-release for linux/amd64, so no build of this repository is needed.
+release for linux/amd64, so no build of this repository is needed. A version of the module
+bundles one release: v0.1.0 speaks protocol 1, has no `start` with an event and rejects every
+reply whose snapshot carries `back` ("unknown field"), also when it is built with
+`-tags figram_system` against a newer library. Use the module version that matches the library.
 
 The reference wrapper used by the tests of this repository lives in
 [`clients/go`](../clients/go). It is a cgo wrapper (`Init`, `SetMaxRequest`, `Load`,

@@ -39,7 +39,7 @@ for mb in (32, 64, 256):
         resource.setrlimit(resource.RLIMIT_AS, (mb << 20, resource.RLIM_INFINITY))
     p = subprocess.run([ENGINE, DOC], input=REQS, capture_output=True, timeout=30, preexec_fn=limit)
     out = p.stdout.decode(errors="replace").splitlines()
-    good = p.returncode == 0 and len(out) == 2 and '"protocol":1' in out[0] and '"snapshot"' in out[1]
+    good = p.returncode == 0 and len(out) == 2 and '"protocol":2' in out[0] and '"snapshot"' in out[1]
     report(good, f"ulimit -v {mb} MiB: exit code {p.returncode}, replies {len(out)}"
            + ("" if good else f"; stderr: {p.stderr.decode(errors='replace')[:200]!r}"))
 

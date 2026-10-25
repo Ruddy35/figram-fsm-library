@@ -34,8 +34,8 @@ BIN=${BIN:-${FIGRAM_BIN:-}}
 for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an executable file"; done
 BIN=$(cd "$BIN" && pwd)
 cd "$(dirname "$0")"
-MIN_MUTANTS=107        # mutations in the two example documents (fewer is a failure)
-MIN_SELFTEST_OK=37     # passed checks of the harness self-test
+MIN_MUTANTS=118        # mutations in the two example documents (fewer is a failure)
+MIN_SELFTEST_OK=39     # passed checks of the harness self-test
 F=$BIN/figram
 E=$BIN/figram-engine
 P=tests/engine
@@ -135,11 +135,14 @@ expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2
 step "Snapshots, protocol edges and the JSON text layer"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
-  'g[0] >= 24 and g[0] == g[1] and g[2] == 0' "snapshots"
+  'g[0] >= 30 and g[0] == g[1] and g[2] == 0' "snapshots"
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 106 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 137 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
+expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 6 and g[1] == 0' \
+  "time linear in the snapshot size"
 NFUZZ=$([ $QUICK = 1 ] && echo 5000 || echo 30000)
 logged json_fuzz python3 $P/json_fuzz.py $F $NFUZZ 1
 expect "$LOGS/json_fuzz.log" '^cases (\d+): accepted by both (\d+), rejected by both (\d+), mismatches (\d+), outputs not read back (\d+) of (\d+)$' \

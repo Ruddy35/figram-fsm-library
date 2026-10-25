@@ -86,7 +86,7 @@ def mutants (m : Machine) : List String :=
   (callNames m).map (s!"drop-call:{·}")
   ++ (bs.filterMap fun (b, k) => match b.target with
       | .node n => if m.states.any (· != n) then some s!"redirect:{k}" else none
-      | .resume _ => some s!"redirect:{k}")
+      | .resume _ | .back _ => some s!"redirect:{k}")
   ++ (bs.filterMap fun (b, k) => if b.actions.length ≥ 2 && b.actions.reverse != b.actions then
         some s!"reverse-actions:{k}" else none)
   ++ (bs.filterMap fun (b, k) => if b.guard.isSome then some s!"drop-guard:{k}" else none)
@@ -97,6 +97,7 @@ def mutants (m : Machine) : List String :=
   ++ (if m.entry.any (·.2.any fun | .remember .. => true | _ => false) then ["drop-remember"] else [])
   ++ (if m.resumes.any (!·.members.isEmpty) then ["resume-default"] else [])
   ++ (if m.entry.any (·.2.any fun | .startTimer .. => true | _ => false) then ["drop-timer-start"] else [])
+  ++ (if m.zone.any (fun z => m.zone.any (·.2 != z.2)) then ["one-zone"] else [])
 
 def apply (m : Machine) (spec : String) : Option Machine :=
   match spec.splitOn ":" with
@@ -105,7 +106,7 @@ def apply (m : Machine) (spec : String) : Option Machine :=
   | ["redirect", k] => k.toNat?.map fun k => mapBranches m fun i b =>
       if i != k then b else
       let other := (m.states.find? fun s => match b.target with
-        | .node n => s != n | .resume _ => true).getD m.initial
+        | .node n => s != n | .resume _ | .back _ => true).getD m.initial
       { b with target := .node other }
   | ["reverse-actions", k] => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with actions := b.actions.reverse } else b
@@ -121,6 +122,7 @@ def apply (m : Machine) (spec : String) : Option Machine :=
   | ["resume-default"] => some { m with resumes := m.resumes.map ({ · with members := [] }) }
   | ["drop-timer-start"] => some { m with entry := m.entry.map fun e =>
       (e.1, e.2.filter fun | .startTimer .. => false | _ => true) }
+  | ["one-zone"] => some { m with zone := m.zone.map fun e => (e.1, none) }
   | _ => none
 
 end Figram.Mutate

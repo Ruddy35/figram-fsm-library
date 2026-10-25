@@ -1,4 +1,4 @@
-# Figram document format and engine protocol, version 1
+# Figram document format (version 1) and engine protocol (version 2)
 
 This document specifies two formats:
 
@@ -73,12 +73,12 @@ alternative.
 | 3 | The bot is the root section `bot` | A `root` field referencing a node | No "root exists" condition; global commands such as `/start` are ordinary arrows of the root | 1 |
 | 4 | Arrows live in the node: `on` is an object "event → variants" | A separate list of arrows with a `src` field | No "source exists" condition; a (node, event) pair has one place, so the variant order is unambiguous (C3c) | 2 |
 | 5 | Arrays only where order is meaning: variants of an arrow and actions | Arrays everywhere | Other collections are objects, without uniqueness conditions and without a false order (C3c; exception — `timers`, whose key order is the order of timer actions) | — |
-| 6 | One target field `to`; "resume where the user left off" is the flag `resume` | Two fields `to` and `back` | Exactly one target by construction | 1 |
+| 6 | One target field `to`; "resume where the user left off" and "back to the previous section" are the flags `resume` and `back` | Separate target fields (`to`, `resume_to`, `back_to`) | Exactly one target by construction; with `back`, `to` is where the arrow leads when there is no place to go back to | 1 |
 | 7 | The kind of a node is given by the presence of `children` | A `kind` field | No computable field (C3a) and no "kind: message, but has children" mismatch | 1 |
 | 8 | One condition per variant: `"if": "name"` | A list of conditions | The designer writes a condition as text, and the text can say "A and B"; a list would be a second way to write the same thing (C3c) | — |
 | 9 | Texts of conditions, actions and variables live in the maps `conditions`, `calls`, `variables`; arrows use only names | Text inside the arrow | A text is written once even if the condition is used by ten arrows; two texts for one condition are impossible | 1 |
 | 10 | Timers live inside the message: `timers` | A separate list of timers with a `node` field | A timer cannot point to a missing node; the schema forbids timers on sections | 2 |
-| 11 | Defaults are omitted: `on`, `timers`, `if`, `resume: false`, `do`, `requires`, description maps | All fields always written | C3b; a reader also accepts an explicitly written default | — |
+| 11 | Defaults are omitted: `on`, `timers`, `if`, `resume: false`, `back: false`, `do`, `requires`, description maps | All fields always written | C3b; a reader also accepts an explicitly written default | — |
 | 12 | A number in the model is an exact `m · 10^e`; format fields are checked by value | Integers only | Extensions can store any number (coordinates, zoom); `7200000`, `7.2e6` and `7200000.0` are the same delay | — |
 
 **Numbers.** The number grammar is RFC 8259; the absolute value of an exponent in the text is
@@ -106,7 +106,8 @@ After decisions 1–12, five semantic conditions remain, and `figram check` chec
 
 - **V1.** Node names are unique in the whole tree and non-empty.
 - **V2.** The `initial` of a section is a direct child of that section.
-- **V3.** Every `to` exists; with `resume: true` it is a section.
+- **V3.** Every `to` exists; with `resume: true` it is a section (with `back: true` as well:
+  `to` is then the fallback).
 - **V4.** Every `if` is described in `conditions`, every `do` entry in `calls`.
 - **V5.** An event `timer:<name>` refers to an existing timer.
 
@@ -170,6 +171,7 @@ Arrows   = { Event: [Variant] }                 (the first matching variant wins
 Variant  = { "if"?:     Name,                   (absent — "otherwise / always")
              "to":      Name,
              "resume"?: true,                   (resume where the user left off)
+             "back"?:   true,                   (back to the previous section; otherwise `to`)
              "do"?:     [Name],
              …annotations }
 ```
@@ -212,7 +214,7 @@ the bot: without this rule `"tiemrs"` in a message would leave the message witho
 document, sections, messages and variants; inside the value of an annotation any keys are
 allowed. A key in `children` is a node name, not an annotation: `"x-ui": {}` there is a new
 message named `x-ui`. A reader that does not know a format field added later rejects a document
-that uses it.
+that uses it: version 0.1.0 rejects a variant with `back` (added in 0.2.0) as an unknown key.
 
 **Semantic extension** — a new field or value that changes the bot's behaviour. It is added
 as follows:
@@ -263,14 +265,18 @@ The designer's chart (`Figram/Chart.lean`, `Chart.step`) is the reference semant
 compiler (`Figram/Compile.lean`) turns it into a flat machine (`Figram/Core.lean`,
 `Machine.step`), and `Chart.compile_correct` proves that both take the same step. A step is a
 pure function `Machine.step : Machine → Snapshot → Event → HostEnv → Snapshot × List Action`.
-The chart adds three simplifications on top of messages, events, arrows with variants and
+The chart adds four simplifications on top of messages, events, arrows with variants and
 actions:
 
 * **sections** — nesting; an arrow drawn on a section works on every message inside it; an
   arrow into a section leads to its initial message;
 * **"resume where the user left off"** — an arrow (`"resume": true`) that leads into a section
   at the message where the user stopped;
-* **timers** — a timer on a message.
+* **timers** — a timer on a message;
+* **"back to the previous section"** — an arrow (`"back": true`) that leads back to the
+  message the user left when they last crossed a section boundary, wherever they came from;
+  without such a message it leads to `to` (with `resume`, into that section where the user
+  stopped).
 
 "Resume" is an operation of the core: the place is read from the snapshot during the step, so
 "resume" adds one entry per section to the compiled machine instead of a copy of the section for
@@ -302,10 +308,49 @@ Decisions of the specification:
 7. **Timer tokens.** A timer firing is accepted only with the token of the current run and only
    on the message that owns the timer.
 8. **Recovery.** If the snapshot's message no longer exists in the document (or `at` names a
-   section), the user starts the bot again: the timers of the old place are cancelled and the
-   remembered places are kept, except those overwritten by the entry into the initial
-   message (decision 4). Recovery replaces the step: the event itself is not processed, and
-   recovery happens for any event, including a timer event with a stale token.
+   section), the user starts the bot again: the timers of the old place are cancelled first,
+   the remembered places are kept, and the event is processed as in decision 9, as if the user
+   stood on the initial message — a chosen variant leads straight to its target (the
+   remembered places are used by "resume"), otherwise the user enters the initial message
+   (except the places overwritten by its entry, decision 4). The place to go back to is kept as
+   well (decision 10). A timer event chooses no variant: for it recovery is the plain start
+   over. Recovery happens for any event, including a timer event with a stale token.
+9. **First event.** A new user can enter the bot with the update that brought them (`start`
+   with `event`, section 8): the event is matched as if the user stood on the initial message,
+   by the arrows of the initial message and then of its sections up to the root (decision 1).
+   The initial message itself is neither entered nor left: if a variant is chosen, the actions
+   are the variant's actions and the entry into its target, so the initial message is not sent,
+   its timers are not started and it is not remembered in `resume`; a variant into the initial
+   message enters it once, which is exactly the first entry with the variant's actions in front.
+   Not remembering the initial message changes nothing: it is the initial message of every
+   section on its path, where "resume" would lead without a remembered place. If no variant is
+   chosen, this is the plain first entry. A timer event cannot start a user (a new user has no
+   timers). An arrow of the initial message or of a section around it therefore also fires
+   for a new user, for example a button of an old message pressed after the host lost the
+   user's snapshot. The initial message is not left either, so the user gets no place to go
+   back to (decision 10).
+10. **Back to the previous section.** The section of a message is the section that directly
+   contains it. A move whose message left and message entered are in different sections — it
+   leaves a section, enters one, or both — remembers the message left as the place to go back
+   to (snapshot field `back`); a move between messages of the same section keeps the place, so
+   the place is where the user came into the current section from. An arrow with
+   `"back": true` leads to that place; that move crosses a section boundary in the other
+   direction, so the next "back" returns (like `cd -` in a shell: one place, not a history). If
+   there is no place yet, or its message is no longer in the document, the arrow leads to `to`
+   (with `resume`, as "resume" does). Entering the bot (decisions 8 and 9) leaves no message and
+   keeps the place; `restart` clears it. The place is remembered whether or not the document has
+   "back" arrows, so the host can read it too. Moves between two messages that are directly in
+   the root section (`bot`) cross no boundary: a screen that "back" should return to exactly
+   wherever it was opened from — help, settings — goes into a section of its own (as `help` in
+   [`examples/pizza.bot.json`](../examples/pizza.bot.json)). Entering or leaving a subsection is
+   a crossing too, so inside a section with subsections the place is the last subsection
+   boundary the user crossed, not where they entered the outer section.
+   "The next back returns" needs the place to be in another section than the current message,
+   which every move keeps true; entering the bot does not. After recovery (decision 8), or
+   with a snapshot of an earlier document version in which the place was in another section,
+   the place can be in the user's own section or be the current message (`back` equal to
+   `at`): "back" then leads there without crossing a boundary and keeps the place, so on that
+   message "back" is a self-loop (decision 3) until the user crosses a boundary.
 
 The correctness theorems assume `c.compile.wf`. `figram check` establishes it on the chart,
 without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
@@ -314,7 +359,7 @@ without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
 the core model the event `.named "timer:x"` is accepted without a token, and the theorems do
 not exclude it.
 
-## 8. Snapshot and engine protocol, version 1
+## 8. Snapshot and engine protocol, version 2
 
 The document is the exchange format between the editor and the developer. The snapshot and the
 protocol are the exchange format between the engine and the host. The flat machine into which
@@ -329,13 +374,15 @@ What the host stores between events:
 ```text
 Snapshot = { "v"?:      1,                       (version; absent — 1)
              "at":      Name,                    (current message)
+             "back"?:   Message,                 (the place to go back to, decision 10)
              "resume"?: { Section: Message },    (remembered places)
              "timers"?: { Timer: Token },        (active timers)
              "seq"?:    Integer }                (number of the last transition; absent — 0)
 ```
 
-Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, the keys and values of `resume` and
-the keys of `timers` are non-empty strings. The snapshot is strict: the engine accepts exactly what
+Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, `back`, the keys and values of
+`resume` and the keys of `timers` are non-empty strings. A `back` or `resume` value that is not
+a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
 [`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows; an unknown field or
 an unknown version is an error (such a snapshot was written by a newer engine). `seq` grows by
 1 with every transition; it is the token of the timers started in that transition and the
@@ -356,19 +403,27 @@ returned by value (`-0` becomes `0`); a request without `id` gets a reply with `
 
 | Request | Reply |
 |---|---|
-| `{"op": "hello"}` | `{"protocol": 1, "states": N}` — N is the number of messages of the loaded document |
+| `{"op": "hello"}` | `{"protocol": 2, "states": N}` — N is the number of messages of the loaded document |
 | `{"op": "start", "seq"?: N}` | `{"snapshot": …, "actions": […]}` — first entry; the first transition gets `seq` N + 1 (without `seq` — 1) |
+| `{"op": "start", "seq"?: N, "event": "cmd:start", "guards"?: {…}}` | as above, or `{"need": [conditions]}` — first entry with the user's first event (decision 9 of section 7) |
 | `{"op": "restart", "snapshot": …}` | `{"snapshot": …, "actions": […]}` — start over without resetting the counter |
 | `{"op": "step", "snapshot": …, "event": "btn:x", "guards"?: {…}}` | `{"snapshot": …, "actions": […], "recovered"?: true}` or `{"need": [conditions]}` |
 | `{"op": "step", …, "event": "timer:<name>", "token": n}` | as above |
 
 Requests are strict: only the fields in the table and `id` are allowed (`hello` — `id`, `op`;
-`start` — also `seq`; `restart` — also `snapshot`; `step` — also `snapshot`, `event`, `guards`,
-`token`). Any other field, such as the typo `gaurds`, is a `bad_request` error. `event` is a
-non-empty string. `token` is allowed only with a timer event (`timer:<name>` with a non-empty
-name) and is required there; `token` and the `seq` of `start` are integers from 0 to 2^53 − 1
-by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object "condition → true/false";
-extra conditions do no harm, but every value must be a boolean.
+`start` — also `seq`, `event`, `guards`; `restart` — also `snapshot`; `step` — also
+`snapshot`, `event`, `guards`, `token`). Any other field, such as the typo `gaurds`, is a
+`bad_request` error. `event` is a non-empty string. `token` is allowed only with a timer event
+(`timer:<name>` with a non-empty name) and is required there; `start` takes no timer event and
+no `token`, and takes `guards` only with `event`. `token` and the `seq` of `start` are integers
+from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object
+"condition → true/false"; extra conditions do no harm, but every value must be a boolean.
+
+The protocol version in `hello` grows when requests are added: version 2 added `start` with
+`event` and `guards`. A host that sends them checks the version in `hello` first (the Python
+client accepts only version 2 and refuses any other). Version 2
+is not only an addition: a recovered step now processes its event and may answer `need` (rule 1
+of a step), and snapshots carry `back`, which an engine of version 1 rejects.
 
 Actions for the host, in execution order:
 `{"send": message}`, `{"call": action}`,
@@ -384,9 +439,9 @@ $ printf '%s\n' \
 >   '{"id":4,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout"}' \
 >   '{"id":5,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}' \
 >   | figram-engine examples/pizza.bot.json
-{"id":1,"protocol":1,"states":11}
+{"id":1,"protocol":2,"states":11}
 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
-{"id":3,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+{"id":3,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 {"id":4,"need":["cart_not_empty"]}
 {"id":5,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"}]}
 ```
@@ -394,9 +449,10 @@ $ printf '%s\n' \
 Rules of a step:
 
 1. If the snapshot's message is not in the document, the user starts the bot again: all of the
-   user's timers are cancelled, then the first-entry actions follow; the reply carries
-   `"recovered": true`. Remembered places are kept. The event of the request is not processed
-   (decision 8 of section 7); `need` is never asked in this case.
+   user's timers are cancelled, then the event is processed as for `start` with that event
+   (decisions 8 and 9 of section 7, the rules of `start` with an event below), with the
+   remembered places kept and `seq` continued; `need` can be asked as for a step. The reply
+   carries `"recovered": true`.
 2. A timer event is ignored (the snapshot does not change, no actions) if its token differs
    from the current one or if the timer does not belong to the current message (this happens
    only with a snapshot written under a previous document version). Leaving a message cancels
@@ -419,8 +475,55 @@ Rules of a step:
    `start` with `seq` 2^53 − 1). At one transition per millisecond the limit is about
    285 000 years away.
 
-`restart` cancels the snapshot's timers, clears the remembered places and performs the
-first-entry actions, but continues the `seq` counter. The tokens of new timers are therefore
+Rules of `start` with an event (decision 9 of section 7):
+
+1. The event is matched as if the user stood on the initial message: by the arrows of the
+   initial message, then of its sections up to the root.
+2. If a variant needs conditions that are not in `guards`, the reply is `{"need": [...]}`, as
+   in rule 3 of a step; the host repeats the same request with them in `guards`. `need` comes
+   before the `seq_overflow` check.
+3. If a variant is chosen, the actions are its actions and the entry into its target; the
+   initial message is not sent and its timers are not started. Otherwise the reply is that of
+   `start` without an event.
+4. The reply is one result, and its transition gets `seq` N + 1, as for `start` with `seq` N
+   (`seq_overflow` likewise).
+
+```sh doctest
+$ printf '%s\n' \
+>   '{"id":1,"op":"start","event":"btn:go"}' \
+>   '{"id":2,"op":"start","event":"btn:go","guards":{"is_vip":true}}' \
+>   '{"id":3,"op":"start","event":"cmd:start"}' \
+>   | figram-engine examples/features.bot.json
+{"id":1,"need":["is_vip"]}
+{"id":2,"snapshot":{"at":"vip","seq":1},"actions":[{"send":"vip"}]}
+{"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+```
+
+The arrow `cmd:start` of the root section leads to the initial message `home`, so request 3 is
+exactly `start`; with the event `btn:go` the user goes straight to `vip`, and `home` is neither
+sent nor has its timer started.
+
+"Back" (decision 10) in [`examples/features.bot.json`](../examples/features.bot.json): the root
+section has the arrow `btn:prev` → `{"to": "home", "back": true}`. The help message is directly
+in the root section, the item is in the section `sub`:
+
+```sh doctest
+$ printf '%s\n' \
+>   '{"id":1,"op":"step","snapshot":{"at":"item","resume":{"shop":"item"},"seq":3},"event":"cmd:help"}' \
+>   '{"id":2,"op":"step","snapshot":{"at":"help","back":"item","resume":{"shop":"item"},"seq":4},"event":"btn:prev"}' \
+>   '{"id":3,"op":"step","snapshot":{"at":"help","seq":4},"event":"btn:prev"}' \
+>   | figram-engine examples/features.bot.json
+{"id":1,"snapshot":{"at":"help","back":"item","resume":{"shop":"item"},"seq":4},"actions":[{"cancel_timer":"remind"},{"send":"help"}]}
+{"id":2,"snapshot":{"at":"item","back":"help","resume":{"shop":"item"},"timers":{"remind":5},"seq":5},"actions":[{"start_timer":"remind","ms":5000,"token":5},{"send":"item"}]}
+{"id":3,"snapshot":{"at":"home","timers":{"idle":5},"seq":5},"actions":[{"start_timer":"idle","ms":60000,"token":5},{"send":"home"}]}
+```
+
+Opening help from the item crosses a section boundary, so the item becomes the place to go back
+to; "back" leads there and makes help the place in turn. Without a place (request 3), the arrow
+leads to its `to`.
+
+`restart` cancels the snapshot's timers, clears the remembered places and the place to go
+back to and performs the first-entry actions, but continues the `seq` counter. The tokens of new timers are therefore
 greater than any old token, a late event of an old timer never matches a new one, and the
 host's idempotency keys (`user:seq:index`, [host-contract.md](host-contract.md)) do not repeat.
 Starting a user over with `start` without `seq` (counter from zero) is safe only if the user
@@ -470,9 +573,12 @@ The `figram-engine` process reads requests as bytes:
 
 The embedded library (C, Go) takes one request per call, with the same limit and the same
 UTF-8 check; an empty request gets `parse_error` (the process skips an empty line without a
-reply). The library produces these three errors itself, before parsing, always with
-`id: null` (no `id` echo: the reply already belongs to the call); all other errors, including
-`parse_error` for invalid JSON, are produced as in the process, with the `id` echo. See
+reply). The library produces four errors itself, before parsing, always with `id: null` (no
+`id` echo: the reply already belongs to the call): an empty request and, in the `_n` functions,
+a request with a NUL byte (`parse_error`), invalid UTF-8 (`parse_error`) and a request over the
+limit (`too_large`). All other errors, including `parse_error` for invalid JSON, are produced as
+in the process, with the `id` echo; a request of only spaces, tabs and `\r`, which the process
+skips without a reply, gets `parse_error` ("unexpected end of input"). See
 [embedding.md](embedding.md).
 
 ### Test mode

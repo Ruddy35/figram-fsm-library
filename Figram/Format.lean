@@ -45,7 +45,7 @@ def field (k : String) (present : Bool) (j : J) : Obj := if present then [(k, j)
 
 def docKeys : List String := ["figram", "requires", "conditions", "calls", "variables", "bot"]
 def nodeKeys : List String := ["initial", "children", "on", "timers"]
-def variantKeys : List String := ["if", "to", "resume", "do"]
+def variantKeys : List String := ["if", "to", "resume", "back", "do"]
 
 /-- The semantic extensions this reader understands. Version 1 has none. -/
 def knownFeatures : List String := []
@@ -60,6 +60,9 @@ structure Variant where
   to : NodeId
   /-- `true` means "resume section `to` where the user left off". -/
   resume : Bool
+  /-- `true` means "back to the previous section"; `to` (with `resume`) is where to lead when
+  there is no place to go back to. -/
+  back : Bool
   /-- The names of actions from `calls`, in order. -/
   calls : List String
   ext : Obj
@@ -94,6 +97,7 @@ def encVariant (v : Variant) : J :=
   .obj (field "if" v.cond.isSome (.str (v.cond.getD ""))
     ++ [("to", .str v.to)]
     ++ field "resume" v.resume (.bool true)
+    ++ field "back" v.back (.bool true)
     ++ field "do" (!v.calls.isEmpty) (.arr (v.calls.map .str))
     ++ v.ext)
 
@@ -176,11 +180,15 @@ def decVariant : J → R Variant
       | none => pure false
       | some (.bool b) => pure b
       | some _ => throw "`resume`: expected true or false"
+    let back ← match get kvs "back" with
+      | none => pure false
+      | some (.bool b) => pure b
+      | some _ => throw "`back`: expected true or false"
     let calls ← match get kvs "do" with
       | none => pure []
       | some (.arr xs) => decStrs xs
       | some _ => throw "`do`: expected a list"
-    pure ⟨cond, to, resume, calls, unknown variantKeys kvs⟩
+    pure ⟨cond, to, resume, back, calls, unknown variantKeys kvs⟩
   | _ => .error "variant must be an object"
 
 def decVariants : List J → R (List Variant)
@@ -270,8 +278,11 @@ def decode (j : J) : R Doc := do
 /-- The identifier of the root section. The check forbids an empty node key. -/
 def rootId : NodeId := ""
 
-def Variant.toBranch (v : Variant) : Branch :=
-  ⟨v.cond, if v.resume then .history v.to else .node v.to, v.calls.map .call⟩
+def Variant.dest (v : Variant) : Dest :=
+  let d := if v.resume then .history v.to else .node v.to
+  if v.back then .back d else d
+
+def Variant.toBranch (v : Variant) : Branch := ⟨v.cond, v.dest, v.calls.map .call⟩
 
 def onTrans (id : NodeId) (on : List (EventId × List Variant)) : List Transition :=
   on.map fun p => ⟨id, p.1, p.2.map Variant.toBranch⟩

@@ -38,6 +38,12 @@ FIXTURES = [
     {"at": "home", "timers": {"idle": -1}},
     {"at": "home", "timers": {"": 1}},
     {"at": "home", "timers": {"idle": "1"}},
+    {"at": "home", "back": "item"},
+    {"at": "home", "back": "gone"},
+    {"at": "home", "back": ""},
+    {"at": "home", "back": 1},
+    {"at": "home", "back": None},
+    {"at": "home", "back": ["item"]},
     [],
 ]
 

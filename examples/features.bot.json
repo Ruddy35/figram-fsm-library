@@ -21,6 +21,12 @@
         {
           "to": "help"
         }
+      ],
+      "btn:prev": [
+        {
+          "to": "home",
+          "back": true
+        }
       ]
     },
     "children": {
@@ -56,7 +62,17 @@
         }
       },
       "vip": {},
-      "paid": {},
+      "paid": {
+        "on": {
+          "btn:back": [
+            {
+              "to": "shop",
+              "resume": true,
+              "back": true
+            }
+          ]
+        }
+      },
       "shop": {
         "initial": "catalog",
         "on": {

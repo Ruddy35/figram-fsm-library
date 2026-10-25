@@ -1,11 +1,11 @@
 import Figram.Core
 
 /-!
-# The designer's level: the base and three simplifications
+# The designer's level: the base and four simplifications
 
 What the designer draws. The base is the same five building blocks as in the core:
 message, event, arrow with variants (conditions are written as text),
-variable, action. On top of it, three simplifications:
+variable, action. On top of it, four simplifications:
 
 1. **Sections.** Messages can be put into sections, and sections into each other.
    An arrow drawn from a section works on every message inside it
@@ -16,6 +16,8 @@ variable, action. On top of it, three simplifications:
 3. **Timed reminder.** A timer on a message: it starts when the user arrives
    and is cancelled when the user leaves; a firing arrives as the event
    `timerEvent id`.
+4. **"Back to the previous section".** An arrow can lead back to the message the user
+   left when they last crossed a section boundary, wherever they came from.
 
 `Chart.step` is the **reference semantics** of the chart. The compiler (`Figram.Compile`)
 unfolds the simplifications into the base, and the theorem `compile_correct` proves
@@ -38,7 +40,16 @@ that the behaviour is the same.
 6. An event without a matching arrow is ignored.
 7. A timer firing is accepted only with the token of the current run.
 8. If the snapshot's message is no longer in the chart, the user starts the bot
-   over; the timers of the old place are cancelled, remembered places are kept.
+   over; the timers of the old place are cancelled, remembered places are kept, and the
+   event is processed as in decision 9.
+9. A new user can enter the bot with a first event (`startWith`): the event is matched as
+   if the user stood on the initial message, which is neither entered nor left; without a
+   matching variant this is the plain first entry.
+10. A move that crosses a section boundary (the section that directly contains the message
+   left is not the one that directly contains the message entered) remembers the message left
+   as the place to go back to; a move between messages of one section keeps it. "Back" leads
+   to that place, otherwise (none yet, or no longer in the chart) to its fallback target.
+   Entering the bot (decisions 8 and 9) leaves no message and keeps the place.
 -/
 
 namespace Figram
@@ -61,7 +72,20 @@ inductive Dest where
   | node (n : NodeId)
   /-- "Resume the section where the user left off". -/
   | history (sec : NodeId)
+  /-- "Back to the previous section" (decision 10), otherwise `fallback`. -/
+  | back (fallback : Dest)
   deriving DecidableEq, Repr
+
+/-- The target without "back": where a "back" leads when there is no place to go back to. -/
+def Dest.base : Dest → Dest
+  | .back fb => fb.base
+  | d => d
+
+/-- The section that a "resume" target resumes (for "back", that of its fallback). -/
+def Dest.histSec : Dest → Option NodeId
+  | .node _ => none
+  | .history s => some s
+  | .back fb => fb.histSec
 
 structure Branch where
   /-- The name of a condition written as text; none means "otherwise / always". -/
@@ -125,10 +149,7 @@ def leafIds (c : Chart) : List NodeId :=
 
 /-- The sections into which at least one "resume" arrow leads. -/
 def histSecs (c : Chart) : List NodeId :=
-  c.transitions.flatMap fun t => t.branches.filterMap fun b =>
-    match b.target with
-    | .history s => some s
-    | .node _ => none
+  c.transitions.flatMap fun t => t.branches.filterMap (·.target.histSec)
 
 /-- The messages inside section `s` at any depth. -/
 def histCands (c : Chart) (s : NodeId) : List NodeId :=
@@ -158,6 +179,15 @@ def restoreTarget (c : Chart) (s : Snapshot) (sec : NodeId) : NodeId :=
 def resolve (c : Chart) (s : Snapshot) : Dest → NodeId
   | .node n => c.enter n
   | .history sec => c.restoreTarget s sec
+  | .back fb =>
+    match s.back with
+    | some v => if v ∈ c.leafIds then v else c.resolve s fb
+    | none => c.resolve s fb
+
+/-- Decision 10: a move from the snapshot's message to `T` across a section boundary makes
+the message left the place to go back to. -/
+def markBack (c : Chart) (s : Snapshot) (T : NodeId) : Snapshot :=
+  if c.parent s.state = c.parent T then s else s.withBack (some s.state)
 
 /-- The variants of the arrows of node `a` for event `e`. -/
 def branchesAt (c : Chart) (a : NodeId) (e : EventId) : List Branch :=
@@ -170,23 +200,44 @@ def cands (c : Chart) (L : NodeId) (e : EventId) : List Branch :=
 
 def fire (c : Chart) (s : Snapshot) (b : Branch) : Snapshot × List Action :=
   let T := c.resolve s b.target
-  realize s T (c.exitActs s.state ++ staleCancels (c.exitActs s.state) s ++ b.actions ++ c.entryActs T)
+  realize (c.markBack s T) T
+    (c.exitActs s.state ++ staleCancels (c.exitActs s.state) s ++ b.actions ++ c.entryActs T)
 
 def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
 
-def recover (c : Chart) (s : Snapshot) : Snapshot × List Action :=
-  realize s (c.enter c.root) (s.timers.map (fun p => .cancelTimer p.1) ++ c.initActs)
+def start (c : Chart) : Snapshot × List Action := realize .fresh (c.enter c.root) c.initActs
 
-/-- **The reference semantics of the designer's chart.** -/
+/-- The variant chosen for a named event at message `L` (bubbling as in `step`). A timer
+firing chooses nothing. -/
+def choose (c : Chart) (L : NodeId) (ev : Event) (env : HostEnv) : Option Branch :=
+  match ev with
+  | .timer .. => none
+  | .named e => (c.cands L e).find? (fun b => guardOK env b.guard)
+
+/-- **Entering the bot with an event** (decision 9): the event is matched as if the user stood
+on the initial message, which is neither entered nor left. A chosen variant gives `pre`, its
+actions and the entry of its target; otherwise `pre` and the first-entry actions. -/
+def enterBot (c : Chart) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
+    Snapshot × List Action :=
+  match c.choose (c.enter c.root) ev env with
+  | some b =>
+    let T := c.resolve s b.target
+    realize s T (pre ++ b.actions ++ c.entryActs T)
+  | none => realize s (c.enter c.root) (pre ++ c.initActs)
+
+/-- The user's first entry with a first event, the counter continued from `n`. -/
+def startWith (c : Chart) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+  c.enterBot ⟨"", [], [], n, none⟩ [] ev env
+
+/-- **The reference semantics of the designer's chart.** A snapshot whose message is no longer
+in the chart enters the bot again with the event (decisions 8 and 9). -/
 def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  if s.state ∉ c.leafIds then c.recover s
+  if s.state ∉ c.leafIds then c.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
   else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
   else
     match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
     | none => (s, [])
     | some b => c.fire s b
-
-def start (c : Chart) : Snapshot × List Action := realize .fresh (c.enter c.root) c.initActs
 
 end Chart
 end Figram

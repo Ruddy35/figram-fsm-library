@@ -217,7 +217,8 @@ func keysAre(m map[string]any, keys ...string) bool {
 	return true
 }
 
-// checkSnapshot validates strictly by schemas/snapshot.schema.json.
+// checkSnapshot validates by schemas/snapshot.schema.json, for the snapshots the engine writes:
+// integers must be written as integers (the schema and the engine also accept 5.0 and 5e0).
 func checkSnapshot(v any) error {
 	s, ok := v.(map[string]any)
 	if !ok {
@@ -225,7 +226,7 @@ func checkSnapshot(v any) error {
 	}
 	for k := range s {
 		switch k {
-		case "v", "at", "resume", "timers", "seq":
+		case "v", "at", "back", "resume", "timers", "seq":
 		default:
 			return fmt.Errorf("snapshot: unknown field %q", k)
 		}
@@ -235,6 +236,9 @@ func checkSnapshot(v any) error {
 	}
 	if !nameOK(s["at"]) {
 		return fmt.Errorf("snapshot.at: %v", s["at"])
+	}
+	if b, ok := s["back"]; ok && !nameOK(b) {
+		return fmt.Errorf("snapshot.back: %v", b)
 	}
 	if r, ok := s["resume"]; ok {
 		m, ok := r.(map[string]any)
@@ -349,7 +353,7 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		}
 		return "hello", nil
 	}
-	if op == "step" && keysAre(rest, "need") {
+	if (op == "step" || op == "start") && keysAre(rest, "need") {
 		need, ok := rest["need"].([]any)
 		if !ok || len(need) == 0 {
 			return "", fmt.Errorf("need: %v", rest["need"])
@@ -361,7 +365,8 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		}
 		return "need", nil
 	}
-	if !keysAre(rest, "snapshot", "actions") && !keysAre(rest, "snapshot", "actions", "recovered") {
+	// "recovered" only in a reply to step (docs/format.md, section 8)
+	if !keysAre(rest, "snapshot", "actions") && (op != "step" || !keysAre(rest, "snapshot", "actions", "recovered")) {
 		return "", fmt.Errorf("reply to %s: fields %v", op, rest)
 	}
 	if rec, ok := rest["recovered"]; ok && rec != true {
@@ -387,6 +392,8 @@ type step struct {
 
 type trace struct {
 	Start *struct {
+		Event    string          `json:"event"` // start with a first event, if set
+		Guards   map[string]bool `json:"guards"`
 		Snapshot json.RawMessage `json:"snapshot"`
 		Actions  json.RawMessage `json:"actions"`
 	} `json:"start"`
@@ -446,7 +453,14 @@ func same(a any, raw json.RawMessage) bool {
 func check(b *Bot, t trace) (n int, bad int) {
 	var snap any
 	if t.Start != nil {
-		r, variant, err := b.Request(map[string]any{"op": "start"})
+		req := map[string]any{"op": "start"}
+		if t.Start.Event != "" {
+			req["event"] = t.Start.Event
+			if len(t.Start.Guards) > 0 {
+				req["guards"] = t.Start.Guards
+			}
+		}
+		r, variant, err := b.Request(req)
 		n++
 		if err != nil || variant != "result" || !same(r["snapshot"], t.Start.Snapshot) || !same(r["actions"], t.Start.Actions) {
 			bad++

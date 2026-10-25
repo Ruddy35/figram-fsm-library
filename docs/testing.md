@@ -36,14 +36,14 @@ Steps, in order:
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
    the variable the step is skipped (not a waiver).
-4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 23 pinned theorems
+4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 46 pinned theorems
    must equal `tests/proofs/THEOREMS.expected` and depend only on `propext`, `Quot.sound` and
    `Classical.choice`; the Lean sources must not contain `axiom`, `sorry`, `admit`,
    `native_decide`, `implemented_by`, `@[extern`, `skipKernelTC`, `ofReduceBool`,
    `ofReduceNat` ([proofs.md](proofs.md)).
-5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 141 source theorems and
+5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 194 source theorems and
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
-6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (12 scenarios) and
+6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (26 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
 7. **Conformance** — `figram trace` generates 200 random reference scenarios of length 40 for
    each example document and must cover every arrow variant; `tests/engine/conformance.py`
@@ -53,7 +53,7 @@ Steps, in order:
 8. **Random documents** — `tests/engine/random_docs.py`: 100 random valid documents
    (`figram random`) with 12 messages each, every one checked on 20 reference scenarios of length 30.
 9. **Mutation testing** — `tests/engine/mutation.py` runs every mutant of the compiled machine
-   (`figram-engine --mutants`, at least 107 on the two example documents) and requires that the
+   (`figram-engine --mutants`, at least 118 on the two example documents) and requires that the
    scenarios detect each one.
 10. **Host contract** — `tests/engine/host_sim.py` ([host-contract.md](host-contract.md),
     section 7).
@@ -63,11 +63,19 @@ Steps, in order:
 13. **Engine memory** — `tests/engine/engine_memory.py`: the engine starts under `ulimit -v` 32,
     64 and 256 MiB, reserves at most 64 MiB of address space, uses at most 16 MiB after 2000
     requests, runs one thread, and aborts with Lean's stack overflow message on a tiny stack.
-14. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 24
+14. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 30
     snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones;
-    the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 106 hand-written cases:
-    error codes, strict fields, tokens and `seq` by value, `start` with `seq`, `restart`, `id`
-    echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating).
+    the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 137 hand-written cases:
+    error codes, strict fields, tokens and `seq` by value, `start` with `seq`, "back", `restart`, `id`
+    echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating), and
+    `tests/engine/snapshot_scaling.py`: leaving a message, recovery (with and without a variant
+    for the event at the initial message, and with a late timer event) and `restart` with
+    20 000 and 80 000 snapshot timers, and entering a message among as many remembered places,
+    take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
+    most 3 s; the quadratic engine before 0.2.0 took 42 s). The time is the CPU time of an
+    engine process that answers only that request, so load on the machine does not turn the
+    check red; the larger request must cancel every snapshot timer and keep every remembered
+    place.
 15. **JSON text layer** — `tests/engine/json_fuzz.py`: 30 000 random inputs, `figram json`
     against Python `json` with the format's restrictions (same accept/reject decision, same
     value, printing reads back). A deliberately lax parser must be detected (sensitivity
@@ -76,7 +84,7 @@ Steps, in order:
     and UBSan: invalid UTF-8, a 5 MB request, 16 threads calling one machine; then, in a plain
     build, 5000 loads and unloads must grow memory by less than 2 MiB, while a control run without
     unloading must grow it by more than 8 MiB.
-17. **C ABI** — `tests/capi/regress.sh`, at least 44 checks, each in its own process:
+17. **C ABI** — `tests/capi/regress.sh`, at least 45 checks, each in its own process:
     initialization under `RLIMIT_AS`, concurrent and lazy initialization (300 processes each),
     `NULL` arguments, foreign and unloaded handles, NUL bytes, strict UTF-8, the size limit,
     signal dispositions and `sigaltstack`, no threads or file descriptors from initialization,
@@ -88,7 +96,7 @@ Steps, in order:
     `tests/engine/client_robustness.py`, each with an empty stderr
     ([host-contract.md](host-contract.md), section 7).
 20. **Harness self-test** — `tests/engine/harness_selftest.py`: corrupted, incomplete, empty and
-    hanging fake engines must make the conformance, load and snapshot tests fail (at least 37
+    hanging fake engines must make the conformance, load and snapshot tests fail (at least 39
     checks).
 21. **Load test** — `tests/engine/loadtest.py`: 64 Python threads over 2 engine processes,
     every step compared with the reference.

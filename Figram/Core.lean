@@ -10,11 +10,13 @@ This is everything the engine executes. The building blocks:
 * **condition** — the name of a developer's condition; the host computes its value;
 * **action** (`Action`).
 
-The target of a variant is a message or "resume the section where the user left
-off" (`Target.resume`): the place is read from the snapshot during the step.
+The target of a variant is a message, "resume the section where the user left
+off" (`Target.resume`) or "back to the previous section" (`Target.back`): the place
+is read from the snapshot during the step.
 
 The user snapshot (`Snapshot`) holds the current message, the remembered places
-of sections, the active timers with their tokens and the step counter.
+of sections, the active timers with their tokens, the step counter and the place to
+go back to.
 
 A step is the pure function `Machine.step`. Effects are only returned to the host.
 
@@ -100,9 +102,15 @@ structure Snapshot where
   /-- The number of the last transition. Grows by 1 with every transition;
   serves as the timer token and as the basis of the host's idempotency keys. -/
   seq : Nat
+  /-- The place to go back to: the message the user left when they last crossed a section
+  boundary (`Machine.markBack`). -/
+  back : Option NodeId
   deriving DecidableEq, Repr
 
-def Snapshot.fresh : Snapshot := ⟨"", [], [], 0⟩
+def Snapshot.fresh : Snapshot := ⟨"", [], [], 0, none⟩
+
+/-- The snapshot with another place to go back to. -/
+def Snapshot.withBack (s : Snapshot) (b : Option NodeId) : Snapshot := { s with back := b }
 
 /-- Whether the event is accepted: a timer firing only with the current token. -/
 def Snapshot.accepts (s : Snapshot) : Event → Bool
@@ -128,9 +136,30 @@ def ownsTimer (exit : List Action) : Event → Bool
   | .named _ => true
   | .timer id _ => exit.contains (.cancelTimer id)
 
-/-- A transition to `T` with actions `acts`: the new snapshot and the actions for the host. -/
+/-- A transition to `T` with actions `acts`: the new snapshot and the actions for the host.
+This is the specification: every cancelled timer is a pass over the timers and every action a
+copy of the reply, so it takes time quadratic in the number of actions. The machine runs
+`realizeClear` where that number grows with the snapshot. -/
 def realize (s : Snapshot) (T : NodeId) (acts : List Action) : Snapshot × List Action :=
   acts.foldl (realizeOne (s.seq + 1)) ({ s with state := T, seq := s.seq + 1 }, [])
+
+def Action.isCancel : Action → Bool
+  | .cancelTimer _ => true
+  | _ => false
+
+/-- `realize s T (pre ++ acts)` for a `pre` that only cancels timers and cancels every timer of
+`s` (`realize_clear` in `Figram.CoreProofs`): the timers are cleared at once and `pre` goes in
+front of the reply. Leaving a message, recovery and `restart` cancel all the snapshot's timers
+this way, so they take time linear in the size of the snapshot. -/
+def realizeClear (s : Snapshot) (T : NodeId) (pre acts : List Action) : Snapshot × List Action :=
+  let r := realize { s with timers := [] } T acts
+  (r.1, pre ++ r.2)
+
+/-- `realize s T (pre ++ acts)` (`realizeAfter_eq`), with the timers cleared at once when `pre`
+cancels exactly the snapshot's timers, as recovery does. -/
+def realizeAfter (s : Snapshot) (T : NodeId) (pre acts : List Action) : Snapshot × List Action :=
+  if pre = s.timers.map (fun p => .cancelTimer p.1) then realizeClear s T pre acts
+  else realize s T (pre ++ acts)
 
 /-! ## Machine -/
 
@@ -153,7 +182,15 @@ inductive Target where
   | node (n : NodeId)
   /-- "Resume section `sec` where the user left off". -/
   | resume (sec : NodeId)
+  /-- "Back to the previous section": the place to go back to (`Snapshot.back`) if it is a
+  message of the machine, otherwise `fallback`. -/
+  | back (fallback : Target)
   deriving DecidableEq, Repr
+
+/-- The target without "back": where a "back" leads when there is no place to go back to. -/
+def Target.base : Target → Target
+  | .back fb => fb.base
+  | t => t
 
 /-- A variant of an arrow: condition, target, the arrow's actions. -/
 structure FBranch where
@@ -186,6 +223,8 @@ structure Machine where
   entry : List (NodeId × List Action)
   /-- Exit actions of a message: cancel its timers. -/
   exit : List (NodeId × List Action)
+  /-- The section that directly contains a message (`none` outside any section). -/
+  zone : List (NodeId × Option NodeId)
   deriving Repr
 
 namespace Machine
@@ -206,22 +245,72 @@ def resolve (m : Machine) (s : Snapshot) : Target → NodeId
       match lookup s.resume sec with
       | some v => if v ∈ r.members then v else r.default
       | none => r.default
+  | .back fb =>
+    match s.back with
+    | some v => if v ∈ m.states then v else m.resolve s fb
+    | none => m.resolve s fb
 
 def entryOf (m : Machine) (n : NodeId) : List Action := (lookup m.entry n).getD []
 def exitOf (m : Machine) (n : NodeId) : List Action := (lookup m.exit n).getD []
+def zoneOf (m : Machine) (n : NodeId) : Option NodeId := (lookup m.zone n).getD none
 
+/-- A move from the snapshot's message to `T` that crosses a section boundary (the sections
+that directly contain the two messages differ) makes the message left the place to go back
+to; a move inside a section keeps it. -/
+def markBack (m : Machine) (s : Snapshot) (T : NodeId) : Snapshot :=
+  if m.zoneOf s.state = m.zoneOf T then s else s.withBack (some s.state)
+
+/-- A move along variant `b`: `realize` of the exit actions, the cancels of the snapshot's
+other timers, the variant's actions and the entry actions (`fire_eq_realize`). When the exit
+actions only cancel timers (always in a compiled machine), all the snapshot's timers are cleared
+at once. -/
 def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
   let T := m.resolve s b.target
-  realize s T (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++ m.entryOf T)
+  let exit := m.exitOf s.state
+  if exit.all Action.isCancel then
+    realizeClear (m.markBack s T) T (exit ++ staleCancels exit s) (b.actions ++ m.entryOf T)
+  else realize (m.markBack s T) T (exit ++ staleCancels exit s ++ b.actions ++ m.entryOf T)
 
-/-- The snapshot points to a message that no longer exists: start the bot over,
-cancelling the timers of the old place. Remembered places are kept. -/
+/-- Start the bot over from snapshot `s` without an event (`restart`): cancel its timers,
+keep its remembered places and the place to go back to. -/
 def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
-  realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions)
+  realizeClear s m.initial (s.timers.map (fun p => .cancelTimer p.1)) m.initActions
 
-/-- **A step of the machine.** -/
+/-- The user's first entry. -/
+def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
+
+/-- The variant chosen for a named event at message `n`, by the arrows of `n` (with those of
+its sections). A timer firing chooses nothing: it belongs to a message the user entered. -/
+def choose (m : Machine) (n : NodeId) (ev : Event) (env : HostEnv) : Option FBranch :=
+  match ev with
+  | .timer .. => none
+  | .named e =>
+    match m.row n e with
+    | none => none
+    | some r => r.branches.find? (fun b => guardOK env b.guard)
+
+/-- **Entering the bot with an event.** The event is matched as if the user stood on the
+initial message, which is neither entered nor left: if a variant is chosen, `pre`, the
+variant's actions and the entry of its target; otherwise `pre` and the first-entry actions.
+`s` gives the counter, the remembered places and the place to go back to, which entering
+the bot does not change (the user leaves no message of the machine). -/
+def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
+    Snapshot × List Action :=
+  match m.choose m.initial ev env with
+  | some b =>
+    let T := m.resolve s b.target
+    realizeAfter s T pre (b.actions ++ m.entryOf T)
+  | none => realizeAfter s m.initial pre m.initActions
+
+/-- The user's first entry with a first event, the counter continued from `n`. -/
+def startWith (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+  m.enterBot ⟨"", [], [], n, none⟩ [] ev env
+
+/-- **A step of the machine.** If the snapshot's message no longer exists, the user enters the
+bot again with the event (`enterBot`), the timers of the old place cancelled and the remembered
+places kept. -/
 def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  if s.state ∉ m.states then m.recover s
+  if s.state ∉ m.states then m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
   else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
   else
     match m.row s.state ev.key with
@@ -231,16 +320,19 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
       | none => (s, [])
       | some b => m.fire s b
 
-/-- The user's first entry. -/
-def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
-
-/-- The developer's conditions needed for a step from `st` on the event with key `e`:
-the conditions of the variants up to and including the first one without a condition.
-Later variants cannot be chosen, so their conditions do not affect the step (`step_guard_local`). -/
-def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
-  match m.row st e with
+/-- The conditions of the arrow of message `n` for the event with key `e`: those of the
+variants up to and including the first one without a condition. Later variants cannot be
+chosen, so their conditions do not affect the choice (`choose_guard_local`). -/
+def rowGuards (m : Machine) (n : NodeId) (e : EventId) : List String :=
+  match m.row n e with
   | none => []
   | some r => (untilUnguarded (·.guard) r.branches).filterMap (·.guard)
+
+/-- The developer's conditions needed for a step from `st` on the event with key `e`: those of
+the arrow of `st` or, if `st` no longer exists, of the initial message (the step enters the bot
+again). They are all the step depends on (`step_guard_local`). -/
+def requiredGuards (m : Machine) (st : NodeId) (e : EventId) : List String :=
+  m.rowGuards (if st ∈ m.states then st else m.initial) e
 
 /-- The conditions whose values are needed to choose a variant when the values of
 some conditions are already known (`known`): the variants are scanned in order up to
@@ -265,6 +357,7 @@ def neededGuards (m : Machine) (st : NodeId) (e : EventId) (known : String → O
 def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)
   | .resume sec => m.resumes.any (fun r => decide (r.sec = sec))
+  | .back fb => m.targetOK fb
 
 /-- The export check: all targets exist. -/
 def wf (m : Machine) : Bool :=

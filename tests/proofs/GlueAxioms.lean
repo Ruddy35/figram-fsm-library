@@ -8,6 +8,7 @@ import FigramAudit.Glue
 #print axioms Figram.Audit.decEvent_named
 #print axioms Figram.Audit.timer_key_needs_token
 #print axioms Figram.Audit.engine_step_is_reference
+#print axioms Figram.Audit.engine_start_is_reference
 #print axioms Figram.Audit.start_snapOK
 #print axioms Figram.Audit.restart_snapOK
 #print axioms Figram.Audit.except_throw_ne

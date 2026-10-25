@@ -56,7 +56,10 @@ def snapshot_at(bot, L, rng, seq, memory="random"):
             resume[s] = "gone_msg"
     # as if just entered L: its timers carry the current token
     timers = {t: seq for t, _ in bot.nodes[L].timers}
-    return {"at": L, "resume": resume, "timers": timers, "seq": seq}
+    msgs = [m for m in bot.nodes if bot.is_message(m)]
+    r = rng.random()
+    back = rng.choice(msgs) if r < 0.6 else ("gone_msg" if r < 0.7 else None)
+    return {"at": L, "resume": resume, "timers": timers, "seq": seq, "back": back}
 
 
 def cases(bot, rng):

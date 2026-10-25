@@ -42,6 +42,21 @@ report(raises(lambda: eng.step("x", snap, "btn:go")), "conditions needed, no fun
 r = eng.step("x", snap, "btn:go", guards=lambda ns: {n: True for n in ns})
 report("snapshot" in r and r["snapshot"]["at"] == "vip", "all conditions → step result")
 
+# start with a first event asks for its conditions the same way.
+asked = []
+r = eng.start("x", event="btn:go", guards=lambda ns: asked.extend(ns) or {n: True for n in ns})
+report(r["snapshot"] == {"at": "vip", "seq": 1} and r["actions"] == [{"send": "vip"}] and asked == ["is_vip"],
+       "start with an event: condition asked, straight to the target, the initial message not sent")
+r = eng.start("x", seq=41, event="cmd:start")
+report(r["snapshot"]["at"] == "home" and r["snapshot"]["seq"] == 42, "start with an event into the initial message")
+report(raises(lambda: eng.start("x", event="btn:go")), "start: conditions needed, no function → EngineError")
+report(raises(lambda: eng.start("x", event="timer:idle")), "start with a timer event → EngineError")
+try:
+    eng.start("x", guards=lambda ns: {})
+    report(False, "start: guards without an event → ValueError")
+except ValueError:
+    report(True, "start: guards without an event → ValueError")
+
 # Invalid arguments leave the pending table and the process untouched.
 p = eng._procs[0]
 bad_args = 0
@@ -72,7 +87,7 @@ with tempfile.TemporaryDirectory() as d:
         """A test double (sh): answers the start-up hello, then runs body."""
         path = os.path.join(d, "fake.sh")
         with open(path, "w") as f:
-            f.write("#!/bin/sh\nread l; echo '{\"id\":0,\"protocol\":1,\"states\":1}'\n" + body + "\n")
+            f.write("#!/bin/sh\nread l; echo '{\"id\":0,\"protocol\":2,\"states\":1}'\n" + body + "\n")
         os.chmod(path, os.stat(path).st_mode | stat.S_IEXEC)
         return path
 
