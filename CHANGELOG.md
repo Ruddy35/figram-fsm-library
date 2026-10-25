@@ -86,6 +86,17 @@ command names and the exit statuses; the texts of messages are for humans and ma
   lost snapshot with two controls ([docs/host-contract.md](docs/host-contract.md), sections 1
   and 7).
 
+### Known issues
+
+- The JSON reader finds duplicate keys of an object with a hash set: O(1) per key on average,
+  but keys chosen so that their hashes collide make one request take time quadratic in the
+  number of keys of one object (about 12 s within the default limit of 1 MiB). It is in 0.1.0
+  as well, and the fix (a check that does not depend on the hash) comes with the next release.
+  Until then a host that does not trust its stored snapshots can lower `--max-request` (the
+  time falls with the square of the limit) and run more than one engine process, so that one
+  slow request does not hold up the requests of other users
+  ([docs/host-contract.md](docs/host-contract.md), section 5).
+
 ## [0.1.0] - 2026-10-21
 
 First release. It follows an independent audit and fix cycle; the audit reports, logs and
