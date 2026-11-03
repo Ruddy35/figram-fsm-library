@@ -188,7 +188,8 @@ A separate executor takes actions from the outbox in order and marks them execut
   holds the timer with that token (section 1, step 2) — not only until `seq` passes the token:
   an arrow without a target (format.md, section 7, decision 13) on another event raises `seq`
   and leaves the timer in place. A firing handled by an arrow without a target removes the
-  timer from the snapshot. For the same reason `snapshot.timers` is not a list of
+  timer from the snapshot; leaving the message later still emits `cancel_timer` for it (the
+  exit cancels every timer of the message), which then finds no scheduled event. For the same reason `snapshot.timers` is not a list of
   scheduled events: rebuilding the scheduler from it brings back timers that already fired. If
   a conditional reminder must not be lost, give the timer arrow a last variant without a
   condition.

@@ -79,7 +79,7 @@ alternative.
 | 8 | One condition per variant: `"if": "name"` | A list of conditions | The designer writes a condition as text, and the text can say "A and B"; a list would be a second way to write the same thing (C3c) | — |
 | 9 | Texts of conditions, actions and variables live in the maps `conditions`, `calls`, `variables`, and the properties of an action (`detached`, `outcomes`, `every`) next to its text in `calls`; arrows use only names | Text and properties inside the arrow | A text is written once even if the condition is used by ten arrows; two texts for one condition, or one action that is a background action in one arrow and not in another, are impossible | 1 |
 | 10 | Timers live inside the message: `timers` | A separate list of timers with a `node` field | A timer cannot point to a missing node; the schema forbids timers on sections | 2 |
-| 11 | Defaults are omitted: `on`, `timers`, `if`, `resume: false`, `back: false`, `do`, `requires`, description maps; an action with only a text is written as the text | All fields always written | C3b; a reader also accepts an explicitly written default (`{"text": …}` for an action, `"detached": false`, `"every": false`) | — |
+| 11 | Defaults are omitted: `on`, `timers`, `if`, `resume: false`, `back: false`, `do`, `requires`, description maps; an action with only a text is written as the text | All fields always written | C3b; a reader also accepts an explicitly written default (`{"text": …}` for an action, `"detached": false`, `"outcomes": []`, `"every": false`) | — |
 | 12 | A number in the model is an exact `m · 10^e`; format fields are checked by value | Integers only | Extensions can store any number (coordinates, zoom); `7200000`, `7.2e6` and `7200000.0` are the same delay | — |
 | 13 | An action declares its outcomes (`outcomes`); an outcome arrives as the event `call:<action>:<outcome>` (the prefix `call:` is reserved) | Outcomes as ordinary events with names agreed between the designer and the host | `check` knows which events an action can produce: an arrow on an outcome the action does not have is an error, and a waiting message without an arrow for an outcome is a warning; the engine accepts only the outcome of a call it waits for (decision 12 of section 7) | 1 |
 
@@ -494,7 +494,8 @@ Requests are strict: only the fields in the table and `id` are allowed (`hello` 
 `snapshot`, `event`, `guards`, `token`). Any other field, such as the typo `gaurds`, is a
 `bad_request` error. `event` is a non-empty string. `token` is allowed only with a timer event
 (`timer:<name>` with a non-empty name) or an outcome event (`call:<action>:<outcome>`, split at
-the last `:`, both parts non-empty) and is required there; `start` takes neither event and no
+the last `:`, both parts non-empty) and is required there; an event starting with `call:` that
+is not of this form (`call:x`) is a `bad_request` error, with or without `token`; `start` takes neither event and no
 `token`, and takes `guards` only with `event`. `token` and the `seq` of `start` are integers
 from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object
 "condition → true/false"; extra conditions do no harm, but every value must be a boolean.
