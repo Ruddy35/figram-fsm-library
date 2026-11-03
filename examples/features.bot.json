@@ -7,7 +7,21 @@
   },
   "calls": {
     "charge": "Charge the payment",
-    "notify": "Notify the manager"
+    "notify": "Notify the manager",
+    "log": {
+      "text": "Write to the log",
+      "detached": true
+    },
+    "check_stock": {
+      "text": "Ask the warehouse whether the item is in stock",
+      "outcomes": ["yes", "no"]
+    },
+    "ping": {
+      "text": "Ping the manager; every ping is answered",
+      "detached": true,
+      "outcomes": ["pong"],
+      "every": true
+    }
   },
   "bot": {
     "initial": "home",
@@ -27,6 +41,19 @@
           "to": "home",
           "back": true
         }
+      ],
+      "btn:ping": [
+        {
+          "do": ["ping"]
+        }
+      ],
+      "call:ping:pong": [
+        {
+          "do": ["log"]
+        }
+      ],
+      "call:ping:failed": [
+        {}
       ]
     },
     "children": {
@@ -45,6 +72,11 @@
             {
               "to": "home"
             }
+          ],
+          "btn:log": [
+            {
+              "do": ["log"]
+            }
           ]
         },
         "timers": {
@@ -61,7 +93,18 @@
           ]
         }
       },
-      "vip": {},
+      "vip": {
+        "on": {
+          "timer:nudge": [
+            {
+              "do": ["log"]
+            }
+          ]
+        },
+        "timers": {
+          "nudge": 30000
+        }
+      },
       "paid": {
         "on": {
           "btn:back": [
@@ -121,6 +164,26 @@
                   "btn:other": [
                     {
                       "to": "item2"
+                    }
+                  ],
+                  "btn:check": [
+                    {
+                      "do": ["check_stock"]
+                    }
+                  ],
+                  "call:check_stock:yes": [
+                    {
+                      "to": "item2"
+                    }
+                  ],
+                  "call:check_stock:no": [
+                    {
+                      "to": "catalog"
+                    }
+                  ],
+                  "call:check_stock:failed": [
+                    {
+                      "do": ["log"]
                     }
                   ],
                   "timer:remind": [
