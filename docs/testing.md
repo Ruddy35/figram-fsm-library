@@ -49,8 +49,10 @@ Steps, in order:
    length 40 for each example document (outcome events included: the generator delivers
    outcomes of the waits in the snapshot, with the current or a stale token; the choice of events
    and conditions is guided towards the variants not covered yet) and then, for the variants
-   they missed, the shortest scenarios a breadth-first search over the reachable places finds;
-   together they must cover every arrow variant; `tests/engine/conformance.py`
+   they missed, the shortest scenarios a breadth-first search over the reachable places finds,
+   and for each action with outcomes, from the first place found where it is waited for, each
+   outcome with a stale token, with the token of the wait and once more; together they must
+   cover every arrow variant; `tests/engine/conformance.py`
    replays the golden and the random scenarios against `figram-engine` and requires zero
    mismatches. The reference scenarios come from the proved chart semantics, not from the
    engine.

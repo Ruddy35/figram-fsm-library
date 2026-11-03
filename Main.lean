@@ -12,7 +12,8 @@ import Figram.RandomDoc
 * `figram stats <bot.json>` — the size of the compiled machine;
 * `figram trace <bot.json> <count> <length> <seed> [--directed]` — random reference
   scenarios (JSONL); with `--directed`, also the shortest scenarios a search finds for the arrow
-  variants the random ones missed; the coverage of arrow variants goes to stderr;
+  variants the random ones missed and for the outcomes of each action with outcomes (stale,
+  accepted, repeated); the coverage of arrow variants goes to stderr;
 * `figram random <seed> <messages>` — a random valid document;
 * `figram golden <dir>` — the fixed scenarios and their documents;
 * `figram json` — parse the lines of stdin with the text layer (for tests).

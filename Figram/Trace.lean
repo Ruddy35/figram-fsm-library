@@ -214,18 +214,27 @@ def edges (c : Chart) (s : Snapshot) : List (Event × List (String × Bool)) :=
 
 abbrev Path := List (Event × List (String × Bool))
 
+/-- The actions with outcomes that the chart calls. -/
+def waitCalls (c : Chart) : List String :=
+  dedup (c.transitions.flatMap fun t => t.branches.flatMap fun b => b.actions.filterMap fun
+    | .call n _ w _ => if w != .free then some n else none
+    | _ => none)
+
 /-- Breadth-first search over at most `limit` places reachable from the first entry: for each
-arrow variant not in `covered`, the shortest list of inputs found that fires it. The search
-stops once `want` variants are found. -/
-def search (c : Chart) (covered : List String) (limit want : Nat) : List (String × Path) := Id.run do
+arrow variant not in `covered`, the shortest list of inputs found that fires it, and for each
+action of `calls`, the shortest list of inputs found after which it is waited for. The search
+stops once `want` variants and all of `calls` are found. -/
+def search (c : Chart) (covered : List String) (limit want : Nat) (calls : List String) :
+    List (String × Path) × List (String × Path) := Id.run do
   let s0 := c.start.1
   let mut seen : Tab Unit := (Tab.empty 4096).insert (placeKey s0) ()
   let mut queue : Array (Snapshot × Path) := #[(s0, [])]
   let mut found : Tab Unit := Tab.empty 1024
   let mut out : Array (String × Path) := #[]
+  let mut waits : Array (String × Path) := #[]
   let mut i := 0
   for _ in [0:limit] do
-    if h : i < queue.size ∧ out.size < want then
+    if h : i < queue.size ∧ (out.size < want ∨ waits.size < calls.length) then
       let (s, rpath) := queue[i]'h.1
       i := i + 1
       for (ev, gs) in edges c s do
@@ -240,7 +249,10 @@ def search (c : Chart) (covered : List String) (limit want : Nat) : List (String
         unless seen.contains pk do
           seen := seen.insert pk ()
           queue := queue.push (s', rpath')
-  return out.toList
+          for p in s'.pending do
+            if calls.contains p.1 && !waits.any (·.1 == p.1) then
+              waits := waits.push (p.1, rpath'.reverse)
+  return (out.toList, waits.toList)
 
 /-- The scenario of a list of inputs from the first entry. -/
 def replay (c : Chart) (path : Path) : J := Id.run do
@@ -252,13 +264,37 @@ def replay (c : Chart) (path : Path) : J := Id.run do
     s := s'
   return .obj [("start", startJ c), ("steps", .arr steps.toList)]
 
-/-- Scenarios for the arrow variants not in `covered` that the search reaches, and the variants
-covered then. -/
+/-- The snapshot after a list of inputs from the first entry. -/
+def endOf (c : Chart) (path : Path) : Snapshot :=
+  path.foldl (fun s (ev, gs) => (c.step s ev (envOf gs)).1) c.start.1
+
+/-- `path` followed by the events `evs`, each with the conditions aimed at its first candidate. -/
+def extend (c : Chart) (path : Path) (evs : List Event) : Path := Id.run do
+  let mut s := endOf c path
+  let mut out := path
+  for ev in evs do
+    let gs := aimAt c s ev 0
+    out := out ++ [(ev, gs)]
+    s := (c.step s ev (envOf gs)).1
+  return out
+
+/-- For each action with outcomes, from the first place found where it is waited for: each of its
+outcomes with a stale token (ignored), with the token of the wait (accepted) and again
+(ignored: the wait is gone). -/
+def waitScenarios (c : Chart) (waits : List (String × Path)) : List J :=
+  waits.flatMap fun (n, path) =>
+    let tok := (((endOf c path).pending.find? (·.1 == n)).map (·.2)).getD 0
+    (outcomesOf c n).map fun o =>
+      replay c (extend c path [.outcome n o (tok + 1), .outcome n o tok, .outcome n o tok])
+
+/-- Scenarios for the arrow variants not in `covered` that the search reaches and for the outcomes
+of each action with outcomes (`waitScenarios`), and the variants covered then. -/
 def directed (c : Chart) (covered : List String) (limit : Nat := 3000) : List J × List String :=
   let want := totalBranches c - covered.length
-  if want = 0 then ([], covered) else
-  let found := search c covered limit want
-  (found.map fun p => replay c p.2, covered ++ found.map (·.1))
+  let calls := waitCalls c
+  if want = 0 && calls.isEmpty then ([], covered) else
+  let (found, waits) := search c covered limit want calls
+  (found.map (fun p => replay c p.2) ++ waitScenarios c waits, covered ++ found.map (·.1))
 
 
 /-! ## Scripted scenario -/

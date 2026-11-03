@@ -118,7 +118,7 @@ The examples below assume that `figram` and `figram-engine` are on `PATH`
 | `figram check <bot.json>` | check a document: prints `ok`, or the errors one per line (exit 1); warnings go to stderr with the prefix `warning:` and exit 0; a document that cannot be parsed or decoded is reported on stderr (exit 1) |
 | `figram fmt <bot.json>` | print the canonical form of a document (the document is decoded, not checked) |
 | `figram stats <bot.json>` | print the size of the compiled machine |
-| `figram trace <bot.json> <count> <length> <seed> [--directed]` | print `count` random reference scenarios (JSON Lines) computed from the proved chart semantics; with `--directed`, also the shortest scenarios a search finds for the arrow variants the random ones missed; the coverage of arrow variants goes to stderr |
+| `figram trace <bot.json> <count> <length> <seed> [--directed]` | print `count` random reference scenarios (JSON Lines) computed from the proved chart semantics; with `--directed`, also the shortest scenarios a search finds for the arrow variants the random ones missed and for the outcomes of each action with outcomes (stale, accepted, repeated); the coverage of arrow variants goes to stderr |
 | `figram random <seed> <messages>` | print a random valid document |
 | `figram golden <dir>` | write the fixed reference scenarios and their documents into `dir` |
 
