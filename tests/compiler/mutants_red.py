@@ -137,7 +137,9 @@ def classify(bot, mutant, text=None):
     rows = compiled_rows(bot)
     flat = [(r, i) for r in rows for i in range(len(r[2]))]
     kind, _, k = mutant.partition(":")
-    if kind in ("redirect", "drop-guard", "reverse-actions"):
+    # stay-reenter:k re-enters the message instead of the variant without a target k: equivalent
+    # exactly where the variant never fires, as for redirect
+    if kind in ("redirect", "drop-guard", "reverse-actions", "stay-reenter"):
         (L, e, c), i = flat[int(k)]
         why = dead_row(bot, L, e, text)
         if why:
@@ -173,7 +175,7 @@ def classify(bot, mutant, text=None):
                 return "LIVE row %s/%s" % (L, e)
         return "equivalent: reversed row behaves identically for all guard values"
     msgs = [n for n in preorder(bot) if bot.is_message(n)]
-    if kind == "drop-call":
+    if kind in ("drop-call", "detach-flip", "wait-free", "wait-swap"):
         # the action is dropped from every variant: visible iff a selectable variant of a live
         # row (or of the initial message's chain, for start/recovery) performs it
         for L, e, c in rows:
@@ -182,6 +184,7 @@ def classify(bot, mutant, text=None):
             for i, v in enumerate(c):
                 if k in v.calls and select_guards(c, i) is not None:
                     return "LIVE call %s in variant %d of %s/%s" % (k, i, L, e)
+        # (detach-flip, wait-free and wait-swap change only how action k is performed)
         return "equivalent: no selectable variant performs %s" % k
     if kind == "reverse-entry":
         L = msgs[int(k)]

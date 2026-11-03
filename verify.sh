@@ -213,8 +213,8 @@ expect "$LOGS/host.log" '^  outcomes: calls with a token (\d+), outcome events l
 expect "$LOGS/host.log" '^background actions \(host by the contract\), failures injected \d+: users (\d+), kitchen down for (\d+), users not held up (\d+), blocked (\d+), orders (\d+), failure queue (\d+) notify_kitchen with an alert, other failures (\d+), sequential actions not run (\d+)$' \
   'g[0] > 0 and 0 < g[1] < g[0] and g[2] == g[0] == g[4] and g[3] == 0 and g[5] == g[1] and g[6] == g[7] == 0' "host contract: background actions"
 # Controls: no duplicate filtering, an outcome recorded outside the transaction, background actions in the user's queue.
-[ "$(grep -cE '^  the test catches the violation: yes( \(control attempts: [0-9]+\))?$' "$LOGS/host.log")" -eq 3 ] \
-  || fail "host contract: the three controls (duplicates, lost outcomes, background actions in the user's queue) must be caught"
+[ "$(grep -cE '^  the test catches the violation: yes( \(control attempts: [0-9]+\))?$' "$LOGS/host.log")" -eq 4 ] \
+  || fail "host contract: the four controls (duplicates, lost outcomes, failed without reconciling, background actions in the user's queue) must be caught"
 expect "$LOGS/host.log" '^  the test catches the violations: yes$' 'True' "controls of the lost snapshot"
 
 step "CLI: argument errors give a non-zero exit status"
