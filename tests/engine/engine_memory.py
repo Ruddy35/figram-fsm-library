@@ -20,6 +20,9 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "clients", "python"))
+from protocol import PROTOCOL  # noqa: E402
+
 ENGINE, DOC = sys.argv[1], sys.argv[2]
 MAX_VMSIZE_KB = 64 * 1024       # address space reserved after start-up
 MAX_RSS_KB = 16 * 1024          # memory in use after start-up and 2000 requests
@@ -39,7 +42,7 @@ for mb in (32, 64, 256):
         resource.setrlimit(resource.RLIMIT_AS, (mb << 20, resource.RLIM_INFINITY))
     p = subprocess.run([ENGINE, DOC], input=REQS, capture_output=True, timeout=30, preexec_fn=limit)
     out = p.stdout.decode(errors="replace").splitlines()
-    good = p.returncode == 0 and len(out) == 2 and '"protocol":2' in out[0] and '"snapshot"' in out[1]
+    good = p.returncode == 0 and len(out) == 2 and f'"protocol":{PROTOCOL}' in out[0] and '"snapshot"' in out[1]
     report(good, f"ulimit -v {mb} MiB: exit code {p.returncode}, replies {len(out)}"
            + ("" if good else f"; stderr: {p.stderr.decode(errors='replace')[:200]!r}"))
 
