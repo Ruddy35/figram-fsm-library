@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Figram: Telegram bot document, format 1",
-  "description": "The structural part of the format. The semantic conditions (unique names, existing targets, described conditions and actions) are checked by `figram check`. An extra key of the document, a node or a variant must start with `x-` (an annotation): it is kept and not interpreted; any other key is an error. Integer fields (timer delays) are exact integers; a validator that stores numbers as doubles may accept `1e-400` (0 as a double), which `figram check` rejects (docs/format.md, section 3, \"Numbers\").",
+  "description": "The structural part of the format. The semantic conditions (unique names, existing targets, described conditions and actions, outcome events of actions with outcomes, an action with outcomes at most once in a `do`) are checked by `figram check`. An extra key of the document, a node, a variant or an action must start with `x-` (an annotation): it is kept and not interpreted; any other key is an error. Integer fields (timer delays) are exact integers; a validator that stores numbers as doubles may accept `1e-400` (0 as a double), which `figram check` rejects (docs/format.md, section 3, \"Numbers\").",
   "type": "object",
   "required": ["figram", "bot"],
   "properties": {
@@ -14,7 +14,12 @@
       "description": "Semantic extensions without which the document cannot be understood correctly. A reader must reject the document if it does not know at least one of them. Version 1 defines no extensions."
     },
     "conditions": { "$ref": "#/$defs/descriptions", "description": "Conditions: name → the text the designer wrote." },
-    "calls": { "$ref": "#/$defs/descriptions", "description": "Actions: name → a description for the developer." },
+    "calls": {
+      "type": "object",
+      "description": "Actions: name → a description for the developer, or an object with the description and the properties of the action.",
+      "propertyNames": { "minLength": 1 },
+      "additionalProperties": { "$ref": "#/$defs/call" }
+    },
     "variables": { "$ref": "#/$defs/descriptions", "description": "Variables: name → a description for the developer." },
     "bot": { "$ref": "#/$defs/section", "description": "The whole bot is the root section." }
   },
@@ -27,6 +32,31 @@
       "propertyNames": { "minLength": 1 },
       "additionalProperties": { "type": "string" }
     },
+    "call": {
+      "description": "An action: its text, or an object with the text and its properties (docs/format.md, section 4, `Call`). `{\"text\": t}` is the same action as `t`.",
+      "anyOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["text"],
+          "properties": {
+            "text": { "type": "string", "description": "A description for the developer." },
+            "detached": { "type": "boolean", "description": "true: a background action; its `call` carries `\"detached\": true` and the user's next step does not wait for it (docs/format.md, section 7, decision 11)." },
+            "outcomes": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1, "pattern": "^[^:]*$", "not": { "const": "failed" } },
+              "description": "The outcomes the action reports, besides `failed`, which every action with outcomes has; an outcome arrives as the event `call:<action>:<outcome>` with the token of the call (decision 12)."
+            },
+            "every": { "type": "boolean", "description": "true: every call is answered, not only the latest; only with `outcomes`." }
+          },
+          "patternProperties": { "^x-": true },
+          "additionalProperties": false,
+          "if": { "required": ["every"], "properties": { "every": { "const": true } } },
+          "then": { "required": ["outcomes"], "properties": { "outcomes": { "minItems": 1 } } }
+        }
+      ]
+    },
     "handlers": {
       "type": "object",
       "description": "Event → variants in order; the first variant whose condition holds wins.",
@@ -35,16 +65,19 @@
     },
     "variant": {
       "type": "object",
-      "required": ["to"],
       "properties": {
         "if": { "$ref": "#/$defs/id", "description": "The name of a condition; without it, \"otherwise / always\"." },
-        "to": { "$ref": "#/$defs/id", "description": "A message or a section." },
+        "to": { "$ref": "#/$defs/id", "description": "A message or a section; without it, no move: the actions of the variant only (docs/format.md, section 7, decision 13)." },
         "resume": { "type": "boolean", "description": "true: resume section `to` where the user left off." },
         "back": { "type": "boolean", "description": "true: back to the message the user left when they last crossed a section boundary; without one, `to` (with `resume`) as usual." },
         "do": { "type": "array", "items": { "$ref": "#/$defs/id" }, "description": "Actions in order." }
       },
       "patternProperties": { "^x-": true },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        { "if": { "required": ["resume"], "properties": { "resume": { "const": true } } }, "then": { "required": ["to"] } },
+        { "if": { "required": ["back"], "properties": { "back": { "const": true } } }, "then": { "required": ["to"] } }
+      ]
     },
     "node": {
       "if": { "type": "object", "required": ["children"] },

@@ -296,6 +296,7 @@ def to_j(py):
 DOC_KEYS = ["figram", "requires", "conditions", "calls", "variables", "bot"]
 NODE_KEYS = ["initial", "children", "on", "timers"]
 VARIANT_KEYS = ["if", "to", "resume", "back", "do"]
+CALL_KEYS = ["text", "detached", "outcomes", "every"]
 KNOWN_FEATURES: list[str] = []
 
 
@@ -356,8 +357,8 @@ class Canon:
         if v.has("if") and not isinstance(cond, str):
             raise DecodeError("if")
         to = v.get("to")
-        if not isinstance(to, str):
-            raise DecodeError("to")
+        if v.has("to") and not isinstance(to, str):
+            raise DecodeError("to")       # absent `to`: no move (decision 13 of section 7)
         resume = v.get("resume", False) if v.has("resume") else False
         if not isinstance(resume, bool):
             raise DecodeError("resume")
@@ -370,7 +371,8 @@ class Canon:
         out = Obj()
         if v.has("if"):
             out.append(("if", cond))
-        out.append(("to", to))
+        if v.has("to") or self.brk == "to-required":
+            out.append(("to", to))
         if resume or (self.brk == "keep-resume-false" and v.has("resume")):
             out.append(("resume", resume))
         if back:
@@ -379,6 +381,45 @@ class Canon:
             out.append(("do", list(calls)))
         out.extend(self.unknown(VARIANT_KEYS, v))
         return out
+
+    def flag(self, o, k):
+        if not o.has(k):
+            return False
+        x = o.get(k)
+        if not isinstance(x, bool):
+            raise DecodeError(k)
+        return x
+
+    def call(self, c):
+        """An action (section 4, `Call`): a text, or {text, detached?, outcomes?, every?, x-…};
+        an action with only a text is written as the text (decision 11 of section 3)."""
+        if isinstance(c, str):
+            return c
+        if not isinstance(c, Obj):
+            raise DecodeError("action")
+        text = c.get("text")
+        if not isinstance(text, str):
+            raise DecodeError("action text")
+        detached = self.flag(c, "detached")
+        outcomes = self.strs(c.get("outcomes")) if c.has("outcomes") else []
+        every = self.flag(c, "every")
+        ext = self.unknown(CALL_KEYS, c)
+        if not (detached or outcomes or every or ext) and self.brk != "call-always-object":
+            return text
+        out = Obj([("text", text)])
+        if detached or (self.brk == "keep-detached-false" and c.has("detached")):
+            out.append(("detached", detached))
+        if outcomes:
+            out.append(("outcomes", list(outcomes)))
+        if every:
+            out.append(("every", True))
+        out.extend(ext)
+        return out
+
+    def calls(self, o):
+        if not isinstance(o, Obj):
+            raise DecodeError("object")
+        return [(k, self.call(v)) for k, v in o]
 
     def on(self, kvs):
         if not kvs.has("on"):
@@ -443,7 +484,7 @@ class Canon:
             raise DecodeError("requires")
         decls = {}
         for k in ("conditions", "calls", "variables"):
-            decls[k] = self.strmap(d.get(k)) if d.has(k) else []
+            decls[k] = ((self.calls if k == "calls" else self.strmap)(d.get(k))) if d.has(k) else []
         if not d.has("bot"):
             raise DecodeError("bot")
         bot, is_sec = self.node(d.get("bot"))

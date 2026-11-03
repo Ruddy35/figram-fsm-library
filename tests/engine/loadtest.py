@@ -27,7 +27,7 @@ engine = Engine(binary, document, processes)
 
 lock = threading.Lock()
 next_trace = iter(range(len(traces)))
-stats = {"steps": 0, "need_rounds": 0, "mismatch": 0, "examples": []}
+stats = {"steps": 0, "need_rounds": 0, "outcomes": 0, "mismatch": 0, "examples": []}
 latencies: list[float] = []
 
 
@@ -51,7 +51,7 @@ def worker() -> None:
 
 def _worker() -> None:
     local_lat = []
-    local_steps = local_need = 0
+    local_steps = local_need = local_out = 0
     while True:
         with lock:
             i = next(next_trace, None)
@@ -70,7 +70,13 @@ def _worker() -> None:
                 return {k: st["guards"][k] for k in names}
 
             t0 = time.perf_counter()
-            r = engine.step(user, snapshot, st["event"], guards, st.get("token"))
+            if st["event"].startswith("call:"):
+                # an outcome event with the token of its call (protocol 3): Engine.outcome
+                action, _, outcome = st["event"][len("call:"):].rpartition(":")
+                r = engine.outcome(user, snapshot, action, outcome, st["token"], guards)
+                local_out += 1
+            else:
+                r = engine.step(user, snapshot, st["event"], guards, st.get("token"))
             local_lat.append(time.perf_counter() - t0)
             local_steps += 1
             if asked:
@@ -83,6 +89,7 @@ def _worker() -> None:
     with lock:
         stats["steps"] += local_steps
         stats["need_rounds"] += local_need
+        stats["outcomes"] += local_out
         latencies.extend(local_lat)
 
 
@@ -99,7 +106,7 @@ latencies.sort() if latencies else latencies.append(0.0)
 p = lambda q: latencies[min(len(latencies) - 1, int(q * len(latencies)))] * 1e6
 print(
     f"threads {threads:3d}, processes {processes}: "
-    f"steps {stats['steps']} (with a conditions request {stats['need_rounds']}), "
+    f"steps {stats['steps']} (with a conditions request {stats['need_rounds']}, outcome events {stats['outcomes']}), "
     f"mismatches {stats['mismatch']}, "
     f"{stats['steps'] / wall:,.0f} steps/s, "
     f"latency p50 {p(0.5):,.0f} µs, p99 {p(0.99):,.0f} µs"

@@ -17,8 +17,8 @@ F=.lake/build/bin/figram
 E=.lake/build/bin/figram-engine
 P=tests/engine
 # Lower bounds of the number of checks (values of the baseline; fewer is a failure).
-MIN_MUTANTS=118        # mutations in the two example documents
-MIN_SELFTEST_OK=39     # passed checks of the harness self-test
+MIN_MUTANTS=211        # mutations in the two example documents
+MIN_SELFTEST_OK=72     # passed checks of the harness self-test
 WAIVED=()
 fail() { echo "FAIL: $*"; exit 1; }
 python3 -c "import jsonschema" 2>/dev/null || fail "the Python package jsonschema is required: pip install jsonschema"
@@ -203,7 +203,15 @@ step "Host contract"
 logged host python3 $P/host_sim.py $E examples/pizza.bot.json
 expect "$LOGS/host.log" '^  users (\d+): outcome as expected \(.*\) for (\d+), orders in the CRM (\d+), events processed (\d+) of (\d+) .*lost updates (\d+), actions not run (\d+)$' \
   'g[0] > 0 and g[0] == g[1] and 0 < g[2] <= g[0] and g[3] == g[4] and g[5] == 0 and g[6] == 0' "host contract"
-expect "$LOGS/host.log" '^  the test catches the violation: yes(?: \(control attempts: \d+\))?$' 'True' "control host without the contract"
+# Outcomes of actions (docs/host-contract.md, section 2): exactly one outcome event per call with a token.
+expect "$LOGS/host.log" '^  outcomes: calls with a token (\d+), outcome events lost (\d+), processed twice (\d+), without a call (\d+), waits left (\d+) \(created (\d+), rejected (\d+), failed (\d+)\); background actions run (\d+) of (\d+), in the failure queue (\d+)$' \
+  'g[0] > 0 and g[1] == g[2] == g[3] == g[4] == 0 and g[6] > 0 and g[7] > 0 and g[5] + g[6] + g[7] == g[0] and 0 < g[8] == g[9] and g[10] == 0' "host contract: outcomes"
+expect "$LOGS/host.log" '^background actions \(host by the contract\), failures injected \d+: users (\d+), kitchen down for (\d+), users not held up (\d+), blocked (\d+), orders (\d+), failure queue (\d+) notify_kitchen with an alert, other failures (\d+), sequential actions not run (\d+)$' \
+  'g[0] > 0 and 0 < g[1] < g[0] and g[2] == g[0] == g[4] and g[3] == 0 and g[5] == g[1] and g[6] == g[7] == 0' "host contract: background actions"
+# Controls: no duplicate filtering, an outcome recorded outside the transaction, background actions in the user's queue.
+[ "$(grep -cE '^  the test catches the violation: yes( \(control attempts: [0-9]+\))?$' "$LOGS/host.log")" -eq 3 ] \
+  || fail "host contract: the three controls (duplicates, lost outcomes, background actions in the user's queue) must be caught"
+expect "$LOGS/host.log" '^  the test catches the violations: yes$' 'True' "controls of the lost snapshot"
 
 step "CLI: argument errors give a non-zero exit status"
 for args in "trace examples/pizza.bot.json abc 1 7" "trace examples/pizza.bot.json -1 1 7" \
@@ -234,11 +242,11 @@ expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2
 step "Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello; time linear in the snapshot size"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
-  'g[0] >= 30 and g[0] == g[1] and g[2] == 0' "snapshots"
+  'g[0] >= 49 and g[0] == g[1] and g[2] == 0' "snapshots"
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 137 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 250 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
 logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
 expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 6 and g[1] == 0' \
   "time linear in the snapshot size"
@@ -296,7 +304,7 @@ done
 ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" tests/capi/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
 logged c_contract bash tests/capi/regress.sh "$CA"
-expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 45 and g[1] == 0' "C ABI"
+expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 46 and g[1] == 0' "C ABI"
 # The header with the contract is self-contained for C and C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h
@@ -382,19 +390,31 @@ if command -v go >/dev/null; then
     if $G/gofig -corrupt $k examples/pizza.bot.json "$T/small.jsonl" >/dev/null 2>&1; then
       fail "the Go check did not notice the corruption $k"; fi
   done
-  echo "7 kinds of corrupted replies: the Go check is red"
+  # Protocol 3: the golden scenarios of both documents (outcome events with their token, waits,
+  # background actions) and corruptions of the new fields.
+  for d in pizza features; do
+    SHOW=1 logged go_golden_$d $G/gofig -rounds 3 -bots 2 examples/$d.bot.json examples/golden.jsonl
+    expect "$LOGS/go_golden_$d.log" '^bots (\d+), rounds (\d+), goroutines (\d+), requests (\d+), mismatches (\d+),' \
+      'g[3] > 0 and g[4] == 0' "Go, golden scenarios of $d"
+  done
+  for k in call-no-token detached-false pending-dropped hello-protocol-2; do
+    if $G/gofig -corrupt $k examples/features.bot.json examples/golden.jsonl >/dev/null 2>&1; then
+      fail "the Go check did not notice the corruption $k"; fi
+  done
+  echo "11 kinds of corrupted replies: the Go check is red"
   logged go_reload $G/gofig -reload 5000 examples/pizza.bot.json "$T/small.jsonl"
   # One request map used by many goroutines: Request must not modify it.
   (cd $G && CC=${CC:-gcc} GOMAXPROCS=4 go test -race -count=1 -v \
-      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges|TestFixStartWithEvent)$' .) \
+      -run '^(TestSharedRequestMap|TestAuditHelloAlwaysError|TestAuditRequestBadOp|TestAuditLoadNUL|TestAuditRequestNUL|TestFixLazyLoadWithoutInit|TestFixLoadReason|TestFixRequestTooLarge|TestFixCheckReplyProtocolChanges|TestFixStartWithEvent|TestFixOutcomes)$' .) \
       > "$LOGS/go_shared_map.log" 2>&1 \
     || { grep -m3 -A3 "DATA RACE" "$LOGS/go_shared_map.log" || tail -20 "$LOGS/go_shared_map.log"; fail "a race on the shared request map"; }
   for t in TestSharedRequestMap TestAuditHelloAlwaysError TestAuditRequestBadOp TestAuditLoadNUL TestAuditRequestNUL \
-           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges TestFixStartWithEvent; do
+           TestFixLazyLoadWithoutInit TestFixLoadReason TestFixRequestTooLarge TestFixCheckReplyProtocolChanges TestFixStartWithEvent \
+           TestFixOutcomes; do
     grep -q "^--- PASS: $t " "$LOGS/go_shared_map.log" \
       || { tail -5 "$LOGS/go_shared_map.log"; fail "test $t did not run or did not pass"; }
   done
-  echo "a request map shared by 8 goroutines: no races; regression tests of the Bot wrapper (hello, op, NUL, lazy Load, failure reason, too_large, error codes): passed"
+  echo "a request map shared by 8 goroutines: no races; regression tests of the Bot wrapper (hello, op, NUL, lazy Load, failure reason, too_large, error codes, protocol 3): passed"
   # Under RLIMIT_AS the Lean runtime starts, Load and a request work (without -race: TSan takes address space).
   (cd $G && CC=${CC:-gcc} go test -count=1 -v -run '^TestFixInitUnderRlimitAS$' .) > "$LOGS/go_rlimit.log" 2>&1 \
     || { tail -20 "$LOGS/go_rlimit.log"; fail "Go: under RLIMIT_AS the Lean runtime does not start or crashes the process"; }

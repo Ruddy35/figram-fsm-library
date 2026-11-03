@@ -14,6 +14,9 @@ listed), 2 on a usage error. The checks:
              (ErrCode.name), the C shim's codes are among them and are listed in docs/embedding.md,
              the protocol validators of the Python and Go clients know exactly these codes; every
              request field of every operation (opKeys) is documented;
+  protocol   the protocol version of the engine (protocolVersion) is the one stated by
+             docs/format.md, the snapshot schema, ffi/figram.h and the validators of the Python
+             and Go clients;
   cli        the commands of the README CLI table equal the usage text of Main.lean, the engine
              usage line equals EngineMain.lean, and the documented exit statuses equal the ones
              the sources return;
@@ -375,6 +378,38 @@ def check_codes():
         if phrase not in fmt:
             fail("codes", f"docs/format.md does not mention {phrase}")
     notes.append(f"error codes: {sorted(engine_codes)}; shim: {sorted(shim)}; operations: {sorted(ops)}")
+
+
+# ---------------------------------------------------------------- protocol version
+
+def check_protocol():
+    """The protocol version of the engine (protocolVersion in Figram/Engine.lean) is the one the
+    documentation, the schema, the C header and the protocol validators of both clients state."""
+    m = re.search(r"^def protocolVersion : Nat := (\d+)", read("Figram/Engine.lean"), re.M)
+    if not m:
+        fail("protocol", "Figram/Engine.lean: no `def protocolVersion : Nat := N`")
+        return
+    n = int(m.group(1))
+    claims = [  # (file, regular expression on whitespace-collapsed text)
+        ("docs/format.md", r"and engine protocol \(version (\d+)\)"),
+        ("docs/format.md", r"## 8\. Snapshot and engine protocol, version (\d+)"),
+        ("docs/format.md", r'`\{"protocol": (\d+), "states": N\}`'),
+        ("docs/format.md", r"the Python client accepts only version (\d+)"),
+        ("schemas/snapshot.schema.json", r'"title": "[^"]*\(engine protocol (\d+)\)"'),
+        ("ffi/figram.h", r"the request protocol is version (\d+)"),
+        ("clients/python/protocol.py", r"^PROTOCOL = (\d+)$"),
+        ("clients/go/main.go", r'^const protocolVersion = "(\d+)"$'),
+    ]
+    for path, rx in claims:
+        if required("protocol", path) is None:
+            continue
+        text = read(path)
+        found = re.search(rx, text, re.M) or re.search(rx, flat(text))
+        if not found:
+            fail("protocol", f"{path}: statement /{rx}/ not found (update the file or this check)")
+        elif int(found.group(1)) != n:
+            fail("protocol", f"{path}: states protocol {found.group(1)}, the engine speaks {n} (protocolVersion)")
+    notes.append(f"protocol version: {n}")
 
 
 # ---------------------------------------------------------------- CLI
@@ -968,7 +1003,8 @@ def check_licenses():
 
 # ---------------------------------------------------------------- main
 
-CHECKS = [("paths", check_paths), ("theorems", check_theorems), ("codes", check_codes), ("cli", check_cli),
+CHECKS = [("paths", check_paths), ("theorems", check_theorems), ("codes", check_codes),
+          ("protocol", check_protocol), ("cli", check_cli),
           ("capi", check_capi), ("numbers", check_numbers), ("cyrillic", check_cyrillic), ("refs", check_refs),
           ("gates", check_gates), ("build", check_build), ("licenses", check_licenses)]
 if not args.no_run:

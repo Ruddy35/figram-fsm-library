@@ -21,9 +21,10 @@ For every Telegram update (it carries an `update_id`):
    (step 4), in a separate indexed table "(user, `update_id`)", not as a set inside the snapshot
    row (that set would grow with every event). It is enough to keep the redelivery window:
    Telegram does not keep undelivered updates longer than 24 hours (Bot API documentation).
-   Keep the mark `timer:<name>:<token>` of a timer event until the `seq` in the user's snapshot
-   becomes greater than the token (section 3: a firing accepted without a transition leaves the
-   timer in the snapshot, and a redelivery would be accepted again).
+   Keep the mark `timer:<name>:<token>` of a timer event while the user's snapshot still holds
+   the timer with that token (section 3: a firing accepted without a transition leaves the timer
+   in the snapshot, and a redelivery would be accepted again; `seq` passing the token is not
+   enough, an arrow without a target raises `seq` and keeps the timer).
 3. **Step.** The host reads the snapshot and calls `step`. If the engine answers `need`, the
    host computes the conditions and repeats `step` with `guards`. Conditions are computed on
    data where **all sequential `call` actions committed by earlier steps of this user are
@@ -352,23 +353,39 @@ concurrently, with one shared `timeout`.
 ## 7. What is tested
 
 `tests/engine/host_sim.py` models production: 30 users go through a pizza order, every event
-is delivered twice and concurrently, 16 threads, a separate outbox executor, and failures are
-injected at random in three places (before commit, after commit, between executing an action
-and marking it executed). Conditions are computed from data: the cart from executed
-`add_to_cart`/`clear_cart`, the delivery zone from the address text; every third user
+is delivered twice and concurrently, 16 threads, a separate outbox executor, a separate executor
+of background actions, an inbound queue of outcome events, and failures are injected at random
+in five places (before commit, after commit, between executing an action and marking it
+executed, between the answer of the CRM and the transaction that records it, between processing
+an outcome and removing it from the inbound queue). Each user sends the next event for the
+message of the committed snapshot and waits while the snapshot waits for an outcome. Conditions
+are computed from data: the cart from executed `add_to_cart`/`clear_cart`, the delivery zone
+from the address text, `address_rejected` from the details of the outcome; every third user
 first presses "Checkout" with an empty cart, half of the users enter an address outside the
-zone. The test requires that
+zone. The CRM answers `create_order` with `created`, or `rejected` (an address it does not
+deliver to — the user types another one — or another reason — the user retries), or does not
+answer at all, so the host delivers `failed` after three attempts (section 2, "Outcomes"); the
+outcome event is recorded in the transaction that marks the action executed and goes through
+section 1 with the `update_id` `call:create_order:<token>`. The kitchen is busy on the first
+attempt of every `notify_kitchen` (a background action). The test requires that
 every user ends where their data leads (`done` with exactly one order, or `pickup` without
 one), that no update is lost (the final snapshot equals a sequential replay of the processed
-events with the same conditions) and that no action stays unexecuted. A stale timer event after
-a restart is ignored. A second scenario loses the snapshot row of 12 users (after an order, or
-at the cart while the reminder runs): the old timer event that arrives without a snapshot is
-dropped, and the user comes back with a button of an old message, started with `start`, the
-update's event and the high-water mark (section 1, step 3; section 4), and orders again with
-every action executed. `./verify.sh` runs it.
+events with the same conditions), that no action stays unexecuted, that every call with a
+token got exactly one outcome event, processed once, and that no wait is left in a snapshot. A
+second scenario makes the kitchen fail for good for half of 12 users: their `notify_kitchen`
+goes to the failure queue with an alert and every user still goes back to the menu and opens
+the catalog. A stale timer event after a restart is ignored. A third scenario loses the
+snapshot row of 12 users (after an order, or at the cart while the reminder runs): the old
+timer event that arrives without a snapshot is dropped, and the user comes back with a button
+of an old message, started with `start`, the update's event and the high-water mark (section 1,
+step 3; section 4), and orders again with every action executed. `./verify.sh` runs it.
 
 Controls show that the test detects violations: a host without duplicate filtering and
-without idempotency keys (run by the test itself) produces duplicate orders; a host that starts a
+without idempotency keys (run by the test itself) produces duplicate orders; a host that
+marks `create_order` executed and records its outcome afterwards, in a separate step (run by
+the test itself), loses outcomes, and its users wait on `placing` forever; a host that runs
+background actions in the user's queue, as sequential actions (run by the test itself), blocks
+the users whose kitchen is down; a host that starts a
 user without a snapshot without the update's event, or without the high-water mark (both run by
 the test itself), loses the button or the actions of the second order; and a host without
 the barrier (`host_sim.py ENGINE DOC --no-barrier`, conditions read before the previous step's

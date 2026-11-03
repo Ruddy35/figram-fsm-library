@@ -457,8 +457,9 @@ Snapshot = { "v"?:      1,                       (version; absent — 1)
 Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, `back`, the keys and values of
 `resume`, the keys of `timers` and the actions of `pending` are non-empty strings. `pending`
 lists the waits in the engine's order (the newest first); a wait of an action that is no longer
-in the document, or no longer has outcomes, is kept and still accepts its outcome. A `back` or `resume` value that is not
-a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
+in the document, or no longer has outcomes, is kept and still accepts its outcome. The same
+wait listed twice (the engine never writes that) is one wait: its outcome removes both entries.
+A `back` or `resume` value that is not a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
 [`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows; an unknown field or
 an unknown version is an error (such a snapshot was written by a newer engine). `seq` grows by
 1 with every transition, including an arrow without a target (decision 13); it is the token of

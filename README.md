@@ -208,7 +208,9 @@ C example and the Go wrapper in [`clients/go`](clients/go) are described in
 [`clients/python/figram_client.py`](clients/python/figram_client.py) drives a pool of
 `figram-engine` processes with pipelined requests, timeouts, replacement of failed processes and
 restart backoff; failures are reported as `EngineError` with `code` and `retryable`
-([docs/host-contract.md](docs/host-contract.md), section 5).
+([docs/host-contract.md](docs/host-contract.md), section 5). `Engine.outcome` delivers the
+outcome of an action with outcomes with the token of its call
+([docs/host-contract.md](docs/host-contract.md), section 2).
 
 ```python doctest
 from figram_client import Engine, EngineError
@@ -227,6 +229,12 @@ try:
                         guards=lambda names: {name: True for name in names})
     print(reply["snapshot"]["at"])
 
+    # An action with outcomes: its call carries a token; the host reports the outcome with it.
+    reply = engine.step(user, {"at": "pay", "seq": 5}, "payment:success")
+    print(reply["actions"])
+    reply = engine.outcome(user, reply["snapshot"], "create_order", "created", reply["actions"][0]["token"])
+    print(reply["snapshot"]["at"], reply["actions"])
+
     try:
         engine.step(user, {"at": "cart", "vv": 1}, "btn:checkout")
     except EngineError as e:
@@ -239,6 +247,8 @@ finally:
 [{'send': 'menu'}]
 {'at': 'catalog', 'back': 'menu', 'resume': {'order': 'catalog'}, 'seq': 2} [{'send': 'catalog'}]
 address
+[{'call': 'create_order', 'token': 6}, {'send': 'placing'}]
+done [{'call': 'notify_kitchen', 'detached': True}, {'send': 'done'}]
 bad_snapshot False
 ```
 

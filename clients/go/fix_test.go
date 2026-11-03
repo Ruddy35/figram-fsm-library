@@ -4,8 +4,9 @@ package main
 //   - Load without an explicit figram_init (lazy initialization, sync.Once);
 //   - the Lean runtime starts under RLIMIT_AS;
 //   - Load reports why a document was rejected;
-//   - checkReply: errors {id,error,code}, hello with mutant,
-//     the request size limit (too_large, id null).
+//   - checkReply: errors {id,error,code}, hello with mutant and protocol 3,
+//     the request size limit (too_large, id null), pending and the call fields of protocol 3;
+//   - protocol 3 through the embedded engine (outcome events, background actions).
 // Child processes are started through TestMain (FIGRAM_CHILD=…).
 
 import (
@@ -208,11 +209,16 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":6,"error":"x","code":"bad_request"}`, "ERR"},
 		{"step", `{"id":5,"error":"x"}`, "ERR"}, // code is required
 		{"step", `{"id":null,"error":"x"}`, "ERR"},
-		{"hello", `{"id":5,"protocol":2,"states":11}`, "hello"},
-		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":"drop-call:create_order"}`, "hello"},
-		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":""}`, "ERR"},
-		{"hello", `{"id":5,"protocol":2,"states":11,"mutant":3}`, "ERR"},
-		{"hello", `{"id":5,"protocol":2,"states":11,"extra":"x"}`, "ERR"},
+		{"hello", `{"id":5,"protocol":3,"states":11}`, "hello"},
+		{"hello", `{"id":5,"protocol":3,"states":11,"mutant":"drop-call:create_order"}`, "hello"},
+		{"hello", `{"id":5,"protocol":3,"states":11,"mutant":""}`, "ERR"},
+		{"hello", `{"id":5,"protocol":3,"states":11,"mutant":3}`, "ERR"},
+		{"hello", `{"id":5,"protocol":3,"states":11,"extra":"x"}`, "ERR"},
+		// Protocol 3: another version in hello is a violation.
+		{"hello", `{"id":5,"protocol":2,"states":11}`, "ERR"},
+		{"hello", `{"id":5,"protocol":4,"states":11}`, "ERR"},
+		{"hello", `{"id":5,"protocol":3.0,"states":11}`, "ERR"},
+		{"hello", `{"id":5,"protocol":"3","states":11}`, "ERR"},
 		{"start", `{"id":5,"snapshot":{"at":"menu","seq":8},"actions":[{"send":"menu"}]}`, "result"},
 		// Protocol 2: start with an event may answer need; snapshots carry back.
 		{"start", `{"id":5,"need":["is_vip"]}`, "need"},
@@ -226,6 +232,38 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"snapshot":{"at":"vip","seq":1},"actions":[],"recovered":true}`, "result"},
 		{"start", `{"id":5,"snapshot":{"at":"vip","seq":1},"actions":[],"recovered":true}`, "ERR"},
 		{"restart", `{"id":5,"snapshot":{"at":"vip","seq":1},"actions":[],"recovered":true}`, "ERR"},
+		// Protocol 3: waits for outcomes in the snapshot: a list of exactly {call, token}.
+		{"step", `{"id":5,"snapshot":{"at":"item","pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":7},{"call":"ping","token":6}],"seq":7},"actions":[]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[],"seq":7},"actions":[]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping"}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"token":1}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"","token":1}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":1,"token":1}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":-1}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1.5}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":9007199254740992}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":"1"}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1,"x":1}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[["ping",1]]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":{"ping":1}},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":null},"actions":[]}`, "ERR"},
+		// Protocol 3: call carries token (an action with outcomes) and detached (a background action).
+		{"step", `{"id":5,"snapshot":{"at":"item","seq":6},"actions":[{"call":"check_stock","token":6}]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":true}]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":1,"detached":true}]}`, "result"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":false}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":"true"}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":null}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":-1}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":1.5}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":"1"}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":true}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"","token":1}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":1,"outcome":"pong"}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","ms":1,"token":1}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"send":"home","detached":true}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"start_timer":"t","ms":1,"token":1,"detached":true}]}`, "ERR"},
 	}
 	for _, c := range cases {
 		v, err := checkReply(decodeReply(t, c.reply), 5, c.op)
@@ -268,10 +306,61 @@ func TestFixStartWithEvent(t *testing.T) {
 	}
 	want(map[string]any{"op": "start", "event": "btn:go"}, "need", `{"need":["is_vip"]}`)
 	want(map[string]any{"op": "start", "event": "btn:go", "seq": 41, "guards": map[string]bool{"is_vip": true}},
-		"result", `{"actions":[{"send":"vip"}],"snapshot":{"at":"vip","seq":42}}`)
+		"result", `{"actions":[{"ms":30000,"start_timer":"nudge","token":42},{"send":"vip"}],"snapshot":{"at":"vip","seq":42,"timers":{"nudge":42}}}`)
 	want(map[string]any{"op": "start", "event": "timer:idle"}, "error", `{"code":"bad_request"}`)
 	gone := map[string]any{"at": "gone", "back": "item", "timers": map[string]any{"old": 4}, "seq": 9}
 	want(map[string]any{"op": "step", "snapshot": gone, "event": "btn:go"}, "need", `{"need":["is_vip"]}`)
 	want(map[string]any{"op": "step", "snapshot": gone, "event": "btn:go", "guards": map[string]bool{"is_vip": true}},
-		"result", `{"actions":[{"cancel_timer":"old"},{"send":"vip"}],"recovered":true,"snapshot":{"at":"vip","back":"item","seq":10}}`)
+		"result", `{"actions":[{"cancel_timer":"old"},{"ms":30000,"start_timer":"nudge","token":10},{"send":"vip"}],"recovered":true,"snapshot":{"at":"vip","back":"item","seq":10,"timers":{"nudge":10}}}`)
+}
+
+// Protocol 3 through the embedded engine: an action with outcomes gets the step's token and a
+// wait; its outcome is accepted only with that token, removes the wait and takes the arrow; a
+// background action carries detached; start rejects an outcome event; a malformed call: event,
+// a missing token and a bad pending are errors.
+func TestFixOutcomes(t *testing.T) {
+	doc, err := os.ReadFile("../../examples/features.bot.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := Load(string(doc))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer b.Close()
+	want := func(req map[string]any, variant, reply string) {
+		t.Helper()
+		r, v, err := b.Request(req)
+		if err != nil || v != variant {
+			t.Fatalf("%v: variant %q (%v), want %q", req, v, err, variant)
+		}
+		delete(r, "id")
+		if variant == "error" {
+			r = map[string]any{"code": r["code"]}
+		}
+		got, _ := json.Marshal(r)
+		if string(got) != reply {
+			t.Fatalf("%v: reply %s, want %s", req, got, reply)
+		}
+	}
+	item := map[string]any{"at": "item", "timers": map[string]any{"remind": 3}, "seq": 5}
+	want(map[string]any{"op": "step", "snapshot": item, "event": "btn:check"}, "result",
+		`{"actions":[{"call":"check_stock","token":6}],"snapshot":{"at":"item","pending":[{"call":"check_stock","token":6}],"seq":6,"timers":{"remind":3}}}`)
+	waiting := map[string]any{"at": "item", "timers": map[string]any{"remind": 3},
+		"pending": []any{map[string]any{"call": "check_stock", "token": 6}}, "seq": 6}
+	want(map[string]any{"op": "step", "snapshot": waiting, "event": "call:check_stock:yes", "token": 6}, "result",
+		`{"actions":[{"cancel_timer":"remind"},{"send":"item2"}],"snapshot":{"at":"item2","resume":{"shop":"item2"},"seq":7}}`)
+	want(map[string]any{"op": "step", "snapshot": waiting, "event": "call:check_stock:yes", "token": 5}, "result",
+		`{"actions":[],"snapshot":{"at":"item","pending":[{"call":"check_stock","token":6}],"seq":6,"timers":{"remind":3}}}`)
+	want(map[string]any{"op": "step", "snapshot": waiting, "event": "call:check_stock:failed", "token": 6}, "result",
+		`{"actions":[{"call":"log","detached":true}],"snapshot":{"at":"item","seq":7,"timers":{"remind":3}}}`)
+	want(map[string]any{"op": "step", "snapshot": map[string]any{"at": "home", "seq": 1}, "event": "btn:ping"}, "result",
+		`{"actions":[{"call":"ping","detached":true,"token":2}],"snapshot":{"at":"home","pending":[{"call":"ping","token":2}],"seq":2}}`)
+	want(map[string]any{"op": "step", "snapshot": waiting, "event": "call:check_stock:yes"}, "error", `{"code":"bad_request"}`)
+	want(map[string]any{"op": "step", "snapshot": waiting, "event": "call:check_stock", "token": 6}, "error", `{"code":"bad_request"}`)
+	want(map[string]any{"op": "start", "event": "call:ping:pong"}, "error", `{"code":"bad_request"}`)
+	want(map[string]any{"op": "step", "snapshot": map[string]any{"at": "home", "pending": []any{map[string]any{"call": "ping"}}},
+		"event": "btn:self"}, "error", `{"code":"bad_snapshot"}`)
+	want(map[string]any{"op": "restart", "snapshot": waiting}, "result",
+		`{"actions":[{"cancel_timer":"remind"},{"ms":60000,"start_timer":"idle","token":7},{"send":"home"}],"snapshot":{"at":"home","seq":7,"timers":{"idle":7}}}`)
 }

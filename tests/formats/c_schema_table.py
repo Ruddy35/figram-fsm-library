@@ -20,7 +20,7 @@ Every row carries the handwritten expected verdicts and a classification:
              exact: schema accepts a non-integer / non-1 value  — tool artefact;
   footgun    agreement, but the result is surprising (see note).
 
-    python3 c_schema_table.py [--break no-minlength|const2|no-integer]
+    python3 c_schema_table.py [--break no-minlength|const2|no-integer|to-required|no-pending|lax-call]
 """
 
 import argparse
@@ -49,6 +49,16 @@ V_A = '{"on":{"btn:x":[VAR]}}'
 
 def VAR(v):
     return M(V_A.replace("VAR", v))
+
+
+def CALL(c, on='{"btn:x":[{"do":["k"]}]}'):
+    """Document with the action `k` declared as `c` (a JSON text) and used by message 'a'."""
+    return D('{"a":{"on":' + on + '}}', top=',"calls":{"k":' + c + '}')
+
+
+# The action `k` with outcomes, used by message 'a'; `on` holds its outcome arrows.
+K_OUT = '{"text":"t","outcomes":["ok"]}'
+OUT_ON = '{"btn:x":[{"do":["k"]}],"call:k:ok":[{}],"call:k:failed":[{}]'
 
 
 DOCS = [
@@ -119,7 +129,7 @@ DOCS = [
     ("back-false", VAR('{"to":"a","back":false}'), 1, 1, 1, "agree", "explicit default"),
     ("back-str", VAR('{"to":"a","back":"true"}'), 0, 0, 0, "agree", ""),
     ("back-null", VAR('{"to":"a","back":null}'), 0, 0, 0, "agree", ""),
-    ("back-no-to", VAR('{"back":true}'), 0, 0, 0, "agree", "the fallback `to` is required"),
+    ("back-no-to", VAR('{"back":true}'), 0, 1, 0, "struct", "the fallback `to` is required (V3)"),
     ("back-to-missing", VAR('{"to":"nope","back":true}'), 1, 1, 0, "V", "V3: the fallback exists"),
     ("back-resume-message", VAR('{"to":"a","resume":true,"back":true}'), 1, 1, 0, "V", "V3"),
     ("do-empty", VAR('{"to":"a","do":[]}'), 1, 1, 1, "agree", "explicit default"),
@@ -138,7 +148,66 @@ DOCS = [
     ("to-missing", VAR('{"to":"nope"}'), 1, 1, 0, "V", "V3"),
     ("bot-is-message", '{"figram":1,"bot":{}}', 0, 0, 0, "agree", ""),
     ("node-array", D('{"a":[]}'), 0, 0, 0, "agree", ""),
-    ("variant-no-to", VAR('{"if":"c"}'), 0, 0, 0, "agree", ""),
+    ("variant-no-to-undeclared-if", VAR('{"if":"c"}'), 1, 1, 0, "V", "V4; no `to` is no move (decision 13)"),
+    ("variant-empty", VAR('{}'), 1, 1, 1, "agree", "no move, no actions"),
+    ("variant-no-to-do", CALL('"t"', '{"btn:x":[{"do":["k"]}]}'), 1, 1, 1, "agree", "actions without a move"),
+    ("variant-no-to-back-false", VAR('{"back":false}'), 1, 1, 1, "agree", "explicit default"),
+    ("variant-no-to-resume", VAR('{"resume":true}'), 0, 1, 0, "struct", "`resume` needs `to` (V3)"),
+    ("variant-to-null", VAR('{"to":null}'), 0, 0, 0, "agree", ""),
+    ("variant-to-num", VAR('{"to":1}'), 0, 0, 0, "agree", ""),
+    # ---- actions: a text or {text, detached?, outcomes?, every?, x-…} (section 4, `Call`) ----
+    ("call-text", CALL('"t"'), 1, 1, 1, "agree", ""),
+    ("call-object-text", CALL('{"text":"t"}'), 1, 1, 1, "agree", "the same action as the text"),
+    ("call-text-empty", CALL('""'), 1, 1, 1, "agree", "a description may be empty"),
+    ("call-detached", CALL('{"text":"t","detached":true}'), 1, 1, 1, "agree", "decision 11"),
+    ("call-detached-false", CALL('{"text":"t","detached":false}'), 1, 1, 1, "agree", "explicit default"),
+    ("call-detached-str", CALL('{"text":"t","detached":"true"}'), 0, 0, 0, "agree", ""),
+    ("call-detached-null", CALL('{"text":"t","detached":null}'), 0, 0, 0, "agree", ""),
+    ("call-outcomes", CALL(K_OUT, OUT_ON + '}'), 1, 1, 1, "agree", "decision 12"),
+    ("call-outcomes-two", CALL('{"text":"t","outcomes":["ok","no"]}'), 1, 1, 1, "agree",
+     "outcomes without arrows: a warning, not an error"),
+    ("call-outcomes-empty", CALL('{"text":"t","outcomes":[]}'), 1, 1, 1, "agree", "explicit default"),
+    ("call-outcomes-str", CALL('{"text":"t","outcomes":"ok"}'), 0, 0, 0, "agree", ""),
+    ("call-outcomes-num", CALL('{"text":"t","outcomes":[1]}'), 0, 0, 0, "agree", ""),
+    ("call-outcome-empty", CALL('{"text":"t","outcomes":[""]}'), 0, 1, 0, "struct", "outcome names are non-empty"),
+    ("call-outcome-colon", CALL('{"text":"t","outcomes":["a:b"]}'), 0, 1, 0, "struct",
+     "an outcome name has no `:` (the event is split at the last `:`)"),
+    ("call-outcome-failed", CALL('{"text":"t","outcomes":["failed"]}'), 0, 1, 0, "struct",
+     "`failed` is implicit"),
+    ("call-outcome-dup", CALL('{"text":"t","outcomes":["ok","ok"]}'), 0, 1, 0, "struct", "unique outcomes"),
+    ("call-every", CALL('{"text":"t","outcomes":["ok"],"every":true}'), 1, 1, 1, "agree", ""),
+    ("call-every-false", CALL('{"text":"t","every":false}'), 1, 1, 1, "agree", "explicit default"),
+    ("call-every-no-outcomes", CALL('{"text":"t","every":true}'), 0, 1, 0, "struct", "`every` needs `outcomes`"),
+    ("call-every-outcomes-empty", CALL('{"text":"t","outcomes":[],"every":true}'), 0, 1, 0, "struct", ""),
+    ("call-every-str", CALL('{"text":"t","outcomes":["ok"],"every":1}'), 0, 0, 0, "agree", ""),
+    ("call-all", CALL('{"x-ui":{"z":1},"every":true,"outcomes":["ok"],"detached":true,"text":"t"}', OUT_ON + '}'),
+     1, 1, 1, "agree", "any key order, an annotation"),
+    ("call-no-text", CALL('{"detached":true}'), 0, 0, 0, "agree", ""),
+    ("call-text-num", CALL('{"text":1}'), 0, 0, 0, "agree", ""),
+    ("call-num", CALL('5'), 0, 0, 0, "agree", ""),
+    ("call-null", CALL('null'), 0, 0, 0, "agree", ""),
+    ("call-array", CALL('["t"]'), 0, 0, 0, "agree", ""),
+    ("call-unknown-key", CALL('{"text":"t","detach":true}'), 0, 1, 0, "struct",
+     "a typo of `detached` is an error, not a sequential action"),
+    ("call-name-empty", D(top=',"calls":{"":{"text":"t"}}'), 0, 1, 0, "struct", ""),
+    # ---- outcome events `call:<action>:<outcome>` (V5) and V6 ----------------
+    ("outcome-event-failed", CALL(K_OUT, OUT_ON + '}'), 1, 1, 1, "agree", "`failed` of every action with outcomes"),
+    ("outcome-event-undeclared-outcome", CALL(K_OUT, OUT_ON + ',"call:k:nope":[{}]}'), 1, 1, 0, "V", "V5"),
+    ("outcome-event-no-outcomes", CALL('"t"', '{"btn:x":[{"do":["k"]}],"call:k:ok":[{}]}'), 1, 1, 0, "V",
+     "V5: `k` has no outcomes"),
+    ("outcome-event-undeclared-action", M('{"on":{"call:zz:ok":[{}]}}'), 1, 1, 0, "V", "V5"),
+    ("outcome-event-no-outcome", CALL(K_OUT, OUT_ON + ',"call:k":[{}]}'), 1, 1, 0, "V",
+     "V5: `call:` is reserved"),
+    ("outcome-event-empty", M('{"on":{"call:":[{}]}}'), 1, 1, 0, "V", "V5"),
+    ("outcome-event-colon-action", D('{"a":{"on":{"btn:x":[{"do":["a:b"]}],"call:a:b:ok":[{}],"call:a:b:failed":[{}]}}}',
+                                     top=',"calls":{"a:b":{"text":"t","outcomes":["ok"]}}'), 1, 1, 1, "agree",
+     "split at the last `:`"),
+    ("outcome-twice-in-do", CALL(K_OUT, OUT_ON.replace('"do":["k"]', '"do":["k","k"]') + '}'), 1, 1, 0, "V", "V6"),
+    ("plain-twice-in-do", CALL('"t"', '{"btn:x":[{"do":["k","k"]}]}'), 1, 1, 1, "agree",
+     "V6 is only for actions with outcomes"),
+    ("outcome-no-arrow-on-target", D('{"a":{"on":{"btn:x":[{"to":"b","do":["k"]}]}},"b":{}}',
+                                     top=',"calls":{"k":' + K_OUT + '}'), 1, 1, 1, "footgun",
+     "a warning: `b` has no arrow for the outcomes, a user there would wait forever"),
     ("on-value-obj", M('{"on":{"btn:x":{}}}'), 0, 0, 0, "agree", ""),
     ("on-array", M('{"on":[]}'), 0, 0, 0, "agree", ""),
     ("on-null", M('{"on":null}'), 0, 0, 0, "agree", ""),
@@ -191,6 +260,42 @@ SNAPS = [
     ("dup-at", '{"at":"home","at":"vip"}', 1, 0, "dev", "Python last wins; engine: parse error id:null (ET-07)"),
     ("at-lone-surrogate", '{"at":"\\ud800"}', 1, 0, "dev", ""),
     ("unknown-field", '{"at":"home","x-ui":1}', 0, 0, "agree", "strict snapshot"),
+    # ---- pending: waits for outcomes (section 8, protocol 3) -----------------
+    ("pending", '{"at":"home","pending":[{"call":"ping","token":3}]}', 1, 1, "agree", ""),
+    ("pending-two", '{"at":"home","pending":[{"call":"ping","token":5},{"call":"check_stock","token":3}]}', 1, 1,
+     "agree", ""),
+    ("pending-key-order", '{"at":"home","pending":[{"token":3,"call":"ping"}]}', 1, 1, "agree", ""),
+    ("pending-empty", '{"at":"home","pending":[]}', 1, 1, "agree", "explicit default"),
+    ("pending-dup", '{"at":"home","pending":[{"call":"ping","token":3},{"call":"ping","token":3}]}', 1, 1,
+     "agree", "not produced by the engine, accepted"),
+    ("pending-unknown-action", '{"at":"home","pending":[{"call":"nope","token":3}]}', 1, 1, "agree",
+     "kept: still accepts its outcome"),
+    ("pending-plain-action", '{"at":"home","pending":[{"call":"log","token":3}]}', 1, 1, "agree", "kept"),
+    ("pending-token-1.0", '{"at":"home","pending":[{"call":"ping","token":1.0}]}', 1, 1, "agree", "by value"),
+    ("pending-token-neg-zero", '{"at":"home","pending":[{"call":"ping","token":-0}]}', 1, 1, "agree", ""),
+    ("pending-token-max", '{"at":"home","pending":[{"call":"ping","token":9007199254740991}]}', 1, 1, "agree", ""),
+    ("pending-token-max+1", '{"at":"home","pending":[{"call":"ping","token":9007199254740992}]}', 0, 0, "agree", ""),
+    ("pending-token-neg", '{"at":"home","pending":[{"call":"ping","token":-1}]}', 0, 0, "agree", ""),
+    ("pending-token-1.5", '{"at":"home","pending":[{"call":"ping","token":1.5}]}', 0, 0, "agree", ""),
+    ("pending-token-1e-400", '{"at":"home","pending":[{"call":"ping","token":1e-400}]}', 1, 0, "prec", ""),
+    ("pending-token-max-1-half", '{"at":"home","pending":[{"call":"ping","token":9007199254740990.5}]}', 1, 0,
+     "prec", ""),
+    ("pending-token-str", '{"at":"home","pending":[{"call":"ping","token":"3"}]}', 0, 0, "agree", ""),
+    ("pending-token-bool", '{"at":"home","pending":[{"call":"ping","token":true}]}', 0, 0, "agree", ""),
+    ("pending-token-null", '{"at":"home","pending":[{"call":"ping","token":null}]}', 0, 0, "agree", ""),
+    ("pending-call-empty", '{"at":"home","pending":[{"call":"","token":3}]}', 0, 0, "agree", ""),
+    ("pending-call-num", '{"at":"home","pending":[{"call":1,"token":3}]}', 0, 0, "agree", ""),
+    ("pending-no-token", '{"at":"home","pending":[{"call":"ping"}]}', 0, 0, "agree", ""),
+    ("pending-no-call", '{"at":"home","pending":[{"token":3}]}', 0, 0, "agree", ""),
+    ("pending-extra-field", '{"at":"home","pending":[{"call":"ping","token":3,"outcome":"pong"}]}', 0, 0,
+     "agree", "strict entries"),
+    ("pending-x-key", '{"at":"home","pending":[{"call":"ping","token":3,"x-ui":1}]}', 0, 0, "agree", ""),
+    ("pending-entry-array", '{"at":"home","pending":[["ping",3]]}', 0, 0, "agree", ""),
+    ("pending-entry-str", '{"at":"home","pending":["ping"]}', 0, 0, "agree", ""),
+    ("pending-object", '{"at":"home","pending":{"ping":3}}', 0, 0, "agree", "an array, not a map"),
+    ("pending-null", '{"at":"home","pending":null}', 0, 0, "agree", ""),
+    ("pending-dup-key", '{"at":"home","pending":[{"call":"ping","call":"log","token":3}]}', 1, 0, "dev",
+     "Python last wins; engine: parse error"),
 ]
 
 
@@ -211,6 +316,16 @@ def schema(path, brk):
         s["properties"]["figram"]["const"] = 2
     elif brk == "no-integer":
         s = json.loads(json.dumps(s).replace('"integer"', '"number"'))
+    elif brk == "to-required" and "variant" in s.get("$defs", {}):
+        # the protocol-2 schema: every variant has a target, actions are texts
+        s["$defs"]["variant"]["required"] = ["to"]
+        s["$defs"]["call"] = {"type": "string"}
+    elif brk == "no-pending" and "pending" in s.get("properties", {}):
+        # the protocol-2 snapshot schema: no waits
+        del s["properties"]["pending"]
+    elif brk == "lax-call" and "call" in s.get("$defs", {}):
+        # an action object without its constraints: any keys, any outcome names, `every` alone
+        s["$defs"]["call"]["anyOf"][1] = {"type": "object", "required": ["text"]}
     return jsonschema.Draft202012Validator(s)
 
 

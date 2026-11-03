@@ -40,10 +40,22 @@ static const char* REQS[] = {
   "{\"id\":14,\"op\":\"restart\",\"snapshot\":{\"at\":\"catalog\",\"back\":\"menu\",\"resume\":{\"order\":\"catalog\"},\"seq\":4}}",
   "{\"id\":15,\"op\":\"start\",\"event\":\"timer:cart_reminder\"}",
   "{\"id\":16,\"op\":\"step\",\"snapshot\":{\"at\":\"cart\",\"back\":\"menu\",\"resume\":{\"order\":\"cart\"},\"timers\":{\"cart_reminder\":3},\"seq\":3},\"event\":\"timer:cart_reminder\",\"token\":2}",
+  /* protocol version 3: an action with outcomes (a token and a wait in pending), its outcome
+     with the token of the wait (a background action after it), a stale token, an outcome that
+     needs a condition, start with an outcome event, an outcome event without a token, a bad
+     pending */
+  "{\"id\":17,\"op\":\"step\",\"snapshot\":{\"at\":\"pay\",\"resume\":{\"order\":\"pay\"},\"seq\":5},\"event\":\"payment:success\"}",
+  "{\"id\":18,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"resume\":{\"order\":\"placing\"},\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"event\":\"call:create_order:created\",\"token\":6}",
+  "{\"id\":19,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"resume\":{\"order\":\"placing\"},\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"event\":\"call:create_order:created\",\"token\":5}",
+  "{\"id\":20,\"op\":\"start\",\"event\":\"call:create_order:created\"}",
+  "{\"id\":21,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"event\":\"call:create_order:created\"}",
+  "{\"id\":22,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"event\":\"call:create_order:rejected\",\"token\":6}",
+  "{\"id\":23,\"op\":\"step\",\"snapshot\":{\"at\":\"menu\",\"pending\":[{\"call\":\"create_order\"}]},\"event\":\"x\"}",
+  "{\"id\":24,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"event\":\"call:create_order:rejected\",\"token\":6,\"guards\":{\"address_rejected\":false}}",
 };
 #define NREQ (sizeof REQS / sizeof *REQS)
-/* The replies of figram-engine examples/pizza.bot.json to the protocol-2 requests above (from
-   REQS[V2_FIRST] on): the shared handle must give exactly the bytes of the process. */
+/* The replies of figram-engine examples/pizza.bot.json to the protocol-2 and protocol-3 requests
+   above (from REQS[V2_FIRST] on): the shared handle must give exactly the bytes of the process. */
 #define V2_FIRST 10
 static const char* V2_WANT[] = {
   "{\"id\":10,\"snapshot\":{\"at\":\"catalog\",\"resume\":{\"order\":\"catalog\"},\"seq\":42},\"actions\":[{\"send\":\"catalog\"}]}",
@@ -53,6 +65,14 @@ static const char* V2_WANT[] = {
   "{\"id\":14,\"snapshot\":{\"at\":\"menu\",\"seq\":5},\"actions\":[{\"send\":\"menu\"}]}",
   "{\"id\":15,\"error\":\"a timer event cannot start a user\",\"code\":\"bad_request\"}",
   "{\"id\":16,\"snapshot\":{\"at\":\"cart\",\"back\":\"menu\",\"resume\":{\"order\":\"cart\"},\"timers\":{\"cart_reminder\":3},\"seq\":3},\"actions\":[]}",
+  "{\"id\":17,\"snapshot\":{\"at\":\"placing\",\"resume\":{\"order\":\"placing\"},\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"actions\":[{\"call\":\"create_order\",\"token\":6},{\"send\":\"placing\"}]}",
+  "{\"id\":18,\"snapshot\":{\"at\":\"done\",\"back\":\"placing\",\"resume\":{\"order\":\"placing\"},\"seq\":7},\"actions\":[{\"call\":\"notify_kitchen\",\"detached\":true},{\"send\":\"done\"}]}",
+  "{\"id\":19,\"snapshot\":{\"at\":\"placing\",\"resume\":{\"order\":\"placing\"},\"pending\":[{\"call\":\"create_order\",\"token\":6}],\"seq\":6},\"actions\":[]}",
+  "{\"id\":20,\"error\":\"an outcome event cannot start a user\",\"code\":\"bad_request\"}",
+  "{\"id\":21,\"error\":\"missing field `token` for an outcome event\",\"code\":\"bad_request\"}",
+  "{\"id\":22,\"need\":[\"address_rejected\"]}",
+  "{\"id\":23,\"error\":\"snapshot: a `pending` entry needs `token`\",\"code\":\"bad_snapshot\"}",
+  "{\"id\":24,\"snapshot\":{\"at\":\"order_failed\",\"resume\":{\"order\":\"order_failed\"},\"seq\":7},\"actions\":[{\"send\":\"order_failed\"}]}",
 };
 #define NV2 (sizeof V2_WANT / sizeof *V2_WANT)
 static char* want[NREQ];
@@ -139,7 +159,7 @@ int main(int argc, char** argv) {
   bot = figram_load_doc(doc);
   if (!bot) { printf("doc not loaded\n"); return 1; }
   for (unsigned k = 0; k < NREQ; k++) want[k] = figram_request_json(bot, REQS[k]);
-  /* Protocol 2 through the C ABI: the reference replies equal those of the process. */
+  /* Protocols 2 and 3 through the C ABI: the reference replies equal those of the process. */
   long v2bad = 0;
   if (strstr(argv[1], "pizza.bot.json")) {
     for (unsigned k = 0; k < NV2; k++)
@@ -147,7 +167,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "V2 MISMATCH req %u: %s\n  expected %s\n", V2_FIRST + k, want[V2_FIRST + k], V2_WANT[k]);
         v2bad++;
       }
-    printf("protocol 2 replies checked against figram-engine: %u, mismatches %ld\n", (unsigned)NV2, v2bad);
+    printf("protocol 2 and 3 replies checked against figram-engine: %u, mismatches %ld\n", (unsigned)NV2, v2bad);
   }
   /* Sensitivity self-check: a corrupted reference must produce mismatches. */
   if (getenv("FIGRAM_STRESS_SELFTEST")) want[2][2] = 'X';
