@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/protocol_edges.py /home/user/figram-audit/agents5/redteam/bin/mut/d31-split-first-colon/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:39:58.394Z
+end: 2026-11-03T18:39:58.859Z
+exit_code: 1
+--- stdout (515 bytes, last 200 lines)
+FAIL an action name with ':': the event is split at the last ':': {'snapshot': {'at': 'home', 'pending': [{'call': 'a:b', 'token': 3}], 'seq': 4}, 'actions': []} ≠ expected {'snapshot': {'at': 'home', 'seq': 4}, 'actions': []}
+FAIL an action name with ':': the wait of `a` does not accept call:a:b:c: {'snapshot': {'at': 'home', 'seq': 4}, 'actions': []} ≠ expected {'snapshot': {'at': 'home', 'pending': [{'call': 'a', 'token': 3}], 'seq': 4}, 'actions': []}
+protocol edge cases 250, replies 250, mismatches 2
+--- stderr (0 bytes, last 100 lines)

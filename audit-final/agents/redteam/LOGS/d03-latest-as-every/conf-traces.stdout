@@ -1,0 +1,4 @@
+requests 17602, mismatches 13
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 20}, 'pending': [{'call': 'check_stock', 'token': 22}], 'seq': 22}, 'event': 'btn:check'} → {'id': 1329, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 7}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 7}, 'event': 'btn:check'} → {'id': 3094, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'re
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 7}, 'pending': [{'call': 'check_stock', 'token': 8}], 'seq': 8}, 'event': 'btn:check'} → {'id': 3095, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'re

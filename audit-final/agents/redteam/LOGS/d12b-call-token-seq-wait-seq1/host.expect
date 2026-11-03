@@ -1,0 +1,4 @@
+FAIL host contract:   users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 15, orders in the CRM 7, events processed 260 of 260 (repeated deli
+FAIL outcomes:   outcomes: calls with a token 15, outcome events lost 0, processed twice 0, without a call 0, waits left 15 (created 7, rejected 5, failed 3); background actio
+FAIL background: background actions (host by the contract), failures injected 43: users 12, kitchen down for 6, users not held up 0, blocked 0, orders 12, failure queue 0 notify
+gate-expect-bad=3

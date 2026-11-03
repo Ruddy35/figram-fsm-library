@@ -1,0 +1,17 @@
+command: /home/user/figram-audit/agents5/semantics/scripts/case.sh bg.bot.json bg 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/cases
+start: 2026-11-03T17:44:12.241Z
+end: 2026-11-03T17:44:12.279Z
+exit_code: 0
+--- stdout (144 bytes, last 200 lines)
+engine exit 0
+ok id=hello
+ok id=go
+ok id=s
+ok id=bgo-done-elsewhere
+ok id=bge-done
+ok id=start-s
+ok id=restart
+ok id=rec-s
+TOTAL 8 mismatches 0
+--- stderr (0 bytes, last 100 lines)

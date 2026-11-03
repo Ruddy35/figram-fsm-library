@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..bada096 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -361,7 +361,7 @@ place to go back to and the waits, which entering the bot does not change otherw
+ leaves no message of the machine). -/
+ def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
+     Snapshot × List Action :=
+-  match (if s.accepts ev then m.choose m.initial ev env else none) with
++  match m.choose m.initial ev env with
+   | some b =>
+     let T := m.resolve { s with state := m.initial } b.target
+     realizeAfter (s.settle ev) T pre (b.actions ++ m.entryOf T)

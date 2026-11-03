@@ -1,0 +1,1 @@
+py-detached-false: rc=1 (want ≠ 0): FAIL validator on {"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":false}]}: accepted, expected rejected|protocol edge cases 250, replies 250, mismatches 1|

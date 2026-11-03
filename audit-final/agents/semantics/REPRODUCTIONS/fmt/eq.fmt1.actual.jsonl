@@ -1,0 +1,6 @@
+{"id":1,"protocol":3,"states":1}
+{"id":2,"snapshot":{"at":"h","pending":[{"call":"e","token":2},{"call":"o","token":2}],"seq":2},"actions":[{"call":"p"},{"call":"n"},{"call":"o","token":2},{"call":"e","token":2,"detached":true},{"call":"bg","detached":true},{"call":"ann"}]}
+{"id":3,"snapshot":{"at":"h","pending":[{"call":"o","token":2}],"seq":3},"actions":[]}
+{"id":4,"snapshot":{"at":"h","seq":3},"actions":[]}
+{"id":5,"snapshot":{"at":"h","seq":1},"actions":[{"send":"h"}]}
+{"id":6,"snapshot":{"at":"h","seq":2},"actions":[]}

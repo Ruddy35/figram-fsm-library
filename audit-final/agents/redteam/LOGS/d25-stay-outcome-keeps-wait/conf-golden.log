@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d25-stay-outcome-keeps-wait/figram-engine --golden examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:34:28.511Z
+end: 2026-11-03T18:34:28.566Z
+exit_code: 1
+--- stdout (945 bytes, last 200 lines)
+requests 170, mismatches 3
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 4}], 'seq': 4}, 'event': 'call:check_stock:failed', 'token': 4} → {'id': 112, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop'
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 4}, {'call': 'ping', 'token': 2}], 'seq': 4}, 'event': 'call:ping:pong', 'token': 2} → {'id': 118, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catal
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 4}], 'seq': 5}, 'event': 'call:ping:pong', 'token': 4} → {'id': 119, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'pi
+--- stderr (0 bytes, last 100 lines)

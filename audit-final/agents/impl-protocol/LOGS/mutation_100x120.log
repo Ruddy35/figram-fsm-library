@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 1200 env FIGRAM_ALLOW_MUTANTS=1 python3 tests/engine/mutation.py .lake/build/bin/figram-engine --golden examples/golden.jsonl examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/pizza100.jsonl examples/features.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/features100.jsonl 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T16:50:26.112Z
+end: 2026-11-03T16:52:03.939Z
+exit_code: 0
+--- stdout (116 bytes, last 200 lines)
+examples/pizza.bot.json: mutations 71
+examples/features.bot.json: mutations 95
+detected 166 of 166 mutations (100%)
+--- stderr (0 bytes, last 100 lines)

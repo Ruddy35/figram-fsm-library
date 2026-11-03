@@ -1,0 +1,49 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:11:49.235Z
+end: 2026-11-03T18:11:56.671Z
+exit_code: 1
+--- stdout (2618 bytes, last 200 lines)
+✔ [11/54] Built Figram.Warnings (743ms)
+✔ [28/54] Built Figram.RandomDoc (1.8s)
+✖ [33/54] Building Figram.Correct (2.0s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:448:12: Tactic `rfl` failed: The left-hand side
+  stay s ev (c.toF b).actions
+is not definitionally equal to the right-hand side
+  stay (s.settle ev) ev b.actions
+
+case pos
+c : Chart
+hwf : c.compileSpec.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compileSpec.states
+hex : c.compileSpec.exitOf s.state = c.exitActs s.state
+h✝ : ¬(!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true
+hc : ¬c.cands s.state ev.key = []
+hp : (fun b => guardOK env b.guard) ∘ c.toF = fun b => guardOK env b.guard
+b : Branch
+hb : List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) = some b
+hst : b.target = Dest.stay
+h1 : (c.toF b).target = Target.stay
+⊢ stay s ev (c.toF b).actions = stay (s.settle ev) ev b.actions
+✔ [39/54] Built Figram.Trace (1.9s)
+✔ [41/54] Built Figram.FormatProofs (4.6s)
+✖ [45/54] Building Figram.EngineProofs (2.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:334:44: Application type mismatch: The argument
+  Inv.consume (SnapOK.inv hss) ev
+has type
+  Inv ((s.settle ev).consume ev)
+but is expected to have type
+  Inv (s.consume ev)
+in the application
+  realize_inv_snapOK (s.consume ev) s.state b.actions (Inv.consume (SnapOK.inv hss) ev)
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

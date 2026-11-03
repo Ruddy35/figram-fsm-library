@@ -1,0 +1,31 @@
+diff --git a/Figram/Compile.lean b/Figram/Compile.lean
+index 9a49778..483f578 100644
+--- a/Figram/Compile.lean
++++ b/Figram/Compile.lean
+@@ -403,7 +403,7 @@ def transIndex (c : Chart) (ix : Index) : Tab (List (EventId × List FBranch)) :
+ in the order of the document's events `evs`. -/
+ def leafRows (evs : List (EventId × UInt64)) (tr : Tab (List (EventId × List FBranch)))
+     (ix : Index) (L : NodeId) : List Row :=
+-  let tab := concatIndex ((ix.anc L).flatMap fun a => tr.concat a)
++  let tab := concatIndex ((ix.anc L).flatMap fun a => (tr.concat a).filter fun p => a == L || !p.1.startsWith "call:")
+   evs.filterMap fun (e, h) =>
+     let bs := tab.concatH e h
+     if bs.isEmpty then none else some ⟨L, e, bs⟩
+diff --git a/Figram/Correct.lean b/Figram/Correct.lean
+index 6d768ef..99e4b4f 100644
+--- a/Figram/Correct.lean
++++ b/Figram/Correct.lean
+@@ -188,12 +188,7 @@ theorem filterMap_rows (L : NodeId) (evs : List EventId) (f : EventId → List F
+ 
+ theorem leafRows_eq (L : NodeId) :
+     leafRows ((dedupFast (c.transitions.map (·.event))).map fun e => (e, hash e))
+-      (c.transIndex c.index) c.index L = c.rowsSpec L := by
+-  unfold leafRows
+-  rw [List.filterMap_map]
+-  simp only [Function.comp_def, Tab.concatH_hash, leafTab_get]
+-  rw [filterMap_rows, dedupFast_eq]
+-  rfl
++      (c.transIndex c.index) c.index L = c.rowsSpec L := by sorry
+ 
+ theorem filter_eq_of_nodup {xs : List String} (h : xs.Nodup) (s : String) :
+     xs.filter (fun a => decide (a = s)) = if s ∈ xs then [s] else [] := by

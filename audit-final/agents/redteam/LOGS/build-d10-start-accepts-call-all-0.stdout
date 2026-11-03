@@ -1,0 +1,22 @@
+✔ [41/54] Built Figram.Trace (1.5s)
+✔ [43/54] Built Figram.EngineProofs (2.9s)
+✔ [45/54] Built Figram.Examples (1.9s)
+✖ [47/54] Building Figram.OutcomeProofs (1.1s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:880:8: Tactic `split` failed: Could not split an `if` or `match` expression in the type `pure e' = Except.ok e` of `h`
+
+Hint: Use `set_option trace.split.failure true` to display additional diagnostic information
+
+case h_1.isFalse.isFalse
+kvs : Obj
+e : EventId
+x✝ : Option J
+e' : String
+he : Format.get kvs "event" = some (J.str e')
+h1 : ¬e'.isEmpty = true
+h2 : ¬e'.startsWith "timer:" = true
+h : pure e' = Except.ok e
+⊢ Format.get kvs "event" = some (J.str e) ∧
+    e ≠ "" ∧ String.startsWith e "timer:" = false ∧ String.startsWith e "call:" = false
+Some required targets logged failures:
+- Figram.OutcomeProofs

@@ -1,0 +1,4 @@
+{"figram":1,"calls":{"mk":{"text":"Make","outcomes":["ok"]}},
+ "bot":{"initial":"h","on":{"call:mk:ok":[{"to":"h"}]},"children":{
+   "h":{"on":{"btn:r":[{"to":"s","resume":true,"do":["mk"]}],"btn:b":[{"to":"s","back":true,"do":["mk"]}]}},
+   "s":{"initial":"s1","children":{"s1":{"on":{"btn:h":[{"to":"h"}]}}}}}}}

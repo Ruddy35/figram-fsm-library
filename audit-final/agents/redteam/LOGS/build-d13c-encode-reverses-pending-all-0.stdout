@@ -1,0 +1,563 @@
+✔ [41/54] Built Figram.Trace (1.6s)
+✖ [43/54] Building Figram.EngineProofs (3.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := 0, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := [], seq := 0, back := none, pending := pend }
+
+case pos
+st : NodeId
+pend : List (String × Nat)
+hst : st ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := 0, back := none, pending := v }) =
+    Except.ok { state := st, resume := [], timers := [], seq := 0, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := seq, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := [], seq := seq, back := none, pending := pend }
+
+case neg
+st : NodeId
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := seq, back := none, pending := v }) =
+    Except.ok { state := st, resume := [], timers := [], seq := seq, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := 0, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := tms, seq := 0, back := none, pending := pend }
+
+case pos
+st : NodeId
+tms pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+ht : ¬tms = []
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := 0, back := none, pending := v }) =
+    Except.ok { state := st, resume := [], timers := tms, seq := 0, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := seq, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := tms, seq := seq, back := none, pending := pend }
+
+case neg
+st : NodeId
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := seq, back := none, pending := v }) =
+    Except.ok { state := st, resume := [], timers := tms, seq := seq, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := 0, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := [], seq := 0, back := none, pending := pend }
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+hq : ¬pend = []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := 0, back := none, pending := v }) =
+    Except.ok { state := st, resume := res, timers := [], seq := 0, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := seq, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := [], seq := seq, back := none, pending := pend }
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+hq : ¬pend = []
+hz : ¬seq = 0
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := seq, back := none, pending := v }) =
+    Except.ok { state := st, resume := res, timers := [], seq := seq, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := 0, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := tms, seq := 0, back := none, pending := pend }
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+tms pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := 0, back := none, pending := v }) =
+    Except.ok { state := st, resume := res, timers := tms, seq := 0, back := none, pending := pend }
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := seq, back := none, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := tms, seq := seq, back := none, pending := pend }
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := seq, back := none, pending := v }) =
+    Except.ok { state := st, resume := res, timers := tms, seq := seq, back := none, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := 0, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := [], seq := 0, back := some b, pending := pend }
+
+case pos
+st : NodeId
+pend : List (String × Nat)
+hst : st ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := 0, back := some b, pending := v }) =
+    Except.ok { state := st, resume := [], timers := [], seq := 0, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := seq, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := [], seq := seq, back := some b, pending := pend }
+
+case neg
+st : NodeId
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := [], seq := seq, back := some b, pending := v }) =
+    Except.ok { state := st, resume := [], timers := [], seq := seq, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := 0, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := tms, seq := 0, back := some b, pending := pend }
+
+case pos
+st : NodeId
+tms pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+ht : ¬tms = []
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := 0, back := some b, pending := v }) =
+    Except.ok { state := st, resume := [], timers := tms, seq := 0, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := seq, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := [], timers := tms, seq := seq, back := some b, pending := pend }
+
+case neg
+st : NodeId
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := [], timers := tms, seq := seq, back := some b, pending := v }) =
+    Except.ok { state := st, resume := [], timers := tms, seq := seq, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := 0, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := [], seq := 0, back := some b, pending := pend }
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+hq : ¬pend = []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := 0, back := some b, pending := v }) =
+    Except.ok { state := st, resume := res, timers := [], seq := 0, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := seq, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := [], seq := seq, back := some b, pending := pend }
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+hq : ¬pend = []
+hz : ¬seq = 0
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := [], seq := seq, back := some b, pending := v }) =
+    Except.ok { state := st, resume := res, timers := [], seq := seq, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := 0, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := tms, seq := 0, back := some b, pending := pend }
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+tms pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hseq : 0 ≤ maxInt
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := 0, back := some b, pending := v }) =
+    Except.ok { state := st, resume := res, timers := tms, seq := 0, back := some b, pending := pend }
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  match
+    List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+  | Except.error err => Except.error err
+  | Except.ok v => Except.ok { state := st, resume := res, timers := tms, seq := seq, back := some b, pending := v }
+is not definitionally equal to the right-hand side
+  Except.ok { state := st, resume := res, timers := tms, seq := seq, back := some b, pending := pend }
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+⊢ (match
+      List.mapM decWait
+        (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend).reverse with
+    | Except.error err => Except.error err
+    | Except.ok v =>
+      Except.ok { state := st, resume := res, timers := tms, seq := seq, back := some b, pending := v }) =
+    Except.ok { state := st, resume := res, timers := tms, seq := seq, back := some b, pending := pend }
+warning: Figram/EngineProofs.lean:102:16: This simp argument is unused:
+  h3
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [checkVersion, Format.get, field, hr, ht, hq, hz, nonEmpty_str _ _ hst, h1, h2, boundedNat_num _ _ hseq,
+    bind, Except.bind, pure, Except.pure]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:109:16: This simp argument is unused:
+  h3
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [checkVersion, Format.get, field, hr, ht, hq, hz, nonEmpty_str _ _ hst, hb, h1, h2,
+    boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure, Functor.map, Except.map]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [47/54] Built Figram.Examples (2.4s)
+Some required targets logged failures:
+- Figram.EngineProofs

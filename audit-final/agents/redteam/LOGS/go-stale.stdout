@@ -1,0 +1,13 @@
+--- 1. base
+libfigram.a 37e5d676fe882df6 gofig cd6990d6431ff785
+bots 1, rounds 1, goroutines 31, requests 102, mismatches 0, 27130 requests/s (GOMAXPROCS=4, CPU=4)
+golden check exit 0
+--- 2. defect d11a applied, ffi/build.sh, the go build of verify.sh
+libfigram.a b12a09a91aac862d gofig cd6990d6431ff785 (gofig relinked: NO)
+bots 1, rounds 1, goroutines 31, requests 102, mismatches 0, 24492 requests/s (GOMAXPROCS=4, CPU=4)
+golden check exit 0
+--- 3. go build -a
+gofig b917475060aa5f81
+bots 1, rounds 1, goroutines 31, requests 102, mismatches 9, 27992 requests/s (GOMAXPROCS=4, CPU=4)
+golden check exit 1
+restored: 0 modified; base gofig cd6990d6431ff785

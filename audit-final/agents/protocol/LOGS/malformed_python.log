@@ -1,0 +1,12 @@
+command: python3 malformed.py /home/user/figram-audit-worktrees/a5-protocol malformed.jsonl 
+cwd: /home/user/figram-audit/agents5/protocol
+start: 2026-11-03T17:42:01.160Z
+end: 2026-11-03T17:42:01.204Z
+exit_code: 0
+--- stdout (352 bytes, last 200 lines)
+python validator MISMATCH hello-states-neg: want ERR, got OK
+python validator MISMATCH hello-states-big: want ERR, got OK
+python validator MISMATCH dup-key-at: want ERR, got OK
+python validator MISMATCH dup-key-token: want ERR, got OK
+python validators: 45 replies, mismatches 4: ['hello-states-neg', 'hello-states-big', 'dup-key-at', 'dup-key-token']
+--- stderr (0 bytes, last 100 lines)

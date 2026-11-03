@@ -1,0 +1,208 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:06:38.797Z
+end: 2026-11-03T18:06:42.543Z
+exit_code: 1
+--- stdout (20003 bytes, last 200 lines)
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+tms pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+ht : ¬tms = []
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+hq : ¬pend = []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+hq : ¬pend = []
+hz : ¬seq = 0
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+tms pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hseq : 0 ≤ maxInt
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+⊢ (pend.mergeSort fun a b => decide (a.fst < b.fst) || a.fst == b.fst) = pend
+✔ [47/54] Built Figram.Examples (1.8s)
+Some required targets logged failures:
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

@@ -1,0 +1,237 @@
+[
+ {
+  "name": "F00_base",
+  "expect": "OK",
+  "why": "base document"
+ },
+ {
+  "name": "F01_empty_outcome",
+  "expect": "E",
+  "why": "format.md:123 outcomes are non-empty names"
+ },
+ {
+  "name": "F02_colon_outcome",
+  "expect": "E",
+  "why": "format.md:123 names without `:`"
+ },
+ {
+  "name": "F03_failed_listed",
+  "expect": "E",
+  "why": "format.md:123-124 other than `failed`"
+ },
+ {
+  "name": "F04_dup_outcome",
+  "expect": "E",
+  "why": "format.md:123 unique"
+ },
+ {
+  "name": "F05_every_without_outcomes",
+  "expect": "E",
+  "why": "format.md:124 every only with outcomes"
+ },
+ {
+  "name": "F06_every_false_no_outcomes",
+  "expect": "OK",
+  "why": "format.md:82 explicit default every:false"
+ },
+ {
+  "name": "F07_detached_false",
+  "expect": "OK",
+  "why": "format.md:82 explicit default detached:false"
+ },
+ {
+  "name": "F08_outcomes_empty",
+  "expect": "OK",
+  "why": "format.md:26-28 explicit default value (empty list = no outcomes)"
+ },
+ {
+  "name": "F09_every_outcomes_empty",
+  "expect": "E",
+  "why": "format.md:124 every only with outcomes"
+ },
+ {
+  "name": "F10_twice_in_do",
+  "expect": "E",
+  "why": "format.md:116 V6"
+ },
+ {
+  "name": "F11_two_outcome_actions",
+  "expect": "OK",
+  "why": "V6 is per action"
+ },
+ {
+  "name": "F12_plain_twice",
+  "expect": "OK",
+  "why": "V6 only for actions with outcomes"
+ },
+ {
+  "name": "F13_undeclared_outcome",
+  "expect": "E",
+  "why": "format.md:114-115 V5"
+ },
+ {
+  "name": "F14_action_without_outcomes",
+  "expect": "E",
+  "why": "V5: an action with outcomes"
+ },
+ {
+  "name": "F15_undeclared_action",
+  "expect": "E",
+  "why": "V5"
+ },
+ {
+  "name": "F16_no_outcome_part",
+  "expect": "E",
+  "why": "format.md:213-215 prefix call: reserved"
+ },
+ {
+  "name": "F17_empty_action",
+  "expect": "E",
+  "why": "reserved prefix / V5"
+ },
+ {
+  "name": "F18_empty_outcome_event",
+  "expect": "E",
+  "why": "reserved prefix / V5"
+ },
+ {
+  "name": "F20_colon_action",
+  "expect": "OK",
+  "why": "format.md:214-215 action name may contain `:`"
+ },
+ {
+  "name": "F21_colon_action_short",
+  "expect": "E",
+  "why": "split at last `:` -> action a, outcome b"
+ },
+ {
+  "name": "F22_bare_prefix",
+  "expect": "E",
+  "why": "reserved prefix"
+ },
+ {
+  "name": "F23a_outcomes_string",
+  "expect": "E",
+  "why": "grammar [Name]"
+ },
+ {
+  "name": "F23b_outcomes_number",
+  "expect": "E",
+  "why": "grammar [Name]"
+ },
+ {
+  "name": "F23c_detached_string",
+  "expect": "E",
+  "why": "grammar true"
+ },
+ {
+  "name": "F23d_every_number",
+  "expect": "E",
+  "why": "grammar true"
+ },
+ {
+  "name": "F24_unknown_call_key",
+  "expect": "E",
+  "why": "format.md:236-243 unknown key in an action"
+ },
+ {
+  "name": "F25_call_annotation",
+  "expect": "OK",
+  "why": "format.md:221-222 action takes annotations"
+ },
+ {
+  "name": "F26a_resume_no_to",
+  "expect": "E",
+  "why": "format.md:112 V3 resume needs to"
+ },
+ {
+  "name": "F26b_back_no_to",
+  "expect": "E",
+  "why": "format.md:112 V3 back needs to"
+ },
+ {
+  "name": "F27_empty_variant",
+  "expect": "OK",
+  "why": "grammar: all variant fields optional"
+ },
+ {
+  "name": "F29_call_without_text",
+  "expect": "E",
+  "why": "grammar Call requires text"
+ },
+ {
+  "name": "F30_empty_action_name",
+  "expect": "E",
+  "why": "format.md:210 names non-empty"
+ },
+ {
+  "name": "F32_prefix_actions",
+  "expect": "OK",
+  "why": "a/b and a:b/c are distinct after split at last `:`"
+ },
+ {
+  "name": "F33_action_ending_colon",
+  "expect": "OK",
+  "why": "action `a:` outcome ok -> call:a::ok"
+ },
+ {
+  "name": "F34_empty_timer_event",
+  "expect": "E",
+  "why": "V5 timer:<name> existing timer"
+ },
+ {
+  "name": "F38_space_outcome",
+  "expect": "OK",
+  "why": "non-empty name without `:`"
+ },
+ {
+  "name": "F39_every_detached",
+  "expect": "OK",
+  "why": "properties combine"
+ },
+ {
+  "name": "F41_twice_across_variants",
+  "expect": "OK",
+  "why": "V6 is per variant"
+ },
+ {
+  "name": "F44_outcomes_null",
+  "expect": "E",
+  "why": "grammar [Name]"
+ },
+ {
+  "name": "F45_detached_null",
+  "expect": "E",
+  "why": "grammar true"
+ },
+ {
+  "name": "F46_every_true_null_outcomes",
+  "expect": "E",
+  "why": "grammar"
+ },
+ {
+  "name": "F49_outcome_named_like_failed_case",
+  "expect": "OK",
+  "why": "only exact `failed` is reserved"
+ },
+ {
+  "name": "F50_call_event_on_section",
+  "expect": "OK",
+  "why": "outcome arrows anywhere"
+ },
+ {
+  "name": "F51_stay_with_if",
+  "expect": "OK",
+  "why": "variant with if only"
+ },
+ {
+  "name": "F52_to_null",
+  "expect": "E",
+  "why": "grammar to: Name"
+ },
+ {
+  "name": "F53_resume_false_no_to",
+  "expect": "OK",
+  "why": "explicit default resume:false without to"
+ }
+]

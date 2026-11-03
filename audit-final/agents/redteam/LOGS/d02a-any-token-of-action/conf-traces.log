@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d02a-any-token-of-action/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:05:34.820Z
+end: 2026-11-03T18:05:35.681Z
+exit_code: 1
+--- stdout (949 bytes, last 200 lines)
+requests 17602, mismatches 111
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 6}], 'seq': 6}, 'event': 'call:create_order:failed', 'token': 7} → {'id': 8629, 'snapshot': {'at': 'order_failed', 'back': 'menu', 'resume': {'order': 'order_fai
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 6}], 'seq': 6}, 'event': 'call:create_order:created', 'token': 7} → {'id': 8640, 'snapshot': {'at': 'done', 'back': 'placing', 'resume': {'order': 'placing'}, 'p
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 6}], 'seq': 6}, 'event': 'call:create_order:rejected', 'token': 7} → {'id': 8651, 'need': ['address_rejected']}, expected {'result': {'snapshot': {'at': 'placing
+--- stderr (0 bytes, last 100 lines)

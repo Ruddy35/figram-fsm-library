@@ -1,0 +1,26 @@
+✔ [12/54] Built Figram.Warnings (514ms)
+✔ [29/54] Built Figram.RandomDoc (1.2s)
+✔ [33/54] Built Figram.Correct (1.5s)
+✔ [34/54] Built Figram.LintProofs (254ms)
+✔ [35/54] Built Figram.Correct:c.o (454ms)
+✔ [37/54] Built Figram.Trace (1.5s)
+✔ [39/54] Built Figram.Run (346ms)
+✔ [41/54] Built Figram.FormatProofs (3.0s)
+✖ [43/54] Building Figram.Examples (1.7s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:326:0: Expression
+  Option.map (fun r => (r.fst.timers, r.snd.getLast!)) (runGolden "stay_consumes_timer") == some ([], [])
+did not evaluate to `true`
+✖ [45/54] Building Figram.EngineProofs (2.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:160:43: Application type mismatch: The argument
+  hq
+has type
+  p ∈ (s.consume (Event.timer id t)).timers
+but is expected to have type
+  p ∈ erase s.timers ?m.55
+in the application
+  mem_erase hq
+Some required targets logged failures:
+- Figram.Examples
+- Figram.EngineProofs

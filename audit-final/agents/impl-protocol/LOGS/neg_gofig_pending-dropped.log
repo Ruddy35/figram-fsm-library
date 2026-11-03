@@ -1,0 +1,8 @@
+command: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gofig -corrupt pending-dropped examples/features.bot.json examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:03:28.592Z
+end: 2026-11-03T17:03:28.604Z
+exit_code: 1
+--- stdout (101 bytes, last 200 lines)
+bots 1, rounds 1, goroutines 31, requests 102, mismatches 13, 26883 requests/s (GOMAXPROCS=4, CPU=4)
+--- stderr (0 bytes, last 100 lines)

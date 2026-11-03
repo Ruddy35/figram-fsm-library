@@ -1,0 +1,13 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..94b15c7 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -358,7 +358,7 @@ abbrev CallOpts := String → Bool × Wait
+ /-- The properties of the actions of a document (an undeclared action has none). -/
+ def callOpts (calls : List (String × CallDecl)) (n : String) : Bool × Wait :=
+   match lookup calls n with
+-  | some c => (c.detached, c.wait)
++  | some c => (c.detached && false, c.wait)
+   | none => (false, .free)
+ 
+ def callAction (o : CallOpts) (n : String) : Action := .call n (o n).1 (o n).2 0

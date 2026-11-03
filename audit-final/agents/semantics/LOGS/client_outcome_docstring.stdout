@@ -1,0 +1,2 @@
+stale outcome, snapshot at a removed message: {"id": 1, "snapshot": {"at": "home", "timers": {"t": 3}, "pending": [{"call": "mk", "token": 2}], "seq": 3}, "actions": [{"start_timer": "t", "ms": 1000, "token": 3}, {"send": "home"}], "recovered": true}
+unchanged snapshot without actions? False

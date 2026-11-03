@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d15c-check-rejects-failed/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:25:02.125Z
+end: 2026-11-03T18:25:02.322Z
+exit_code: 1
+--- stdout (432 bytes, last 200 lines)
+requests 17602, mismatches 2
+   engine exited with code 1: document error: event `call:create_order:failed`: `create_order` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+
+   engine exited with code 1: document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:check_stock:failed`: `check_stock` is not an ac
+--- stderr (0 bytes, last 100 lines)

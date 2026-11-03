@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d12a-call-token-seq/figram-engine --golden examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:15:17.551Z
+end: 2026-11-03T18:15:17.602Z
+exit_code: 1
+--- stdout (946 bytes, last 200 lines)
+requests 170, mismatches 11
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'pick_toppings', 'resume': {'order': 'pay'}, 'seq': 7}, 'event': 'payment:success'} → {'id': 9, 'snapshot': {'at': 'placing', 'back': 'pick_toppings', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 7}], 'seq': 8}, 'actio
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'menu', 'resume': {'order': 'pay'}, 'seq': 5}, 'event': 'payment:success'} → {'id': 18, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 5}], 'seq': 6}, 'actions': [{'call': 'c
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'menu', 'resume': {'order': 'pay'}, 'seq': 5}, 'event': 'payment:success'} → {'id': 28, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 5}], 'seq': 6}, 'actions': [{'call': 'c
+--- stderr (0 bytes, last 100 lines)

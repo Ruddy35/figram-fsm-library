@@ -1,0 +1,14 @@
+{"id":1,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:bogus","token":6}
+{"id":2,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"btn:cancel"}
+{"id":3,"op":"step","snapshot":{"at":"menu","back":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":7},"event":"call:create_order:created","token":6}
+{"id":4,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"cmd:start"}
+{"id":5,"op":"step","snapshot":{"at":"order_failed","resume":{"order":"order_failed"},"pending":[{"call":"create_order","token":6}],"seq":7},"event":"btn:retry"}
+{"id":6,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":8}],"seq":8},"event":"call:create_order:created","token":6}
+{"id":7,"op":"step","snapshot":{"at":"gone","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created","token":6}
+{"id":8,"op":"restart","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6}}
+{"id":9,"op":"start","event":"call:create_order:created"}
+{"id":10,"op":"step","snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created","token":6,"guards":{"zz":true}}
+{"id":11,"op":"step","snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:","token":6}
+{"id":12,"op":"step","snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"event":"call::created","token":6}
+{"id":13,"op":"step","snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created"}
+{"id":14,"op":"step","snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"event":"btn:x","token":6}

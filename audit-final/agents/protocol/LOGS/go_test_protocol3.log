@@ -1,0 +1,15 @@
+command: nice -n 10 timeout 600 env CC=gcc go test -count=1 -v -run \^\(TestFixOutcomes\|TestFixCheckReplyProtocolChanges\|TestFixStartWithEvent\)\$ . 
+cwd: /home/user/figram-audit-worktrees/a5-protocol/clients/go
+start: 2026-11-03T17:49:55.495Z
+end: 2026-11-03T17:49:58.727Z
+exit_code: 0
+--- stdout (249 bytes, last 200 lines)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+=== RUN   TestFixStartWithEvent
+--- PASS: TestFixStartWithEvent (0.00s)
+=== RUN   TestFixOutcomes
+--- PASS: TestFixOutcomes (0.00s)
+PASS
+ok  	gofig	0.008s
+--- stderr (0 bytes, last 100 lines)

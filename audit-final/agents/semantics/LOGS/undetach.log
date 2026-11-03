@@ -1,0 +1,8 @@
+command: python3 -I /home/user/figram-audit/agents5/semantics/scripts/undetach_cmp.py cases/bg.actual.jsonl cases/bg_undetached.actual.jsonl 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS
+start: 2026-11-03T17:49:26.949Z
+end: 2026-11-03T17:49:26.973Z
+exit_code: 0
+--- stdout (29 bytes, last 200 lines)
+equal up to detached: True 8
+--- stderr (0 bytes, last 100 lines)

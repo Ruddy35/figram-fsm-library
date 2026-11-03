@@ -1,0 +1,68 @@
+✔ [8/28] Built Figram.Core (1.3s)
+✔ [9/28] Built Figram.Chart (1.1s)
+✖ [10/28] Building Figram.CoreProofs (1.1s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/CoreProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.setup.json --json
+error: Figram/CoreProofs.lean:471:10: Tactic `split` failed: Could not split an `if` or `match` expression in the goal
+
+Hint: Use `set_option trace.split.failure true` to display additional diagnostic information
+
+case h_2
+m : Machine
+hwf : m.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hinit : m.initial ∈ m.states
+hrows : ∀ (r : Row), r ∈ m.rows → ∀ (b : FBranch), b ∈ r.branches → m.targetOK b.target = true
+right✝ : ∀ (r : ResumeSpec), r ∈ m.resumes → r.default ∈ m.states ∧ ∀ (v : NodeId), v ∈ r.members → v ∈ m.states
+hs✝ : ¬¬s.state ∈ m.states
+hs : s.state ∈ m.states
+h✝ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r : Row
+hr : m.row s.state ev.key = some r
+x✝ : Option FBranch
+b : FBranch
+hb : List.find? (fun b => guardOK env b.guard) r.branches = some b
+⊢ (m.fire (s.settle ev) b).fst.state ∈ m.states
+warning: Figram/CoreProofs.lean:574:5: Variable name `hst` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hst
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Figram/CoreProofs.lean:589:61: This simp argument is unused:
+  hst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [step, hi, not_true_eq_false, ite_false, Snapshot.accepts, ownsTimer, Bool.and_self, Bool.not_true,
+    Bool.false_eq_true, Event.key, hr, hfb, Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: Figram/CoreProofs.lean:679:10: Tactic `split` failed: Could not split an `if` or `match` expression in the goal
+
+Hint: Use `set_option trace.split.failure true` to display additional diagnostic information
+
+case h_2
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+hs✝ : ¬¬s.state ∈ m.states
+hs : s.state ∈ m.states
+h✝ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r✝ : Row
+heq✝¹ : m.row s.state ev.key = some r✝
+x✝ : Option FBranch
+b : FBranch
+heq✝ : List.find? (fun b => guardOK env b.guard) r✝.branches = some b
+⊢ (m.fire (s.settle ev) b).fst.back = s.back ∨ s.state ∈ m.states ∧ (m.fire (s.settle ev) b).fst.back = some s.state
+✔ [15/28] Built Figram.Compile (820ms)
+✔ [17/28] Built Figram.Core:c.o (2.3s)
+✔ [18/28] Built Figram.Lint (638ms)
+✔ [20/28] Built Figram.Format (1.6s)
+✔ [22/28] Built Figram.FormatIO (822ms)
+✔ [24/28] Built Figram.Engine (1.0s)
+Some required targets logged failures:
+- Figram.CoreProofs

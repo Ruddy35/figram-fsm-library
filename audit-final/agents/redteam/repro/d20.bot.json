@@ -1,0 +1,5 @@
+{"figram": 1, "calls": {"remind": "Send a reminder"},
+ "bot": {"initial": "m", "children": {
+   "m": {"timers": {"tick": 60000, "timeout": 600000},
+         "on": {"timer:tick": [{"do": ["remind"]}], "timer:timeout": [{"to": "gone"}]}},
+   "gone": {}}}}

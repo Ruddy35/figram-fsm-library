@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 /home/user/figram-audit/agents5/protocol/need_check.py /home/user/figram-audit-worktrees/a5-protocol /home/user/figram-audit/agents5/protocol/replies2.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:53:10.938Z
+end: 2026-11-03T17:53:11.731Z
+exit_code: 0
+--- stdout (67 bytes, last 200 lines)
+need sufficiency: requests 6498 (outcome events 405), mismatches 0
+--- stderr (0 bytes, last 100 lines)

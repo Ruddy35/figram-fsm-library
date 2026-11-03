@@ -1,0 +1,3 @@
+examples/pizza.bot.json: mutations 79
+examples/features.bot.json: mutations 132
+detected 211 of 211 mutations (100%)

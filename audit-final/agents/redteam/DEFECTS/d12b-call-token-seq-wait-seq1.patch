@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..5f83b0b 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -177,7 +177,7 @@ def realizeOne (tok : Nat) (acc : Snapshot × List Action) : Action → Snapshot
+     ({ acc.1 with timers := assign acc.1.timers id tok }, acc.2 ++ [.startTimer id ms tok])
+   | .cancelTimer id => ({ acc.1 with timers := erase acc.1.timers id }, acc.2 ++ [.cancelTimer id])
+   | .call n d w _ =>
+-    ({ acc.1 with pending := addWait acc.1.pending n tok w }, acc.2 ++ [.call n d w tok])
++    ({ acc.1 with pending := addWait acc.1.pending n tok w }, acc.2 ++ [.call n d w (tok - 1)])
+   | a => (acc.1, acc.2 ++ [a])
+ 
+ /-- Cancel the snapshot's timers that `exit` does not cancel (leftovers of a previous

@@ -1,0 +1,27 @@
+ok   condition not filled in → EngineError
+ok   value not bool → EngineError
+ok   not a dict → EngineError
+ok   conditions needed, no function → EngineError
+ok   all conditions → step result
+ok   start with an event: condition asked, straight to the target, the initial message not sent
+ok   start with an event into the initial message
+ok   start: conditions needed, no function → EngineError
+ok   start with a timer event → EngineError
+ok   start: guards without an event → ValueError
+ok   an action with outcomes: call with the step's token, a wait in the snapshot
+ok   outcome with the token of the wait: accepted, the wait removed, the arrow taken 
+ok   outcome with a stale token: ignored 
+ok   outcome failed: the arrow without a target, a background action 
+ok   a background action with outcomes: call with token and detached
+ok   every: each call has its own wait, each outcome is accepted once 
+ok   outcome with conditions: the guards function is asked, the conditional arrow taken 
+ok   outcome: conditions needed, no function → EngineError (conditions needed: ['address_rejected'])
+ok   outcome: malformed action, outcome or token → ValueError before sending (11 of 11)
+ok   step with an outcome event without a token → EngineError bad_request
+FAIL start with an outcome event → EngineError bad_request
+ok   1000 non-serializable requests: errors 1000, pending 0, process alive True
+ok   afterwards the process serves requests
+ok   repeated need → EngineError
+ok   crashed process reaped in 0.00 s without new requests
+ok   close after a crash does not hang
+CLIENT CONTRACT VIOLATED

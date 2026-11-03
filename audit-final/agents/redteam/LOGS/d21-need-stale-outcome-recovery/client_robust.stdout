@@ -1,0 +1,59 @@
+ok   R1 invalid JSON: errors 8 of 8, slowest 0.00 s (deadline 6 s)
+ok   R1 unknown id: errors 8 of 8, slowest 0.00 s (deadline 6 s)
+ok   R1 output closed: errors 8 of 8, slowest 0.20 s (deadline 6 s)
+ok   R1 crash: errors 8 of 8, slowest 0.00 s (deadline 6 s)
+ok   R1 seq = true: errors 8 of 8, slowest 0.00 s (deadline 6 s)
+ok   R1 stdout closed at once: errors 8 of 8, slowest 0.20 s (deadline 6 s)
+ok   R2 300 of 300 failure cycles (cycle < 2.5 s, slowest 0.01 s): Python threads 3→1, OS threads 3→1, fd 7→4, children after close 0
+ok   R2 close() of a healthy pool of 2 processes: 0.00 s (deadline 5 s)
+ok   R3 after a failure: pending 0, a call to the failed process — error in 0.00 s
+ok   R3 failure between the readiness check and the registration: error in 0.00 s (deadline 3 s), pending 0
+ok   R4 late reply: first call — error in 1.00 s, next — a, same process True
+ok   R4 SIGSTOP: errors 4 of 4, slowest 1.00 s, process reaped after hang_timeout 1.5 s True
+ok   R5 200 requests with a lone surrogate: {'EngineError': 200}, pending 0, process alive True
+ok   R6 calls after close(): ['error', 'error', 'error', 'error'], live processes 0
+ok   R6 close() in the middle of calls from 4 threads: live processes afterwards 0
+ok   R6 a call that waited for the lock during close(): ['error'], live processes 0
+ok   R7 process replacement without the binary: {'EngineError': 3}
+ok   R8 keys 1 and "1": bad call {'EngineError': 5}; neighbours: errors 0, replies 3745; same process True
+ok   R8 keys True and "true": bad call {'EngineError': 5}; neighbours: errors 0, replies 3897; same process True
+ok   R8 nesting 300: bad call {'EngineError': 5}; neighbours: errors 0, replies 3659; same process True
+ok   R9 killpg: calls 272, of them for an already reaped (free) pid 0
+ok   R9 a failure of the double is noticed at once: iterations longer than 1.5 s 0
+ok   R14 docstring: the host keeps the order of a user's events with a lock (docs/host-contract.md, section 1, step 1)
+ok   R15 endless reply line: error in 0.02 s (deadline 3 s), peak memory growth 16 MiB
+ok   R15 max_line=4096: a 3000-byte reply — 3000, a 5000-byte reply — error, process failed True
+ok   R10 loading 2.5 s with timeout 1 s (double): replies ['loaded', 'loaded', 'loaded'], engine launches 1, 2.5 s
+ok   R10 after a failure of a warm process the replacement waits for loading: replies ['loaded', 'loaded', 'loaded'], launches 2, 2.5 s
+ok   R10 real engine: unique-600 loads in 0.01 s, faster than the threshold of the check, skipped
+ok   R10 start_timeout 1 s, the engine does not answer hello: 'EngineError: engine did not start: engine process failed: engine did not answer ', 1.0 s, children 0
+ok   R10 start_timeout 1 s without waiting calls: process marked failed after 1.0 s and killed True
+ok   R10 wait_ready=False: constructor 0.00 s, calls during loading — start loaded, step loaded after 2.0 s (timeout 0.5 s and the step deadline count from readiness)
+ok   R10 hello with protocol 1: EngineError: engine did not start: engine process failed: protocol violation: engine protocol 1, the
+ok   R10 hello with protocol 2: EngineError: engine did not start: engine process failed: protocol violation: engine protocol 2, the
+ok   R10 hello with protocol 4: EngineError: engine did not start: engine process failed: protocol violation: engine protocol 4, the
+ok   R10 hello with protocol 3: ok
+ok   R10 hello with field mutant (test engine): ok
+ok   R11 slow request (1.5 s with timeout 0.6 s) twice: ['error', 'error']; neighbours: replies 814 (after the slow ones 675), errors 16, foreign replies 0; same process True, launches 1
+ok   R11 real engine: a snapshot of 30000 entries parses in 0.05 s, too fast, skipped
+ok   R11 hung process (hang_timeout 1.5 s, timeout 0.5 s): call — error, noticed after 1.5 s 'engine hung: no output for 1.5 s with unanswered requests', reaped True, the next call in a new process (launches 2)
+ok   R11 the engine skipped the reply to a request but answered the next one: 'reply to request 2 before the reply to 1: replies out of order'
+ok   R12 id:null (new protocol): bad calls [('parse_error', False), ('parse_error', False)]…; neighbours: replies 545, errors 0, foreign 0; same process True, launches 1
+ok   R12 id:null (old protocol): bad calls [(None, False), (None, False)]…; neighbours: replies 589, errors 0, foreign 0; same process True, launches 1
+ok   R12 real engine, a duplicate key in the snapshot: bad calls [False, False, False, False, False]; neighbours: replies 580, errors 0; same process True
+ok   R12 control: a result with id:null — error, process marked failed True
+ok   R12 control: an id:null error without pending requests — process failed True
+ok   R13 real engine, invalid document: 'engine did not start: engine process failed: engine closed its output; engine exited with code 1; stderr: document error: initial node `nowh'
+ok   R13 document broken after a failure, 4 threads retry for 3 s: engine launches 5 (the delay grows), errors 2193, with the stderr tail 2193
+ok   R13 document fixed: answers again after 0.3 s; after a failure of a process that has worked the replacement is immediate — ok
+ok   R16 close() of a pool of 4 processes that do not exit on EOF: 1.00 s (timeout 1 s), children afterwards 0
+ok   R16 close() of a pool whose processes are still loading: 0.00 s (timeout 2 s), children 0
+ok   R17 conditions function 1.3 s, timeout 0.5 s (default step_timeout 1 s): error in 1.3 s, engine requests 1 (the second is not sent)
+ok   R17 step_timeout=5 s, conditions function 1.3 s with timeout 0.5 s: vip
+ok   R17 conditions 0.5 s + second request 1.5 s with step_timeout 1 s (timeout 2 s): error in 1.00 s
+ok   R18 a surrogate as bytes and escaped — error, a pair and Cyrillic text accepted: {'btn:cesu': 'error', 'btn:esc': 'error', 'btn:pair': '😀', 'btn:ru': 'пицца'}
+ok   R19 engine error with code ('bad_snapshot', False), without code (None, False), timeout (None, True) (code, retryable); same process True
+ok   R19 error reply of the wrong form (code not a string, extra field) — process failure: (None, True) True, (None, True) True
+ok   R19 real engine, a snapshot with an extra field: (code, retryable) = ('bad_snapshot', False), process alive True
+ok   R20 start without seq — noseq, start(seq=41) — seq41
+client is robust

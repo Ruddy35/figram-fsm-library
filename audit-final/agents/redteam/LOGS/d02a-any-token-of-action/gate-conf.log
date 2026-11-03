@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d02a-any-token-of-action/figram-engine --golden examples/golden.jsonl examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d02a-any-token-of-action/gate-pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d02a-any-token-of-action/gate-features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:18:39.339Z
+end: 2026-11-03T18:18:40.206Z
+exit_code: 1
+--- stdout (641 bytes, last 200 lines)
+requests 17769, mismatches 2
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 5}, 'event': 'call:check_stock:no', 'token': 4} → {'id': 97, 'snapshot': {'at': 'catalog', 'back': 'item', 'resume': {'shop': 'ca
+   {'op': 'step', 'snapshot': {'at': 'deleted_message', 'pending': [{'call': 'ping', 'token': 6}], 'seq': 6}, 'event': 'call:ping:pong', 'token': 5} → {'id': 123, 'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'ping', 'token': 6}], 'seq': 7}, 'actions': [{'call': 'log', 'detache
+--- stderr (0 bytes, last 100 lines)

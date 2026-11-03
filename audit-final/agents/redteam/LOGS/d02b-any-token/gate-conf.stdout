@@ -1,0 +1,4 @@
+requests 17769, mismatches 3
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 5}, 'event': 'call:check_stock:no', 'token': 4} → {'id': 97, 'snapshot': {'at': 'catalog', 'back': 'item', 'resume': {'shop': 'ca
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'seq': 6}, 'event': 'call:ping:pong', 'token': 2} → {'id': 120, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'seq': 7}, 'actions': [{'call': 'log', 'detached': True}]}, expecte
+   {'op': 'step', 'snapshot': {'at': 'deleted_message', 'pending': [{'call': 'ping', 'token': 6}], 'seq': 6}, 'event': 'call:ping:pong', 'token': 5} → {'id': 123, 'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'ping', 'token': 6}], 'seq': 7}, 'actions': [{'call': 'log', 'detache

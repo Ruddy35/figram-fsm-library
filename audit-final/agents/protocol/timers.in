@@ -1,0 +1,5 @@
+{"id":1,"op":"step","snapshot":{"at":"item","resume":{"shop":"item"},"timers":{"remind":5},"seq":5},"event":"btn:check"}
+{"id":2,"op":"step","snapshot":{"at":"home","timers":{"idle":5},"seq":5},"event":"timer:idle","token":5}
+{"id":3,"op":"step","snapshot":{"at":"vip","timers":{"nudge":5},"seq":5},"event":"timer:nudge","token":5}
+{"id":4,"op":"step","snapshot":{"at":"vip","seq":6},"event":"timer:nudge","token":5}
+{"id":5,"op":"step","snapshot":{"at":"-","seq":41},"event":"timer:idle","token":5}

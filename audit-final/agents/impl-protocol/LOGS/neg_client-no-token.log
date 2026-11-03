@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 bash /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/run.sh client-no-token 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:01:36.791Z
+end: 2026-11-03T17:01:38.914Z
+exit_code: 0
+--- stdout (150 bytes, last 200 lines)
+client-no-token: rc=1 (want ≠ 0): ok   condition not filled in → EngineError|ok   value not bool → EngineError|ok   not a dict → EngineError|
+--- stderr (0 bytes, last 100 lines)

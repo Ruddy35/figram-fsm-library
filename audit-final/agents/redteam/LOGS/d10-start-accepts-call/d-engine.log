@@ -1,0 +1,105 @@
+command: env FIGRAM=/home/user/figram-audit/agents5/redteam/bin/figram FIGRAM_ENGINE=/home/user/figram-audit/agents5/redteam/bin/mut/d10-start-accepts-call/figram-engine nice -n 10 timeout 900 python3 tests/formats/d_engine_requests.py 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:13:17.281Z
+end: 2026-11-03T18:13:17.353Z
+exit_code: 1
+--- stdout (11460 bytes, last 200 lines)
+    id-absent                     {"id":null,"protocol":3,"states":8}
+    id-null                       {"id":null,"protocol":3,"states":8}
+    id-true                       {"id":true,"protocol":3,"states":8}
+    id-str                        {"id":"abc","protocol":3,"states":8}
+    id-str-esc             ET-07  {"id":"é😀\u0000/","protocol":3,"states":8}
+    id-neg-zero            ET-07  {"id":0,"protocol":3,"states":8}
+    id-1.5e3               ET-07  {"id":15e2,"protocol":3,"states":8}
+    id-1E2                 ET-07  {"id":1e2,"protocol":3,"states":8}
+    id-0.1e1               ET-07  {"id":1,"protocol":3,"states":8}
+    id-1.10                       {"id":1.10,"protocol":3,"states":8}
+    id-bigint                     {"id":12345678901234567890123,"protocol":3,"states":8}
+    id-1e400                      {"id":1e400,"protocol":3,"states":8}
+    id-array                      {"id":[1,{"a":2}],"protocol":3,"states":8}
+    id-object                     {"id":{},"protocol":3,"states":8}
+    id-after-op                   {"id":7,"protocol":3,"states":8}
+    id-dup                 ET-07  {"id":1,"error":"duplicate key `id`","code":"parse_error"}
+    extra-on-hello         FC-04  {"id":1,"error":"unknown request field `extra`","code":"bad_request"}
+    typo-gaurds            FC-04  {"id":2,"error":"unknown request field `gaurds`","code":"bad_request"}
+    typo-guard             FC-04  {"id":3,"error":"unknown request field `guard`","code":"bad_request"}
+    typo-evnt                     {"id":4,"error":"unknown request field `evnt`","code":"bad_request"}
+    start-with-junk        FC-04  {"id":5,"error":"unknown request field `snapshot`","code":"bad_request"}
+    op-case                       {"id":6,"error":"unknown operation `HELLO`","code":"bad_request"}
+    op-missing                    {"id":7,"error":"missing field `op`","code":"bad_request"}
+    op-null                       {"id":8,"error":"`op` must be a string","code":"bad_request"}
+    not-object                    {"id":null,"error":"request must be an object","code":"bad_request"}
+    g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":
+    g-false                       {"id":11,"snapshot":{"at":"catalog","back":"home","resume":{"shop":"catalog"},"seq":1},"actions":[{"cancel_timer":"idle"},{"send":"catalog"}]}
+    g-empty                       {"id":12,"need":["is_vip"]}
+    g-absent                      {"id":13,"need":["is_vip"]}
+    g-1                           {"id":14,"error":"condition `is_vip`: expected true or false","code":"bad_request"}
+    g-str                         {"id":15,"error":"condition `is_vip`: expected true or false","code":"bad_request"}
+    g-null-val                    {"id":16,"error":"condition `is_vip`: expected true or false","code":"bad_request"}
+    g-null                        {"id":17,"error":"`guards` must be an object","code":"bad_request"}
+    g-array                       {"id":18,"error":"`guards` must be an object","code":"bad_request"}
+    g-dup                  ET-07  {"id":19,"error":"duplicate key `is_vip`","code":"parse_error"}
+    g-unneeded-nonbool     FC-04  {"id":20,"error":"condition `other`: expected true or false","code":"bad_request"}
+    g-unknown-names        FC-04  {"id":21,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":
+    t-match                       {"id":30,"snapshot":{"at":"reminder","back":"item","resume":{"shop":"reminder"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}
+    t-5.0                  ET-12  {"id":31,"snapshot":{"at":"reminder","back":"item","resume":{"shop":"reminder"},"seq":6},"actions":[{"cancel_timer":"remind"},{"send":"reminder"}]}
+    t-stale                       {"id":32,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}
+    t-2^53+1               ET-12  {"id":33,"error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+    t-str                  ET-12  {"id":34,"error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+    t-neg                         {"id":35,"error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+    t-1e19                 ET-12  {"id":36,"error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+    t-missing                     {"id":37,"error":"missing field `token` for a timer event","code":"bad_request"}
+    t-on-named                    {"id":38,"error":"field `token` is allowed only for a timer or an outcome event","code":"bad_request"}
+    e-empty                       {"id":40,"error":"`event` must be a non-empty string","code":"bad_request"}
+    e-timer-colon                 {"id":41,"error":"empty timer name in `event`","code":"bad_request"}
+    e-timer-colon-notoken         {"id":42,"error":"empty timer name in `event`","code":"bad_request"}
+    e-missing                     {"id":43,"error":"missing field `event`","code":"bad_request"}
+    e-num                         {"id":44,"error":"`event` must be a non-empty string","code":"bad_request"}
+    e-TIMER                       {"id":45,"error":"field `token` is allowed only for a timer or an outcome event","code":"bad_request"}
+    e-TIMER-notoken               {"id":46,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}
+    s-dup-at               ET-07  {"id":50,"error":"duplicate key `at`","code":"parse_error"}
+    s-dup-timer            ET-07  {"id":51,"error":"duplicate key `remind`","code":"parse_error"}
+    s-seq-1.0                     {"id":52,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":2},{"send":"
+    s-seq-1e0                     {"id":53,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":2},{"send":"
+    s-seq-neg-zero                {"id":54,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":1},{"send":"
+    s-v-1.0                       {"id":55,"snapshot":{"at":"home"},"actions":[]}
+    s-v-2                         {"id":56,"error":"snapshot: unknown version","code":"bad_snapshot"}
+    s-null                        {"id":57,"error":"snapshot must be an object","code":"bad_snapshot"}
+    s-missing                     {"id":58,"error":"missing field `snapshot`","code":"bad_request"}
+    restart-seq-1e0               {"id":59,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}
+    restart-back                  {"id":69,"snapshot":{"at":"home","timers":{"idle":4},"seq":4},"actions":[{"start_timer":"idle","ms":60000,"token":4},{"send":"home"}]}
+    s-back-empty                  {"id":72,"error":"snapshot: `back` is an empty string","code":"bad_snapshot"}
+    start-seq                     {"id":64,"snapshot":{"at":"home","timers":{"idle":42},"seq":42},"actions":[{"start_timer":"idle","ms":60000,"token":42},{"send":"home"}]}
+    start-seq-1e1                 {"id":65,"snapshot":{"at":"home","timers":{"idle":11},"seq":11},"actions":[{"start_timer":"idle","ms":60000,"token":11},{"send":"home"}]}
+    start-seq-max                 {"id":66,"error":"seq_overflow","code":"seq_overflow"}
+    start-seq-big                 {"id":67,"error":"`seq` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+    start-seq-str                 {"id":68,"error":"`seq` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+    o-call-token                  {"id":80,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[{"call":"check_stock","token":
+    o-detached-token              {"id":81,"snapshot":{"at":"home","pending":[{"call":"ping","token":1}],"seq":1},"actions":[{"call":"ping","token":1,"detached":true}]}
+    o-detached                    {"id":82,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":true}]}
+    o-accepted                    {"id":83,"snapshot":{"at":"item2","resume":{"shop":"item2"},"seq":7},"actions":[{"cancel_timer":"remind"},{"send":"item2"}]}
+    o-token-6.0                   {"id":84,"snapshot":{"at":"catalog","back":"item","resume":{"shop":"catalog"},"seq":7},"actions":[{"cancel_timer":"remind"},{"send":"catalog"}]}
+    o-stale                       {"id":85,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[]}
+    o-other-action                {"id":86,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[]}
+    o-no-arrow                    {"id":87,"snapshot":{"at":"home","seq":6},"actions":[]}
+    o-failed-stay                 {"id":88,"snapshot":{"at":"home","seq":7},"actions":[]}
+    o-every                       {"id":89,"snapshot":{"at":"home","pending":[{"call":"ping","token":7},{"call":"ping","token":3}],"seq":7},"actions":[{"call":"ping","token":7,"detache
+    o-latest                      {"id":90,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":7}],"seq":7},"actions":[{"call":"check_stock","token":
+    o-no-token                    {"id":91,"error":"missing field `token` for an outcome event","code":"bad_request"}
+    o-malformed                   {"id":92,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+    o-empty-outcome               {"id":93,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+DIFF o-start                       {"id":94,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"call":"log","detached":true},{"start_timer":"idle","ms":60000,"token":1},{"
+      expected {"id":94,"error":"an outcome event cannot start a user","code":"bad_request"}
+    o-start-token                 {"id":95,"error":"unknown request field `token`","code":"bad_request"}
+    o-restart                     {"id":96,"snapshot":{"at":"home","timers":{"idle":7},"seq":7},"actions":[{"cancel_timer":"remind"},{"start_timer":"idle","ms":60000,"token":7},{"send"
+    o-pending-no-token            {"id":97,"error":"snapshot: a `pending` entry needs `token`","code":"bad_snapshot"}
+    o-pending-dup-key             {"id":98,"error":"duplicate key `token`","code":"parse_error"}
+    o-pending-empty               {"id":99,"snapshot":{"at":"home"},"actions":[]}
+    two-objects            ET-07  {"id":60,"error":"extra text after the JSON value","code":"parse_error"}
+    crlf                          {"id":62,"protocol":3,"states":8}
+    bom                           {"id":null,"error":"unexpected character `﻿`","code":"parse_error"}
+    u-ff-event             FC-03  {"id":70,"error":"request is not valid UTF-8","code":"parse_error"}
+    u-cesu-at              FC-03  {"id":71,"error":"request is not valid UTF-8","code":"parse_error"}
+    u-ff-id                FC-03  {"id":null,"error":"request is not valid UTF-8","code":"parse_error"}
+requests=96 replies=96 mismatches=1 tags={'-': 73, 'ET-07': 10, 'FC-04': 6, 'ET-12': 4, 'FC-03': 3} break=None
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,30 @@
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:555:5: Variable name `hst` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hst
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Figram/CoreProofs.lean:570:61: This simp argument is unused:
+  hst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [step, hi, not_true_eq_false, ite_false, Snapshot.accepts, ownsTimer, Bool.and_self, Bool.not_true,
+    Bool.false_eq_true, Event.key, hr, hfb, Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/CoreProofs.lean:645:8: declaration uses `sorry`
+⚠ [6/54] Replayed Figram.Correct
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+⚠ [19/54] Replayed Figram.EngineProofs
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+⚠ [47/54] Built Figram.OutcomeProofs (1.2s)
+warning: Figram/OutcomeProofs.lean:302:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:423:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:654:8: declaration uses `sorry`
+✔ [48/54] Built Figram (319ms)
+✔ [51/54] Built Figram.OutcomeProofs:c.o (488ms)
+✔ [52/54] Built Main (651ms)
+✔ [54/54] Built figram:exe (228ms)
+Build completed successfully (54 jobs).

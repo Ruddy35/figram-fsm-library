@@ -1,0 +1,29 @@
+{"case": "pizza", "ok": true, "warnings": [], "problems": []}
+{"case": "features", "ok": true, "warnings": [], "problems": []}
+{"case": "variant_after_unconditional", "ok": true, "warnings": ["arrow `a` on `btn:x`: variant 2 never fires, variant 1 before it has no condition", "message `c` is unreachable: no arrow leads to it from the start of the bot"], "problems": []}
+{"case": "duplicate_guard_in_arrow", "ok": true, "warnings": ["arrow `a` on `btn:x`: condition `c1` is repeated, variant 2 never fires", "message `c` is unreachable: no arrow leads to it from the start of the bot"], "problems": []}
+{"case": "unreachable_message", "ok": true, "warnings": ["message `lost` is unreachable: no arrow leads to it from the start of the bot"], "problems": []}
+{"case": "resume_only_from_inside", "ok": true, "warnings": ["arrows with `resume` into `S` are drawn only from inside the section: they always leave the user on the current message"], "problems": []}
+{"case": "resume_from_outside_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "timer_arrow_on_non_owner", "ok": true, "warnings": ["arrow `timer:t` on `a` never fires: only other messages start timer `t`, and a firing is accepted only by the message that started it", "message `z` is unreachable: no arrow leads to it from the start of the bot"], "problems": []}
+{"case": "timer_arrow_on_section_without_owner", "ok": true, "warnings": ["arrow `timer:t` on `S` never fires: only other messages start timer `t`, and a firing is accepted only by the message that started it"], "problems": []}
+{"case": "timer_arrow_on_section_with_owner_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "same_timer_two_messages_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "shadowed_section_guard_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "selfloop_starves_sibling_timer", "ok": true, "warnings": ["loop `timer:tick` on `wait` restarts the message's timers (`timeout`): while `tick` keeps firing, they never fire"], "problems": []}
+{"case": "selfloop_shorter_sibling_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "outcome_target_lacks_arrows", "ok": false, "warnings": [], "problems": ["missing warning containing 'outcome `no` of action `chk` has no arrow on `w`'; got []", "missing warning containing 'outcome `failed` of action `chk` has no arrow on `w`'; got []", "missing warning containing 'the variant of `a` on `btn:x` waits for it there'; got []"]}
+{"case": "outcome_stay_on_message", "ok": false, "warnings": [], "problems": ["missing warning containing 'outcome `yes` of action `chk` has no arrow on `a`'; got []", "missing warning containing 'outcome `no` of action `chk` has no arrow on `a`'; got []", "missing warning containing 'outcome `failed` of action `chk` has no arrow on `a`'; got []"]}
+{"case": "outcome_every_background_checked", "ok": false, "warnings": [], "problems": ["missing warning containing 'outcome `failed` of action `ping` has no arrow on `a`'; got []"]}
+{"case": "outcome_timer_arrow_variant_checked", "ok": false, "warnings": [], "problems": ["missing warning containing 'outcome `failed` of action `chk` has no arrow on `a`: the variant of `a` on `timer:t`'; got []"]}
+{"case": "outcome_into_section_checks_landing", "ok": false, "warnings": [], "problems": ["missing warning containing 'outcome `yes` of action `chk` has no arrow on `s1`'; got []"]}
+{"case": "outcome_section_stay_each_message", "ok": false, "warnings": [], "problems": ["missing warning containing 'outcome `yes` of action `chk` has no arrow on `b`: the variant of `S` on `btn:x`'; got []"]}
+{"case": "outcome_arrows_on_root_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "outcome_arrows_on_section_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "outcome_conditional_arrow_counts_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "outcome_resume_back_not_checked_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "outcome_plain_action_not_checked_ok", "ok": true, "warnings": [], "problems": []}
+{"case": "fc07_root_initial_and_empty_child", "ok": true, "stdout": ["children of section `bot`: empty name", "node `bot` is declared more than once", "initial node `b` of section `bot` must be a child of it"], "problems": []}
+{"case": "fc07_dup_name", "ok": true, "stdout": ["node `a` is declared more than once", "initial node `a` of section `s` must be a child of it"], "problems": []}
+cases 27, failed 6
+EXPECT-RED: RED (good)

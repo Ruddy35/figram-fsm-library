@@ -1,0 +1,2 @@
+requests 170, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 4}], 'seq': 4}, 'event': 'btn:check'} → {'id': 96, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remi

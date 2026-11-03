@@ -1,0 +1,170 @@
+command: nice -n 10 timeout 900 python3 directed.py --engine /home/user/figram-audit/agents5/redteam/bin/mut/d21-need-stale-outcome-recovery/figram-engine --group conformance 
+cwd: /home/user/figram-audit-worktrees/a5-redteam/tests/compiler
+start: 2026-11-03T18:29:34.705Z
+end: 2026-11-03T18:29:35.221Z
+exit_code: 0
+--- stdout (21487 bytes, last 200 lines)
+PASS [engine] conformance/start_nested_initials -- section whose initial is a section; entry order
+PASS [engine] conformance/bubble_all_false_to_root -- decision 1
+PASS [engine] conformance/bubble_false_then_section_true -- decision 1
+PASS [engine] conformance/message_true_wins -- decision 1
+PASS [engine] conformance/need_lists_chain_guards -- format.md §8, need
+PASS [engine] conformance/section_arrow_message_lacks -- section arrow works on any message inside
+PASS [engine] conformance/root_guarded_false_ignored -- decision 6
+PASS [engine] conformance/unknown_event_ignored -- decision 6, seq not bumped
+PASS [engine] conformance/unconditional_message_shadows_section -- decision 1
+PASS [engine] conformance/irrelevant_guard_ignored -- guards outside the chain
+PASS [engine] conformance/partial_guards_need_rest -- format.md §8, need
+PASS [engine] conformance/action_order_exit_arrow_entry -- decision 2
+PASS [engine] conformance/self_loop_restarts_timers -- decisions 3, 7
+PASS [engine] conformance/resume_no_memory_goes_initial -- decision 5 / resume without memory
+PASS [engine] conformance/remember_on_entry_nested -- decision 4, deep history
+PASS [engine] conformance/nested_outer_and_inner_memory -- decision 4: entering y re-remembers S
+PASS [engine] conformance/resume_from_inside_is_current -- Chart doc: from inside the section resume = current message
+PASS [engine] conformance/resume_section_initial_is_section -- resume, no memory, initial chain P->Q->q1
+PASS [engine] conformance/arrow_to_section_enters_initial -- arrow into section leads to its initial message (not history)
+PASS [engine] conformance/resume_memory_deleted -- decision 5
+PASS [engine] conformance/resume_memory_is_section_now -- decision 5 (message became section)
+PASS [engine] conformance/resume_memory_moved_outside -- AMBIGUITY A1: remembered message exists but outside S -> Lean: initial
+PASS [engine] conformance/resume_memory_inner_valid -- decision 4/5
+PASS [engine] conformance/recover_deleted_current -- decision 8; AMBIGUITY A4: entry of initial re-remembers H (overwrites 'kept' place)
+PASS [engine] conformance/recover_at_is_section -- snapshot points at a section, not a message
+PASS [engine] conformance/recover_resume_uses_kept_place -- decisions 5, 8, 9: the event of a recovered step resumes H at the kept place
+PASS [engine] conformance/recover_ignores_token -- recovery happens before token check
+PASS [engine] conformance/stale_forged_tokens -- decision 7, shared timer id on two messages
+PASS [engine] conformance/valid_timer_no_handler_ignored -- decision 6 for timers
+PASS [engine] conformance/section_level_timer_handler -- section arrow on timer:<id>
+PASS [engine] conformance/root_level_timer_handler -- root arrow on timer:<id>
+PASS [engine] conformance/seq_overflow_transition -- format.md §8, seq_overflow
+PASS [engine] conformance/seq_max_ignored_ok -- ignored event does not bump seq
+PASS [engine] conformance/restart_clears_places -- format.md §8, restart
+PASS [engine] conformance/back_cross_records_inside_keeps -- decision 10: crossing remembers the message left, inside a section it stays, back twice returns
+PASS [engine] conformance/back_subsection -- decision 10: entering and leaving a subsection are crossings
+PASS [engine] conformance/back_new_user_fallback -- decision 10: no place yet -> `to`; menu to menu crosses nothing
+PASS [engine] conformance/back_root_messages_cross_nothing -- decision 10: x and menu are both directly in the root
+PASS [engine] conformance/back_place_gone -- decision 10: a place no longer in the document -> `to`
+PASS [engine] conformance/back_resume_fallback -- decision 10 with resume: no place -> resume CAT
+PASS [engine] conformance/back_restart_clears -- format.md §8, restart clears the place
+PASS [engine] conformance/back_recovery_keeps -- decisions 8, 10: recovery keeps the place
+PASS [engine] conformance/outcome_accepted_only_with_token -- decision 12, rule 2: an outcome is accepted only with the token of a wait (= the seq of the step that called the action); accepting removes the wait, a repeated delivery is ignored
+PASS [engine] conformance/outcome_wrong_action_same_token -- rule 2: the wait must be for THAT action with that token
+PASS [engine] conformance/outcome_without_arrow_removes_wait -- decision 12: moves keep the waits; an accepted outcome without an arrow is ignored, but its wait is gone (the reply carries the snapshot without it, seq unchanged)
+PASS [engine] conformance/outcome_latest_replaces -- decision 12: a new call of the same action replaces its wait, the outcome of the earlier call is ignored
+PASS [engine] conformance/outcome_latest_replaces_several -- decision 12 (reading A10): only the latest call is answered: every older wait of a non-`every` action (a snapshot written while it had `every`) is replaced
+PASS [engine] conformance/outcome_every_keeps_each -- decision 12: with `every` each call has its own wait (the newest first in `pending`) and each outcome is accepted once
+PASS [engine] conformance/outcome_on_root_anywhere -- decision 12: an arrow on the root handles the outcome wherever the user is; an arrow on the waiting message handles it only there (the user left `wait`: `call:chk:yes` is ignored on `err`)
+PASS [engine] conformance/outcome_two_waits_one_step -- decisions 2, 12 (reading A9): both calls get the step's token; `pending` lists the newest first: `ping` is performed after `chk`
+PASS [engine] conformance/outcome_need_then_bubble -- decision 12, rules 2-4: an accepted outcome is an event like any other: `need`; all conditions false and no arrow above -> ignored, the wait removed
+PASS [engine] conformance/outcome_need_true_moves -- decision 12: the outcome arrow on the waiting message
+PASS [engine] conformance/outcome_not_accepted_needs_nothing -- rule 2: an outcome without its wait is ignored before any condition is asked
+PASS [engine] conformance/outcome_of_removed_action_accepted -- section 8: a wait of an action that is no longer in the document, or has no outcomes, is kept and still accepts its outcome
+PASS [engine] conformance/outcome_undeclared_name_accepted -- rule 2 (reading A12): acceptance depends on the wait (action, token) only; no arrow can exist for an undeclared outcome (V5), so it is ignored and the wait is gone
+PASS [engine] conformance/outcome_duplicate_wait_reading -- AMBIGUITY A11 (only a forged snapshot holds the same wait twice): the engine removes every copy; the literal 'each wait accepts one outcome' would keep one (--oracle-opt dup_accept=one)
+PASS [engine] conformance/outcome_same_wait_reading -- AMBIGUITY A15 (only a forged snapshot holds a wait with a token not below seq): the new wait of an `every` action replaces an identical one (--oracle-opt same_wait=keep would keep both)
+PASS [engine] conformance/outcome_retry_on_failed -- decisions 12, 13: an outcome arrow without a target calls the action again: a new wait with the new token
+PASS [engine] conformance/outcome_colon_in_action_name -- section 4: the event is split at its last `:`, the action name may contain `:`
+PASS [engine] conformance/background_and_token_in_calls -- decision 11, section 8: `detached: true` on a background action; `token` (the new seq) exactly when the action has outcomes; a variant without a target and without actions still makes a transition (seq + 1)
+PASS [engine] conformance/outcome_accepted_at_max_seq_no_transition -- rule 5: an accepted outcome without an arrow is no transition, so no seq_overflow
+PASS [engine] conformance/outcome_recovery_accepted -- decisions 8, 9, 12: recovery keeps the waits; an accepted outcome is matched as at the initial message (the root arrow leads to err), its wait removed
+PASS [engine] conformance/outcome_recovery_stale -- decision 12: an outcome that is not accepted chooses no variant and gives the plain start over (waits kept)
+PASS [engine] conformance/outcome_recovery_stay_leads_to_initial -- decisions 8, 13: in recovery a variant without a target leads to the initial message
+PASS [engine] conformance/outcome_recovery_accepted_unmatched -- decision 12, rule 2 (reading A14): accepted (its wait removed), no arrow at the initial message: the plain start over
+PASS [engine] conformance/outcome_start_rejected -- decision 12, section 8: a new user has no waits, `start` rejects an outcome event
+PASS [engine] conformance/outcome_start_event_calls -- decision 9, 12: `start` with seq 41 and an event: the call gets the token 42 and a wait
+PASS [engine] conformance/outcome_start_event_stay -- decisions 9, 13: at `start` a variant without a target leads to the initial message, its actions in front
+PASS [engine] conformance/outcome_restart_clears -- section 8, host-contract.md section 4: `restart` clears the waits (outcomes of earlier actions are then ignored)
+PASS [engine] conformance/stay_start_remembers -- entry of m remembers S
+PASS [engine] conformance/stay_keeps_timers_places_back -- decision 13: no exit, no entry (no cancel/start/send), timers keep their tokens, places and the place to go back to unchanged, seq + 1
+PASS [engine] conformance/stay_consumes_fired_timer -- decision 13: a timer firing handled by an arrow without a target is consumed (removed from `timers`, a redelivery is ignored); leaving cancels the timers of the message by the document (decision 2, reading A8: also the consumed one)
+PASS [engine] conformance/stay_after_stay_timer_still_valid -- decision 13 + 7: an arrow without a target raises seq but leaves the timers (and their tokens) in place: the old token is still the current one (host-contract.md section 3)
+PASS [engine] conformance/stay_on_section_arrow -- decision 13 on an arrow of the section around the message
+PASS [engine] conformance/stay_stops_bubbling -- decision 13: a variant without a target is chosen like any variant, the root's `btn:shadow` -> o is not reached
+PASS [engine] conformance/stay_on_root_arrow -- decision 13 on the root section
+PASS [engine] conformance/stay_seq_overflow -- section 8 rule 5: seq grows by 1 with an arrow without a target too
+PASS [engine] conformance/stay_outcome_waits_on_message -- decisions 11-13: a call with outcomes from an arrow without a target; the outcome handled on the same message without a target
+PASS [engine] conformance/stay_recovery_named_event -- decisions 8, 13: in recovery a variant without a target leads to the initial message (its entry remembers S, the place to go back to is kept)
+PASS [engine] conformance/stay_start_event -- decisions 9, 13: `start` with an event whose variant has no target: the first entry with the variant's actions in front
+PASS [engine] conformance/stay_back_resume_unchanged_then_back -- decision 10 with the root arrow btn:x and back
+PASS [oracle] conformance/start_nested_initials -- section whose initial is a section; entry order
+PASS [oracle] conformance/bubble_all_false_to_root -- decision 1
+PASS [oracle] conformance/bubble_false_then_section_true -- decision 1
+PASS [oracle] conformance/message_true_wins -- decision 1
+PASS [oracle] conformance/need_lists_chain_guards -- format.md §8, need
+PASS [oracle] conformance/section_arrow_message_lacks -- section arrow works on any message inside
+PASS [oracle] conformance/root_guarded_false_ignored -- decision 6
+PASS [oracle] conformance/unknown_event_ignored -- decision 6, seq not bumped
+PASS [oracle] conformance/unconditional_message_shadows_section -- decision 1
+PASS [oracle] conformance/irrelevant_guard_ignored -- guards outside the chain
+PASS [oracle] conformance/partial_guards_need_rest -- format.md §8, need
+PASS [oracle] conformance/action_order_exit_arrow_entry -- decision 2
+PASS [oracle] conformance/self_loop_restarts_timers -- decisions 3, 7
+PASS [oracle] conformance/resume_no_memory_goes_initial -- decision 5 / resume without memory
+PASS [oracle] conformance/remember_on_entry_nested -- decision 4, deep history
+PASS [oracle] conformance/nested_outer_and_inner_memory -- decision 4: entering y re-remembers S
+PASS [oracle] conformance/resume_from_inside_is_current -- Chart doc: from inside the section resume = current message
+PASS [oracle] conformance/resume_section_initial_is_section -- resume, no memory, initial chain P->Q->q1
+PASS [oracle] conformance/arrow_to_section_enters_initial -- arrow into section leads to its initial message (not history)
+PASS [oracle] conformance/resume_memory_deleted -- decision 5
+PASS [oracle] conformance/resume_memory_is_section_now -- decision 5 (message became section)
+PASS [oracle] conformance/resume_memory_moved_outside -- AMBIGUITY A1: remembered message exists but outside S -> Lean: initial
+PASS [oracle] conformance/resume_memory_inner_valid -- decision 4/5
+PASS [oracle] conformance/recover_deleted_current -- decision 8; AMBIGUITY A4: entry of initial re-remembers H (overwrites 'kept' place)
+PASS [oracle] conformance/recover_at_is_section -- snapshot points at a section, not a message
+PASS [oracle] conformance/recover_resume_uses_kept_place -- decisions 5, 8, 9: the event of a recovered step resumes H at the kept place
+PASS [oracle] conformance/recover_ignores_token -- recovery happens before token check
+PASS [oracle] conformance/stale_forged_tokens -- decision 7, shared timer id on two messages
+PASS [oracle] conformance/valid_timer_no_handler_ignored -- decision 6 for timers
+PASS [oracle] conformance/section_level_timer_handler -- section arrow on timer:<id>
+PASS [oracle] conformance/root_level_timer_handler -- root arrow on timer:<id>
+PASS [oracle] conformance/seq_overflow_transition -- format.md §8, seq_overflow
+PASS [oracle] conformance/seq_max_ignored_ok -- ignored event does not bump seq
+PASS [oracle] conformance/restart_clears_places -- format.md §8, restart
+PASS [oracle] conformance/back_cross_records_inside_keeps -- decision 10: crossing remembers the message left, inside a section it stays, back twice returns
+PASS [oracle] conformance/back_subsection -- decision 10: entering and leaving a subsection are crossings
+PASS [oracle] conformance/back_new_user_fallback -- decision 10: no place yet -> `to`; menu to menu crosses nothing
+PASS [oracle] conformance/back_root_messages_cross_nothing -- decision 10: x and menu are both directly in the root
+PASS [oracle] conformance/back_place_gone -- decision 10: a place no longer in the document -> `to`
+PASS [oracle] conformance/back_resume_fallback -- decision 10 with resume: no place -> resume CAT
+PASS [oracle] conformance/back_restart_clears -- format.md §8, restart clears the place
+PASS [oracle] conformance/back_recovery_keeps -- decisions 8, 10: recovery keeps the place
+PASS [oracle] conformance/outcome_accepted_only_with_token -- decision 12, rule 2: an outcome is accepted only with the token of a wait (= the seq of the step that called the action); accepting removes the wait, a repeated delivery is ignored
+PASS [oracle] conformance/outcome_wrong_action_same_token -- rule 2: the wait must be for THAT action with that token
+PASS [oracle] conformance/outcome_without_arrow_removes_wait -- decision 12: moves keep the waits; an accepted outcome without an arrow is ignored, but its wait is gone (the reply carries the snapshot without it, seq unchanged)
+PASS [oracle] conformance/outcome_latest_replaces -- decision 12: a new call of the same action replaces its wait, the outcome of the earlier call is ignored
+PASS [oracle] conformance/outcome_latest_replaces_several -- decision 12 (reading A10): only the latest call is answered: every older wait of a non-`every` action (a snapshot written while it had `every`) is replaced
+PASS [oracle] conformance/outcome_every_keeps_each -- decision 12: with `every` each call has its own wait (the newest first in `pending`) and each outcome is accepted once
+PASS [oracle] conformance/outcome_on_root_anywhere -- decision 12: an arrow on the root handles the outcome wherever the user is; an arrow on the waiting message handles it only there (the user left `wait`: `call:chk:yes` is ignored on `err`)
+PASS [oracle] conformance/outcome_two_waits_one_step -- decisions 2, 12 (reading A9): both calls get the step's token; `pending` lists the newest first: `ping` is performed after `chk`
+PASS [oracle] conformance/outcome_need_then_bubble -- decision 12, rules 2-4: an accepted outcome is an event like any other: `need`; all conditions false and no arrow above -> ignored, the wait removed
+PASS [oracle] conformance/outcome_need_true_moves -- decision 12: the outcome arrow on the waiting message
+PASS [oracle] conformance/outcome_not_accepted_needs_nothing -- rule 2: an outcome without its wait is ignored before any condition is asked
+PASS [oracle] conformance/outcome_of_removed_action_accepted -- section 8: a wait of an action that is no longer in the document, or has no outcomes, is kept and still accepts its outcome
+PASS [oracle] conformance/outcome_undeclared_name_accepted -- rule 2 (reading A12): acceptance depends on the wait (action, token) only; no arrow can exist for an undeclared outcome (V5), so it is ignored and the wait is gone
+PASS [oracle] conformance/outcome_duplicate_wait_reading -- AMBIGUITY A11 (only a forged snapshot holds the same wait twice): the engine removes every copy; the literal 'each wait accepts one outcome' would keep one (--oracle-opt dup_accept=one)
+PASS [oracle] conformance/outcome_same_wait_reading -- AMBIGUITY A15 (only a forged snapshot holds a wait with a token not below seq): the new wait of an `every` action replaces an identical one (--oracle-opt same_wait=keep would keep both)
+PASS [oracle] conformance/outcome_retry_on_failed -- decisions 12, 13: an outcome arrow without a target calls the action again: a new wait with the new token
+PASS [oracle] conformance/outcome_colon_in_action_name -- section 4: the event is split at its last `:`, the action name may contain `:`
+PASS [oracle] conformance/background_and_token_in_calls -- decision 11, section 8: `detached: true` on a background action; `token` (the new seq) exactly when the action has outcomes; a variant without a target and without actions still makes a transition (seq + 1)
+PASS [oracle] conformance/outcome_accepted_at_max_seq_no_transition -- rule 5: an accepted outcome without an arrow is no transition, so no seq_overflow
+PASS [oracle] conformance/outcome_recovery_accepted -- decisions 8, 9, 12: recovery keeps the waits; an accepted outcome is matched as at the initial message (the root arrow leads to err), its wait removed
+PASS [oracle] conformance/outcome_recovery_stale -- decision 12: an outcome that is not accepted chooses no variant and gives the plain start over (waits kept)
+PASS [oracle] conformance/outcome_recovery_stay_leads_to_initial -- decisions 8, 13: in recovery a variant without a target leads to the initial message
+PASS [oracle] conformance/outcome_recovery_accepted_unmatched -- decision 12, rule 2 (reading A14): accepted (its wait removed), no arrow at the initial message: the plain start over
+PASS [oracle] conformance/outcome_start_rejected -- decision 12, section 8: a new user has no waits, `start` rejects an outcome event
+PASS [oracle] conformance/outcome_start_event_calls -- decision 9, 12: `start` with seq 41 and an event: the call gets the token 42 and a wait
+PASS [oracle] conformance/outcome_start_event_stay -- decisions 9, 13: at `start` a variant without a target leads to the initial message, its actions in front
+PASS [oracle] conformance/outcome_restart_clears -- section 8, host-contract.md section 4: `restart` clears the waits (outcomes of earlier actions are then ignored)
+PASS [oracle] conformance/stay_start_remembers -- entry of m remembers S
+PASS [oracle] conformance/stay_keeps_timers_places_back -- decision 13: no exit, no entry (no cancel/start/send), timers keep their tokens, places and the place to go back to unchanged, seq + 1
+PASS [oracle] conformance/stay_consumes_fired_timer -- decision 13: a timer firing handled by an arrow without a target is consumed (removed from `timers`, a redelivery is ignored); leaving cancels the timers of the message by the document (decision 2, reading A8: also the consumed one)
+PASS [oracle] conformance/stay_after_stay_timer_still_valid -- decision 13 + 7: an arrow without a target raises seq but leaves the timers (and their tokens) in place: the old token is still the current one (host-contract.md section 3)
+PASS [oracle] conformance/stay_on_section_arrow -- decision 13 on an arrow of the section around the message
+PASS [oracle] conformance/stay_stops_bubbling -- decision 13: a variant without a target is chosen like any variant, the root's `btn:shadow` -> o is not reached
+PASS [oracle] conformance/stay_on_root_arrow -- decision 13 on the root section
+PASS [oracle] conformance/stay_seq_overflow -- section 8 rule 5: seq grows by 1 with an arrow without a target too
+PASS [oracle] conformance/stay_outcome_waits_on_message -- decisions 11-13: a call with outcomes from an arrow without a target; the outcome handled on the same message without a target
+PASS [oracle] conformance/stay_recovery_named_event -- decisions 8, 13: in recovery a variant without a target leads to the initial message (its entry remembers S, the place to go back to is kept)
+PASS [oracle] conformance/stay_start_event -- decisions 9, 13: `start` with an event whose variant has no target: the first entry with the variant's actions in front
+PASS [oracle] conformance/stay_back_resume_unchanged_then_back -- decision 10 with the root arrow btn:x and back
+cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0
+--- stderr (0 bytes, last 100 lines)

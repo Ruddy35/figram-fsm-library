@@ -1,0 +1,209 @@
+
+== Provenance of the run
+date: 2026-11-03T19:53:59Z; cores: 4
+commit: 598fec637dc65073464841081de08d3272749f13; modified tracked files: 0
+verify.sh sha256: a7ffe7a9e40e7c9bc5880b0ea63a6ca07eca74b62708dbcb8cc7675d49daa6d2
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Build without warnings
+Build completed successfully (56 jobs).
+
+== Binaries built from these sources match FIGRAM_SHA256SUMS
+skipped: FIGRAM_SHA256SUMS is not set, nothing to compare the rebuild with (not a waiver)
+
+== Pinned theorems: standard axioms only, statements pinned
+'Figram.Chart.compile_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.run_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.session_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.chart_run_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_state_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.compile_eq_spec' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.wfDirect_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.lint_nil_wf' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.wfFast_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+'Figram.Format.toChart_decls' depends on axioms: [propext]
+'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.step_snapOK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.guards_irrelevant' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.missing_nil_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startAt_snapOK' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.startWith_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.sessionWith_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.compile_initActions' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.enterBot_state_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.startWith_eq_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_initial' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_unmatched' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.handle_start' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.missingStart_nil' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startWith_snapOK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_recover' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_recover_timer' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.fire_back' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.fire_back_swap' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_back' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_back' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.compile_zoneOf' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.realize_clear' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.fire_eq_realize' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_eq_realize_some' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_eq_realize_none' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.recover_eq_realize' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_rejected' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_no_arrow' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_pending_new' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_keeps_wait' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_records_wait' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_latest_replaces' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_fresh' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_fresh' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Snapshot.Fresh.accepts_le' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_outcome_once' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_stay' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.stay_keeps' depends on axioms: [propext]
+'Figram.Machine.enterBot_stay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_outcome' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_undetach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_undetach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.recover_undetach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.splitOutcome_outcomeEvent' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decEvent_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decEvent_outcome' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decStartEvent_ok' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.handle_restart' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.restart_pending' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.restart_fresh' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.run_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_outcome_accepted' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_stay_timer_once' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_seq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.consecutive_tokens' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.outcome_once_forever' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.step_outcome_unmatched' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.step_waits_once' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.compile_step_waits_once' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.restart_no_waits' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_calls' depends on axioms: [propext, Quot.sound]
+'Figram.Format.doc_stay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.check_waitsOnce' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.check_outcome_events' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.check_step_waits_once' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decEvent_named_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startAt_fresh' depends on axioms: [propext]
+'Figram.Snapshot.accepts_named' depends on axioms: [propext, Quot.sound]
+'Figram.Snapshot.accepts_timer' depends on axioms: [propext, Quot.sound]
+'Figram.Snapshot.accepts_outcome' depends on axioms: [propext, Quot.sound]
+'Figram.Snapshot.settle_outcome' depends on axioms: [propext]
+'Figram.Snapshot.consume_timer' depends on axioms: [propext]
+'Figram.Snapshot.consume_other' depends on axioms: [propext]
+'Figram.addWait_free' does not depend on any axioms
+'Figram.addWait_latest' does not depend on any axioms
+'Figram.addWait_every' does not depend on any axioms
+'Figram.stay_eq' depends on axioms: [propext]
+theorems 99: axioms only from ['Classical.choice', 'Quot.sound', 'propext']
+the statements of 99 theorems match tests/proofs/THEOREMS.expected
+no axiom, native_decide, implemented_by, extern, sorry or admit in the sources
+
+== Strict proof gate: all theorems of the sources and of the environment, statements, leanchecker
+axiom set []: 523 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 145 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+
+== Golden scenarios match the committed files
+ok (scenarios: 37)
+
+== Warnings of figram check: expected fragments, none on clean documents
+cases 29, failed 0
+
+== Engine conformance: golden and random scenarios
+directed scenarios: 5
+arrow variants covered: 53 of 53
+directed scenarios: 5
+arrow variants covered: 75 of 75
+requests 17772, mismatches 0
+
+== Conformance on 100 random documents
+documents 100, requests 92439, documents with mismatches 0
+
+== Mutation testing
+examples/pizza.bot.json: mutations 79
+examples/features.bot.json: mutations 132
+detected 211 of 211 mutations (100%)
+
+== Host contract
+contract holds
+
+== CLI: argument errors give a non-zero exit status
+ok
+
+== Huge exponent: a fast controlled rejection
+ok (exit code 1, figram: cannot read the document: exponent out of range: absolute value above 1000)
+
+== Engine memory: starts under ulimit -v 32, 64 and 256 MiB, address space ≤ 64 MiB, in use ≤ 16 MiB, one thread, stack overflow message
+engine memory: address space 12 MiB, in use 6 MiB, threads 1
+
+== Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello; time linear in the snapshot size
+snapshots 49, replies 49, schema/engine mismatches 0
+seq boundary: ok
+protocol edge cases 252, replies 252, mismatches 0
+snapshot scaling: cases 9, failed 0
+
+== JSON text layer: differential against Python json
+cases 30000: accepted by both 8962, rejected by both 21038, mismatches 0, outputs not read back 0 of 8962
+control: the parser without restrictions is detected (cases 3000: accepted by both 809, rejected by both 1229, mismatches 962, outputs not read back 0 of 1771)
+
+== C shim: invalid UTF-8, huge inputs, 16 threads, ASan and UBSan (only the shim is instrumented)
+5 MB string → {"id":null,"error":"request is longer than the limit of 1048576 bytes","code":"t
+16 threads × 20000 calls to one machine: mismatches 0
+5000 loads and unloads: memory growth 60 KB; without unload (control): 63612 KB
+
+== C ABI ffi/figram.h: init without crashing the host, NULL, handles, NUL, UTF-8, size limit, signals
+C ABI regression checks: 46, failed: 0
+ffi/figram.h compiles as C99 and as C++ without warnings
+
+== Lean runtime without the libuv event loop: start-up steps and unreachability
+checks 4, failed 0
+runtime start-up steps: the 9 stock ones without initialize_libuv; the library also without initialize_stack_overflow
+checks 6, failed 0
+checks 6, failed 0
+checks 8, failed 0
+checks 6, failed 0
+
+== Python client: engine failures, method contract, clean stderr
+client is robust
+client contract holds
+client is robust
+
+== Test harness catches a corrupted, incomplete, empty and hanging engine
+the harness catches corruption
+
+== Load test: 64 threads, 2 processes
+threads  64, processes 2: steps 8038 (with a conditions request 412, outcome events 32), mismatches 0, 5,941 steps/s, latency p50 9,259 µs, p99 22,964 µs
+
+== Go: embedded engine, scenarios from many goroutines
+bots 4, rounds 3, goroutines 615, requests 24729, mismatches 0, 81258 requests/s (GOMAXPROCS=4, CPU=4)
+bots 3, rounds 3, goroutines 60, requests 1860, mismatches 0, 24133 requests/s (GOMAXPROCS=4, CPU=4)
+-rounds 0 and -bots 0: the Go check is red
+bots 2, rounds 3, goroutines 18, requests 108, mismatches 0, 27024 requests/s (GOMAXPROCS=4, CPU=4)
+bots 2, rounds 3, goroutines 93, requests 306, mismatches 0, 37875 requests/s (GOMAXPROCS=4, CPU=4)
+11 kinds of corrupted replies: the Go check is red
+5000 loads with Close (after warm-up): memory growth -220 KB; without Close (control): 63604 KB
+a request map shared by 8 goroutines: no races; regression tests of the Bot wrapper (hello, op, NUL, lazy Load, failure reason, too_large, error codes, protocol 3): passed
+Go under RLIMIT_AS (in use + 256 MiB, + 1 GiB, 3 GB): the runtime starts, Load and a request work
+corrupted scenario: the Go check is red
+
+ALL CHECKS PASSED

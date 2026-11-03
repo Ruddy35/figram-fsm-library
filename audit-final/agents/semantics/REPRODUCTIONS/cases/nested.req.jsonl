@@ -1,0 +1,9 @@
+{"id":"m-x-need","op":"step","snapshot":{"at":"m","timers":{"t":2},"seq":2},"event":"btn:x"}
+{"id":"m-x-false","op":"step","snapshot":{"at":"m","back":"top","resume":{"A":"m"},"timers":{"t":2},"seq":2},"event":"btn:x","guards":{"c":false}}
+{"id":"m-x-true","op":"step","snapshot":{"at":"m","resume":{"A":"m"},"timers":{"t":2},"seq":2},"event":"btn:x","guards":{"c":true}}
+{"id":"n-x-false","op":"step","snapshot":{"at":"n","resume":{"A":"n"},"seq":3},"event":"btn:x","guards":{"c":false}}
+{"id":"n-x-true","op":"step","snapshot":{"at":"n","resume":{"A":"n"},"seq":3},"event":"btn:x","guards":{"c":true}}
+{"id":"top-x","op":"step","snapshot":{"at":"top","seq":1},"event":"btn:x"}
+{"id":"mk-into-A","op":"step","snapshot":{"at":"top","seq":1},"event":"btn:mk"}
+{"id":"ok-resume-inside","op":"step","snapshot":{"at":"n","back":"top","resume":{"A":"n"},"pending":[{"call":"mk","token":2}],"seq":3},"event":"call:mk:ok","token":2}
+{"id":"ok-at-top","op":"step","snapshot":{"at":"top","back":"n","resume":{"A":"n"},"pending":[{"call":"mk","token":2}],"seq":4},"event":"call:mk:ok","token":2}

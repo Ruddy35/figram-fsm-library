@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d38-detached-no-wait/figram-engine --golden examples/golden.jsonl examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d38-detached-no-wait/gate-pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d38-detached-no-wait/gate-features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:43:16.317Z
+end: 2026-11-03T18:43:17.179Z
+exit_code: 1
+--- stdout (641 bytes, last 200 lines)
+requests 17814, mismatches 2
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'event': 'btn:ping'} → {'id': 114, 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 2}, 'actions': [{'call': 'ping', 'token': 2, 'detached': True}]}, expected {'result': {'snapshot': {'at': 'home', 'timers': {'idle':
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 2}], 'seq': 3}, 'event': 'btn:ping'} → {'id': 117, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 2}],
+--- stderr (0 bytes, last 100 lines)

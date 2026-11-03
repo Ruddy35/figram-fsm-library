@@ -1,0 +1,9 @@
+command: timeout 60 python3 -I scripts/client_outcome.py 
+cwd: /home/user/figram-audit/agents5/semantics
+start: 2026-11-03T17:53:23.931Z
+end: 2026-11-03T17:53:23.976Z
+exit_code: 0
+--- stdout (293 bytes, last 200 lines)
+stale outcome, snapshot at a removed message: {"id": 1, "snapshot": {"at": "home", "timers": {"t": 3}, "pending": [{"call": "mk", "token": 2}], "seq": 3}, "actions": [{"start_timer": "t", "ms": 1000, "token": 3}, {"send": "home"}], "recovered": true}
+unchanged snapshot without actions? False
+--- stderr (0 bytes, last 100 lines)

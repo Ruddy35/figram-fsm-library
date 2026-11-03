@@ -1,0 +1,56 @@
+command: nice -n 10 timeout 1500 ./verify-prebuilt.sh .lake/build/bin 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:09:30.007Z
+end: 2026-11-03T17:15:08.213Z
+exit_code: 0
+--- stdout (1488 bytes, last 200 lines)
+binaries: /home/user/figram-audit-worktrees/a4-protocol/.lake/build/bin
+no /home/user/figram-audit-worktrees/a4-protocol/.lake/build/bin/SHA256SUMS: checksum check skipped
+   (0 s)
+
+== Golden scenarios match the committed files
+ok (scenarios: 37)
+   (0 s)
+
+== Engine conformance
+arrow variants covered: 53 of 53
+arrow variants covered: 75 of 75
+requests 25935, mismatches 0
+documents 100, requests 91323, documents with mismatches 0
+   (11 s)
+
+== Mutation testing
+examples/pizza.bot.json: mutations 71
+examples/features.bot.json: mutations 95
+detected 166 of 166 mutations (100%)
+   (102 s)
+
+== Engine memory, threads and stack overflow
+engine memory: address space 12 MiB, in use 6 MiB, threads 1
+   (0 s)
+
+== Snapshots, protocol edges and the JSON text layer
+snapshots 49, replies 49, schema/engine mismatches 0
+seq boundary: ok
+protocol edge cases 250, replies 250, mismatches 0
+snapshot scaling: cases 6, failed 0
+cases 30000: accepted by both 8962, rejected by both 21038, mismatches 0, outputs not read back 0 of 8962
+   (8 s)
+
+== Python client
+client is robust
+client contract holds
+client is robust
+   (50 s)
+
+== Harness self-test
+the harness catches corruption
+   (156 s)
+
+== Host contract and load test
+contract holds
+threads  64, processes 2: steps 12000 (with a conditions request 629, outcome events 53), mismatches 0, 6,959 steps/s, latency p50 6,746 µs, p99 19,773 µs
+   (11 s)
+
+PREBUILT CHECK PASSED (the build, the theorems, C and Go were not checked: see ./verify.sh)
+--- stderr (0 bytes, last 100 lines)

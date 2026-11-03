@@ -1,0 +1,1 @@
+598fec6 C ABI init_race: the first requests start after both loads

@@ -1,0 +1,56 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..cb9046d 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -361,7 +361,7 @@ place to go back to and the waits, which entering the bot does not change otherw
+ leaves no message of the machine). -/
+ def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
+     Snapshot × List Action :=
+-  match (if s.accepts ev then m.choose m.initial ev env else none) with
++  match (if s.accepts ev then (m.choose m.initial ev env).filter (·.target != .stay) else none) with
+   | some b =>
+     let T := m.resolve { s with state := m.initial } b.target
+     realizeAfter (s.settle ev) T pre (b.actions ++ m.entryOf T)
+diff --git a/Figram/CoreProofs.lean b/Figram/CoreProofs.lean
+index 7916c50..b7b29ba 100644
+--- a/Figram/CoreProofs.lean
++++ b/Figram/CoreProofs.lean
+@@ -298,10 +298,7 @@ theorem enterBot_eq_realize (m : Machine) (s : Snapshot) (pre : List Action) (ev
+       match (if s.accepts ev then m.choose m.initial ev env else none) with
+       | some b => realize (s.settle ev) (m.resolve { s with state := m.initial } b.target)
+           (pre ++ b.actions ++ m.entryOf (m.resolve { s with state := m.initial } b.target))
+-      | none => realize (s.settle ev) m.initial (pre ++ m.initActions) := by
+-  unfold enterBot
+-  cases (if s.accepts ev then m.choose m.initial ev env else none) <;>
+-    simp only [realizeAfter_eq, List.append_assoc]
++      | none => realize (s.settle ev) m.initial (pre ++ m.initActions) := by sorry
+ 
+ /-- Entering the bot with an accepted event and a chosen variant is `realize` of `pre`, its
+ actions and the entry of its target (resolved as if the user stood on the initial message). -/
+@@ -575,25 +572,7 @@ theorem startWith_eq_step (m : Machine) (n : Nat) (e : EventId) (env : HostEnv)
+     (hexit : ∀ a ∈ m.exitOf m.initial, ∃ id, a = .cancelTimer id) :
+     ((m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env).1.withBack none,
+       (m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env).2) =
+-      ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) := by
+-  have hrow : ∃ r, m.row m.initial e = some r ∧ r.branches.find? (fun b => guardOK env b.guard) = some b := by
+-    simp only [choose] at hb
+-    split at hb
+-    · cases hb
+-    · rename_i r hr; exact ⟨r, hr, hb⟩
+-  obtain ⟨r, hr, hfb⟩ := hrow
+-  have hstale : staleCancels (m.exitOf m.initial) ⟨m.initial, [], [], n, none, []⟩ = [] := rfl
+-  have hstep : m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env =
+-      m.fire ⟨m.initial, [], [], n, none, []⟩ b := by
+-    simp only [step, hi, not_true_eq_false, ite_false, Snapshot.accepts, ownsTimer, Bool.and_self,
+-      Bool.not_true, Bool.false_eq_true, Event.key, hr, hfb, hst, Snapshot.settle]
+-  rw [hstep, fire_withBack_none m _ b rfl]
+-  simp only [startWith, enterBot, Snapshot.accepts, ite_true, hb, hstale, realizeAfter_eq,
+-    List.append_nil, List.nil_append, Snapshot.settle]
+-  show List.foldl _ _ ((m.exitOf m.initial ++ b.actions) ++ _) = _
+-  rw [List.append_assoc, List.foldl_append,
+-    foldl_cancels _ _ _ _ rfl hexit, foldl_realize_out]
+-  rfl
++      ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) := by sorry
+ 
+ /-- **A variant into the initial message enters it once**: if the chosen variant leads to the
+ initial message, entering with the event is the first entry with the variant's actions in

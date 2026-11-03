@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 bash /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/run.sh client-protocol-2 
+cwd: /home/user/figram-audit-worktrees
+start: 2026-11-03T17:01:54.100Z
+end: 2026-11-03T17:01:54.207Z
+exit_code: 0
+--- stdout (239 bytes, last 200 lines)
+client-protocol-2: rc=1 (want ≠ 0):     raise EngineError(f"engine did not start: {e}") from None|figram_client.EngineError: engine did not start: engine process failed: protocol violation: engine protocol 3, the client supports only 2|
+--- stderr (0 bytes, last 100 lines)

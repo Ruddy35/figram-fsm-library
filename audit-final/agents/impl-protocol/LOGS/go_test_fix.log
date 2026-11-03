@@ -1,0 +1,27 @@
+command: nice -n 10 timeout 900 env CC=gcc go test -count=1 -v -run \^\(TestFixCheckReplyProtocolChanges\|TestFixStartWithEvent\|TestFixOutcomes\|TestFixRequestTooLarge\|TestFixLoadReason\|TestAuditHelloAlwaysError\)\$ . 
+cwd: /home/user/figram-audit-worktrees/a4-protocol/clients/go
+start: 2026-11-03T16:53:16.896Z
+end: 2026-11-03T16:53:23.232Z
+exit_code: 1
+--- stdout (1528 bytes, last 200 lines)
+=== RUN   TestAuditHelloAlwaysError
+    audit_test.go:106: open bot, hello → resp=map[id:1 protocol:3 states:13] variant="hello" err=<nil>
+--- PASS: TestAuditHelloAlwaysError (0.00s)
+=== RUN   TestFixLoadReason
+    fix_test.go:147: Load(bad) → document not loaded: missing field `bot`
+--- PASS: TestFixLoadReason (0.00s)
+=== RUN   TestFixRequestTooLarge
+    fix_test.go:166: 2 MiB event → variant "error" err <nil> code too_large
+--- PASS: TestFixRequestTooLarge (0.04s)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+=== RUN   TestFixStartWithEvent
+    fix_test.go:308: map[event:btn:go guards:map[is_vip:true] op:start seq:41]: reply {"actions":[{"ms":30000,"start_timer":"nudge","token":42},{"send":"vip"}],"snapshot":{"at":"vip","seq":42,"timers":{"nudge":42}}}, want {"actions":[{"start_timer":"nudge","ms":30000,"token":42},{"send":"vip"}],"snapshot":{"at":"vip","seq":42,"timers":{"nudge":42}}}
+--- FAIL: TestFixStartWithEvent (0.00s)
+=== RUN   TestFixOutcomes
+    fix_test.go:364: map[op:restart snapshot:map[at:item pending:[map[call:check_stock token:6]] seq:6 timers:map[remind:3]]]: reply {"actions":[{"cancel_timer":"remind"},{"ms":60000,"start_timer":"idle","token":7},{"send":"home"}],"snapshot":{"at":"home","seq":7,"timers":{"idle":7}}}, want {"actions":[{"cancel_timer":"remind"},{"start_timer":"idle","ms":60000,"token":7},{"send":"home"}],"snapshot":{"at":"home","seq":7,"timers":{"idle":7}}}
+--- FAIL: TestFixOutcomes (0.00s)
+FAIL
+FAIL	gofig	0.054s
+FAIL
+--- stderr (0 bytes, last 100 lines)

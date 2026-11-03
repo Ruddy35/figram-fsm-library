@@ -1,0 +1,1 @@
+client-event-swapped: rc=1 (want ≠ 0): ok   condition not filled in → EngineError|ok   value not bool → EngineError|ok   not a dict → EngineError|

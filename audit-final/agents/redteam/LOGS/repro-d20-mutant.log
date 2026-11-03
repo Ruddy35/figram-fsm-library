@@ -1,0 +1,11 @@
+command: python3 d20.py /home/user/figram-audit/agents5/redteam/bin/mut/d20-stay-consumes-all-timers/figram-engine 
+cwd: /home/user/figram-audit/agents5/redteam/repro
+start: 2026-11-03T19:22:47.608Z
+end: 2026-11-03T19:22:47.653Z
+exit_code: 1
+--- stdout (391 bytes, last 200 lines)
+{"id": 1, "snapshot": {"at": "m", "timers": {"timeout": 1, "tick": 1}, "seq": 1}, "actions": [{"start_timer": "tick", "ms": 60000, "token": 1}, {"start_timer": "timeout", "ms": 600000, "token": 1}, {"send": "m"}]}
+{"id": 2, "snapshot": {"at": "m", "seq": 2}, "actions": [{"call": "remind"}]}
+{"id": 3, "snapshot": {"at": "m", "seq": 2}, "actions": []}
+user moved to `gone` on timeout: False
+--- stderr (0 bytes, last 100 lines)

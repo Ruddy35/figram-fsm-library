@@ -1,0 +1,13 @@
+diff --git a/clients/python/figram_client.py b/clients/python/figram_client.py
+index 7884325..89c7163 100644
+--- a/clients/python/figram_client.py
++++ b/clients/python/figram_client.py
+@@ -804,7 +804,7 @@ class Engine:
+         it only while `snapshot["pending"]` holds a wait for the action with this
+         token; otherwise the reply is the unchanged snapshot without actions. A
+         malformed argument raises ValueError before anything is sent."""
+-        return self.step(key, snapshot, outcome_event(action, outcome), guards, check_token(token))
++        return self.step(key, snapshot, outcome_event(outcome, action), guards, check_token(token))
+ 
+     def _conditional(self, proc, request: dict, guards) -> dict:
+         """A request that may answer `need` (`step`, `start` with an event): the

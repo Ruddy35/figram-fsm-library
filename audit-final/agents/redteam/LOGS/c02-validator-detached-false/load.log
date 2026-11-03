@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/loadtest.py /home/user/figram-audit/agents5/redteam/bin/figram-engine examples/pizza.bot.json /home/user/figram-audit/agents5/redteam/ref/pizza.jsonl 8 1 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:04:56.346Z
+end: 2026-11-03T19:04:57.552Z
+exit_code: 0
+--- stdout (153 bytes, last 200 lines)
+threads   8, processes 1: steps 8038 (with a conditions request 412, outcome events 32), mismatches 0, 7,189 steps/s, latency p50 960 µs, p99 2,877 µs
+--- stderr (0 bytes, last 100 lines)

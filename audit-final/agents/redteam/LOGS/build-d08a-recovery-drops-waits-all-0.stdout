@@ -1,0 +1,56 @@
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:468:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:569:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:575:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:616:8: declaration uses `sorry`
+✔ [26/54] Built Figram.Warnings (602ms)
+✔ [27/54] Built Figram.RandomDoc (907ms)
+✖ [33/54] Building Figram.Correct (1.8s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:455:4: Type mismatch
+  enterBot_eq c hwf s ?m.163 ev env
+has type
+  c.compileSpec.enterBot s ?m.163 ev env = c.enterBot s ?m.163 ev env
+but is expected to have type
+  c.compileSpec.enterBot
+      { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+      (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env =
+    c.enterBot s (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env
+✔ [39/54] Built Figram.Trace (1.6s)
+✔ [41/54] Built Figram.FormatProofs (4.2s)
+✖ [45/54] Building Figram.EngineProofs (2.4s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:312:4: Type mismatch
+  enterBot_snapOK m hwf hn0 s ?m.82 ev env (SnapOK.inv hs) ?m.84 h1
+has type
+  SnapOK (m.enterBot s ?m.82 ev env).fst
+but is expected to have type
+  SnapOK
+    (m.enterBot
+        { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+        (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).fst
+warning: Figram/EngineProofs.lean:450:46: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:453:37: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ite_true, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:453:41: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ha, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs

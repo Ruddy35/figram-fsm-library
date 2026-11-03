@@ -1,0 +1,424 @@
+✔ [10/54] Built Figram.Warnings (915ms)
+✔ [29/54] Built Figram.RandomDoc (1.4s)
+✔ [33/54] Built Figram.Correct (2.5s)
+✔ [35/54] Built Figram.LintProofs (315ms)
+✔ [36/54] Built Figram.Trace (1.9s)
+✔ [39/54] Built Figram.Run (397ms)
+✔ [41/54] Built Figram.FormatProofs (4.9s)
+✔ [43/54] Built Figram.Examples (1.7s)
+✖ [45/54] Building Figram.EngineProofs (2.5s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+pend : List (String × Nat)
+hst : st ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+tms pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+ht : ¬tms = []
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+hq : ¬pend = []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+hq : ¬pend = []
+hz : ¬seq = 0
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+tms pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:103:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+hbk : ∀ (v : NodeId), none = some v → v ≠ ""
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+pend : List (String × Nat)
+hst : st ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+tms pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+ht : ¬tms = []
+hq : ¬pend = []
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+hres : ∀ (p : NodeId × NodeId), p ∈ [] → p.fst ≠ "" ∧ p.snd ≠ ""
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) []) = Except.ok []
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+hq : ¬pend = []
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+hq : ¬pend = []
+hz : ¬seq = 0
+htms : ∀ (p : String × Nat), p ∈ [] → p.fst ≠ "" ∧ p.snd ≤ maxInt
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) []) = Except.ok []
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case pos
+st : NodeId
+res : List (NodeId × NodeId)
+tms pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hseq : 0 ≤ maxInt
+⊢ pend.reverse = pend
+error: Figram/EngineProofs.lean:111:82: Tactic `rfl` failed: The left-hand side
+  pend.reverse
+is not definitionally equal to the right-hand side
+  pend
+
+case neg
+st : NodeId
+res : List (NodeId × NodeId)
+tms : List (String × Nat)
+seq : Nat
+pend : List (String × Nat)
+hst : st ≠ ""
+hres : ∀ (p : NodeId × NodeId), p ∈ res → p.fst ≠ "" ∧ p.snd ≠ ""
+htms : ∀ (p : String × Nat), p ∈ tms → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hseq : seq ≤ maxInt
+hpend : ∀ (p : String × Nat), p ∈ pend → p.fst ≠ "" ∧ p.snd ≤ maxInt
+hkeys : ∀ (A : Obj), (∀ (p : String × J), p ∈ A → p.fst ∈ snapshotKeys) → checkKeys A = Except.ok ()
+h1 : List.mapM decResumeEntry (List.map (fun p => (p.fst, J.str p.snd)) res) = Except.ok res
+h2 : List.mapM decTimerEntry (List.map (fun p => (p.fst, J.num (↑p.snd) 0)) tms) = Except.ok tms
+h3 :
+  List.mapM decWait (List.map (fun p => J.obj [("call", J.str p.fst), ("token", J.num (↑p.snd) 0)]) pend) =
+    Except.ok pend
+b : NodeId
+hbk : ∀ (v : NodeId), some b = some v → v ≠ ""
+hb : nonEmpty "`back`" (J.str b) = Except.ok b
+hr : ¬res = []
+ht : ¬tms = []
+hq : ¬pend = []
+hz : ¬seq = 0
+⊢ pend.reverse = pend
+Some required targets logged failures:
+- Figram.EngineProofs

@@ -1,0 +1,9 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/docs/outcomes.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:41:27.543Z
+end: 2026-11-03T17:41:27.556Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (159 bytes, last 100 lines)
+warning: outcome `no` of action `mk` has no arrow on `home`: the variant of `home` on `btn:mkstay` waits for it there (an outcome without an arrow is ignored)

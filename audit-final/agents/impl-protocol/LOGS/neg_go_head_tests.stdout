@@ -1,0 +1,14 @@
+--- FAIL: TestFixCheckReplyProtocolChanges (0.00s)
+    fix_test.go:275: checkReply({"id":5,"protocol":2,"states":11}, op=hello) = "hello" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"protocol":4,"states":11}, op=hello) = "hello" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"item","pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[]}, op=step) = "" (snapshot: unknown field "pending"), want "result"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":7},{"call":"ping","token":6}],"seq":7},"actions":[]}, op=step) = "" (snapshot: unknown field "pending"), want "result"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[],"seq":7},"actions":[]}, op=step) = "" (snapshot: unknown field "pending"), want "result"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"item","seq":6},"actions":[{"call":"check_stock","token":6}]}, op=step) = "" (unknown action form: map[call:check_stock token:6]), want "result"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":true}]}, op=step) = "" (unknown action form: map[call:log detached:true]), want "result"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":1,"detached":true}]}, op=step) = "" (unknown action form: map[call:ping detached:true token:1]), want "result"
+--- FAIL: TestFixOutcomes (0.00s)
+    fix_test.go:347: map[event:btn:check op:step snapshot:map[at:item seq:5 timers:map[remind:3]]]: variant "" (snapshot: unknown field "pending"), want "result"
+FAIL
+FAIL	gofig	0.007s
+FAIL

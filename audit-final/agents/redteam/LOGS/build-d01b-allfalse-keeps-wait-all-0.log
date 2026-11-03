@@ -1,0 +1,56 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:00:04.314Z
+end: 2026-11-03T18:00:11.880Z
+exit_code: 1
+--- stdout (3016 bytes, last 200 lines)
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:664:8: declaration uses `sorry`
+✔ [11/54] Built Figram.Warnings (792ms)
+✔ [28/54] Built Figram.RandomDoc (1.5s)
+✖ [33/54] Building Figram.Correct (1.9s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:442:18: Tactic `rfl` failed: The left-hand side
+  match Option.map c.toF none with
+  | none => (s, [])
+  | some b => if b.target = Target.stay then stay (s.settle ev) ev b.actions else c.compileSpec.fire (s.settle ev) b
+is not definitionally equal to the right-hand side
+  match none with
+  | none => (s.settle ev, [])
+  | some b => if b.target = Dest.stay then stay (s.settle ev) ev b.actions else c.fire (s.settle ev) b
+
+case neg.none
+c : Chart
+hwf : c.compileSpec.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compileSpec.states
+hex : c.compileSpec.exitOf s.state = c.exitActs s.state
+h✝ : ¬(!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true
+hc : ¬c.cands s.state ev.key = []
+hp : (fun b => guardOK env b.guard) ∘ c.toF = fun b => guardOK env b.guard
+hb : List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) = none
+⊢ (match Option.map c.toF none with
+    | none => (s, [])
+    | some b =>
+      if b.target = Target.stay then stay (s.settle ev) ev b.actions else c.compileSpec.fire (s.settle ev) b) =
+    match none with
+    | none => (s.settle ev, [])
+    | some b => if b.target = Dest.stay then stay (s.settle ev) ev b.actions else c.fire (s.settle ev) b
+✔ [39/54] Built Figram.Trace (1.6s)
+✔ [41/54] Built Figram.FormatProofs (4.5s)
+✖ [45/54] Building Figram.EngineProofs (2.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:326:23: Type mismatch
+  hss
+has type
+  SnapOK (s.settle ev)
+but is expected to have type
+  SnapOK (s, []).fst
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

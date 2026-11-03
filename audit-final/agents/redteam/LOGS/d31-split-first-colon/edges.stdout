@@ -1,0 +1,3 @@
+FAIL an action name with ':': the event is split at the last ':': {'snapshot': {'at': 'home', 'pending': [{'call': 'a:b', 'token': 3}], 'seq': 4}, 'actions': []} ≠ expected {'snapshot': {'at': 'home', 'seq': 4}, 'actions': []}
+FAIL an action name with ':': the wait of `a` does not accept call:a:b:c: {'snapshot': {'at': 'home', 'seq': 4}, 'actions': []} ≠ expected {'snapshot': {'at': 'home', 'pending': [{'call': 'a', 'token': 3}], 'seq': 4}, 'actions': []}
+protocol edge cases 250, replies 250, mismatches 2

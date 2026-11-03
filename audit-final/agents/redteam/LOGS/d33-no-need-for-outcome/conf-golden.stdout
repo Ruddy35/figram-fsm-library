@@ -1,0 +1,2 @@
+requests 170, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 6}], 'seq': 6}, 'event': 'call:create_order:rejected', 'token': 6} → {'id': 19, 'snapshot': {'at': 'order_failed', 'back': 'menu', 'resume': {'order': 'order_fai

@@ -1,0 +1,13 @@
+diff --git a/Figram/Warnings.lean b/Figram/Warnings.lean
+index 79cfac1..5dda6db 100644
+--- a/Figram/Warnings.lean
++++ b/Figram/Warnings.lean
+@@ -33,7 +33,7 @@ def Doc.outcomeWarnings (d : Doc) : List String := Id.run do
+             let os := ((lookup d.calls n).map (·.outcomes)).getD [] ++ ["failed"]
+             let waiting : List NodeId := match b.target with
+               | .node x => [ix.enter x]
+-              | .stay => c.leafIds.filter fun l => (ix.anc l).contains t.src
++              | .stay => c.leafIds.filter fun l => (ix.anc l).contains t.src && false
+               | _ => []
+             for M in waiting do
+               for o in os do

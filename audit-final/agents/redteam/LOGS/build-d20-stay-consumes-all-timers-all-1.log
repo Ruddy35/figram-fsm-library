@@ -1,0 +1,23 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:10:37.629Z
+end: 2026-11-03T18:10:42.059Z
+exit_code: 1
+--- stdout (1110 bytes, last 200 lines)
+⚠ [45/54] Built Figram.EngineProofs (2.4s)
+warning: Figram/EngineProofs.lean:156:8: declaration uses `sorry`
+✔ [46/54] Built Figram.EngineProofs:c.o (886ms)
+✖ [47/54] Building Figram.OutcomeProofs (1.5s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:276:41: Application type mismatch: The argument
+  h
+has type
+  p ∈ (s.consume (Event.timer id t)).timers
+but is expected to have type
+  p ∈ erase s.timers ?m.35
+in the application
+  Engine.mem_erase h
+Some required targets logged failures:
+- Figram.OutcomeProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

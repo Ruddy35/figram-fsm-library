@@ -1,0 +1,13 @@
+diff --git a/clients/python/protocol.py b/clients/python/protocol.py
+index 03a0b51..c04ae66 100644
+--- a/clients/python/protocol.py
++++ b/clients/python/protocol.py
+@@ -106,7 +106,7 @@ def check_actions(acts) -> None:
+         elif kinds[0] == "call":
+             if "token" in a:
+                 nat(a["token"], "call.token")
+-            if "detached" in a and a["detached"] is not True:
++            if "detached" in a and a["detached"] not in (True, False):
+                 # the field is written only for a background action, and only as true
+                 raise ProtocolError(f"call.detached: {a['detached']!r}")
+ 

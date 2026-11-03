@@ -1,0 +1,2 @@
+FAIL every: a new call adds its own wait, the newest first: {'snapshot': {'at': 'home', 'pending': [{'call': 'ping', 'token': 1}, {'call': 'ping', 'token': 2}], 'seq': 2}, 'actions': [{'call': 'ping', 'token': 2, 'detached': True}]} ≠ expected {'snapshot': {'at': 'home', 'pending': [{'call': 'ping', 'token': 2}, {'call': 'ping', 'token': 1}], 'seq': 2}, 'actions': [{'call': 'ping', 'token': 2, 'detached': True}]}
+protocol edge cases 250, replies 250, mismatches 1

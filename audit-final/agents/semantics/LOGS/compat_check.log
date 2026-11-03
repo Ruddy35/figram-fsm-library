@@ -1,0 +1,9 @@
+command: timeout 20 /home/user/figram-audit-worktrees/a5-semantics/.lake/build/bin/figram check v02_call_event.bot.json 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/compat
+start: 2026-11-03T17:52:35.142Z
+end: 2026-11-03T17:52:35.149Z
+exit_code: 1
+--- stdout (103 bytes, last 200 lines)
+event `call:crm:done`: `crm` is not an action with the outcome `done` (the prefix `call:` is reserved)
+--- stderr (18 bytes, last 100 lines)
+figram: errors: 1

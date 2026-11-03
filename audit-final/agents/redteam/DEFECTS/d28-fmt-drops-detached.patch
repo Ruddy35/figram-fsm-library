@@ -1,0 +1,13 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..3a3321e 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -91,7 +91,7 @@ structure CallDecl where
+ 
+ /-- An action with only a text, written as the text. -/
+ def CallDecl.plain (c : CallDecl) : Bool :=
+-  !c.detached && c.outcomes.isEmpty && !c.every && c.ext.isEmpty
++  c.outcomes.isEmpty && !c.every && c.ext.isEmpty
+ 
+ /-- Whether the machine waits for the outcomes of the action. -/
+ def CallDecl.wait (c : CallDecl) : Wait :=

@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..48b098c 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -384,7 +384,7 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
+     | some r =>
+       match r.branches.find? (fun b => guardOK env b.guard) with
+       | none => (s.settle ev, [])
+-      | some b => if b.target = .stay then stay (s.settle ev) ev b.actions else m.fire (s.settle ev) b
++      | some b => m.fire (s.settle ev) b
+ 
+ /-- The conditions of the arrow of message `n` for the event with key `e`: those of the
+ variants up to and including the first one without a condition. Later variants cannot be

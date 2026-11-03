@@ -1,0 +1,2 @@
+protocol 2 and 3 replies checked against figram-engine: 15, mismatches 1
+shared handle: 2 threads x 100 = 200 requests, mismatches 0; 0 loader threads: 0 load/10 req/unload/check/fmt cycles, mismatches 0

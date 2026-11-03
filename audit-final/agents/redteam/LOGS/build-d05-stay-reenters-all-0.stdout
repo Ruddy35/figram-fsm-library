@@ -1,0 +1,94 @@
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:555:5: Variable name `hst` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _hst
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Figram/CoreProofs.lean:570:61: This simp argument is unused:
+  hst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [step, hi, not_true_eq_false, ite_false, Snapshot.accepts, ownsTimer, Bool.and_self, Bool.not_true,
+    Bool.false_eq_true, Event.key, hr, hfb, Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/CoreProofs.lean:645:8: declaration uses `sorry`
+✔ [18/54] Built Figram.Warnings (560ms)
+✔ [29/54] Built Figram.RandomDoc (672ms)
+✖ [33/54] Building Figram.Correct (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:448:12: Tactic `rfl` failed: The left-hand side
+  c.compileSpec.fire (s.settle ev) (c.toF b)
+is not definitionally equal to the right-hand side
+  stay (s.settle ev) ev b.actions
+
+case pos
+c : Chart
+hwf : c.compileSpec.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compileSpec.states
+hex : c.compileSpec.exitOf s.state = c.exitActs s.state
+h✝ : ¬(!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true
+hc : ¬c.cands s.state ev.key = []
+hp : (fun b => guardOK env b.guard) ∘ c.toF = fun b => guardOK env b.guard
+b : Branch
+hb : List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) = some b
+hst : b.target = Dest.stay
+h1 : (c.toF b).target = Target.stay
+⊢ c.compileSpec.fire (s.settle ev) (c.toF b) = stay (s.settle ev) ev b.actions
+warning: Figram/Correct.lean:447:23: This simp argument is unused:
+  h1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hst, ite_true]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/Correct.lean:450:23: This simp argument is unused:
+  h1
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hst, ite_false]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [39/54] Built Figram.Trace (1.2s)
+✔ [41/54] Built Figram.FormatProofs (4.1s)
+✖ [45/54] Building Figram.EngineProofs (2.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:328:10: Tactic `split` failed: Could not split an `if` or `match` expression in the goal
+
+Hint: Use `set_option trace.split.failure true` to display additional diagnostic information
+
+case h_2
+m : Machine
+hwf : m.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : SnapOK s
+hn0 : namesOK m = true
+hexit : ∀ (x : NodeId × List Action), x ∈ m.exit → ∀ (x_1 : Action), x_1 ∈ x.snd → actionOK x_1 = true
+hentry : ∀ (x : NodeId × List Action), x ∈ m.entry → ∀ (x_1 : Action), x_1 ∈ x.snd → actionOK x_1 = true
+hrows :
+  ∀ (x : Row), x ∈ m.rows → ∀ (x_1 : FBranch), x_1 ∈ x.branches → ∀ (x : Action), x ∈ x_1.actions → actionOK x = true
+hstates : ∀ (x : NodeId), x ∈ m.states → (!String.isEmpty x) = true
+hinit : ∀ (x : Action), x ∈ m.initActions → actionOK x = true
+h✝¹ : ¬¬s.state ∈ m.states
+hss : SnapOK (s.settle ev)
+h✝ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r : Row
+hr : m.row s.state ev.key = some r
+x✝ : Option FBranch
+b : FBranch
+hb : List.find? (fun b => guardOK env b.guard) r.branches = some b
+⊢ (m.fire (s.settle ev) b).fst.seq ≤ maxInt →
+    (m.fire (s.settle ev) b).fst.state ∈ m.states →
+      (m.fire (s.settle ev) b).fst.state ≠ "" → SnapOK (m.fire (s.settle ev) b).fst
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs

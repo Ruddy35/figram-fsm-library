@@ -1,0 +1,13 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..dd0ef9a 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -48,7 +48,7 @@ def encSnapshot (s : Snapshot) : J :=
+     ++ field "resume" (!s.resume.isEmpty) (.obj (s.resume.map fun p => (p.1, .str p.2)))
+     ++ field "timers" (!s.timers.isEmpty) (.obj (s.timers.map fun p => (p.1, .num p.2 0)))
+     ++ field "pending" (!s.pending.isEmpty)
+-        (.arr (s.pending.map fun p => .obj [("call", .str p.1), ("token", .num p.2 0)]))
++        (.arr (s.pending.reverse.map fun p => .obj [("call", .str p.1), ("token", .num p.2 0)]))
+     ++ field "seq" (s.seq != 0) (.num s.seq 0))
+ 
+ /-- An integer field of the snapshot: 0 … 2^53 − 1 (as in snapshot.schema.json). -/

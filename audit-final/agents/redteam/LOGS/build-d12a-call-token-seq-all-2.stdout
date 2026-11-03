@@ -1,0 +1,12 @@
+⚠ [19/54] Replayed Figram.EngineProofs
+warning: Figram/EngineProofs.lean:163:8: declaration uses `sorry`
+⚠ [47/54] Built Figram.OutcomeProofs (1.4s)
+warning: Figram/OutcomeProofs.lean:38:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:91:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:100:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:131:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:164:8: declaration uses `sorry`
+✔ [49/54] Built Figram (275ms)
+✔ [52/54] Built Main (491ms)
+✔ [54/54] Built figram:exe (230ms)
+Build completed successfully (54 jobs).

@@ -1,0 +1,19 @@
+{"id":"call-noform-step","error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+{"id":"call-noform-step-token","error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+{"id":"call-empty-action","error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+{"id":"call-empty-outcome","error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+{"id":"timer-empty","error":"empty timer name in `event`","code":"bad_request"}
+{"id":"start-call-noform","error":"an outcome event cannot start a user","code":"bad_request"}
+{"id":"start-timer-empty","error":"a timer event cannot start a user","code":"bad_request"}
+{"id":"tok-neg","error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+{"id":"tok-frac","error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+{"id":"tok-str","error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+{"id":"tok-big","error":"`token` must be an integer from 0 to 9007199254740991","code":"bad_request"}
+{"id":"tok-negzero","snapshot":{"at":"home"},"actions":[]}
+{"id":"tok-exp","snapshot":{"at":"home","seq":20},"actions":[]}
+{"id":"need-before-overflow-step","need":["c1","c2"]}
+{"id":"stale-at-max","snapshot":{"at":"wait","pending":[{"call":"mk","token":5}],"seq":9007199254740991},"actions":[]}
+{"id":"restart-max","error":"seq_overflow","code":"seq_overflow"}
+{"id":"pending-null","error":"snapshot: `pending` must be an array","code":"bad_snapshot"}
+{"id":"wait-token-float","snapshot":{"at":"home","seq":2},"actions":[]}
+{"id":"wait-token-frac","error":"snapshot: the `token` of a `pending` entry must be a non-negative integer","code":"bad_snapshot"}

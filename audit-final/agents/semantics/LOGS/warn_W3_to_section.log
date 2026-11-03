@@ -1,0 +1,11 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/warn/W3_to_section.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:46:56.407Z
+end: 2026-11-03T17:46:56.413Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (387 bytes, last 100 lines)
+warning: message `s2` is unreachable: no arrow leads to it from the start of the bot
+warning: outcome `ok` of action `mk` has no arrow on `s1`: the variant of `h` on `btn:s` waits for it there (an outcome without an arrow is ignored)
+warning: outcome `failed` of action `mk` has no arrow on `s1`: the variant of `h` on `btn:s` waits for it there (an outcome without an arrow is ignored)

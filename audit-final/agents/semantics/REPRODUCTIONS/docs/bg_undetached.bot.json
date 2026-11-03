@@ -1,0 +1,99 @@
+{
+ "figram": 1,
+ "calls": {
+  "seqa": "Sequential",
+  "bg": {
+   "text": "Background"
+  },
+  "bgo": {
+   "text": "Background with outcomes",
+   "outcomes": [
+    "done"
+   ]
+  },
+  "bge": {
+   "text": "Background every",
+   "outcomes": [
+    "done"
+   ],
+   "every": true
+  },
+  "nd": {
+   "text": "Explicit defaults",
+   "every": false
+  }
+ },
+ "bot": {
+  "initial": "a",
+  "on": {
+   "call:bgo:done": [
+    {
+     "to": "b"
+    }
+   ],
+   "call:bgo:failed": [
+    {
+     "do": [
+      "bg"
+     ]
+    }
+   ],
+   "call:bge:done": [
+    {
+     "do": [
+      "bg",
+      "bge"
+     ]
+    }
+   ],
+   "call:bge:failed": [
+    {
+     "do": [
+      "bg"
+     ]
+    }
+   ]
+  },
+  "children": {
+   "a": {
+    "on": {
+     "btn:go": [
+      {
+       "to": "b",
+       "do": [
+        "seqa",
+        "bg",
+        "bgo",
+        "nd",
+        "bge"
+       ]
+      }
+     ],
+     "btn:s": [
+      {
+       "do": [
+        "bg",
+        "bgo"
+       ]
+      }
+     ]
+    }
+   },
+   "b": {
+    "timers": {
+     "t": 5
+    },
+    "on": {
+     "btn:a": [
+      {
+       "to": "a",
+       "do": [
+        "bg"
+       ]
+      }
+     ]
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,1 @@
+warning: loop `timer:tick` on `h` restarts the message's timers (`timeout`): while `tick` keeps firing, they never fire

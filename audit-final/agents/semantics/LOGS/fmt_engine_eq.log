@@ -1,0 +1,15 @@
+command: bash -c cmp\ eq.noncanon.actual.jsonl\ eq.fmt1.actual.jsonl\ \&\&\ echo\ same\ \&\&\ python3\ -I\ /home/user/figram-audit/agents5/semantics/scripts/cmp.py\ eq.noncanon.actual.jsonl\ eq.expected.jsonl 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/fmt
+start: 2026-11-03T17:47:25.453Z
+end: 2026-11-03T17:47:25.486Z
+exit_code: 0
+--- stdout (74 bytes, last 200 lines)
+same
+ok id=1
+ok id=2
+ok id=3
+ok id=4
+ok id=5
+ok id=6
+TOTAL 6 mismatches 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,13 @@
+01-lake-build.log exit_code: 0
+02-ffi-build.log exit_code: 0
+03-statements.log exit_code: 0
+04-verify.log exit_code: 0
+05-formats.log exit_code: 0
+06-compiler.log exit_code: 0
+07-sanitizers.log exit_code: 0
+08-mutants.log exit_code: 0
+09-proof-controls.log exit_code: 0
+10-go-test.log exit_code: 0
+11-go-race.log exit_code: 0
+12-check_docs.log exit_code: 0
+13-faults-prebuilt.log exit_code: 0

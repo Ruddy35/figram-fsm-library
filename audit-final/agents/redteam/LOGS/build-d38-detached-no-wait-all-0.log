@@ -1,0 +1,37 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:18:08.547Z
+end: 2026-11-03T18:18:15.659Z
+exit_code: 1
+--- stdout (2374 bytes, last 200 lines)
+✔ [26/54] Built Figram.Warnings (921ms)
+✔ [27/54] Built Figram.RandomDoc (1.3s)
+✔ [33/54] Built Figram.Correct (1.8s)
+✔ [35/54] Built Figram.LintProofs (325ms)
+✔ [37/54] Built Figram.Run (549ms)
+✔ [39/54] Built Figram.Trace (1.5s)
+✔ [41/54] Built Figram.FormatProofs (4.1s)
+✖ [43/54] Building Figram.Examples (1.7s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:336:0: Expression
+  Option.map (fun r => List.take 3 r.snd.reverse) (runGolden "outcome_every_anywhere") ==
+    some [[], [Action.call "log" true Wait.free 6], [Action.call "log" true Wait.free 5]]
+did not evaluate to `true`
+error: Figram/Examples.lean:347:0: Expression
+  (features.step { state := "home", resume := [], timers := [], seq := 4, back := none, pending := [("ping", 2)] }
+          (Event.named "btn:ping") fun x => false).fst.pending ==
+    [("ping", 5), ("ping", 2)]
+did not evaluate to `true`
+✖ [45/54] Building Figram.EngineProofs (2.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:182:52: Type mismatch
+  hp
+has type
+  p ∈ (realizeOne tok acc (Action.call n d w token✝)).fst.pending
+but is expected to have type
+  p ∈ addWait acc.fst.pending n tok w
+Some required targets logged failures:
+- Figram.Examples
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

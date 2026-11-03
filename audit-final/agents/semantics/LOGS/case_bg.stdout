@@ -1,0 +1,10 @@
+engine exit 0
+ok id=hello
+ok id=go
+ok id=s
+ok id=bgo-done-elsewhere
+ok id=bge-done
+ok id=start-s
+ok id=restart
+ok id=rec-s
+TOTAL 8 mismatches 0

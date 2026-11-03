@@ -1,0 +1,9 @@
+command: timeout 120 /home/user/figram-audit/agents5/protocol/capi/bigstack examples/features.bot.json 128 pending 35000 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:47:29.687Z
+end: 2026-11-03T17:47:29.768Z
+exit_code: 0
+--- stdout (209 bytes, last 200 lines)
+request 1039038 bytes, 35000 pending entries, thread stack 128 KiB
+reply 1039000 bytes: {"id":1,"snapshot":{"at":"home","pending":[{"call":"ping","token":10},{"call":"ping","token":11},{"call":"ping","token":
+--- stderr (0 bytes, last 100 lines)

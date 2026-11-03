@@ -1,0 +1,13 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..9d49508 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -121,7 +121,7 @@ def decSnapshot : J → R Snapshot
+     let seq ← match get kvs "seq" with
+       | none => pure 0
+       | some j => boundedNat "`seq`" j
+-    pure ⟨st, res, tms, seq, bk, pend⟩
++    pure ⟨st, res, tms, seq, bk, pend.mergeSort (fun a b => decide (a.1 < b.1) || a.1 == b.1)⟩
+   | _ => throw "snapshot must be an object"
+ 
+ /-! ## Request errors -/

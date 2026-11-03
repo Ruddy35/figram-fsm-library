@@ -1,0 +1,24 @@
+⚠ [45/54] Built Figram.EngineProofs (2.5s)
+warning: Figram/EngineProofs.lean:137:8: declaration uses `sorry`
+✔ [46/54] Built Figram.EngineProofs:c.o (703ms)
+✖ [47/54] Building Figram.OutcomeProofs (1.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:220:19: Invalid `⟨...⟩` notation: The expected type `List.Mem (pn, pt) x.pending` has more than one constructor
+
+Note: This notation can only be used when the expected type is an inductive type with a single constructor
+warning: Figram/OutcomeProofs.lean:219:41: This simp argument is unused:
+  List.mem_filter
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, List.mem_cons, Prod.mk.injEq, decide_eq_true_eq]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/OutcomeProofs.lean:219:73: This simp argument is unused:
+  decide_eq_true_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, List.mem_cons, List.mem_filter, Prod.mk.injEq]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.OutcomeProofs

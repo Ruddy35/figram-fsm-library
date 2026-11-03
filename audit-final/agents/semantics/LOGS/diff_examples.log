@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 300 python3 -I scripts/diff_examples.py 
+cwd: /home/user/figram-audit/agents5/semantics
+start: 2026-11-03T17:55:12.899Z
+end: 2026-11-03T17:55:13.486Z
+exit_code: 0
+--- stdout (171 bytes, last 200 lines)
+pizza requests 3000 mismatches 0 replies 3000
+features requests 3000 mismatches 0 replies 3000
+annotations requests 3000 mismatches 0 replies 3000
+total 9000 mismatches 0
+--- stderr (0 bytes, last 100 lines)

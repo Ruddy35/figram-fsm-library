@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 1500 lake build figram-engine 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:01:23.332Z
+end: 2026-11-03T18:01:31.964Z
+exit_code: 0
+--- stdout (522 bytes, last 200 lines)
+✔ [8/28] Built Figram.Core (1.2s)
+✔ [9/28] Built Figram.Chart (1.3s)
+✔ [10/28] Built Figram.CoreProofs (1.3s)
+✔ [13/28] Built Figram.Mutate (663ms)
+✔ [15/28] Built Figram.Compile (979ms)
+✔ [17/28] Built Figram.Core:c.o (2.6s)
+✔ [18/28] Built Figram.Lint (636ms)
+✔ [20/28] Built Figram.Format (1.5s)
+✔ [22/28] Built Figram.FormatIO (966ms)
+✔ [24/28] Built Figram.Engine (837ms)
+✔ [26/28] Built EngineMain (617ms)
+✔ [28/28] Built «figram-engine»:exe (216ms)
+Build completed successfully (28 jobs).
+--- stderr (0 bytes, last 100 lines)

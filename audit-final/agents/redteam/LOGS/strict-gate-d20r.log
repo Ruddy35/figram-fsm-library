@@ -1,0 +1,22 @@
+command: scripts/strict_d20r.sh 
+cwd: /home/user/figram-audit/agents5/redteam
+start: 2026-11-03T19:20:24.412Z
+end: 2026-11-03T19:20:38.907Z
+exit_code: 0
+--- stdout (517 bytes, last 200 lines)
+ Figram/Core.lean          | 2 +-
+ Figram/EngineProofs.lean  | 2 +-
+ Figram/OutcomeProofs.lean | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+Build completed successfully (54 jobs).
+ Figram.Format.instReprNodeDoc.repr]
+axiom set [Quot.sound]: 1 theorems
+axiom set [propext, Quot.sound]: 166 theorems
+axiom set [propext]: 461 theorems
+axiom set []: 500 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 124 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+strict gate exit 0
+restored: 0 modified
+--- stderr (0 bytes, last 100 lines)

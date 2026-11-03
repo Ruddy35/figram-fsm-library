@@ -1,0 +1,1 @@
+py-hello-any: rc=1 (want ≠ 0): FAIL validator on {"id":5,"protocol":2,"states":8}: accepted, expected rejected|FAIL validator on {"id":5,"protocol":4,"states":8}: accepted, expected rejected|protocol edge cases 250, replies 250, mismatches 2|

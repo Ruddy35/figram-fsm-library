@@ -1,0 +1,41 @@
+✔ [43/54] Built Figram.Examples (1.0s)
+⚠ [45/54] Built Figram.EngineProofs (2.7s)
+warning: Figram/EngineProofs.lean:163:8: declaration uses `sorry`
+✔ [46/54] Built Figram.EngineProofs:c.o (744ms)
+✖ [47/54] Building Figram.OutcomeProofs (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:44:20: unsolved goals
+tok : Nat
+acc : Snapshot × List Action
+p : String × Nat
+n : String
+d : Bool
+w : Wait
+t : Nat
+h✝ : p ∈ (realizeOne tok acc (Action.call n d w t)).fst.pending
+h : p = (n, tok - 1)
+⊢ (n, tok - 1).snd = tok
+error: Figram/OutcomeProofs.lean:101:4: 'show' tactic failed, pattern
+  (n, tok) ∈ addWait acc.fst.pending n' tok w
+is not definitionally equal to target
+  (n, tok) ∈ (realizeOne tok acc (Action.call n' d w t)).fst.pending
+error: Figram/OutcomeProofs.lean:124:21: Application type mismatch: The argument
+  rfl
+has type
+  ?m.120 = ?m.120
+but is expected to have type
+  tok - 1 = tok
+in the application
+  And.intro rfl
+error: Figram/OutcomeProofs.lean:171:8: Type mismatch
+  h
+has type
+  t' = tok - 1
+but is expected to have type
+  t' = tok
+error: Figram/OutcomeProofs.lean:210:4: 'show' tactic failed, pattern
+  (pn, pt) ∈ addWait x.pending n tok w
+is not definitionally equal to target
+  (pn, pt) ∈ (realizeOne tok (x, out) (Action.call n d w t)).fst.pending
+Some required targets logged failures:
+- Figram.OutcomeProofs

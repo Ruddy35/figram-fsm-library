@@ -1,0 +1,17 @@
+command: bash -c cd\ clients/go\ \&\&\ CC=gcc\ nice\ -n\ 10\ timeout\ 600\ go\ test\ -count=1\ -v\ -run\ \'\^\(TestFixCheckReplyProtocolChanges\|TestFixStartWithEvent\|TestFixOutcomes\|TestAuditRequestBadOp\)\$\'\ . 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:53:04.973Z
+end: 2026-11-03T18:53:05.900Z
+exit_code: 0
+--- stdout (321 bytes, last 200 lines)
+=== RUN   TestAuditRequestBadOp
+--- PASS: TestAuditRequestBadOp (0.00s)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+=== RUN   TestFixStartWithEvent
+--- PASS: TestFixStartWithEvent (0.00s)
+=== RUN   TestFixOutcomes
+--- PASS: TestFixOutcomes (0.00s)
+PASS
+ok  	gofig	0.009s
+--- stderr (0 bytes, last 100 lines)

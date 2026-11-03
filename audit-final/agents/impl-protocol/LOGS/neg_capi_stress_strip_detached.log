@@ -1,0 +1,11 @@
+command: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/stress_strip examples/pizza.bot.json 2 100 0 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:03:28.491Z
+end: 2026-11-03T17:03:28.499Z
+exit_code: 1
+--- stdout (204 bytes, last 200 lines)
+protocol 2 and 3 replies checked against figram-engine: 15, mismatches 1
+shared handle: 2 threads x 100 = 200 requests, mismatches 0; 0 loader threads: 0 load/10 req/unload/check/fmt cycles, mismatches 0
+--- stderr (333 bytes, last 100 lines)
+V2 MISMATCH req 18: {"id":18,"snapshot":{"at":"done","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[{"call":"notify_kitchen"},{"send":"done"}]}
+  expected {"id":18,"snapshot":{"at":"done","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[{"call":"notify_kitchen","detached":true},{"send":"done"}]}

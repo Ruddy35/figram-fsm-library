@@ -1,0 +1,2 @@
+V2 MISMATCH req 18: {"id":18,"snapshot":{"at":"done","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[{"call":"notify_kitchen"},{"send":"done"}]}
+  expected {"id":18,"snapshot":{"at":"done","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[{"call":"notify_kitchen","detached":true},{"send":"done"}]}

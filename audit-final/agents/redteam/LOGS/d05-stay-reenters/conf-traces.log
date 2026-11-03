@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d05-stay-reenters/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:07:24.655Z
+end: 2026-11-03T18:07:25.469Z
+exit_code: 1
+--- stdout (950 bytes, last 200 lines)
+requests 17602, mismatches 1720
+   {'op': 'step', 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 16}, 'seq': 16}, 'event': 'timer:nudge', 'token': 16} → {'id': 23, 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 17}, 'seq': 17}, 'actions'
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'idle': 18}, 'seq': 18}, 'event': 'btn:log'} → {'id': 26, 'snapshot': {'at': 'home', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'idle': 19}, 'seq': 19}, 'actions': [{'cancel_timer
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'idle': 18}, 'seq': 19}, 'event': 'btn:ping'} → {'id': 27, 'snapshot': {'at': 'home', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'idle': 20}, 'pending': [{'call': 'ping', 'token':
+--- stderr (0 bytes, last 100 lines)

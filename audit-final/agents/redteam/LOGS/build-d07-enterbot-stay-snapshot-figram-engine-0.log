@@ -1,0 +1,169 @@
+command: nice -n 10 timeout 1500 lake build figram-engine 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:02:59.004Z
+end: 2026-11-03T18:03:07.163Z
+exit_code: 1
+--- stdout (9102 bytes, last 200 lines)
+✔ [8/28] Built Figram.Core (1.4s)
+✔ [9/28] Built Figram.Chart (1.4s)
+✖ [11/28] Building Figram.CoreProofs (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/CoreProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.setup.json --json
+error: Figram/CoreProofs.lean:301:74: unsolved goals
+case some
+m : Machine
+s : Snapshot
+pre : List Action
+ev : Event
+env : HostEnv
+val✝ : FBranch
+⊢ realize (s.settle ev) (m.resolve s val✝.target) (pre ++ (val✝.actions ++ m.entryOf (m.resolve s val✝.target))) =
+    realize (s.settle ev)
+      (m.resolve
+        { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+          pending := s.pending }
+        val✝.target)
+      (pre ++
+        (val✝.actions ++
+          m.entryOf
+            (m.resolve
+              { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := s.pending }
+              val✝.target)))
+error: Figram/CoreProofs.lean:596:2: Tactic `rfl` failed: The left-hand side
+  ((List.foldl
+        (realizeOne ({ state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1))
+        ({
+            state :=
+              m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                b.target,
+            resume := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.resume,
+            timers := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.timers,
+            seq := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1,
+            back := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.back,
+            pending :=
+              { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.pending },
+          [])
+        (b.actions ++
+          m.entryOf
+            (m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+              b.target))).fst,
+    [] ++ m.exitOf m.initial ++
+      (List.foldl
+          (realizeOne
+            ({ state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1))
+          ({
+              state :=
+                m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                  b.target,
+              resume :=
+                { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.resume,
+              timers :=
+                { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.timers,
+              seq := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1,
+              back := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.back,
+              pending :=
+                { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.pending },
+            [])
+          (b.actions ++
+            m.entryOf
+              (m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                b.target))).snd)
+is not definitionally equal to the right-hand side
+  ((realize { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+        (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] } b.target)
+        (b.actions ++
+          m.entryOf
+            (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+              b.target))).fst,
+    m.exitOf m.initial ++
+      (realize { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+          (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] } b.target)
+          (b.actions ++
+            m.entryOf
+              (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+                b.target))).snd)
+
+m : Machine
+n : Nat
+e : EventId
+env : HostEnv
+b : FBranch
+hi : m.initial ∈ m.states
+hb : m.choose m.initial (Event.named e) env = some b
+hst : b.target ≠ Target.stay
+hexit : ∀ (a : Action), a ∈ m.exitOf m.initial → ∃ id, a = Action.cancelTimer id
+r : Row
+hr : m.row m.initial e = some r
+hfb : List.find? (fun b => guardOK env b.guard) r.branches = some b
+hstale :
+  staleCancels (m.exitOf m.initial)
+      { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] } =
+    []
+hstep :
+  m.step { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] } (Event.named e) env =
+    m.fire { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] } b
+⊢ ((List.foldl
+          (realizeOne
+            ({ state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1))
+          ({
+              state :=
+                m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                  b.target,
+              resume :=
+                { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.resume,
+              timers :=
+                { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.timers,
+              seq := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1,
+              back := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.back,
+              pending :=
+                { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.pending },
+            [])
+          (b.actions ++
+            m.entryOf
+              (m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                b.target))).fst,
+      [] ++ m.exitOf m.initial ++
+        (List.foldl
+            (realizeOne
+              ({ state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1))
+            ({
+                state :=
+                  m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                    b.target,
+                resume :=
+                  { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.resume,
+                timers :=
+                  { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.timers,
+                seq :=
+                  { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.seq + 1,
+                back := { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.back,
+                pending :=
+                  { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }.pending },
+              [])
+            (b.actions ++
+              m.entryOf
+                (m.resolve { state := m.initial, resume := [], timers := [], seq := n, back := none, pending := [] }
+                  b.target))).snd) =
+    ((realize { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+          (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] } b.target)
+          (b.actions ++
+            m.entryOf
+              (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+                b.target))).fst,
+      m.exitOf m.initial ++
+        (realize { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+            (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] } b.target)
+            (b.actions ++
+              m.entryOf
+                (m.resolve { state := "", resume := [], timers := [], seq := n, back := none, pending := [] }
+                  b.target))).snd)
+✔ [15/28] Built Figram.Compile (971ms)
+✔ [17/28] Built Figram.Core:c.o (2.5s)
+✔ [18/28] Built Figram.Lint (690ms)
+✔ [20/28] Built Figram.Format (1.4s)
+✔ [22/28] Built Figram.FormatIO (889ms)
+✔ [24/28] Built Figram.Engine (970ms)
+Some required targets logged failures:
+- Figram.CoreProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

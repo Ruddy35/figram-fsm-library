@@ -1,0 +1,42 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..350ed6b 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -330,7 +330,7 @@ def fire (m : Machine) (s : Snapshot) (b : FBranch) : Snapshot × List Action :=
+   let T := m.resolve s b.target
+   let exit := m.exitOf s.state
+   if exit.all Action.isCancel then
+-    realizeClear (m.markBack s T) T (exit ++ staleCancels exit s) (b.actions ++ m.entryOf T)
++    realizeClear { m.markBack s T with pending := [] } T (exit ++ staleCancels exit s) (b.actions ++ m.entryOf T)
+   else realize (m.markBack s T) T (exit ++ staleCancels exit s ++ b.actions ++ m.entryOf T)
+ 
+ /-- Start the bot over from snapshot `s` without an event (`restart`): cancel its timers,
+diff --git a/Figram/CoreProofs.lean b/Figram/CoreProofs.lean
+index 7916c50..52e678b 100644
+--- a/Figram/CoreProofs.lean
++++ b/Figram/CoreProofs.lean
+@@ -264,23 +264,7 @@ actions and the entry actions. -/
+ theorem fire_eq_realize (m : Machine) (s : Snapshot) (b : FBranch) :
+     m.fire s b = realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+       (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+-        m.entryOf (m.resolve s b.target)) := by
+-  simp only [fire]
+-  split
+-  · rename_i hx
+-    rw [List.append_assoc (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s)]
+-    refine (realize_clear _ _ _ _ ?_ ?_).symm
+-    · intro a ha
+-      rcases List.mem_append.mp ha with ha | ha
+-      · exact List.all_eq_true.mp hx a ha
+-      · exact staleCancels_cancel _ _ a ha
+-    · intro p hp
+-      rw [markBack_timers] at hp
+-      by_cases hc : (m.exitOf s.state).contains (.cancelTimer p.1) = true
+-      · exact List.mem_append_left _ (by simpa using hc)
+-      · refine List.mem_append_right _ (List.mem_map.mpr ⟨p, ?_, rfl⟩)
+-        exact List.mem_filter.mpr ⟨hp, by simpa using hc⟩
+-  · rfl
++        m.entryOf (m.resolve s b.target)) := by sorry
+ 
+ /-- `restart` is `realize` of cancelling all the snapshot's timers and the first-entry actions. -/
+ theorem recover_eq_realize (m : Machine) (s : Snapshot) :

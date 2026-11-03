@@ -1,0 +1,41 @@
+command: /home/user/figram-audit/agents5/semantics/scripts/case.sh stay.bot.json stay 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/cases
+start: 2026-11-03T17:43:37.727Z
+end: 2026-11-03T17:43:37.773Z
+exit_code: 0
+--- stdout (627 bytes, last 200 lines)
+engine exit 0
+ok id=hello
+ok id=x-stay
+ok id=y-deeper
+ok id=y-root-stay
+ok id=t1-need
+ok id=t1-c-true
+ok id=t1-c-false
+ok id=t1-again
+ok id=t2-survives
+ok id=s2-section-stay
+ok id=s1-deeper
+ok id=s-cond-need
+ok id=s-cond-false
+ok id=s1-cond-true-timers
+ok id=u-consumed
+ok id=overflow-stay
+ok id=nop
+ok id=nop-timer
+ok id=cstay-c-true
+ok id=cstay-c-false
+ok id=redelivery-after-stay
+ok id=foreign-timer-root-stay
+ok id=start-x
+ok id=start-x-seq
+ok id=start-cstay-need
+ok id=start-cstay-false
+ok id=start-cstay-true
+ok id=start-nop
+ok id=rec-x
+ok id=rec-timer
+ok id=back-after-stay
+ok id=resume-after-stay
+TOTAL 32 mismatches 0
+--- stderr (0 bytes, last 100 lines)

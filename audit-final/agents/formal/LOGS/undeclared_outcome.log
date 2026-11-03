@@ -1,0 +1,9 @@
+command: /home/user/figram-audit/agents5/formal/undeclared_outcome.sh 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:42:24.104Z
+end: 2026-11-03T17:42:24.116Z
+exit_code: 0
+--- stdout (220 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"placing","resume":{"order":"placing"},"seq":6},"actions":[]}
+{"id":2,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[]}
+--- stderr (0 bytes, last 100 lines)

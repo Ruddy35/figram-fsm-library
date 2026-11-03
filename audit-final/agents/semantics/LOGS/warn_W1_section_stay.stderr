@@ -1,0 +1,2 @@
+warning: outcome `ok` of action `mk` has no arrow on `s2`: the variant of `s` on `btn:go` waits for it there (an outcome without an arrow is ignored)
+warning: outcome `failed` of action `mk` has no arrow on `s2`: the variant of `s` on `btn:go` waits for it there (an outcome without an arrow is ignored)

@@ -1,0 +1,9 @@
+Figram/EngineProofs.lean:step_snapOK
+Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2
+Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.
+Figram/OutcomeProofs.lean:step_undetach
+Figram/OutcomeProofs.lean:stay_keeps
+Figram/OutcomeProofs.lean:step_stay
+Figram/OutcomeProofs.lean:step_cases
+Figram/OutcomeProofs.lean:step_no_arrow

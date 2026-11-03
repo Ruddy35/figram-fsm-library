@@ -1,0 +1,9 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/warn/W8_reach_only_by_outcome.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:46:56.535Z
+end: 2026-11-03T17:46:56.541Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (88 bytes, last 100 lines)
+warning: message `never` is unreachable: no arrow leads to it from the start of the bot

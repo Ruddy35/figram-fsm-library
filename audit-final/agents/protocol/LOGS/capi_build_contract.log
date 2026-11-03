@@ -1,0 +1,7 @@
+command: nice -n 10 timeout 300 gcc -g -O1 -pthread -I/home/user/leanprover/lean4/build/release/stage1/include -o /home/user/figram-audit/agents5/protocol/capi/contract tests/capi/contract.c -L/home/user/figram-audit-worktrees/a5-protocol/ffi/out -l:libfigram.a -L/home/user/figram-audit-worktrees/a5-protocol/ffi/out/lean -Wl\,--start-group -lInit -lleanrt -Wl\,--end-group -Wl\,-Bstatic -luv -lgmp -Wl\,-Bdynamic -lstdc++ -Wl\,--gc-sections -lm -ldl -lpthread -lrt 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:46:53.745Z
+end: 2026-11-03T17:46:54.463Z
+exit_code: 0
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

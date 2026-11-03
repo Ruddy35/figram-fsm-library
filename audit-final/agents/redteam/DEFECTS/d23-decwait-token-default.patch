@@ -1,0 +1,13 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..80b0401 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -81,7 +81,7 @@ def decWait : J → R (String × Nat)
+       | none => throw "snapshot: a `pending` entry needs `call`"
+     let t ← match get kvs "token" with
+       | some j => boundedNat "the `token` of a `pending` entry" j
+-      | none => throw "snapshot: a `pending` entry needs `token`"
++      | none => pure 0
+     pure (c, t)
+   | _ => throw "snapshot: a `pending` entry must be an object"
+ 

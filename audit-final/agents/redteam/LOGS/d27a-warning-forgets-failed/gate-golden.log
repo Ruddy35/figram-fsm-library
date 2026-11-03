@@ -1,0 +1,9 @@
+command: bash -c /home/user/figram-audit/agents5/redteam/bin/mut/d27a-warning-forgets-failed/figram\ golden\ /home/user/figram-audit/agents5/redteam/LOGS/d27a-warning-forgets-failed/ggolden/out\ \&\&\ for\ f\ in\ golden.jsonl\ pizza.bot.json\ features.bot.json\;\ do\ cmp\ /home/user/figram-audit/agents5/redteam/LOGS/d27a-warning-forgets-failed/ggolden/out/\$f\ examples/\$f\ \|\|\ exit\ 1\;\ done\;\ echo\ same 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:36:21.580Z
+end: 2026-11-03T18:36:21.595Z
+exit_code: 0
+--- stdout (19 bytes, last 200 lines)
+scenarios: 37
+same
+--- stderr (0 bytes, last 100 lines)

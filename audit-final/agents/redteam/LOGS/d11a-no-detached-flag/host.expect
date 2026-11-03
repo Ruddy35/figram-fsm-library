@@ -1,0 +1,2 @@
+FAIL background: background actions (host by the contract), failures injected 44: users 12, kitchen down for 6, users not held up 6, blocked 6, orders 12, failure queue 6 notify
+gate-expect-bad=1

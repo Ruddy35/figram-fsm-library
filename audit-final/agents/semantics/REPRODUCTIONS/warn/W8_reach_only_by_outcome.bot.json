@@ -1,0 +1,5 @@
+{"figram":1,"calls":{"mk":{"text":"Make","outcomes":["ok"]}},
+ "bot":{"initial":"h","on":{"call:mk:ok":[{"to":"done"}],"call:mk:failed":[{"to":"h"}]},"children":{
+   "h":{"on":{"btn:go":[{"do":["mk"]}]}},
+   "done":{},
+   "never":{}}}}

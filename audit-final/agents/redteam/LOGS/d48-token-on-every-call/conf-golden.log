@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d48-token-on-every-call/figram-engine --golden examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:11:20.093Z
+end: 2026-11-03T19:11:20.147Z
+exit_code: 1
+--- stdout (946 bytes, last 200 lines)
+requests 170, mismatches 15
+   {'op': 'step', 'snapshot': {'at': 'pick_size', 'back': 'catalog', 'resume': {'order': 'pick_size'}, 'seq': 3}, 'event': 'btn:size'} → {'id': 3, 'snapshot': {'at': 'pick_toppings', 'back': 'catalog', 'resume': {'order': 'pick_toppings'}, 'seq': 4}, 'actions': [{'call': 'save_size', 'token': 4}, {'sen
+   {'op': 'step', 'snapshot': {'at': 'pick_toppings', 'back': 'catalog', 'resume': {'order': 'pick_toppings'}, 'seq': 4}, 'event': 'btn:add'} → {'id': 4, 'snapshot': {'at': 'cart', 'back': 'pick_toppings', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 5}, 'seq': 5}, 'actions': [{'call': 'add
+   {'op': 'step', 'snapshot': {'at': 'address', 'back': 'pick_toppings', 'resume': {'order': 'address'}, 'seq': 6}, 'event': 'msg:text', 'guards': {'in_delivery_zone': True}} → {'id': 8, 'snapshot': {'at': 'pay', 'back': 'pick_toppings', 'resume': {'order': 'pay'}, 'seq': 7}, 'actions': [{'call': 'save
+--- stderr (0 bytes, last 100 lines)

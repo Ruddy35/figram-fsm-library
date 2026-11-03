@@ -1,0 +1,7 @@
+command: nice -n 10 timeout 840 python3 mutants_red.py --engine /home/user/figram-audit-worktrees/a4-oracle/.lake/build/bin/figram-engine --docs 8 --steps 100 --out /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/surv8.json --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot 
+cwd: /home/user/figram-audit-worktrees/a4-oracle/tests/compiler
+start: 2026-11-03T16:53:04.147Z
+end: 2026-11-03T17:07:04.153Z
+exit_code: 124
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

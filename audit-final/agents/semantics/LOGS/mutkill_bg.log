@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 600 /home/user/figram-audit/agents5/semantics/scripts/mutkill.sh bg bg 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS
+start: 2026-11-03T17:54:37.319Z
+end: 2026-11-03T17:54:38.472Z
+exit_code: 0
+--- stdout (32 bytes, last 200 lines)
+bg/bg: killed 39 alive 0
+alive:
+--- stderr (0 bytes, last 100 lines)

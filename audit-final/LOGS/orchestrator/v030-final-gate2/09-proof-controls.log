@@ -1,0 +1,14 @@
+command: bash tests/proofs/controls.sh
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-03T20:11:31Z
+end: 2026-11-03T20:11:44Z
+exit_code: 0
+--- stdout (352 bytes, last 200 lines)
+ok   Counterexamples.lean: exit 0
+ok   TextRoundTrip.lean: exit 0
+ok   OpaqueDeps.lean: exit 0
+ok   GlueAxioms.lean: 22 glue theorems, only ['Classical.choice', 'Quot.sound', 'propext']
+ok   CounterexamplesNegative.lean: rejected with 4 errors, as expected
+ok   StatementsNegative.lean: rejected with 2 errors, as expected
+proof controls: 0 failure(s)
+--- stderr (0 bytes, last 100 lines)

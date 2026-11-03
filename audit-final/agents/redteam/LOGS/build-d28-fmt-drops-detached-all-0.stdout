@@ -1,0 +1,19 @@
+✔ [13/54] Built Figram.Warnings (772ms)
+✔ [29/54] Built Figram.RandomDoc (1.1s)
+✔ [38/54] Built Figram.Warnings:c.o (516ms)
+✔ [39/54] Built Figram.Trace (1.6s)
+✖ [41/54] Building Figram.FormatProofs (3.0s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/FormatProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/FormatProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/FormatProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/FormatProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/FormatProofs.setup.json --json
+error: Figram/FormatProofs.lean:115:4: Tactic `rfl` failed: The left-hand side
+  decCall (J.str { text := text, detached := det, outcomes := [], every := false, ext := [] }.text)
+is not definitionally equal to the right-hand side
+  Except.ok { text := text, detached := det, outcomes := [], every := false, ext := [] }
+
+case isTrue
+text : String
+det : Bool
+h : extOK callKeys []
+⊢ decCall (J.str { text := text, detached := det, outcomes := [], every := false, ext := [] }.text) =
+    Except.ok { text := text, detached := det, outcomes := [], every := false, ext := [] }
+Some required targets logged failures:
+- Figram.FormatProofs

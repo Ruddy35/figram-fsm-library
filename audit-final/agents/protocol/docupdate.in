@@ -1,0 +1,8 @@
+{"id":1,"op":"start","event":"btn:ping"}
+{"id":2,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created","token":6}
+{"id":3,"op":"step","snapshot":{"at":"home","pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created","token":6}
+{"id":4,"op":"step","snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"timers":{"cart_reminder":3},"seq":6},"event":"timer:cart_reminder","token":3}
+{"id":5,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping","token":2},{"call":"ping","token":3}],"seq":3},"event":"call:ping:pong","token":2}
+{"id":6,"op":"step","snapshot":{"at":"home","pending":[{"call":"check_stock","token":2}],"seq":3},"event":"btn:ping"}
+{"id":7,"op":"step","snapshot":{"at":"item","resume":{"shop":"item"},"pending":[{"call":"check_stock","token":2},{"call":"check_stock","token":1}],"seq":3},"event":"btn:check"}
+{"id":8,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping","token":4}],"seq":3},"event":"btn:ping"}

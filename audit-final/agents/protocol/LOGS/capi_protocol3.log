@@ -1,0 +1,16 @@
+command: timeout 120 /home/user/figram-audit/agents5/protocol/capi/contract protocol3 examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:46:54.478Z
+end: 2026-11-03T17:46:54.485Z
+exit_code: 0
+--- stdout (1397 bytes, last 200 lines)
+ok   load features.bot.json
+ok   {"id":1,"protocol":3,"states":8}: {"id":1,"protocol":3,"states":8}
+ok   {"id":2,"snapshot":{"at":"home","pending":[{"call":"ping","token":2}],"seq":2},"actions":[{"call":"ping","token":2,"detached":true}]}: {"id":2,"snapshot":{"at":"home","pending":[{"call":"ping","token":2}],"seq":2},"actions":[{"call":"ping","token":2,"detached":true}]}
+ok   {"id":3,"snapshot":{"at":"home","seq":3},"actions":[{"call":"log","detached":true}]}: {"id":3,"snapshot":{"at":"home","seq":3},"actions":[{"call":"log","detached":true}]}
+ok   {"id":4,"snapshot":{"at":"home","pending":[{"call":"ping","token":2}],"seq":2},"actions":[]}: {"id":4,"snapshot":{"at":"home","pending":[{"call":"ping","token":2}],"seq":2},"actions":[]}
+ok   {"id":5,"op":"start","event":"call:ping:pong"}: {"id":5,"error":"an outcome event cannot start a user","code":"bad_request"}
+ok   {"id":6,"op":"step","snapshot":{"at":"home"},"event":"call:ping:pong"}: {"id":6,"error":"missing field `token` for an outcome event","code":"bad_request"}
+ok   {"id":7,"op":"step","snapshot":{"at":"home"},"event":"call:ping","token":1}: {"id":7,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+ok   {"id":8,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping"}]},"event":"x"}: {"id":8,"error":"snapshot: a `pending` entry needs `token`","code":"bad_snapshot"}
+--- stderr (0 bytes, last 100 lines)

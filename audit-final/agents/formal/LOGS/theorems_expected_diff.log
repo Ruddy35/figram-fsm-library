@@ -1,0 +1,7 @@
+command: diff tests/proofs/THEOREMS.expected /home/user/figram-audit/agents5/formal/LOGS/statements.txt 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:55:24.754Z
+end: 2026-11-03T17:55:24.758Z
+exit_code: 0
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

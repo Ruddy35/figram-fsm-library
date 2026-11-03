@@ -1,0 +1,28 @@
+✔ [24/54] Built Figram.Warnings (1.8s)
+✔ [26/54] Built Figram.RandomDoc (2.1s)
+✔ [33/54] Built Figram.Correct (2.8s)
+✔ [35/54] Built Figram.LintProofs (473ms)
+✔ [37/54] Built Figram.Run (639ms)
+✔ [38/54] Built Figram.Trace (1.6s)
+✔ [41/54] Built Figram.FormatProofs (5.5s)
+✔ [43/54] Built Figram.Examples (1.8s)
+⚠ [45/54] Built Figram.EngineProofs (2.5s)
+warning: Figram/EngineProofs.lean:452:19: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ite_true] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:452:23: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [ha] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [47/54] Built Figram.OutcomeProofs (1.3s)
+✔ [49/54] Built Figram (304ms)
+✔ [52/54] Built Main (498ms)
+✔ [54/54] Built figram:exe (225ms)
+Build completed successfully (54 jobs).

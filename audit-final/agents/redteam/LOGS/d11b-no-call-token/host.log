@@ -1,0 +1,37 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py /home/user/figram-audit/agents5/redteam/bin/mut/d11b-no-call-token/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:14:50.631Z
+end: 2026-11-03T18:14:52.708Z
+exit_code: 1
+--- stdout (4280 bytes, last 200 lines)
+host by the contract, failures injected 141
+  users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 15, orders in the CRM 7, events processed 245 of 245 (repeated deliveries), lost updates 0, actions not run 3
+  outcomes: calls with a token 0, outcome events lost 0, processed twice 0, without a call 0, waits left 15 (created 0, rejected 0, failed 0); background actions run 0 of 0, in the failure queue 3
+  not as expected: [('u0', 'stuck', 'placing', 0, []), ('u2', 'stuck', 'placing', 0, []), ('u4', 'blocked', 'placing', 0, []), ('u6', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')]), ('u8', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')])] …
+timer: tokens 3 → 6; old event: cart → cart; current: → reminder
+--- control: a host without duplicate filtering and without idempotency keys
+NAIVE host, failures injected 263
+  users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 15, orders in the CRM 8, events processed 559 of 245 (repeated deliveries), lost updates 0, actions not run 3
+  outcomes: calls with a token 0, outcome events lost 0, processed twice 0, without a call 0, waits left 15 (created 0, rejected 0, failed 0); background actions run 0 of 0, in the failure queue 3
+  not as expected: [('u0', 'stuck', 'placing', 0, []), ('u2', 'stuck', 'placing', 0, []), ('u4', 'blocked', 'placing', 0, []), ('u6', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')]), ('u8', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')])] …
+  the test catches the violation: yes (control attempts: 1)
+--- control: a host that records the outcome of an action outside the transaction that marks it executed
+host that records the outcome separately, failures injected 140
+  users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 15, orders in the CRM 7, events processed 245 of 245 (repeated deliveries), lost updates 0, actions not run 3
+  outcomes: calls with a token 0, outcome events lost 0, processed twice 0, without a call 0, waits left 15 (created 0, rejected 0, failed 0); background actions run 0 of 0, in the failure queue 3
+  not as expected: [('u0', 'stuck', 'placing', 0, []), ('u2', 'stuck', 'placing', 0, []), ('u4', 'blocked', 'placing', 0, []), ('u6', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')]), ('u8', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')])] …
+  the test catches the violation: yes (control attempts: 1)
+background actions (host by the contract), failures injected 40: users 12, kitchen down for 6, users not held up 0, blocked 0, orders 12, failure queue 0 notify_kitchen with an alert, other failures 0, sequential actions not run 0
+--- control: a host that runs background actions in the user's queue, as sequential actions
+background actions (host that runs background actions in the user's queue), failures injected 40: users 12, kitchen down for 6, users not held up 0, blocked 0, orders 12, failure queue 0 notify_kitchen with an alert, other failures 0, sequential actions not run 0
+  the test catches the violation: yes
+lost snapshot (host by the contract), failures injected 97: users 12, not as expected 12, actions not run 0
+  not as expected: [('l0', 'placing', [(1, 'zone:1 Main St'), (2, 'zone:2 Second Ave')]), ('l1', 'placing', [(2, 'zone:2 Second Ave')]), ('l2', 'placing', [(1, 'zone:1 Main St'), (2, 'zone:2 Second Ave')]), ('l3', 'placing', [(2, 'zone:2 Second Ave')])] …
+--- controls: a host that starts a user without a snapshot without the update's event, or without the high-water mark
+lost snapshot ({'first_event': False}), failures injected 93: users 12, not as expected 12, actions not run 0
+  not as expected: [('l0', 'menu', [(1, 'zone:1 Main St')]), ('l1', 'placing', [(2, 'zone:2 Second Ave')]), ('l2', 'menu', [(1, 'zone:1 Main St')]), ('l3', 'placing', [(2, 'zone:2 Second Ave')])] …
+lost snapshot ({'hwm': False}), failures injected 97: users 12, not as expected 12, actions not run 0
+  not as expected: [('l0', 'placing', [(1, 'zone:1 Main St'), (1, 'zone:2 Second Ave')]), ('l1', 'placing', [(1, 'zone:2 Second Ave')]), ('l2', 'placing', [(1, 'zone:1 Main St'), (1, 'zone:2 Second Ave')]), ('l3', 'placing', [(1, 'zone:2 Second Ave')])] …
+  the test catches the violations: yes
+CONTRACT VIOLATED
+--- stderr (0 bytes, last 100 lines)

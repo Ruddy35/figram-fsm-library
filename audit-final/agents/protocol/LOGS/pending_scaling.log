@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 600 python3 /home/user/figram-audit/agents5/protocol/pending_scaling.py .lake/build/bin/figram-engine examples/features.bot.json 15000 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:44:40.954Z
+end: 2026-11-03T17:44:49.148Z
+exit_code: 0
+--- stdout (1472 bytes, last 200 lines)
+accepted outcome, its wait last (every: ping): N=15000 (439032 B) 0.044s, 4N=60000 (1789032 B) 0.191s, ratio 4.3; reply pending 59999
+accepted outcome, no arrow (check_stock wait last): N=15000 (439067 B) 0.045s, 4N=60000 (1789067 B) 0.194s, ratio 4.3; reply pending 60000
+stale outcome (no wait with that token): N=15000 (439028 B) 0.035s, 4N=60000 (1789028 B) 0.183s, ratio 5.2; reply pending 60000
+new call, every (btn:ping on home): N=15000 (439012 B) 0.047s, 4N=60000 (1789012 B) 0.179s, ratio 3.8; reply pending 60001
+new call, latest (btn:check on item, N waits of check_stock? no: of ping): N=15000 (439013 B) 0.042s, 4N=60000 (1789013 B) 0.198s, ratio 4.8; reply pending 60001
+latest replaces among N waits of the same action: N=15000 (544013 B) 0.032s, 4N=60000 (2209013 B) 0.162s, ratio 5.0; reply pending 1
+move keeps the waits (btn:go): N=15000 (439035 B) 0.036s, 4N=60000 (1789035 B) 0.159s, ratio 4.5; reply pending 60000
+recovery with an accepted outcome: N=15000 (439032 B) 0.037s, 4N=60000 (1789032 B) 0.201s, ratio 5.4; reply pending 59999
+restart clears the waits: N=15000 (438996 B) 0.035s, 4N=60000 (1788996 B) 0.140s, ratio 4.0; reply pending 0
+N copies of the same wait, accepted: N=15000 (390098 B) 0.034s, 4N=60000 (1560098 B) 0.136s, ratio 3.9; reply pending 0
+near the limit: 35317 waits, line 1048554 bytes: result, pending 35316 in 0.136s wall
+near the limit: 35318 waits, line 1048584 bytes: too_large in 0.045s wall
+pending scaling: linear
+--- stderr (0 bytes, last 100 lines)

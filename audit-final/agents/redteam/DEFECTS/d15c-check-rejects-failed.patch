@@ -1,0 +1,13 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..c1f81b1 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -505,7 +505,7 @@ def Doc.check (d : Doc) : List String :=
+       some s!"event `{e}`: no such timer (the prefix `timer:` is reserved)"
+     else none
+   let outcomesOf (n : String) : Option (List String) := match lookup d.calls n with
+-    | some c => if c.outcomes.isEmpty then none else some ("failed" :: c.outcomes)
++    | some c => if c.outcomes.isEmpty then none else some c.outcomes
+     | none => none
+   let badOutcomeEvents := (allEvents d.bot).filterMap fun e =>
+     if !e.startsWith "call:" then none

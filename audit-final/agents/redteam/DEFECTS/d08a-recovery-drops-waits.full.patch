@@ -1,0 +1,310 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..cccf802 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -376,7 +376,7 @@ bot again with the event (`enterBot`), the timers of the old place cancelled and
+ places kept. An accepted outcome removes its wait, also when no variant is chosen. A variant
+ without a target acts without a move (`stay`). -/
+ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+-  if s.state ∉ m.states then m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
++  if s.state ∉ m.states then m.enterBot { s with pending := [] } (s.timers.map (fun p => .cancelTimer p.1)) ev env
+   else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
+   else
+     match m.row s.state ev.key with
+diff --git a/Figram/CoreProofs.lean b/Figram/CoreProofs.lean
+index 7916c50..b580f14 100644
+--- a/Figram/CoreProofs.lean
++++ b/Figram/CoreProofs.lean
+@@ -453,26 +453,7 @@ theorem start_state_valid (m : Machine) (hwf : m.wf = true) : m.start.1.state 
+ 
+ theorem step_state_valid (m : Machine) (hwf : m.wf = true)
+     (s : Snapshot) (ev : Event) (env : HostEnv) :
+-    (m.step s ev env).1.state ∈ m.states := by
+-  obtain ⟨hinit, hrows, _⟩ := wf_parts hwf
+-  unfold step
+-  split
+-  · exact enterBot_state_valid m hwf s _ ev env
+-  · rename_i hs
+-    have hs : s.state ∈ m.states := by simpa using hs
+-    split
+-    · exact hs
+-    · split
+-      · simpa using hs
+-      · rename_i r hr
+-        split
+-        · simpa using hs
+-        · rename_i b hb
+-          split
+-          · simpa [stay, realize_state] using hs
+-          · simp only [fire_eq_realize, realize_state]
+-            exact resolve_mem hwf _ _ (hrows r (row_mem hr) b
+-              (List.mem_of_find?_eq_some hb)) (by simpa using hs)
++    (m.step s ev env).1.state ∈ m.states := by sorry
+ 
+ /-- A firing of a timer the current message does not own (its exit does not cancel
+ the timer) reads no arrows: the snapshot stays the same and there are no actions.
+@@ -486,33 +467,7 @@ theorem step_unowned_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat
+ 
+ theorem step_guard_local (m : Machine) (s : Snapshot) (ev : Event) (env₁ env₂ : HostEnv)
+     (h : ∀ n ∈ m.requiredGuards s.state ev.key, env₁ n = env₂ n) :
+-    m.step s ev env₁ = m.step s ev env₂ := by
+-  by_cases hn : s.state ∉ m.states
+-  · have h' : ∀ g ∈ m.requiredGuards m.initial ev.key, env₁ g = env₂ g := by
+-      simpa [requiredGuards, hn] using h
+-    simp only [step, hn]
+-    exact enterBot_guard_local m s _ ev env₁ env₂ h'
+-  have hs : s.state ∈ m.states := by simpa using hn
+-  unfold step
+-  simp only [requiredGuards, hs, ite_true, rowGuards] at h
+-  split
+-  · contradiction
+-  · split
+-    · rfl
+-    · split
+-      · rfl
+-      · rename_i r hr
+-        simp only [hr] at h
+-        have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
+-            = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
+-          apply find?_congr
+-          intro b hb
+-          cases hg : b.guard with
+-          | none => rfl
+-          | some n =>
+-            simp only [guardOK]
+-            exact h n (List.mem_filterMap.mpr ⟨b, hb, hg⟩)
+-        rw [find?_untilUnguarded env₁, find?_untilUnguarded env₂, hfind]
++    m.step s ev env₁ = m.step s ev env₂ := by sorry
+ 
+ /-- Cancelling timers of a snapshot that has none changes nothing in it. -/
+ theorem foldl_cancels (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action)
+@@ -613,15 +568,12 @@ theorem startWith_initial (m : Machine) (n : Nat) (e : EventId) (env : HostEnv)
+ timers of the old place are cancelled first and the remembered places are kept. -/
+ theorem step_recover (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv)
+     (hs : s.state ∉ m.states) :
+-    m.step s ev env = m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env := by
+-  simp only [step, hs, not_false_eq_true, ite_true]
++    m.step s ev env = m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env := by sorry
+ 
+ /-- A timer event does not move a recovered user: it is the plain recovery that `restart` also
+ uses (with the remembered places kept). -/
+ theorem step_recover_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
+-    (hs : s.state ∉ m.states) : m.step s (.timer id tok) env = m.recover s := by
+-  simp only [step, hs, not_false_eq_true, ite_true, enterBot_eq_realize, choose, ite_self,
+-    recover_eq_realize, Snapshot.settle]
++    (hs : s.state ∉ m.states) : m.step s (.timer id tok) env = m.recover s := by sorry
+ 
+ /-- Without a matching variant, entering with an event is the plain first entry. -/
+ theorem startWith_unmatched (m : Machine) (n : Nat) (ev : Event) (env : HostEnv)
+@@ -663,25 +615,7 @@ theorem enterBot_back (m : Machine) (s : Snapshot) (pre : List Action) (ev : Eve
+ place or the message of the snapshot, which is a message of the machine. -/
+ theorem step_back (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) :
+     (m.step s ev env).1.back = s.back ∨
+-      (s.state ∈ m.states ∧ (m.step s ev env).1.back = some s.state) := by
+-  unfold step
+-  split
+-  · exact Or.inl (enterBot_back m s _ ev env)
+-  · rename_i hs
+-    have hs : s.state ∈ m.states := by simpa using hs
+-    split
+-    · exact Or.inl rfl
+-    · split
+-      · exact Or.inl (settle_back _ _)
+-      · split
+-        · exact Or.inl (settle_back _ _)
+-        · rename_i b _
+-          split
+-          · left; simp [stay, realize_back]
+-          · rw [fire_back]
+-            split
+-            · exact Or.inl (settle_back _ _)
+-            · exact Or.inr ⟨hs, by simp⟩
++      (s.state ∈ m.states ∧ (m.step s ev env).1.back = some s.state) := by sorry
+ 
+ end Machine
+ end Figram
+diff --git a/Figram/Correct.lean b/Figram/Correct.lean
+index 6d768ef..75546fd 100644
+--- a/Figram/Correct.lean
++++ b/Figram/Correct.lean
+@@ -420,39 +420,7 @@ theorem enterBot_eq (hwf : c.compileSpec.wf = true) (s : Snapshot) (pre : List A
+       rfl
+ 
+ theorem compileSpec_correct (hwf : c.compileSpec.wf = true) (s : Snapshot) (ev : Event)
+-    (env : HostEnv) : c.compileSpec.step s ev env = c.step s ev env := by
+-  unfold Machine.step Chart.step
+-  by_cases hs : s.state ∈ c.leafIds
+-  · have hs' : s.state ∈ c.compileSpec.states := hs
+-    -- The acceptance condition of an event reads the exit actions (`ownsTimer`):
+-    -- they are the same for the compiled machine and the chart.
+-    have hex : c.compileSpec.exitOf s.state = c.exitActs s.state := by
+-      simp only [Machine.exitOf, compileSpec, lookup_map _ _ _ hs, Option.getD_some]
+-    simp only [hs, hs', not_true_eq_false, ite_false, hex]
+-    split
+-    · rfl
+-    · rw [c.spec_row hs]
+-      by_cases hc : c.cands s.state ev.key = []
+-      · simp [hc]
+-      · simp only [hc, ite_false, compileRow, List.find?_map]
+-        have hp : ((fun b : FBranch => guardOK env b.guard) ∘ c.toF) =
+-            fun b => guardOK env b.guard := by funext b; rfl
+-        rw [hp]
+-        cases hb : (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
+-        | none => rfl
+-        | some b =>
+-          simp only [Option.map_some]
+-          by_cases hst : b.target = .stay
+-          · have h1 : (c.toF b).target = .stay := (c.toTarget_eq_stay b.target).mpr hst
+-            simp only [h1, hst, ite_true]
+-            rfl
+-          · have h1 : (c.toF b).target ≠ .stay := fun h => hst ((c.toTarget_eq_stay b.target).mp h)
+-            simp only [h1, hst, ite_false]
+-            exact c.fire_eq hwf (s.settle ev) (by simpa using hs)
+-              (by simpa using List.mem_of_find?_eq_some hb)
+-  · have hs' : s.state ∉ c.compileSpec.states := hs
+-    simp only [hs, hs', not_false_eq_true, ite_true]
+-    exact c.enterBot_eq hwf s _ ev env
++    (env : HostEnv) : c.compileSpec.step s ev env = c.step s ev env := by sorry
+ 
+ /-! ## The `wf` check without building the machine -/
+ 
+diff --git a/Figram/EngineProofs.lean b/Figram/EngineProofs.lean
+index c5fd935..45678d2 100644
+--- a/Figram/EngineProofs.lean
++++ b/Figram/EngineProofs.lean
+@@ -297,59 +297,7 @@ theorem enterBot_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true
+ /-- **A step keeps the snapshot admissible** if the counter does not overflow. -/
+ theorem step_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
+     (s : Snapshot) (ev : Event) (env : HostEnv) (hs : SnapOK s)
+-    (hseq : (m.step s ev env).1.seq ≤ maxInt) : SnapOK (m.step s ev env).1 := by
+-  have hn0 := hn
+-  simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
+-  obtain ⟨⟨⟨⟨hstates, hinit⟩, hrows⟩, hentry⟩, hexit⟩ := hn
+-  have hvalid := m.step_state_valid hwf s ev env
+-  have hTne : (m.step s ev env).1.state ≠ "" :=
+-    ne_of_not_isEmpty (hstates _ hvalid)
+-  revert hseq hTne hvalid
+-  unfold Machine.step
+-  split
+-  · intro h1 _ _
+-    rw [enterBot_seq] at h1
+-    refine enterBot_snapOK m hwf hn0 s _ ev env hs.inv ?_ h1
+-    intro a ha
+-    simp only [List.mem_map] at ha
+-    obtain ⟨_, _, rfl⟩ := ha
+-    rfl
+-  · have hss : SnapOK (s.settle ev) :=
+-      ⟨by simpa using hs.state, by simpa using hs.resume, by simpa using hs.timers,
+-        by simpa using hs.seq, by simpa using hs.back, (hs.inv.settle ev).2.2.2⟩
+-    split
+-    · intro _ _ _; exact hs
+-    · split
+-      · intro _ _ _; exact hss
+-      · rename_i r hr
+-        split
+-        · intro _ _ _; exact hss
+-        · rename_i b hb
+-          split
+-          · -- a variant without a target
+-            intro h1 h2 h3
+-            simp only [stay] at h1 h2 h3 ⊢
+-            rw [realize_seq] at h1
+-            rw [realize_state] at h3
+-            refine realize_inv_snapOK _ _ _ (hss.inv.consume ev) h3 ?_ (by simpa using h1)
+-            exact hrows r (Machine.row_mem hr) b (List.mem_of_find?_eq_some hb)
+-          intro h1 h2 h3
+-          simp only [Machine.fire_eq_realize] at h1 h2 h3 ⊢
+-          rw [realize_seq] at h1
+-          rw [realize_state] at h3
+-          refine realize_snapOK _ _ _ (markBack_snapOK m _ _ hss) h3 ?_ h1
+-          intro a ha
+-          simp only [List.mem_append] at ha
+-          rcases ha with ((ha | ha) | ha) | ha
+-          · exact table_ok (List.all_eq_true.mpr fun e he =>
+-              List.all_eq_true.mpr (hexit e he)) _ a ha
+-          · -- cancelling the timers left over from a previous document version
+-            simp only [staleCancels, List.mem_map] at ha
+-            obtain ⟨_, _, rfl⟩ := ha
+-            rfl
+-          · exact hrows r (Machine.row_mem hr) b (List.mem_of_find?_eq_some hb) a ha
+-          · exact table_ok (List.all_eq_true.mpr fun e he =>
+-              List.all_eq_true.mpr (hentry e he)) _ a ha
++    (hseq : (m.step s ev env).1.seq ≤ maxInt) : SnapOK (m.step s ev env).1 := by sorry
+ 
+ /-! ## A `step` request executes the proved step -/
+ 
+diff --git a/Figram/OutcomeProofs.lean b/Figram/OutcomeProofs.lean
+index 5df27b7..a33287a 100644
+--- a/Figram/OutcomeProofs.lean
++++ b/Figram/OutcomeProofs.lean
+@@ -302,38 +302,12 @@ its timers. -/
+ theorem step_cases (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) :
+     m.step s ev env = (s.settle ev, []) ∨
+       ∃ x T acts, x.pending = (s.settle ev).pending ∧ x.seq = s.seq ∧
+-        (∀ p ∈ x.timers, p ∈ s.timers) ∧ m.step s ev env = realize x T acts := by
+-  unfold step
+-  split
+-  · right
+-    rw [enterBot_eq_realize]
+-    split
+-    · exact ⟨_, _, _, rfl, by simp, fun p hp => by simpa using hp, rfl⟩
+-    · exact ⟨_, _, _, rfl, by simp, fun p hp => by simpa using hp, rfl⟩
+-  · split
+-    · rename_i h
+-      left
+-      rw [settle_of_rejected s ev (m.exitOf s.state)
+-      (by cases hh : (s.accepts ev && ownsTimer (m.exitOf s.state) ev) <;> simp_all)]
+-    · split
+-      · exact Or.inl rfl
+-      · split
+-        · exact Or.inl rfl
+-        · split
+-          · right
+-            exact ⟨_, _, _, by simp, by simp,
+-              fun p hp => by simpa using consume_timers_mem hp, rfl⟩
+-          · right
+-            rw [fire_eq_realize]
+-            exact ⟨_, _, _, markBack_pending .., by rw [markBack_seq]; simp,
+-              fun p hp => by rw [markBack_timers] at hp; simpa using hp, rfl⟩
++        (∀ p ∈ x.timers, p ∈ s.timers) ∧ m.step s ev env = realize x T acts := by sorry
+ 
+ /-- **An event the snapshot does not accept changes nothing**: a timer firing with a stale token,
+ an outcome without the wait of its call (a stale, repeated or foreign token). -/
+ theorem step_rejected (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv)
+-    (hs : s.state ∈ m.states) (ha : s.accepts ev = false) : m.step s ev env = (s, []) := by
+-  unfold step
+-  simp [hs, ha]
++    (hs : s.state ∈ m.states) (ha : s.accepts ev = false) : m.step s ev env = (s, []) := by sorry
+ 
+ /-- **An accepted event without an arrow only removes its wait** (an outcome nobody handles is
+ ignored, but its call is answered). -/
+@@ -680,28 +654,7 @@ theorem map_undetach_timerCancels (s : Snapshot) :
+ /-- **Background actions do not affect a step**: the machine with every action in the foreground
+ gives the same snapshot and the same reply up to the flag. -/
+ theorem step_undetach (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) :
+-    m.undetach.step s ev env = ((m.step s ev env).1, (m.step s ev env).2.map Action.undetach) := by
+-  unfold step
+-  rw [show m.undetach.states = m.states from rfl]
+-  split
+-  · exact undetach_enterBot m s _ ev env (map_undetach_timerCancels s)
+-  · rw [undetach_exitOf, ownsTimer_undetach]
+-    split
+-    · rfl
+-    · rw [undetach_row]
+-      cases m.row s.state ev.key with
+-      | none => rfl
+-      | some r =>
+-        simp only [Option.map_some, Row.undetach, find?_undetach]
+-        cases r.branches.find? (fun b => guardOK env b.guard) with
+-        | none => rfl
+-        | some b =>
+-          simp only [Option.map_some]
+-          rw [show b.undetach.target = b.target from rfl]
+-          split
+-          · simp only [stay]
+-            exact realize_undetach _ _ _
+-          · exact undetach_fire m _ b
++    m.undetach.step s ev env = ((m.step s ev env).1, (m.step s ev env).2.map Action.undetach) := by sorry
+ 
+ /-- **Background actions do not affect the first entry.** -/
+ theorem startWith_undetach (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) :

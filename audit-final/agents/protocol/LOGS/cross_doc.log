@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 /home/user/figram-audit/agents5/protocol/cross_doc.py /home/user/figram-audit-worktrees/a5-protocol /home/user/figram-audit/agents5/protocol/replies2.jsonl examples/pizza.bot.json examples/features.bot.json /home/user/figram-audit/agents5/protocol/docs/r1.bot.json /home/user/figram-audit/agents5/protocol/docs/r2.bot.json /home/user/figram-audit/agents5/protocol/docs/r3.bot.json /home/user/figram-audit/agents5/protocol/docs/r4.bot.json /home/user/figram-audit/agents5/protocol/docs/r5.bot.json /home/user/figram-audit/agents5/protocol/docs/r6.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:53:33.090Z
+end: 2026-11-03T17:53:33.898Z
+exit_code: 0
+--- stdout (78 bytes, last 200 lines)
+cross-document: requests 3360, recovered 1156, outcome events 233, problems 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,1 @@
+engine rc=1, replies 0 of 96: b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an action with the outcome `failed` (the prefix `call:` is reserved)\n'

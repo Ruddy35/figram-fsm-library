@@ -1,0 +1,53 @@
+{
+  "figram": 1,
+  "conditions": {"c1": "Condition one", "c2": "Condition two"},
+  "calls": {
+    "log": "Log",
+    "mk": {"text": "Make", "outcomes": ["ok", "no"]},
+    "ev": {"text": "Every", "outcomes": ["r"], "every": true},
+    "ns:act": {"text": "Colon name", "outcomes": ["ok"]}
+  },
+  "bot": {
+    "initial": "home",
+    "on": {
+      "btn:home": [{"to": "home"}],
+      "call:mk:ok": [{"to": "rootok"}],
+      "call:mk:failed": [{"to": "err"}],
+      "call:ev:r": [{"do": ["log"]}],
+      "call:ev:failed": [{"do": ["log"]}],
+      "call:ns:act:ok": [{"to": "rootok"}],
+      "call:ns:act:failed": [{"to": "err"}]
+    },
+    "children": {
+      "home": {
+        "timers": {"t": 1000},
+        "on": {
+          "btn:mk": [{"to": "wait", "do": ["mk"]}],
+          "btn:mkstay": [{"do": ["mk"]}],
+          "btn:ev": [{"do": ["ev"]}],
+          "btn:ns": [{"do": ["ns:act"]}],
+          "btn:shop": [{"to": "shop"}]
+        }
+      },
+      "wait": {
+        "on": {
+          "call:mk:ok": [{"if": "c1", "to": "home"}, {"if": "c2", "do": ["log"]}],
+          "call:mk:no": [{"do": ["mk"]}],
+          "call:mk:failed": [{"to": "shop", "resume": true}]
+        }
+      },
+      "rootok": {},
+      "err": {},
+      "shop": {
+        "initial": "s1",
+        "on": {
+          "call:mk:no": [{"to": "home", "back": true}]
+        },
+        "children": {
+          "s1": {"on": {"btn:next": [{"to": "s2"}], "btn:mk": [{"do": ["mk"]}]}},
+          "s2": {"on": {"btn:mk": [{"to": "s1", "do": ["mk"]}]}}
+        }
+      }
+    }
+  }
+}

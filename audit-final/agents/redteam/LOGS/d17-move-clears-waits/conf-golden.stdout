@@ -1,0 +1,3 @@
+requests 170, mismatches 2
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 4}], 'seq': 4}, 'event': 'btn:other'} → {'id': 104, 'snapshot': {'at': 'item2', 'back': 'catalog', 'resume': {'shop': 'item2'}, 'seq': 5}, 'a
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 2}], 'seq': 2}, 'event': 'btn:go', 'guards': {'is_vip': False}} → {'id': 116, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'seq': 3}, 'actions': [{'cancel_timer': 'i

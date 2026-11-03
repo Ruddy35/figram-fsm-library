@@ -1,0 +1,37 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/formats/e_cli_names.py --control --tmp /tmp
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:48:34Z
+end: 2026-11-03T18:48:34Z
+exit_code: 0
+--- stdout (2314 bytes, last 200 lines)
+ok   esc-in-target        check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `x-plain`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `x-plain`: target does not exist\n'
+ok   lf-forges-ok-line    check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `zz ok`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `zz ok`: target does not exist\n'
+ok   nul-in-target        check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `aHIDDEN`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `aHIDDEN`: target does not exist\n'
+ok   quote-in-cond        check rc=1 engine rc=1
+        check.stdout: b'condition `c-plain` is not described in `conditions`\n'
+        engine.stderr: b'document error: condition `c-plain` is not described in `conditions`\n'
+ok   esc-in-dup-node      check rc=1 engine rc=1
+        check.stdout: b'node `n-plain` is declared more than once\ninitial node `n-plain` of section `s` must be a child of it\n'
+        engine.stderr: b'document error: node `n-plain` is declared more than once\ndocument error: initial node `n-plain` of section `s` must be a child of it\n'
+ok   cr-in-target         check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `x ok`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `x ok`: target does not exist\n'
+ok   esc-in-dup-key       check rc=1 engine rc=1
+        fmt.stderr: b'figram: cannot read the document: duplicate key `x-r`\n'
+        engine.stderr: b'document error: duplicate key `x-r`\n'
+ok   raw-esc-top-level    check rc=1 engine rc=1
+        fmt.stderr: b'figram: cannot read the document: unexpected character `?`\n'
+        engine.stderr: b'document error: unexpected character `?`\n'
+ok   nl-in-dup-key        check rc=1 engine rc=1
+        fmt.stderr: b'figram: cannot read the document: duplicate key `a ok`\n'
+        engine.stderr: b'document error: duplicate key `a ok`\n'
+fmt keeps NUL as \u0000 and the tail after it: True
+engine protocol reply escaped: True b'{"id":1,"error":"condition `\\u001b[31m\\n`: expected true or false","code":"bad_request"}\n'
+rows=9 stream-checks=54 rows-violating-P=0 control=True
+--- stderr (0 bytes, last 100 lines)

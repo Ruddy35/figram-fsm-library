@@ -1,0 +1,2 @@
+{"id":1,"snapshot":{"at":"home","seq":9},"actions":[]}
+{"id":2,"snapshot":{"at":"home","pending":[{"call":"ping","token":9}],"seq":9},"actions":[{"call":"ping","token":9,"detached":true}]}

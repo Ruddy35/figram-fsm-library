@@ -1,0 +1,8 @@
+command: bash -c timeout\ 20\ /home/user/figram-audit-worktrees/a5-semantics/.lake/build/bin/figram-engine\ v02_call_event.bot.json\ \<\ v02.req.jsonl 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/compat
+start: 2026-11-03T17:52:35.168Z
+end: 2026-11-03T17:52:35.177Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (119 bytes, last 100 lines)
+document error: event `call:crm:done`: `crm` is not an action with the outcome `done` (the prefix `call:` is reserved)

@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..d28fc4a 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -166,7 +166,7 @@ def Snapshot.consume (s : Snapshot) : Event → Snapshot
+ def addWait (pend : List (String × Nat)) (n : String) (tok : Nat) : Wait → List (String × Nat)
+   | .free => pend
+   | .latest => assign pend n tok
+-  | .every => (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok)))
++  | .every => (n, tok) :: pend
+ 
+ /-- One step of executing actions: internal ones are applied to the snapshot,
+ the others go to the host; timers and actions get their token, actions with outcomes record

@@ -1,0 +1,30 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:08:58.029Z
+end: 2026-11-03T19:09:05.412Z
+exit_code: 1
+--- stdout (1527 bytes, last 200 lines)
+✔ [19/54] Built Figram.Warnings (813ms)
+✔ [28/54] Built Figram.RandomDoc (1.4s)
+✔ [33/54] Built Figram.Correct (1.0s)
+✔ [35/54] Built Figram.Run (401ms)
+✔ [36/54] Built Figram.LintProofs (351ms)
+✔ [39/54] Built Figram.Trace (1.6s)
+✔ [41/54] Built Figram.FormatProofs (4.5s)
+✔ [43/54] Built Figram.Examples (1.8s)
+✖ [45/54] Building Figram.EngineProofs (2.4s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:146:19: Invalid projection: Projections extract constructor fields for one-constructor inductive types. The expression
+  h
+has type `List.Mem p pend` which is not a one-constructor inductive type.
+warning: Figram/EngineProofs.lean:143:39: This simp argument is unused:
+  List.mem_filter
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, List.mem_cons] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

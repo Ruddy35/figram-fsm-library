@@ -1,0 +1,31 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..b03d017 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -332,7 +332,7 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
+     let s ← match get kvs "snapshot" with
+       | some j => withCode .badSnapshot (decSnapshot j)
+       | none => throw (.badRequest, "missing field `snapshot`")
+-    let (s', as) := m.recover { s with resume := [], back := none, pending := [] }
++    let (s', as) := m.recover { s with back := none, pending := [] }
+     if s'.seq > maxInt then throw (.seqOverflow, "seq_overflow")
+     pure (result id s' as false)
+   | some (.str "step") =>
+diff --git a/Figram/OutcomeProofs.lean b/Figram/OutcomeProofs.lean
+index 5df27b7..24b7207 100644
+--- a/Figram/OutcomeProofs.lean
++++ b/Figram/OutcomeProofs.lean
+@@ -915,12 +915,7 @@ theorem handle_restart (m : Machine) (kvs : Obj) (j : J) (s : Snapshot)
+     (hseq : (m.recover { s with resume := [], back := none, pending := [] }).1.seq ≤ maxInt) :
+     handleObj m kvs = .ok (result ((get kvs "id").getD .null)
+       (m.recover { s with resume := [], back := none, pending := [] }).1
+-      (m.recover { s with resume := [], back := none, pending := [] }).2 false) := by
+-  have hle : ¬ (m.recover { s with resume := [], back := none, pending := [] }).1.seq > maxInt := by
+-    omega
+-  simp only [handleObj, hop, hsn, hj, withCode, Except.mapError, bind, Except.bind, pure,
+-    Except.pure]
+-  simp [hle]
++      (m.recover { s with resume := [], back := none, pending := [] }).2 false) := by sorry
+ 
+ /-- **`restart` clears the waits**: after it only the waits of the first-entry actions remain
+ (their token is the new counter); late outcomes of earlier calls are ignored. -/

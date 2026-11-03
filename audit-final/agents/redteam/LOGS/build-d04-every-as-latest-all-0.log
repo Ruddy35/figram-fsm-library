@@ -1,0 +1,47 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:01:32.015Z
+end: 2026-11-03T18:01:39.937Z
+exit_code: 1
+--- stdout (2823 bytes, last 200 lines)
+✔ [24/54] Built Figram.Warnings (744ms)
+✔ [26/54] Built Figram.RandomDoc (1.9s)
+✔ [33/54] Built Figram.Correct (2.1s)
+✔ [35/54] Built Figram.Trace (1.5s)
+✔ [37/54] Built Figram.LintProofs (273ms)
+✔ [39/54] Built Figram.Run (376ms)
+✔ [41/54] Built Figram.FormatProofs (4.8s)
+✖ [43/54] Building Figram.Examples (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:336:0: Expression
+  Option.map (fun r => List.take 3 r.snd.reverse) (runGolden "outcome_every_anywhere") ==
+    some [[], [Action.call "log" true Wait.free 6], [Action.call "log" true Wait.free 5]]
+did not evaluate to `true`
+error: Figram/Examples.lean:347:0: Expression
+  (features.step { state := "home", resume := [], timers := [], seq := 4, back := none, pending := [("ping", 2)] }
+          (Event.named "btn:ping") fun x => false).fst.pending ==
+    [("ping", 5), ("ping", 2)]
+did not evaluate to `true`
+✖ [45/54] Building Figram.EngineProofs (2.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:145:19: Unknown identifier `h`
+error: Figram/EngineProofs.lean:146:19: Unknown identifier `h`
+warning: Figram/EngineProofs.lean:143:24: This simp argument is unused:
+  List.mem_cons
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, List.mem_filter] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:143:39: This simp argument is unused:
+  List.mem_filter
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, List.mem_cons] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.Examples
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

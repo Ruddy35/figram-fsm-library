@@ -1,0 +1,9 @@
+command: timeout 20 /home/user/figram-audit-worktrees/a5-semantics/.lake/build/bin/figram check F60_empty_outcomes_failed_arrow.bot.json 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/format
+start: 2026-11-03T17:52:50.191Z
+end: 2026-11-03T17:52:50.198Z
+exit_code: 1
+--- stdout (103 bytes, last 200 lines)
+event `call:x:failed`: `x` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+--- stderr (18 bytes, last 100 lines)
+figram: errors: 1

@@ -1,0 +1,12 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..55b1e17 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -528,6 +528,6 @@ def Doc.check (d : Doc) : List String :=
+     ++ nodeErrors "bot" d.bot
+   (if d.wfOK then [] else ["document violates the format rules (see the errors below)"])
+   ++ structural ++ dedup undeclaredCond ++ dedup undeclaredCall ++ dedup badTimerEvents
+-  ++ dedup badOutcomeEvents ++ twiceInDo ++ c.lint
++  ++ dedup badOutcomeEvents ++ twiceInDo.take 0 ++ c.lint
+ 
+ end Figram.Format

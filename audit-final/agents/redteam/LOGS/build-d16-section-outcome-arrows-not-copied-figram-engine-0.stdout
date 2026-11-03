@@ -1,0 +1,10 @@
+✔ [16/28] Built Figram.Compile (1.0s)
+✔ [17/28] Built Figram.Lint (786ms)
+✔ [19/28] Built Figram.Compile:c.o (1.5s)
+✔ [20/28] Built Figram.Format (2.0s)
+✔ [21/28] Built Figram.FormatIO (1.2s)
+✔ [23/28] Built Figram.Engine (1.3s)
+✔ [25/28] Built EngineMain (622ms)
+✔ [27/28] Built Figram.Format:c.o (3.8s)
+✔ [28/28] Built «figram-engine»:exe (293ms)
+Build completed successfully (28 jobs).

@@ -1,0 +1,95 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:18:15.700Z
+end: 2026-11-03T18:18:19.719Z
+exit_code: 1
+--- stdout (4084 bytes, last 200 lines)
+✔ [43/54] Built Figram.Examples (1.7s)
+⚠ [45/54] Built Figram.EngineProofs (2.4s)
+warning: Figram/EngineProofs.lean:163:8: declaration uses `sorry`
+✔ [46/54] Built Figram.EngineProofs:c.o (552ms)
+✖ [47/54] Building Figram.OutcomeProofs (1.1s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:43:30: Application type mismatch: The argument
+  h
+has type
+  p ∈ (realizeOne tok acc (Action.call n d w t)).fst.pending
+but is expected to have type
+  ?m.46 ∈ addWait ?m.42 ?m.43 ?m.44 ?m.45
+in the application
+  Engine.mem_addWait h
+error: Figram/OutcomeProofs.lean:101:4: 'show' tactic failed, pattern
+  (n, tok) ∈ addWait acc.fst.pending n' tok w
+is not definitionally equal to target
+  (n, tok) ∈ (realizeOne tok acc (Action.call n' d w t)).fst.pending
+error: Figram/OutcomeProofs.lean:127:15: unsolved goals
+case call.inr.latest
+x : Snapshot
+out : List Action
+n : String
+d : Bool
+t t' : Nat
+hw : Wait.latest ≠ Wait.free
+⊢ (n, t) ∈ if d = true then x.pending else (n, t) :: List.filter (fun p => !decide (p.fst = n)) x.pending
+error: Figram/OutcomeProofs.lean:128:14: unsolved goals
+case call.inr.every
+x : Snapshot
+out : List Action
+n : String
+d : Bool
+t t' : Nat
+hw : Wait.every ≠ Wait.free
+⊢ (n, t) ∈ if d = true then x.pending else (n, t) :: List.filter (fun p => !decide (p = (n, t))) x.pending
+error: Figram/OutcomeProofs.lean:170:22: Tactic `cases` failed with a nested error:
+Dependent elimination failed: Failed to solve equation
+  Bool.rec (motive := fun x => x.Reflects (d = true) → List (String × Nat))
+      (fun x_1 => (n, t) :: List.filter (fun p => decide (p.fst ≠ n)) x.pending) (fun x_1 => x.pending)
+      (decide (d = true)) ⋯ =
+    (n, t') :: as✝
+at case `List.Mem.head`
+warning: Figram/OutcomeProofs.lean:168:34: This simp argument is unused:
+  List.mem_cons
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, assign, Prod.mk.injEq, List.mem_filter, decide_eq_true_eq] at ht'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/OutcomeProofs.lean:168:49: This simp argument is unused:
+  Prod.mk.injEq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, assign, List.mem_cons, List.mem_filter, decide_eq_true_eq] at ht'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/OutcomeProofs.lean:168:64: This simp argument is unused:
+  List.mem_filter
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, assign, List.mem_cons, Prod.mk.injEq, decide_eq_true_eq] at ht'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/OutcomeProofs.lean:169:8: This simp argument is unused:
+  decide_eq_true_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [addWait, assign, List.mem_cons, Prod.mk.injEq, List.mem_filter] at ht'
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: Figram/OutcomeProofs.lean:210:4: 'show' tactic failed, pattern
+  (pn, pt) ∈ addWait x.pending n tok w
+is not definitionally equal to target
+  (pn, pt) ∈ (realizeOne tok (x, out) (Action.call n d w t)).fst.pending
+error: Figram/OutcomeProofs.lean:575:92: unsolved goals
+case call
+tok : Nat
+x : Snapshot
+out : List Action
+name✝ : String
+detached✝ : Bool
+wait✝ : Wait
+token✝ : Nat
+⊢ detached✝ = true → addWait x.pending name✝ tok wait✝ = x.pending
+Some required targets logged failures:
+- Figram.OutcomeProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

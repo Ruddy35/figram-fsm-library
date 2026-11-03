@@ -1,0 +1,5 @@
+Figram/CoreProofs.lean:settle_of_not_accepts
+Figram/Examples.lean:#guard@342:((runGolden "outcome_recovery_stale").map fun r => (r.1.pending
+Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2
+Figram/OutcomeProofs.lean:step_outcome_once
+Figram/OutcomeProofs.lean:Snapshot.Fresh.accepts_le

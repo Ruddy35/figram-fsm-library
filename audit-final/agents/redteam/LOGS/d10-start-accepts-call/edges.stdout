@@ -1,0 +1,4 @@
+FAIL start with an outcome event — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'call': 'log', 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected ('error', 'bad_request')
+FAIL start with an outcome event and seq — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 6}, 'seq': 6}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 6}, {'send': 'home'}]} ≠ expected ('error', 'bad_request')
+FAIL start with a malformed call: event — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected ('error', 'bad_request')
+protocol edge cases 250, replies 250, mismatches 3

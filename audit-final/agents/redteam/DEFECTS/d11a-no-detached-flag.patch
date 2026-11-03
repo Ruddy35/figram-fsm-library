@@ -1,0 +1,13 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..258501b 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -161,7 +161,7 @@ def errorJ (id : J) (c : ErrCode) (text : String) : J :=
+ def encAction : Action → Option J
+   | .send n => some (.obj [("send", .str n)])
+   | .call n d w tok => some (.obj ([("call", .str n)]
+-      ++ field "token" (w != .free) (.num tok 0) ++ field "detached" d (.bool true)))
++      ++ field "token" (w != .free) (.num tok 0) ++ field "detached" (d && false) (.bool true)))
+   | .startTimer id ms tok => some (.obj [("start_timer", .str id), ("ms", .num ms 0), ("token", .num tok 0)])
+   | .cancelTimer id => some (.obj [("cancel_timer", .str id)])
+   | .remember .. => none

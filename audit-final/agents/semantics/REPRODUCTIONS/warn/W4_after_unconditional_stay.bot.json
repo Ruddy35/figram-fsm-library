@@ -1,0 +1,2 @@
+{"figram":1,"calls":{"a":"A"},
+ "bot":{"initial":"h","children":{"h":{"on":{"btn:x":[{"do":["a"]},{"to":"g"}]}},"g":{"on":{"btn:h":[{"to":"h"}]}}}}}

@@ -1,0 +1,2 @@
+{"figram":1,"calls":{"x":{"text":"Only failure matters","outcomes":[]}},
+ "bot":{"initial":"h","children":{"h":{"on":{"btn:go":[{"do":["x"]}],"call:x:failed":[{"to":"e"}]}},"e":{}}}}

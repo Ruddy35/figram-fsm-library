@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 -I scripts/prose_ref.py 1 150 60 REPRODUCTIONS/random 
+cwd: /home/user/figram-audit/agents5/semantics
+start: 2026-11-03T17:51:12.071Z
+end: 2026-11-03T17:51:14.673Z
+exit_code: 0
+--- stdout (46 bytes, last 200 lines)
+docs 150 skipped 0 requests 9000 mismatches 0
+--- stderr (0 bytes, last 100 lines)

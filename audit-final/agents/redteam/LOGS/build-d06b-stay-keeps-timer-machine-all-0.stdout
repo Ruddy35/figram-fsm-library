@@ -1,0 +1,42 @@
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:680:24: This simp argument is unused:
+  stay
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [realize_back]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [20/54] Built Figram.Warnings (470ms)
+✔ [29/54] Built Figram.RandomDoc (823ms)
+✖ [33/54] Building Figram.Correct (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:448:12: Tactic `rfl` failed: The left-hand side
+  realize (s.settle ev) s.state (c.toF b).actions
+is not definitionally equal to the right-hand side
+  stay (s.settle ev) ev b.actions
+
+case pos
+c : Chart
+hwf : c.compileSpec.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compileSpec.states
+hex : c.compileSpec.exitOf s.state = c.exitActs s.state
+h✝ : ¬(!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true
+hc : ¬c.cands s.state ev.key = []
+hp : (fun b => guardOK env b.guard) ∘ c.toF = fun b => guardOK env b.guard
+b : Branch
+hb : List.find? (fun b => guardOK env b.guard) (c.cands s.state ev.key) = some b
+hst : b.target = Dest.stay
+h1 : (c.toF b).target = Target.stay
+⊢ realize (s.settle ev) s.state (c.toF b).actions = stay (s.settle ev) ev b.actions
+✔ [39/54] Built Figram.Trace (1.6s)
+✔ [41/54] Built Figram.FormatProofs (4.2s)
+✖ [45/54] Building Figram.EngineProofs (2.1s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:331:12: `simp` made no progress
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs

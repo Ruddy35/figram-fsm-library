@@ -1,0 +1,10 @@
+{"bot":{"children":{"h":{"on":{"btn:a":[{"do":["p","n","o","e","bg","ann"],"resume":false,"back":false}],"btn:b":[{"do":[]}],"btn:c":[{"if":"c"}],"call:o:r":[{"to":"h"}],"call:e:r":[{}],"call:o:failed":[{"to":"h"}],"call:e:failed":[{"do":["p"]}]}}},"initial":"h"},
+ "calls":{"p":{"text":"Plain"},
+          "n":{"every":false,"text":"Explicit defaults","detached":false},
+          "o":{"outcomes":["r"],"text":"With outcomes"},
+          "e":{"every":true,"detached":true,"outcomes":["r"],"text":"Every bg"},
+          "bg":{"detached":true,"text":"Bg"},
+          "ann":{"x-note":{"k":[1,2]},"text":"Annotated","outcomes":[]},
+          "empty":{"text":"Empty outcomes","outcomes":[]}},
+ "conditions":{"c":"C"},
+ "figram":1}

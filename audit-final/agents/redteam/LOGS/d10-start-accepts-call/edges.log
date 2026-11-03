@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/protocol_edges.py /home/user/figram-audit/agents5/redteam/bin/mut/d10-start-accepts-call/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:12:39.872Z
+end: 2026-11-03T18:12:40.373Z
+exit_code: 1
+--- stdout (794 bytes, last 200 lines)
+FAIL start with an outcome event — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'call': 'log', 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected ('error', 'bad_request')
+FAIL start with an outcome event and seq — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 6}, 'seq': 6}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 6}, {'send': 'home'}]} ≠ expected ('error', 'bad_request')
+FAIL start with a malformed call: event — bad_request: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected ('error', 'bad_request')
+protocol edge cases 250, replies 250, mismatches 3
+--- stderr (0 bytes, last 100 lines)

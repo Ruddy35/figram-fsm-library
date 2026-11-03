@@ -1,0 +1,10 @@
+fault                exit   expected verdict, last line
+none                 0      0        ok PREBUILT CHECK PASSED (the build, the theorems, C and Go were not checked: see ./verify.sh)
+golden-truncated     1      1        ok FAIL: golden scenarios: 'scenarios: 37' does not satisfy g[0] > 0 and g[0] == 2
+selftest-shrunk      1      1        ok FAIL: harness self-test: passed 12 (at least 72 needed), failed 0
+fixtures-shrunk      1      1        ok FAIL: snapshots: 'snapshots 2, replies 2, schema/engine mismatches 0' does not satisfy g[0] >= 49 and g[0] == 
+random-docs-shrunk   1      1        ok documents 1, requests 725, documents with mismatches 0
+json-fuzz-shrunk     1      1        ok FAIL: JSON fuzzing: 'cases 30000: accepted by both 2, rejected by both 8, mismatches 0, outputs not read back 
+mutants-shrunk       1      1        ok FAIL: mutations: 'detected 2 of 2 mutations' does not satisfy g[1] >= 211 and g[0] == g[1]
+bin-swapped          1      1        ok sha256sum: WARNING: 1 computed checksum did NOT match
+the gate is red on every fault and green without them

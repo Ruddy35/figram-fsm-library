@@ -1,0 +1,2 @@
+requests 170, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 2}, 'event': 'timer:nudge', 'token': 2} → {'id': 83, 'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 3}, 'actions': [{'call': 'log', 'detached': True}]}, expected {'result': {'snapshot': {'at': 'vip', 'seq': 3}, 'action

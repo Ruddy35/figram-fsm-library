@@ -1,0 +1,8 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/warn/W9_stay_on_waiting_cond_only.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:46:56.560Z
+end: 2026-11-03T17:46:56.566Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (0 bytes, last 100 lines)

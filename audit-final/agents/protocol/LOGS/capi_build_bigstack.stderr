@@ -1,0 +1,4 @@
+/home/user/figram-audit/agents5/protocol/capi/bigstack.c: In function 'main':
+/home/user/figram-audit/agents5/protocol/capi/bigstack.c:13:24: warning: ignoring return value of 'fread' declared with attribute 'warn_unused_result' [-Wunused-result]
+   13 |   doc = malloc(n + 1); fread(doc, 1, n, f); doc[n] = 0; fclose(f);
+      |                        ^~~~~~~~~~~~~~~~~~~

@@ -1,0 +1,9 @@
+command: bash -c /home/user/figram-audit/agents5/redteam/bin/mut/d20-stay-consumes-all-timers/figram-gate\ golden\ /home/user/figram-audit/agents5/redteam/LOGS/d20-stay-consumes-all-timers/ggolden/out\ \&\&\ for\ f\ in\ golden.jsonl\ pizza.bot.json\ features.bot.json\;\ do\ cmp\ /home/user/figram-audit/agents5/redteam/LOGS/d20-stay-consumes-all-timers/ggolden/out/\$f\ examples/\$f\ \|\|\ exit\ 1\;\ done\;\ echo\ same 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:29:05.941Z
+end: 2026-11-03T18:29:05.957Z
+exit_code: 0
+--- stdout (19 bytes, last 200 lines)
+scenarios: 37
+same
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py", line 770, in <module>
+    ok1 = scenario_orders(engine_path, doc, barrier=barrier)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py", line 596, in scenario_orders
+    lost = replay_lost(host, engine, plans)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py", line 555, in replay_lost
+    else engine.step("ref", snap, ev, g, tok))["snapshot"]
+         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/../../clients/python/figram_client.py", line 789, in step
+    return self._conditional(self._proc(key), request, guards)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/../../clients/python/figram_client.py", line 819, in _conditional
+    values = guards(list(need))
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py", line 553, in <lambda>
+    g = (lambda ns, used=used: {n: used[n] for n in ns})
+                                   ~~~~^^^
+KeyError: 'address_rejected'

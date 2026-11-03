@@ -1,0 +1,14 @@
+⚠ [22/28] Built Figram.CoreProofs (911ms)
+warning: Figram/CoreProofs.lean:295:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:589:38: This simp argument is unused:
+  Snapshot.settle
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, Snapshot.accepts, ite_true, hb, hstale, realizeAfter_eq, List.append_nil,
+    List.nil_append]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [24/28] Built Figram.Mutate (573ms)
+✔ [26/28] Built EngineMain (513ms)
+✔ [28/28] Built «figram-engine»:exe (235ms)
+Build completed successfully (28 jobs).

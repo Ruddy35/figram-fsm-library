@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..cccf802 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -376,7 +376,7 @@ bot again with the event (`enterBot`), the timers of the old place cancelled and
+ places kept. An accepted outcome removes its wait, also when no variant is chosen. A variant
+ without a target acts without a move (`stay`). -/
+ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
+-  if s.state ∉ m.states then m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
++  if s.state ∉ m.states then m.enterBot { s with pending := [] } (s.timers.map (fun p => .cancelTimer p.1)) ev env
+   else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
+   else
+     match m.row s.state ev.key with

@@ -1,0 +1,2 @@
+not accepted, message gone: {'id': 1, 'snapshot': {'at': 'menu', 'seq': 7}, 'actions': [{'send': 'menu'}], 'recovered': True}
+not accepted, message exists: {'id': 2, 'snapshot': {'at': 'placing', 'seq': 6}, 'actions': []}

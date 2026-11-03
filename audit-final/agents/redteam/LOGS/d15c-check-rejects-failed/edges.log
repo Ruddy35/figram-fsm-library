@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/protocol_edges.py /home/user/figram-audit/agents5/redteam/bin/mut/d15c-check-rejects-failed/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:25:02.346Z
+end: 2026-11-03T18:25:02.464Z
+exit_code: 1
+--- stdout (2379 bytes, last 200 lines)
+FAIL JSON requests: replies 0 of 155, exit code 1
+FAIL raw lines: replies 0, expected 34, exit code 1: document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:check_stock:failed`: `check_stock` is not an ac
+FAIL --max-request 64: replies 0, expected 4, exit code 1: document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:check_stock:failed`: `check_stock` is not an ac
+FAIL --max-request 0: replies 0, expected 1, exit code 1: document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:check_stock:failed`: `check_stock` is not an ac
+FAIL --mutants with FIGRAM_ALLOW_MUTANTS=1 — the list: exit code 1, stdout b'', stderr b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an ac'
+FAIL --mutate: hello reports the mutation, a warning on stderr: exit code 1, stdout b'', stderr b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an ac'
+FAIL --mutate redirect:999 (no such number in the machine) — refused: exit code 1, stdout b'', stderr b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an ac'
+FAIL --mutate drop-call:nope (no such action in the machine) — refused: exit code 1, stdout b'', stderr b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an ac'
+FAIL --max-request 100 before the document — works: exit code 1, stdout b'', stderr b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an ac'
+protocol edge cases 250, replies 53, mismatches 9
+--- stderr (0 bytes, last 100 lines)

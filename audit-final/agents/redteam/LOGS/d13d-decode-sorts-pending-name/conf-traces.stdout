@@ -1,0 +1,4 @@
+requests 17602, mismatches 59
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 30}, 'pending': [{'call': 'ping', 'token': 31}, {'call': 'check_stock', 'token': 27}], 'seq': 31}, 'event': 'btn:log'} → {'id': 3305, 'snapshot': {'at': 'home', 'back': 'reminder', 'resum
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 21}, 'pending': [{'call': 'ping', 'token': 23}, {'call': 'check_stock', 'token': 18}], 'seq': 23}, 'event': 'timer:idle', 'token': 21} → {'id': 4284, 'snapshot': {'at': 'home', 'back': 'r
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 21}, 'pending': [{'call': 'ping', 'token': 23}, {'call': 'check_stock', 'token': 18}], 'seq': 23}, 'event': 'cmd:start'} → {'id': 4285, 'snapshot': {'at': 'home', 'back': 'reminder', 'res

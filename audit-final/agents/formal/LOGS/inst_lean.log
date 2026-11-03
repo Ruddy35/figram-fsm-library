@@ -1,0 +1,7 @@
+command: nice -n 10 timeout 900 lake env lean /home/user/figram-audit/agents5/formal/Inst.lean 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:45:30.679Z
+end: 2026-11-03T17:45:39.232Z
+exit_code: 0
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

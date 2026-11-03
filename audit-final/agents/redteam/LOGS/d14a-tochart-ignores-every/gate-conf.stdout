@@ -1,0 +1,2 @@
+requests 17786, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 2}], 'seq': 3}, 'event': 'btn:ping'} → {'id': 117, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 4}],

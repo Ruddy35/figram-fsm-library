@@ -1,0 +1,9 @@
+command: env TIMER_BIAS=0.4 GUARD_SHIFT=0.5 nice -n 10 timeout 600 python3 -I scripts/prose_ref.py 3 200 80 REPRODUCTIONS/random 
+cwd: /home/user/figram-audit/agents5/semantics
+start: 2026-11-03T17:54:09.625Z
+end: 2026-11-03T17:54:12.872Z
+exit_code: 0
+--- stdout (462 bytes, last 200 lines)
+coverage: {"back-changed": 170, "call-with-token": 385, "detached-in-reply": 224, "err:seq_overflow": 49, "need": 345, "op:restart": 777, "op:start": 1295, "op:step": 13928, "outcome:accepted": 696, "outcome:accepted-move": 171, "outcome:accepted-no-arrow": 462, "outcome:accepted-stay": 63, "outcome:ignored": 4206, "pending>=2": 7216, "recovered": 798, "start+event": 889, "stay": 197, "timer:stay-consumed": 33}
+docs 200 skipped 0 requests 16000 mismatches 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,224 @@
+{
+  "figram": 1,
+  "conditions": {
+    "is_vip": "The user is a VIP",
+    "local_ok": "Local check in the catalog",
+    "in_stock": "The item is in stock"
+  },
+  "calls": {
+    "charge": "Charge the payment",
+    "notify": "Notify the manager",
+    "log": {
+      "text": "Write to the log",
+      "detached": true
+    },
+    "check_stock": {
+      "text": "Ask the warehouse whether the item is in stock",
+      "outcomes": ["yes", "no"]
+    },
+    "ping": {
+      "text": "Ping the manager; every ping is answered",
+      "detached": true,
+      "outcomes": ["pong"],
+      "every": true
+    }
+  },
+  "bot": {
+    "initial": "home",
+    "on": {
+      "cmd:start": [
+        {
+          "to": "home"
+        }
+      ],
+      "cmd:help": [
+        {
+          "to": "help"
+        }
+      ],
+      "btn:prev": [
+        {
+          "to": "home",
+          "back": true
+        }
+      ],
+      "btn:ping": [
+        {
+          "do": ["ping"]
+        }
+      ],
+      "call:ping:pong": [
+        {
+          "do": ["log"]
+        }
+      ],
+      "call:ping:failed": [
+        {}
+      ]
+    },
+    "children": {
+      "home": {
+        "on": {
+          "btn:go": [
+            {
+              "if": "is_vip",
+              "to": "vip"
+            },
+            {
+              "to": "shop"
+            }
+          ],
+          "btn:self": [
+            {
+              "to": "home"
+            }
+          ],
+          "btn:log": [
+            {
+              "do": ["log"]
+            }
+          ]
+        },
+        "timers": {
+          "idle": 60000
+        }
+      },
+      "help": {
+        "on": {
+          "btn:back": [
+            {
+              "to": "shop",
+              "resume": true
+            }
+          ]
+        }
+      },
+      "vip": {
+        "on": {
+          "timer:nudge": [
+            {
+              "do": ["log"]
+            }
+          ]
+        },
+        "timers": {
+          "nudge": 30000
+        }
+      },
+      "paid": {
+        "on": {
+          "btn:back": [
+            {
+              "to": "shop",
+              "resume": true,
+              "back": true
+            }
+          ]
+        }
+      },
+      "shop": {
+        "initial": "catalog",
+        "on": {
+          "btn:cancel": [
+            {
+              "to": "home"
+            }
+          ],
+          "btn:x": [
+            {
+              "to": "reminder"
+            }
+          ]
+        },
+        "children": {
+          "catalog": {
+            "on": {
+              "btn:next": [
+                {
+                  "to": "sub"
+                }
+              ],
+              "btn:x": [
+                {
+                  "if": "local_ok",
+                  "to": "item2"
+                }
+              ]
+            }
+          },
+          "sub": {
+            "initial": "item",
+            "children": {
+              "item": {
+                "on": {
+                  "btn:buy": [
+                    {
+                      "if": "in_stock",
+                      "to": "paid",
+                      "do": ["charge", "notify"]
+                    },
+                    {
+                      "to": "catalog"
+                    }
+                  ],
+                  "btn:other": [
+                    {
+                      "to": "item2"
+                    }
+                  ],
+                  "btn:check": [
+                    {
+                      "do": ["check_stock"]
+                    }
+                  ],
+                  "call:check_stock:yes": [
+                    {
+                      "to": "item2"
+                    }
+                  ],
+                  "call:check_stock:no": [
+                    {
+                      "to": "catalog"
+                    }
+                  ],
+                  "call:check_stock:failed": [
+                    {
+                      "do": ["log"]
+                    }
+                  ],
+                  "timer:remind": [
+                    {
+                      "to": "reminder"
+                    }
+                  ]
+                },
+                "timers": {
+                  "remind": 5000
+                }
+              },
+              "item2": {
+                "on": {
+                  "btn:back_item": [
+                    {
+                      "to": "item"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "reminder": {
+            "on": {
+              "btn:back": [
+                {
+                  "to": "shop",
+                  "resume": true
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

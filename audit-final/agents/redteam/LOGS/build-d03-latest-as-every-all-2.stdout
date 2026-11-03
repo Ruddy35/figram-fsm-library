@@ -1,0 +1,30 @@
+⚠ [19/54] Replayed Figram.EngineProofs
+warning: Figram/EngineProofs.lean:137:8: declaration uses `sorry`
+⚠ [47/54] Built Figram.OutcomeProofs (1.5s)
+warning: Figram/OutcomeProofs.lean:104:56: This simp argument is unused:
+  assign
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [addWait, hn, h]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/OutcomeProofs.lean:127:33: This simp argument is unused:
+  assign
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [addWait]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/OutcomeProofs.lean:157:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:204:23: This simp argument is unused:
+  assign
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [addWait, hn, hp]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [48/54] Built Figram (256ms)
+✔ [51/54] Built Figram.OutcomeProofs:c.o (555ms)
+✔ [52/54] Built Main (624ms)
+✔ [54/54] Built figram:exe (207ms)
+Build completed successfully (54 jobs).

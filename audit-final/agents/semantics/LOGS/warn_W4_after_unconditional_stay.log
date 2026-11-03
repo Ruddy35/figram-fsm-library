@@ -1,0 +1,10 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/warn/W4_after_unconditional_stay.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:46:56.432Z
+end: 2026-11-03T17:46:56.438Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (175 bytes, last 100 lines)
+warning: arrow `h` on `btn:x`: variant 2 never fires, variant 1 before it has no condition
+warning: message `g` is unreachable: no arrow leads to it from the start of the bot

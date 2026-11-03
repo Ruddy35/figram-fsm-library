@@ -1,0 +1,195 @@
+command: ./verify.sh
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-03T17:19:13Z
+end: 2026-11-03T17:24:27Z
+exit_code: 1
+--- stdout (12112 bytes, last 200 lines)
+
+== Provenance of the run
+date: 2026-11-03T17:19:13Z; cores: 4
+commit: cdc58df52047d6a74b93842a7e235d8c0209ed04; modified tracked files: 0
+verify.sh sha256: 361b3da3ddb78ba5f2c93bd1dc36292f7216116e766e20d180e76328f2159d87
+lean: Lean (version 4.35.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)
+python: Python 3.13.16; jsonschema 4.26.0
+go: go version go1.24.7 linux/amd64
+
+== Build without warnings
+Build completed successfully (54 jobs).
+
+== Binaries built from these sources match FIGRAM_SHA256SUMS
+skipped: FIGRAM_SHA256SUMS is not set, nothing to compare the rebuild with (not a waiver)
+
+== Pinned theorems: standard axioms only, statements pinned
+'Figram.Chart.compile_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.run_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.session_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.chart_run_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_state_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.compile_eq_spec' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.wfDirect_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.lint_nil_wf' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.wfFast_eq' depends on axioms: [propext, Quot.sound]
+'Figram.Format.decode_encode' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.encode_injective' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.decode_requires' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Format.toChart_strip' depends on axioms: [propext, Quot.sound]
+'Figram.Format.toChart_decls' depends on axioms: [propext]
+'Figram.Format.check_roundtrip' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decSnapshot_encSnapshot' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.step_snapOK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.handle_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.reply_readable' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.guards_irrelevant' depends on axioms: [propext, Quot.sound]
+'Figram.Engine.missing_nil_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startAt_snapOK' depends on axioms: [propext, Quot.sound]
+'Figram.Chart.startWith_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.sessionWith_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.compile_initActions' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.enterBot_state_valid' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_guard_local' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.startWith_eq_step' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_initial' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_unmatched' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.handle_start' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.missingStart_nil' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.startWith_snapOK' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_recover' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_recover_timer' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.fire_back' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.fire_back_swap' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_back' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_back' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Chart.compile_zoneOf' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.realize_clear' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.fire_eq_realize' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_eq_realize_some' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.enterBot_eq_realize_none' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.recover_eq_realize' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_rejected' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_no_arrow' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_pending_new' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_keeps_wait' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_records_wait' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_latest_replaces' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_fresh' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_fresh' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Snapshot.Fresh.accepts_le' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.step_outcome_once' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_stay' depends on axioms: [propext, Quot.sound]
+'Figram.Machine.stay_keeps' depends on axioms: [propext]
+'Figram.Machine.enterBot_stay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_outcome' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.step_undetach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.startWith_undetach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Machine.recover_undetach' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.splitOutcome_outcomeEvent' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decEvent_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decEvent_outcome' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.decStartEvent_ok' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.handle_restart' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.restart_pending' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Figram.Engine.restart_fresh' depends on axioms: [propext, Classical.choice, Quot.sound]
+theorems 70: axioms only from ['Classical.choice', 'Quot.sound', 'propext']
+the statements of 70 theorems match tests/proofs/THEOREMS.expected
+no axiom, native_decide, implemented_by, extern, sorry or admit in the sources
+
+== Strict proof gate: all theorems of the sources and of the environment, statements, leanchecker
+axiom set []: 500 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 124 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+
+== Golden scenarios match the committed files
+ok (scenarios: 37)
+
+== Engine conformance: golden and random scenarios
+directed scenarios: 2
+arrow variants covered: 53 of 53
+directed scenarios: 0
+arrow variants covered: 75 of 75
+requests 17704, mismatches 0
+
+== Conformance on 100 random documents
+documents 100, requests 91644, documents with mismatches 0
+
+== Mutation testing
+examples/pizza.bot.json: mutations 79
+examples/features.bot.json: mutations 132
+detected 211 of 211 mutations (100%)
+
+== Host contract
+contract holds
+
+== CLI: argument errors give a non-zero exit status
+ok
+
+== Huge exponent: a fast controlled rejection
+ok (exit code 1, figram: cannot read the document: exponent out of range: absolute value above 1000)
+
+== Engine memory: starts under ulimit -v 32, 64 and 256 MiB, address space ≤ 64 MiB, in use ≤ 16 MiB, one thread, stack overflow message
+engine memory: address space 12 MiB, in use 6 MiB, threads 1
+
+== Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello; time linear in the snapshot size
+snapshots 49, replies 49, schema/engine mismatches 0
+seq boundary: ok
+protocol edge cases 250, replies 250, mismatches 0
+snapshot scaling: cases 6, failed 0
+
+== JSON text layer: differential against Python json
+cases 30000: accepted by both 8962, rejected by both 21038, mismatches 0, outputs not read back 0 of 8962
+control: the parser without restrictions is detected (cases 3000: accepted by both 809, rejected by both 1229, mismatches 962, outputs not read back 0 of 1771)
+
+== C shim: invalid UTF-8, huge inputs, 16 threads, ASan and UBSan (only the shim is instrumented)
+5 MB string → {"id":null,"error":"request is longer than the limit of 1048576 bytes","code":"t
+16 threads × 20000 calls to one machine: mismatches 0
+5000 loads and unloads: memory growth 60 KB; without unload (control): 63608 KB
+
+== C ABI ffi/figram.h: init without crashing the host, NULL, handles, NUL, UTF-8, size limit, signals
+C ABI regression checks: 46, failed: 0
+ffi/figram.h compiles as C99 and as C++ without warnings
+
+== Lean runtime without the libuv event loop: start-up steps and unreachability
+checks 4, failed 0
+runtime start-up steps: the 9 stock ones without initialize_libuv; the library also without initialize_stack_overflow
+checks 6, failed 0
+checks 6, failed 0
+checks 8, failed 0
+checks 6, failed 0
+
+== Python client: engine failures, method contract, clean stderr
+client is robust
+client contract holds
+client is robust
+
+== Test harness catches a corrupted, incomplete, empty and hanging engine
+FAIL: step 'selftest' failed (exit code 1), log: verify-logs/selftest.log
+FAIL conformance, corruption 'stale outcome accepted': exit code 0, recognized False (1.0 s)
+FAIL loadtest, corruption 'stale outcome accepted': exit code 0, recognized False (1.3 s)
+--- log tail:
+ok   loadtest, corruption 'call without detached': exit code 1, recognized True (1.4 s)
+ok   protocol_edges, corruption 'call without detached': exit code 1, recognized True (0.1 s)
+ok   conformance, corruption 'snapshot without pending': exit code 1, recognized True (1.0 s)
+ok   loadtest, corruption 'snapshot without pending': exit code 1, recognized True (1.3 s)
+ok   snapshot_fixtures, corruption 'snapshot without pending': exit code 1, recognized True (0.2 s)
+ok   protocol_edges, corruption 'snapshot without pending': exit code 1, recognized True (0.1 s)
+ok   conformance, corruption 'outcome keeps the wait': exit code 1, recognized True (1.0 s)
+ok   loadtest, corruption 'outcome keeps the wait': exit code 1, recognized True (1.4 s)
+ok   protocol_edges, corruption 'outcome keeps the wait': exit code 1, recognized True (0.1 s)
+FAIL conformance, corruption 'stale outcome accepted': exit code 0, recognized False (1.0 s)
+      | requests 8621, mismatches 0
+FAIL loadtest, corruption 'stale outcome accepted': exit code 0, recognized False (1.3 s)
+      | threads   8, processes 1: steps 8014 (with a conditions request 405, outcome events 23), mismatches 0, 6,611 steps/s, latency p50 1,059 µs, p99 3,189 µs
+ok   protocol_edges, corruption 'stale outcome accepted': exit code 1, recognized True (0.1 s)
+ok   protocol_edges, corruption 'outcome starts a user': exit code 1, recognized True (0.1 s)
+ok   protocol_edges, corruption 'restart keeps the waits': exit code 1, recognized True (0.1 s)
+ok   mutation, engine without mutations: exit code 1
+ok   conformance, hung engine: exit code 1, stopped by the deadline True, 2.1 s, live processes 0
+ok   snapshot_fixtures, hung engine: exit code 1, stopped by the deadline True, 2.1 s, live processes 0
+ok   conformance, real engine: exit code 0 (0.4 s)
+ok   loadtest, real engine: exit code 0 (1.2 s)
+ok   snapshot_fixtures, real engine: exit code 0 (0.2 s)
+ok   protocol_edges, real engine: exit code 0 (0.1 s)
+ok   mutation, real engine on the full corpus: exit code 0 (78.7 s)
+THE HARNESS MISSES CORRUPTION (see the FAIL lines above)
+--- stderr (0 bytes, last 100 lines)

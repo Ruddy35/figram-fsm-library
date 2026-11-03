@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/protocol_edges.py /home/user/figram-audit/agents5/redteam/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:02:56.171Z
+end: 2026-11-03T19:02:56.690Z
+exit_code: 1
+--- stdout (313 bytes, last 200 lines)
+FAIL validator on {"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":false}]}: accepted, expected rejected
+FAIL validator on {"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":1}]}: accepted, expected rejected
+protocol edge cases 250, replies 250, mismatches 2
+--- stderr (0 bytes, last 100 lines)

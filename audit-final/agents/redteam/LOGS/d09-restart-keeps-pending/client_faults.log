@@ -1,0 +1,28 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/client_faults.py /home/user/figram-audit/agents5/redteam/bin/mut/d09-restart-keeps-pending/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:11:49.268Z
+end: 2026-11-03T18:11:56.034Z
+exit_code: 0
+--- stdout (1319 bytes, last 200 lines)
+ok   invalid JSON: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   unknown id: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   reply without id: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   id = true: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   empty result: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   result + error: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   seq = true: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   unknown action: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   no reply: errors 8 of 8, hung 0, 1.0 s, close 0.0 s
+ok   output closed: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   crash: errors 8 of 8, hung 0, 0.0 s, close 0.0 s
+ok   does not read input: errors 8 of 8, hung 0, 1.0 s, close 1.0 s
+ok   garbage, does not read input: errors 8 of 8, hung 0, 0.3 s, close 0.0 s
+ok   300 concurrent requests (~300 KB) with blocked input: errors 300, hung 0, slowest call 1.00 s, total 2.0 s
+ok   start, garbage instead of hello: error, 0.0 s (start_timeout 1 s)
+ok   start, exit before hello: error, 0.0 s (start_timeout 1 s)
+ok   start, crash before hello: error, 0.0 s (start_timeout 1 s)
+ok   start, does not answer hello: error, 1.0 s (start_timeout 1 s)
+ok   start, hello of the wrong form: error, 0.0 s (start_timeout 1 s)
+ok   replacement of the failed process: menu
+client is robust
+--- stderr (0 bytes, last 100 lines)

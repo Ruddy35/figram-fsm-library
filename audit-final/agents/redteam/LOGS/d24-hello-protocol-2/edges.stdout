@@ -1,0 +1,11 @@
+FAIL hello: protocol version 3: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":0,"protocol":2,"states":8}
+FAIL CRLF: CR is JSON whitespace: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":110,"protocol":2,"states":8}
+FAIL exactly 1 MiB — processed: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":115,"protocol":2,"states":8}
+FAIL after too_large the process reads the next line: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":117,"protocol":2,"states":8}
+FAIL last line without \n is processed: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":118,"protocol":2,"states":8}
+FAIL --max-request 64: exactly 64 bytes: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":200,"protocol":2,"states":8}
+FAIL --max-request 64: the next line is processed: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":202,"protocol":2,"states":8}
+FAIL --max-request 0: a 3 MiB line is processed: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":300,"protocol":2,"states":8}
+FAIL --mutate: hello reports the mutation, a warning on stderr: exit code 0, stdout b'{"id":1,"protocol":2,"states":8,"mutant":"drop-call:ping"}\n', stderr b'figram-engine: WARNING: deliberately broken engine (mutation `drop-call:ping`), for testing the tests only\n'
+FAIL --max-request 100 before the document — works: exit code 0, stdout b'{"id":1,"protocol":2,"states":8}\n', stderr b''
+protocol edge cases 250, replies 250, mismatches 10

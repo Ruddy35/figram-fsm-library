@@ -1,0 +1,2 @@
+Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named
+Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.

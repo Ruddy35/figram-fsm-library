@@ -1,0 +1,81 @@
+command: timeout 20 /home/user/figram-audit-worktrees/a5-semantics/.lake/build/bin/figram fmt fmt1.bot.json 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/fmt
+start: 2026-11-03T17:47:15.610Z
+end: 2026-11-03T17:47:15.620Z
+exit_code: 0
+--- stdout (1209 bytes, last 200 lines)
+{
+  "figram": 1,
+  "conditions": {
+    "c": "C"
+  },
+  "calls": {
+    "p": "Plain",
+    "n": "Explicit defaults",
+    "o": {
+      "text": "With outcomes",
+      "outcomes": ["r"]
+    },
+    "e": {
+      "text": "Every bg",
+      "detached": true,
+      "outcomes": ["r"],
+      "every": true
+    },
+    "bg": {
+      "text": "Bg",
+      "detached": true
+    },
+    "ann": {
+      "text": "Annotated",
+      "x-note": {
+        "k": [
+          1,
+          2
+        ]
+      }
+    },
+    "empty": "Empty outcomes"
+  },
+  "bot": {
+    "initial": "h",
+    "children": {
+      "h": {
+        "on": {
+          "btn:a": [
+            {
+              "do": ["p", "n", "o", "e", "bg", "ann"]
+            }
+          ],
+          "btn:b": [
+            {}
+          ],
+          "btn:c": [
+            {
+              "if": "c"
+            }
+          ],
+          "call:o:r": [
+            {
+              "to": "h"
+            }
+          ],
+          "call:e:r": [
+            {}
+          ],
+          "call:o:failed": [
+            {
+              "to": "h"
+            }
+          ],
+          "call:e:failed": [
+            {
+              "do": ["p"]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+--- stderr (0 bytes, last 100 lines)

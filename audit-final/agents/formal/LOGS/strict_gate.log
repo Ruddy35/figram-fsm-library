@@ -1,0 +1,42 @@
+command: nice -n 10 timeout 1500 bash tests/proofs/strict_gate.sh 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:40:11.630Z
+end: 2026-11-03T17:40:26.297Z
+exit_code: 0
+--- stdout (1311 bytes, last 200 lines)
+299 theorems from 10 files
+theorem list = tracked list (299 names); 6 locations differ (informational, tracked files are not rewritten)
+ok: 299 theorems, only propext/Quot.sound/Classical.choice
+theorems in Figram modules (environment): 1248; from sources: 299; non-internal env theorems not in source list (auto-generated equation lemmas etc.): 210
+definitions: 1401; opaque constants (partial/opaque defs): 23; declared axioms: 0
+opaque constants: [Figram.Engine.utf8PrefixEnd,
+ Figram.Format.allEvents,
+ Figram.Format.allTimers,
+ Figram.Format.allVariants,
+ Figram.Format.digitsEnd,
+ Figram.Format.digitsSmall,
+ Figram.Format.digitsVal,
+ Figram.Format.expVal,
+ Figram.Format.hasChars,
+ Figram.Format.natDec,
+ Figram.Format.nodeErrors,
+ Figram.Format.parseArr,
+ Figram.Format.parseObj,
+ Figram.Format.parseStr,
+ Figram.Format.parseValue,
+ Figram.Format.plainEnd,
+ Figram.Format.render,
+ Figram.Format.renderCompact,
+ Figram.Format.skipWs,
+ Figram.RandomDoc.build,
+ Figram.Format.J.keysUnique,
+ Figram.Format.instReprJ.repr,
+ Figram.Format.instReprNodeDoc.repr]
+axiom set [Quot.sound]: 1 theorems
+axiom set [propext, Quot.sound]: 166 theorems
+axiom set [propext]: 457 theorems
+axiom set []: 500 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 124 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+--- stderr (0 bytes, last 100 lines)

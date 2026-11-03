@@ -1,0 +1,4 @@
+requests 17602, mismatches 598
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'idle': 18}, 'seq': 19}, 'event': 'btn:ping'} → {'id': 27, 'snapshot': {'at': 'home', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'idle': 18}, 'seq': 20}, 'actions': [{'call': 'pin
+   {'op': 'step', 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 22}, 'pending': [{'call': 'ping', 'token': 20}], 'seq': 22}, 'event': 'btn:ping'} → {'id': 33, 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge'
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 28}, 'seq': 28}, 'event': 'btn:ping'} → {'id': 40, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 28}, 'seq': 29}, 'actions': [{'call': 'ping'

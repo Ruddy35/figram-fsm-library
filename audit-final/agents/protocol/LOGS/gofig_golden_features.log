@@ -1,0 +1,8 @@
+command: timeout 300 /home/user/figram-audit/agents5/protocol/gofig -rounds 2 -bots 2 examples/features.bot.json examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:50:08.641Z
+end: 2026-11-03T17:50:08.663Z
+exit_code: 0
+--- stdout (100 bytes, last 200 lines)
+bots 2, rounds 2, goroutines 62, requests 204, mismatches 0, 19336 requests/s (GOMAXPROCS=4, CPU=4)
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,7 @@
+⚠ [47/54] Built Figram.OutcomeProofs (1.0s)
+warning: Figram/OutcomeProofs.lean:912:8: declaration uses `sorry`
+✔ [48/54] Built Figram (247ms)
+✔ [51/54] Built Figram.OutcomeProofs:c.o (429ms)
+✔ [52/54] Built Main (443ms)
+✔ [54/54] Built figram:exe (220ms)
+Build completed successfully (54 jobs).

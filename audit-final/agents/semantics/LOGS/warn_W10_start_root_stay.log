@@ -1,0 +1,10 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/warn/W10_start_root_stay.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:46:56.314Z
+end: 2026-11-03T17:46:56.323Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (312 bytes, last 100 lines)
+warning: outcome `ok` of action `mk` has no arrow on `g`: the variant of `bot` on `cmd:start` waits for it there (an outcome without an arrow is ignored)
+warning: outcome `failed` of action `mk` has no arrow on `g`: the variant of `bot` on `cmd:start` waits for it there (an outcome without an arrow is ignored)

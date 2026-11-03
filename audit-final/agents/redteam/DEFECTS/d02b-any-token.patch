@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..6893a64 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -150,7 +150,7 @@ with the token of a wait for its action. -/
+ def Snapshot.accepts (s : Snapshot) : Event → Bool
+   | .named _ => true
+   | .timer id tok => decide (lookup s.timers id = some tok)
+-  | .outcome c _ tok => decide ((c, tok) ∈ s.pending)
++  | .outcome _ _ _ => true
+ 
+ /-- An outcome removes its wait: each wait accepts one outcome. -/
+ def Snapshot.settle (s : Snapshot) : Event → Snapshot

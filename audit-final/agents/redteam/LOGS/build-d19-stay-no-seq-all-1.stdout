@@ -1,0 +1,102 @@
+✔ [43/54] Built Figram.Examples (1.9s)
+⚠ [45/54] Built Figram.EngineProofs (2.6s)
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+✔ [46/54] Built Figram.EngineProofs:c.o (1.1s)
+✖ [47/54] Building Figram.OutcomeProofs (1.0s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:324:31: `simp` made no progress
+error: Figram/OutcomeProofs.lean:324:40: `simp` made no progress
+error: Figram/OutcomeProofs.lean:325:26: unsolved goals
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+h✝² : ¬¬s.state ∈ m.states
+h✝¹ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r✝ : Row
+heq✝¹ : m.row s.state ev.key = some r✝
+x✝ : Option FBranch
+b✝ : FBranch
+heq✝ : List.find? (fun b => guardOK env b.guard) r✝.branches = some b✝
+h✝ : b✝.target = Target.stay
+p : String × Nat
+hp : p ∈ (s.consume ?m.330).timers
+⊢ p ∈ s.timers
+error: Figram/OutcomeProofs.lean:451:78: unsolved goals
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+r : Row
+b : FBranch
+hs : s.state ∈ m.states
+ha : s.accepts ev = true
+ho : ownsTimer (m.exitOf s.state) ev = true
+hr : m.row s.state ev.key = some r
+hb : List.find? (fun b => guardOK env b.guard) r.branches = some b
+hst : b.target = Target.stay
+⊢ ({ state := (realize ((s.settle ev).consume ev) s.state b.actions).fst.state,
+        resume := (realize ((s.settle ev).consume ev) s.state b.actions).fst.resume,
+        timers := (realize ((s.settle ev).consume ev) s.state b.actions).fst.timers, seq := s.seq,
+        back := (realize ((s.settle ev).consume ev) s.state b.actions).fst.back,
+        pending := (realize ((s.settle ev).consume ev) s.state b.actions).fst.pending },
+      (realize ((s.settle ev).consume ev) s.state b.actions).snd) =
+    realize ((s.settle ev).consume ev) s.state b.actions
+error: Figram/OutcomeProofs.lean:488:2: unsolved goals
+case refine_3
+s : Snapshot
+ev : Event
+acts : List Action
+h : ∀ (a : Action), a ∈ acts → (∃ n d w t, a = Action.call n d w t) ∨ ∃ n, a = Action.send n
+h1 :
+  (List.foldl (realizeOne ((s.consume ev).seq + 1))
+          (let __src := s.consume ev;
+            { state := s.state, resume := __src.resume, timers := __src.timers, seq := (s.consume ev).seq + 1,
+              back := __src.back, pending := __src.pending },
+            [])
+          acts).fst.resume =
+    (let __src := s.consume ev;
+          { state := s.state, resume := __src.resume, timers := __src.timers, seq := (s.consume ev).seq + 1,
+            back := __src.back, pending := __src.pending },
+          []).fst.resume
+h2 :
+  (List.foldl (realizeOne ((s.consume ev).seq + 1))
+          (let __src := s.consume ev;
+            { state := s.state, resume := __src.resume, timers := __src.timers, seq := (s.consume ev).seq + 1,
+              back := __src.back, pending := __src.pending },
+            [])
+          acts).fst.timers =
+    (let __src := s.consume ev;
+          { state := s.state, resume := __src.resume, timers := __src.timers, seq := (s.consume ev).seq + 1,
+            back := __src.back, pending := __src.pending },
+          []).fst.timers
+⊢ False
+warning: Figram/OutcomeProofs.lean:488:16: This simp argument is unused:
+  Engine.realize_seq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [stay]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: Figram/OutcomeProofs.lean:703:12: Type mismatch
+  realize_undetach ?m.122 ?m.123 ?m.124
+has type
+  realize ?m.122 ?m.123 (List.map Action.undetach ?m.124) =
+    ((realize ?m.122 ?m.123 ?m.124).fst, List.map Action.undetach (realize ?m.122 ?m.123 ?m.124).snd)
+but is expected to have type
+  ({ state := (realize ((s.settle ev).consume ev) (s.settle ev).state b.undetach.actions).fst.state,
+        resume := (realize ((s.settle ev).consume ev) (s.settle ev).state b.undetach.actions).fst.resume,
+        timers := (realize ((s.settle ev).consume ev) (s.settle ev).state b.undetach.actions).fst.timers,
+        seq := (s.settle ev).seq,
+        back := (realize ((s.settle ev).consume ev) (s.settle ev).state b.undetach.actions).fst.back,
+        pending := (realize ((s.settle ev).consume ev) (s.settle ev).state b.undetach.actions).fst.pending },
+      (realize ((s.settle ev).consume ev) (s.settle ev).state b.undetach.actions).snd) =
+    ({ state := (realize ((s.settle ev).consume ev) (s.settle ev).state b.actions).fst.state,
+        resume := (realize ((s.settle ev).consume ev) (s.settle ev).state b.actions).fst.resume,
+        timers := (realize ((s.settle ev).consume ev) (s.settle ev).state b.actions).fst.timers,
+        seq := (s.settle ev).seq, back := (realize ((s.settle ev).consume ev) (s.settle ev).state b.actions).fst.back,
+        pending := (realize ((s.settle ev).consume ev) (s.settle ev).state b.actions).fst.pending },
+      List.map Action.undetach (realize ((s.settle ev).consume ev) (s.settle ev).state b.actions).snd)
+Some required targets logged failures:
+- Figram.OutcomeProofs

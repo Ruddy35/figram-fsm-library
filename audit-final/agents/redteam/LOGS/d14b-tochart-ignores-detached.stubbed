@@ -1,0 +1,4 @@
+Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==
+Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.
+Figram/Examples.lean:#guard@247:(allActs "pizza_order_success").any fun | .call "notify_kitchen

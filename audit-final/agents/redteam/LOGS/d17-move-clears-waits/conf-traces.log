@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d17-move-clears-waits/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:26:36.140Z
+end: 2026-11-03T18:26:36.901Z
+exit_code: 1
+--- stdout (950 bytes, last 200 lines)
+requests 17602, mismatches 1060
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'help', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 31}, 'event': 'cmd:start'} → {'id': 250, 'snapshot': {'at': 'menu', 'back': 'placing', 'resume': {'order': 'placing'}, 'seq': 32}, 'actions': [{'sen
+   {'op': 'step', 'snapshot': {'at': 'menu', 'back': 'placing', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 32}, 'event': 'btn:order'} → {'id': 253, 'snapshot': {'at': 'catalog', 'back': 'menu', 'resume': {'order': 'catalog'}, 'seq': 33}, 'actions': [{'sen
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'menu', 'resume': {'order': 'catalog'}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 33}, 'event': 'btn:cart'} → {'id': 254, 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 34}, 'se
+--- stderr (0 bytes, last 100 lines)

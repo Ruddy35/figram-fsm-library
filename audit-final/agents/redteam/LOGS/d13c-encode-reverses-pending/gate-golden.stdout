@@ -1,0 +1,2 @@
+scenarios: 37
+/home/user/figram-audit/agents5/redteam/LOGS/d13c-encode-reverses-pending/ggolden/out/golden.jsonl examples/golden.jsonl differ: char 25140, line 35

@@ -1,0 +1,13 @@
+command: scripts/proofgate.sh d20r-stay-consumes-all-timers-repaired 
+cwd: /home/user/figram-audit/agents5/redteam
+start: 2026-11-03T19:19:49.053Z
+end: 2026-11-03T19:20:06.466Z
+exit_code: 0
+--- stdout (183 bytes, last 200 lines)
+lake build exit 0: Build completed successfully (54 jobs).
+build warnings: 0
+theorems.lean exit 0
+pinned statements: identical (70)
+forbidden-construct grep done
+restored: 0 modified
+--- stderr (0 bytes, last 100 lines)

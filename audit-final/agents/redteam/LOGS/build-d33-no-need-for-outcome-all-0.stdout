@@ -1,0 +1,54 @@
+✔ [41/54] Built Figram.Trace (1.2s)
+✖ [43/54] Building Figram.EngineProofs (2.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:479:14: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  if
+      (true &&
+          !match ev with
+            | Event.outcome call outcome token => true
+            | x => false) =
+        true then
+    List.filter (fun n => !gs.any fun x => x.fst == n) (dedup (m.neededGuards s.state ev.key (givenOf gs)))
+  else []
+in the target expression
+  n ∈ List.filter (fun n => !gs.any fun x => x.fst == n) (dedup (m.neededGuards s.state ev.key (givenOf gs)))
+
+m : Machine
+s : Snapshot
+ev : Event
+gs : List (String × Bool)
+env : HostEnv
+hagree : ∀ (n : String) (v : Bool), givenOf gs n = some v → env n = v
+hgiven : ∀ (n : String) (v : Bool), givenOf gs n = some v → envOf gs n = v
+hn✝ : ¬¬s.state ∈ m.states
+hs : s.state ∈ m.states
+hacc : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+hc : (s.accepts ev && ownsTimer (m.exitOf s.state) ev) = true
+h :
+  (if
+        (true &&
+            !match ev with
+              | Event.outcome call outcome token => true
+              | x => false) =
+          true then
+      List.filter (fun n => !gs.any fun x => x.fst == n) (dedup (m.neededGuards s.state ev.key (givenOf gs)))
+    else []) =
+    []
+x✝ : Option Row
+r : Row
+hr : m.row s.state ev.key = some r
+n : String
+hn : n ∈ m.neededGuards s.state ev.key (givenOf gs)
+hnone : givenOf gs n = none
+hmem : n ∈ List.filter (fun n => !gs.any fun x => x.fst == n) (dedup (m.neededGuards s.state ev.key (givenOf gs)))
+⊢ False
+warning: Figram/EngineProofs.lean:463:21: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [hc] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [47/54] Built Figram.Examples (1.4s)
+Some required targets logged failures:
+- Figram.EngineProofs

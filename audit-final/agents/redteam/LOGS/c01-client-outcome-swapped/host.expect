@@ -1,0 +1,6 @@
+FAIL host contract: no line
+FAIL outcomes: no line
+FAIL background: no line
+FAIL controls: 0 of 3
+FAIL lost-snapshot controls
+gate-expect-bad=5

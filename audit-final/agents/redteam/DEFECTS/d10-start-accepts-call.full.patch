@@ -1,0 +1,42 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..70b06be 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -250,7 +250,6 @@ def decStartEvent (kvs : Obj) : R EventId :=
+   | some (.str e) =>
+     if e.isEmpty then throw "`event` must be a non-empty string"
+     else if e.startsWith "timer:" then throw "a timer event cannot start a user"
+-    else if e.startsWith "call:" then throw "an outcome event cannot start a user"
+     else pure e
+   | _ => throw "`event` must be a non-empty string"
+ 
+diff --git a/Figram/OutcomeProofs.lean b/Figram/OutcomeProofs.lean
+index 5df27b7..d23cca6 100644
+--- a/Figram/OutcomeProofs.lean
++++ b/Figram/OutcomeProofs.lean
+@@ -867,24 +867,7 @@ theorem decEvent_key (kvs : Obj) (ev : Event) (h : decEvent kvs = .ok ev) :
+ /-- **`start` never takes a timer or an outcome event**: a new user has no timers and no waits. -/
+ theorem decStartEvent_ok (kvs : Obj) (e : EventId) (h : decStartEvent kvs = .ok e) :
+     get kvs "event" = some (.str e) ∧ e ≠ "" ∧ e.startsWith "timer:" = false ∧
+-      e.startsWith "call:" = false := by
+-  unfold decStartEvent at h
+-  split at h
+-  · rename_i e' he
+-    split at h
+-    · simp at h
+-    · rename_i h1
+-      split at h
+-      · simp at h
+-      · rename_i h2
+-        split at h
+-        · simp at h
+-        · rename_i h3
+-          simp only [pure, Except.pure, Except.ok.injEq] at h
+-          subst h
+-          refine ⟨he, ?_, by simpa using h2, by simpa using h3⟩
+-          intro h0; subst h0; simp at h1
+-  · simp at h
++      e.startsWith "call:" = false := by sorry
+ 
+ /-- **An outcome event of an action is decoded as that outcome** (a non-empty action name, an
+ outcome name without `:`, a token within the bounds). -/

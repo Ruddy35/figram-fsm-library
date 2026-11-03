@@ -1,0 +1,25 @@
+command: nice -n 10 timeout 900 lake env lean /home/user/figram-audit/agents5/formal/Gaps.lean 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:50:30.061Z
+end: 2026-11-03T17:50:31.689Z
+exit_code: 0
+--- stdout (1558 bytes, last 200 lines)
+'Audit5.Gaps.step_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.startWith_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.restart_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.run_nodup' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.outcome_accepted_any_version' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.outcome_no_arrow_any_version' depends on axioms: [propext, Quot.sound]
+'Audit5.Gaps.stay_timer_redelivery' depends on axioms: [propext, Quot.sound]
+'Audit5.Gaps.no_arrow_timer_redelivery_accepted' depends on axioms: [propext, Quot.sound]
+'Audit5.Gaps.chart_outcome_unmatched' depends on axioms: [propext, Quot.sound]
+'Audit5.Gaps.decEvent_named_key' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.consecutive_tokens' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.step_seq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.chart_step_waitNames' depends on axioms: [propext, Quot.sound]
+'Audit5.Gaps.compiled_step_waitNames' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.toChart_calls' depends on axioms: [propext, Quot.sound]
+'Audit5.Gaps.doc_stay' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.compiled_restart_no_waits' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Audit5.Gaps.outcome_once_forever' depends on axioms: [propext, Classical.choice, Quot.sound]
+--- stderr (0 bytes, last 100 lines)

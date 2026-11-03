@@ -1,0 +1,2 @@
+request 1039038 bytes, 35000 pending entries, thread stack 128 KiB
+reply 1039000 bytes: {"id":1,"snapshot":{"at":"home","pending":[{"call":"ping","token":10},{"call":"ping","token":11},{"call":"ping","token":

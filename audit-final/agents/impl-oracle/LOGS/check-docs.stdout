@@ -1,0 +1,66 @@
+ok   paths
+ok   theorems
+ok   codes
+ok   cli
+ok   capi
+FAIL numbers: 1 problem(s)
+     docs/testing.md: states 26 for 'golden', the sources say 37
+ok   cyrillic
+ok   refs
+ok   gates
+ok   build
+ok   licenses
+FAIL examples: 4 problem(s)
+     README.md:129: $ figram stats examples/pizza.bot.json: output or exit status (want 0) differs
+         expected:
+           {"states":11,"rows":40,"branches":42,"resumes":1,"actions":31}
+         got:
+           {"states":13,"rows":50,"branches":53,"resumes":1,"actions":39}
+         exit status 0
+     README.md:212: output or exit status differs
+         expected:
+           [{'send': 'menu'}]
+           {'at': 'catalog', 'back': 'menu', 'resume': {'order': 'catalog'}, 'seq': 2} [{'send': 'catalog'}]
+           address
+           bad_snapshot False
+         got:
+           
+         exit status 1
+         stderr:
+           Traceback (most recent call last):
+             File "/tmp/check_docs.cx64rtdp/example.py", line 3, in <module>
+               engine = Engine("figram-engine", "examples/pizza.bot.json", processes=2)
+             File "/home/user/figram-audit-worktrees/a4-oracle/clients/python/figram_client.py", line 680, in __init__
+               raise EngineError(f"engine did not start: {e}") from None
+           figram_client.EngineError: engine did not start: engine process failed: protocol violation: engine protocol 3, the client supports only 2
+     docs/format.md:518: $ printf '%s\n' \: output or exit status (want 0) differs
+         expected:
+           {"id":1,"protocol":2,"states":11}
+           {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+           {"id":3,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+           {"id":4,"need":["cart_not_empty"]}
+           {"id":5,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"}]}
+         got:
+           {"id":1,"protocol":3,"states":13}
+           {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+           {"id":3,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+           {"id":4,"need":["cart_not_empty"]}
+           {"id":5,"snapshot":{"at":"address","resume":{"order":"address"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"address"}]}
+         exit status 0
+     docs/format.md:578: $ printf '%s\n' \: output or exit status (want 0) differs
+         expected:
+           {"id":1,"need":["is_vip"]}
+           {"id":2,"snapshot":{"at":"vip","seq":1},"actions":[{"send":"vip"}]}
+           {"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+         got:
+           {"id":1,"need":["is_vip"]}
+           {"id":2,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"start_timer":"nudge","ms":30000,"token":1},{"send":"vip"}]}
+           {"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+         exit status 0
+note: pinned theorems: 46 in tests/proofs/THEOREMS.expected, 46 listed in docs/proofs.md
+note: error codes: ['bad_request', 'bad_snapshot', 'parse_error', 'seq_overflow', 'too_large']; shim: ['bad_request', 'parse_error', 'too_large']; operations: ['hello', 'restart', 'start', 'step']
+note: CLI commands: ['check', 'example', 'fmt', 'golden', 'random', 'stats', 'trace']; hidden: ['json']
+note: C ABI functions: 15
+note: numbers: pinned=46, source theorems=194, golden=37, mutants=118, selftest=39, snapshots=30, edges=137, capi=45, random docs=100, random messages=12, random traces=20, random length=30, trace count=200, trace length=40, fuzz=30000, request faults=13, start faults=5, fault threads=8, blocked requests=300, robustness=20, users=30, host threads=16
+note: runnable examples: 10
+check_docs: 5 problem(s)

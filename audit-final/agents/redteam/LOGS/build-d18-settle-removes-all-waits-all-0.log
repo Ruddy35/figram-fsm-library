@@ -1,0 +1,33 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:09:35.832Z
+end: 2026-11-03T18:09:45.868Z
+exit_code: 1
+--- stdout (1738 bytes, last 200 lines)
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:56:8: declaration uses `sorry`
+✔ [11/54] Built Figram.RandomDoc (1.3s)
+✔ [31/54] Built Figram.Warnings (1.6s)
+✔ [33/54] Built Figram.Correct (2.5s)
+✔ [35/54] Built Figram.LintProofs (312ms)
+✔ [37/54] Built Figram.Run (623ms)
+✔ [38/54] Built Figram.Trace (1.9s)
+✔ [39/54] Built Figram.Run:c.o (149ms)
+✔ [40/54] Built Figram.FormatProofs (5.1s)
+✔ [42/54] Built Figram.Trace:c.o (3.0s)
+✖ [43/54] Building Figram.Examples (1.9s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:336:0: Expression
+  Option.map (fun r => List.take 3 r.snd.reverse) (runGolden "outcome_every_anywhere") ==
+    some [[], [Action.call "log" true Wait.free 6], [Action.call "log" true Wait.free 5]]
+did not evaluate to `true`
+error: Figram/Examples.lean:342:0: Expression
+  Option.map (fun r => (r.fst.pending, r.snd.head!)) (runGolden "outcome_recovery_stale") ==
+    some ([("ping", 6)], [Action.startTimer "idle" 60000 7, Action.send "home"])
+did not evaluate to `true`
+✔ [45/54] Built Figram.EngineProofs (2.9s)
+✔ [47/54] Built Figram.OutcomeProofs (1.4s)
+Some required targets logged failures:
+- Figram.Examples
+--- stderr (20 bytes, last 100 lines)
+error: build failed

@@ -1,0 +1,5 @@
+Figram/CoreProofs.lean:step_back
+Figram/CoreProofs.lean:step_recover_timer
+Figram/CoreProofs.lean:step_recover
+Figram/CoreProofs.lean:step_guard_local
+Figram/CoreProofs.lean:step_state_valid

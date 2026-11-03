@@ -1,0 +1,62 @@
+none                           cases=  1 engine_accepts=  1 disagreements=0
+dup_node                       cases=  1 engine_accepts=  0 disagreements=1
+initial_grandchild             cases=  1 engine_accepts=  0 disagreements=1
+initial_missing                cases=  1 engine_accepts=  0 disagreements=1
+to_missing                     cases=  1 engine_accepts=  0 disagreements=1
+resume_to_message              cases=  1 engine_accepts=  0 disagreements=1
+undeclared_if                  cases=  1 engine_accepts=  0 disagreements=1
+undeclared_do                  cases=  1 engine_accepts=  0 disagreements=1
+timer_event_no_timer           cases=  1 engine_accepts=  0 disagreements=1
+empty_event                    cases=  1 engine_accepts=  0 disagreements=1
+empty_timer                    cases=  1 engine_accepts=  0 disagreements=1
+empty_if                       cases=  1 engine_accepts=  0 disagreements=1
+empty_cond_key                 cases=  1 engine_accepts=  0 disagreements=1
+section_timers                 cases=  1 engine_accepts=  0 disagreements=1
+message_initial                cases=  1 engine_accepts=  0 disagreements=1
+requires                       cases=  1 engine_accepts=  0 disagreements=1
+requires_empty                 cases=  1 engine_accepts=  1 disagreements=0
+big_delay                      cases=  1 engine_accepts=  0 disagreements=1
+max_delay                      cases=  1 engine_accepts=  1 disagreements=0
+frac_delay                     cases=  1 engine_accepts=  0 disagreements=1
+resume_false_explicit          cases=  1 engine_accepts=  1 disagreements=0
+resume_not_bool                cases=  1 engine_accepts=  0 disagreements=1
+unknown_key                    cases=  1 engine_accepts=  0 disagreements=1
+x_key                          cases=  1 engine_accepts=  1 disagreements=0
+misspelt_if                    cases=  1 engine_accepts=  0 disagreements=1
+timer_named_like_event         cases=  1 engine_accepts=  1 disagreements=0
+node_named_bot                 cases=  1 engine_accepts=  1 disagreements=0
+outcome_arrow_undeclared       cases=  1 engine_accepts=  0 disagreements=1
+outcome_arrow_failed_ok        cases=  1 engine_accepts=  1 disagreements=0
+outcome_arrow_declared_ok      cases=  1 engine_accepts=  1 disagreements=0
+outcome_arrow_plain_action     cases=  1 engine_accepts=  0 disagreements=1
+outcome_arrow_missing_action   cases=  1 engine_accepts=  0 disagreements=1
+outcome_arrow_malformed        cases=  1 engine_accepts=  0 disagreements=1
+outcome_arrow_colon_action_ok  cases=  1 engine_accepts=  1 disagreements=0
+dup_outcome_action_in_do       cases=  1 engine_accepts=  0 disagreements=1
+dup_plain_action_in_do         cases=  1 engine_accepts=  1 disagreements=0
+stay_with_resume               cases=  1 engine_accepts=  0 disagreements=1
+stay_with_back                 cases=  1 engine_accepts=  0 disagreements=1
+stay_ok                        cases=  1 engine_accepts=  1 disagreements=0
+to_null                        cases=  1 engine_accepts=  0 disagreements=1
+every_without_outcomes         cases=  1 engine_accepts=  0 disagreements=1
+every_false_explicit_ok        cases=  1 engine_accepts=  1 disagreements=0
+detached_false_explicit_ok     cases=  1 engine_accepts=  1 disagreements=0
+detached_not_bool              cases=  1 engine_accepts=  0 disagreements=1
+outcomes_failed                cases=  1 engine_accepts=  0 disagreements=1
+outcomes_colon                 cases=  1 engine_accepts=  0 disagreements=1
+outcomes_dup                   cases=  1 engine_accepts=  0 disagreements=1
+outcomes_empty_name            cases=  1 engine_accepts=  0 disagreements=1
+outcomes_empty_list            cases=  1 engine_accepts=  1 disagreements=0
+outcomes_empty_every           cases=  1 engine_accepts=  0 disagreements=1
+outcomes_not_list              cases=  1 engine_accepts=  0 disagreements=1
+call_unknown_key               cases=  1 engine_accepts=  0 disagreements=1
+call_x_key_ok                  cases=  1 engine_accepts=  1 disagreements=0
+call_no_text                   cases=  1 engine_accepts=  0 disagreements=1
+call_text_not_string           cases=  1 engine_accepts=  0 disagreements=1
+call_number                    cases=  1 engine_accepts=  0 disagreements=1
+call_text_object_ok            cases=  1 engine_accepts=  1 disagreements=0
+total cases 57, disagreements 40
+DISAGREE {"kind": "dup_node", "oracle": true, "engine": false, "doc": "{\"figram\": 1, \"conditions\": {\"c1\": \"cond c1\", \"c2\": \"cond c2\", \"c3\": \"cond c3\", \"c4\": \"cond c4\"}, \"calls\": {\"k1\": \"call k1\", \"k2\": \"call k2\", \"k3\": \"call k3\"}, \"bot\": {\"initial\": \"s1\", \"on\": {\"msg:text\": [{\"if\": \"c4\", \"to\": \"m1\", \"do\": [\"k3\"]}, {\"if\": \"c1\", \"to\": \"m2\", \"back\": true, \"do\": [\"k1\", \"k2\"]}, {\"to\": \"m1\"}]}, \"children\": {\"s0\": {\"initial\": \"m3\", \"on\": {\"msg:text\": [{\"to\": \"m1\"}], \"timer:t5\": [{\"if\": \"c1\", \"to\": \"m2\"}, {\"i
+DISAGREE {"kind": "initial_grandchild", "oracle": true, "engine": false, "doc": "{\"figram\": 1, \"conditions\": {\"c1\": \"cond c1\", \"c2\": \"cond c2\", \"c3\": \"cond c3\", \"c4\": \"cond c4\"}, \"calls\": {\"k1\": \"call k1\", \"k2\": \"call k2\", \"k3\": \"call k3\"}, \"bot\": {\"initial\": \"m1\", \"on\": {\"btn:a\": [{\"if\": \"c3\", \"to\": \"m6\", \"back\": true, \"do\": [\"k2\", \"k2\"]}, {\"to\": \"s0\", \"resume\": true, \"do\": [\"k3\", \"k1\"]}], \"timer:t3\": [{\"if\": \"c3\", \"to\": \"m1\"}, {\"if\": \"c2\", \"to\": \"s0\", \"resume\": true}], \"timer:t4\": [{\"if\": \"c3\", \"to\": \
+DISAGREE {"kind": "initial_missing", "oracle": true, "engine": false, "doc": "{\"figram\": 1, \"conditions\": {\"c1\": \"cond c1\", \"c2\": \"cond c2\", \"c3\": \"cond c3\", \"c4\": \"cond c4\"}, \"calls\": {\"k1\": \"call k1\", \"k2\": \"call k2\", \"k3\": \"call k3\"}, \"bot\": {\"initial\": \"m2\", \"on\": {\"btn:c\": [{\"if\": \"c4\", \"to\": \"s1\", \"resume\": true}, {\"if\": \"c4\", \"to\": \"s2\", \"do\": [\"k2\", \"k1\"], \"x-ui\": {\"label\": \"v1\"}}, {\"if\": \"c4\", \"to\": \"s1\", \"resume\": true, \"do\": [\"k1\"], \"x-ui\": {\"label\": \"v2\"}}], \"btn:d\": [{\"if\": \"c3\", \"to\": \"s
+EXPECT-RED: RED (good)

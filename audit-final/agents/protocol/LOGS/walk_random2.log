@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 /home/user/figram-audit/agents5/protocol/walk.py /home/user/figram-audit-worktrees/a5-protocol examples/pizza.bot.json examples/features.bot.json /home/user/figram-audit/agents5/protocol/docs/r1.bot.json /home/user/figram-audit/agents5/protocol/docs/r2.bot.json /home/user/figram-audit/agents5/protocol/docs/r3.bot.json /home/user/figram-audit/agents5/protocol/docs/r4.bot.json /home/user/figram-audit/agents5/protocol/docs/r5.bot.json /home/user/figram-audit/agents5/protocol/docs/r6.bot.json /home/user/figram-audit/agents5/protocol/docs/r7.bot.json /home/user/figram-audit/agents5/protocol/docs/r8.bot.json /home/user/figram-audit/agents5/protocol/docs/r9.bot.json /home/user/figram-audit/agents5/protocol/docs/r10.bot.json --steps 800 --dump /home/user/figram-audit/agents5/protocol/replies2.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:50:51.406Z
+end: 2026-11-03T17:50:53.245Z
+exit_code: 0
+--- stdout (35 bytes, last 200 lines)
+docs 12, requests 9840, problems 0
+--- stderr (0 bytes, last 100 lines)

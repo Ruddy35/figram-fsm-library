@@ -1,0 +1,45 @@
+{
+ "figram": 1,
+ "calls": {
+  "log": "Log",
+  "mk": {
+   "text": "Make",
+   "outcomes": [
+    "ok"
+   ]
+  }
+ },
+ "bot": {
+  "initial": "h",
+  "on": {
+   "call:mk:ok": [
+    {
+     "to": "h"
+    }
+   ],
+   "call:mk:failed": [
+    {
+     "to": "h"
+    }
+   ]
+  },
+  "children": {
+   "h": {
+    "on": {
+     "btn:go": [
+      {
+       "do": [
+        "mk"
+       ]
+      }
+     ],
+     "btn:r": [
+      {
+       "resume": true
+      }
+     ]
+    }
+   }
+  }
+ }
+}

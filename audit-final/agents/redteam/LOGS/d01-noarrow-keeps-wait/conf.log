@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d01-noarrow-keeps-wait/figram-engine --golden examples/golden.jsonl examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T17:55:07.596Z
+end: 2026-11-03T17:55:08.519Z
+exit_code: 1
+--- stdout (948 bytes, last 200 lines)
+requests 17772, mismatches 43
+   {'op': 'step', 'snapshot': {'at': 'item2', 'back': 'catalog', 'resume': {'shop': 'item2'}, 'pending': [{'call': 'check_stock', 'token': 4}], 'seq': 5}, 'event': 'call:check_stock:yes', 'token': 4} → {'id': 105, 'snapshot': {'at': 'item2', 'back': 'catalog', 'resume': {'shop': 'item2'}, 'pending': [{
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 7}, 'event': 'call:check_stock:yes', 'token': 5} → {'id': 122, 'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 7}, 'act
+   {'op': 'step', 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 34}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 34}, 'event': 'call:create_order:failed', 'token': 31} → {'id': 255, 'snapshot': {'at': 'cart', 'back': 'menu', 'resume':
+--- stderr (0 bytes, last 100 lines)

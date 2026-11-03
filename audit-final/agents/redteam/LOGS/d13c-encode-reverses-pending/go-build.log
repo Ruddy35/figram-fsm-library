@@ -1,0 +1,7 @@
+command: bash -c cd\ clients/go\ \&\&\ CC=gcc\ nice\ -n\ 10\ go\ build\ -ldflags=-extldflags=-Wl\,--gc-sections\ -o\ gofig\ . 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:54:17.759Z
+end: 2026-11-03T18:54:18.646Z
+exit_code: 0
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

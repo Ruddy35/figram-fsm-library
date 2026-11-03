@@ -1,0 +1,20 @@
+✔ [11/54] Built Figram.Warnings (852ms)
+✔ [28/54] Built Figram.RandomDoc (1.6s)
+✔ [33/54] Built Figram.Correct (2.4s)
+✔ [35/54] Built Figram.LintProofs (473ms)
+✔ [37/54] Built Figram.Run (543ms)
+✔ [39/54] Built Figram.Trace (2.2s)
+✔ [41/54] Built Figram.FormatProofs (5.2s)
+✔ [43/54] Built Figram.Examples (1.7s)
+✖ [45/54] Building Figram.EngineProofs (2.5s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:160:43: Application type mismatch: The argument
+  hq
+has type
+  p ∈ (s.consume (Event.timer id t)).timers
+but is expected to have type
+  p ∈ erase s.timers ?m.55
+in the application
+  mem_erase hq
+Some required targets logged failures:
+- Figram.EngineProofs

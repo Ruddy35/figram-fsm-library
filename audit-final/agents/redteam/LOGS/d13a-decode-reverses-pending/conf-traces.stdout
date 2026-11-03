@@ -1,0 +1,4 @@
+requests 17602, mismatches 494
+   {'op': 'step', 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 22}, 'pending': [{'call': 'ping', 'token': 23}, {'call': 'ping', 'token': 20}], 'seq': 23}, 'event': 'cmd:help'} → {'id': 34, 'snapshot': {'at': 'help', 'back': 'catalog', 'resume': {'shop'
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 30}, 'pending': [{'call': 'ping', 'token': 31}, {'call': 'ping', 'token': 28}], 'seq': 31}, 'event': 'btn:prev'} → {'id': 179, 'snapshot': {'at': 'reminder', 'back': 'home', 'resume': {'s
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 3}, {'call': 'ping', 'token': 2}], 'seq': 3}, 'event': 'btn:go', 'guards': {'is_vip': False}} → {'id': 186, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [

@@ -1,0 +1,18 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/formats/f_parser_scaling.py --figram /home/user/figram-audit/agents5/redteam/bin/mut/d15b-check-undeclared-outcome/figram --engine /home/user/figram-audit/agents5/redteam/bin/mut/d15b-check-undeclared-outcome/figram-engine --check --tmp /tmp
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:46:43Z
+end: 2026-11-03T18:46:45Z
+exit_code: 0
+--- stdout (1419 bytes, last 200 lines)
+measurement floor (/bin/true): RSS 10.3 MiB
+     json: object 16k keys                0.22 MB     0.02 s  RSS     10.3 MiB (  49.6×)  rc=0 reply=b'OK {"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"'
+     json: object 32k keys                0.46 MB     0.03 s  RSS     12.1 MiB (  27.8×)  rc=0 reply=b'OK {"k0":0,"k1":1,"k2":2,"k3":3,"k4":4,"'
+     json: integer 160k digits            0.16 MB     0.03 s  RSS     10.2 MiB (  66.8×)  rc=0 reply=b'OK 1123456789012345678901234567890123456'
+     json: fraction 160k digits           0.16 MB     0.04 s  RSS     10.2 MiB (  66.7×)  rc=0 reply=b'OK 0.12345678901234567890123456789012345'
+     json: string 5 MB                    5.00 MB     0.09 s  RSS     25.3 MiB (   5.3×)  rc=0 reply=b'OK "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+     json: string 20 MB                  20.00 MB     0.60 s  RSS     84.4 MiB (   4.4×)  rc=0 reply=b'OK "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+     engine: guards 32k keys              0.44 MB     0.04 s  RSS     11.4 MiB (  27.2×)  rc=0 reply=b'{"id":1,"snapshot":{"at":"home","timers"'
+     engine: id 160k digits (echo)        0.16 MB     0.04 s  RSS     10.4 MiB (  67.9×)  rc=0 reply=b'{"id":1123456789012345678901234567890123'
+     engine: event 20 MB                 20.00 MB     0.84 s  RSS     64.4 MiB (   3.4×)  rc=0 reply=b'{"id":1,"snapshot":{"at":"home"},"action'
+inputs=9 over-budget=0 engine-options=['--max-request', '0']
+--- stderr (0 bytes, last 100 lines)

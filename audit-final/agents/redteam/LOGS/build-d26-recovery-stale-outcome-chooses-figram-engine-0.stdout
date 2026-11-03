@@ -1,0 +1,86 @@
+✔ [8/28] Built Figram.Core (1.5s)
+✔ [9/28] Built Figram.Chart (1.3s)
+✖ [10/28] Building Figram.CoreProofs (1.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/CoreProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.setup.json --json
+error: Figram/CoreProofs.lean:301:74: unsolved goals
+case none
+m : Machine
+s : Snapshot
+pre : List Action
+ev : Event
+env : HostEnv
+⊢ (match m.choose m.initial ev env with
+    | some b =>
+      realize (s.settle ev)
+        (m.resolve
+          { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+            pending := s.pending }
+          b.target)
+        (pre ++
+          (b.actions ++
+            m.entryOf
+              (m.resolve
+                { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                  pending := s.pending }
+                b.target)))
+    | none => realize (s.settle ev) m.initial (pre ++ m.initActions)) =
+    realize (s.settle ev) m.initial (pre ++ m.initActions)
+
+case some
+m : Machine
+s : Snapshot
+pre : List Action
+ev : Event
+env : HostEnv
+val✝ : FBranch
+⊢ (match m.choose m.initial ev env with
+    | some b =>
+      realize (s.settle ev)
+        (m.resolve
+          { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+            pending := s.pending }
+          b.target)
+        (pre ++
+          (b.actions ++
+            m.entryOf
+              (m.resolve
+                { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                  pending := s.pending }
+                b.target)))
+    | none => realize (s.settle ev) m.initial (pre ++ m.initActions)) =
+    realize (s.settle ev)
+      (m.resolve
+        { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+          pending := s.pending }
+        val✝.target)
+      (pre ++
+        (val✝.actions ++
+          m.entryOf
+            (m.resolve
+              { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := s.pending }
+              val✝.target)))
+warning: Figram/CoreProofs.lean:591:34: This simp argument is unused:
+  Snapshot.accepts
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, ite_true, hb, hstale, realizeAfter_eq, List.append_nil, List.nil_append,
+    Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/CoreProofs.lean:591:52: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, Snapshot.accepts, hb, hstale, realizeAfter_eq, List.append_nil,
+    List.nil_append, Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [15/28] Built Figram.Compile (918ms)
+✔ [17/28] Built Figram.Core:c.o (2.5s)
+✔ [18/28] Built Figram.Lint (561ms)
+✔ [20/28] Built Figram.Format (1.4s)
+✔ [22/28] Built Figram.FormatIO (966ms)
+✔ [24/28] Built Figram.Engine (894ms)
+Some required targets logged failures:
+- Figram.CoreProofs

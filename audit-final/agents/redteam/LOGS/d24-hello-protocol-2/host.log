@@ -1,0 +1,15 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py /home/user/figram-audit/agents5/redteam/bin/mut/d24-hello-protocol-2/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:33:48.819Z
+end: 2026-11-03T18:33:48.895Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (686 bytes, last 100 lines)
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py", line 770, in <module>
+    ok1 = scenario_orders(engine_path, doc, barrier=barrier)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py", line 563, in scenario_orders
+    engine = Engine(engine_path, doc, processes=2)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/../../clients/python/figram_client.py", line 696, in __init__
+    raise EngineError(f"engine did not start: {e}") from None
+figram_client.EngineError: engine did not start: engine process failed: protocol violation: engine protocol 2, the client supports only 3

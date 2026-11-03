@@ -1,0 +1,15 @@
+command: sh -c .lake/build/bin/figram-engine\ examples/features.bot.json\ \<\ /home/user/figram-audit/agents5/protocol/docupdate.in 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:48:18.254Z
+end: 2026-11-03T17:48:18.264Z
+exit_code: 0
+--- stdout (1260 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":1}],"seq":1},"actions":[{"call":"ping","token":1,"detached":true},{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
+{"id":2,"snapshot":{"at":"home","resume":{"order":"placing"},"timers":{"idle":7},"seq":7},"actions":[{"start_timer":"idle","ms":60000,"token":7},{"send":"home"}],"recovered":true}
+{"id":3,"snapshot":{"at":"home","seq":6},"actions":[]}
+{"id":4,"snapshot":{"at":"home","timers":{"idle":7},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"cancel_timer":"cart_reminder"},{"start_timer":"idle","ms":60000,"token":7},{"send":"home"}],"recovered":true}
+{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":3}],"seq":4},"actions":[{"call":"log","detached":true}]}
+{"id":6,"snapshot":{"at":"home","pending":[{"call":"ping","token":4},{"call":"check_stock","token":2}],"seq":4},"actions":[{"call":"ping","token":4,"detached":true}]}
+{"id":7,"snapshot":{"at":"item","resume":{"shop":"item"},"pending":[{"call":"check_stock","token":4}],"seq":4},"actions":[{"call":"check_stock","token":4}]}
+{"id":8,"snapshot":{"at":"home","pending":[{"call":"ping","token":4}],"seq":4},"actions":[{"call":"ping","token":4,"detached":true}]}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,3 @@
+FAIL validator on {"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":false}]}: accepted, expected rejected
+FAIL validator on {"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":1}]}: accepted, expected rejected
+protocol edge cases 250, replies 250, mismatches 2

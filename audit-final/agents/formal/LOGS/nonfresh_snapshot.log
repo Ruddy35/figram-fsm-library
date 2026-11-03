@@ -1,0 +1,9 @@
+command: /home/user/figram-audit/agents5/formal/nonfresh_snapshot.sh 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:55:17.944Z
+end: 2026-11-03T17:55:17.954Z
+exit_code: 0
+--- stdout (189 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"home","seq":9},"actions":[]}
+{"id":2,"snapshot":{"at":"home","pending":[{"call":"ping","token":9}],"seq":9},"actions":[{"call":"ping","token":9,"detached":true}]}
+--- stderr (0 bytes, last 100 lines)

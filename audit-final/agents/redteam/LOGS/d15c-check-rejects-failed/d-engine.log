@@ -1,0 +1,8 @@
+command: env FIGRAM=/home/user/figram-audit/agents5/redteam/bin/mut/d15c-check-rejects-failed/figram FIGRAM_ENGINE=/home/user/figram-audit/agents5/redteam/bin/mut/d15c-check-rejects-failed/figram-engine nice -n 10 timeout 900 python3 tests/formats/d_engine_requests.py 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:25:12.984Z
+end: 2026-11-03T18:25:13.041Z
+exit_code: 2
+--- stdout (300 bytes, last 200 lines)
+engine rc=1, replies 0 of 96: b'document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)\ndocument error: event `call:check_stock:failed`: `check_stock` is not an action with the outcome `failed` (the prefix `call:` is reserved)\n'
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,13 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..a016657 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -512,7 +512,7 @@ def Doc.check (d : Doc) : List String :=
+     else match splitOutcome (e.drop 5).toString with
+       | none => some s!"event `{e}`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)"
+       | some (n, o) =>
+-        if (outcomesOf n).any (·.contains o) then none
++        if (outcomesOf n).isSome || o.isEmpty then none
+         else some s!"event `{e}`: `{n}` is not an action with the outcome `{o}` (the prefix `call:` is reserved)"
+   let twiceInDo := (allVariants "bot" d.bot).flatMap fun (id, e, v) =>
+     (dups (v.calls.filter fun n => (outcomesOf n).isSome)).map fun n =>

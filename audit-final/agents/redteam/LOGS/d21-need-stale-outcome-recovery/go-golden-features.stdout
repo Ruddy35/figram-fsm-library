@@ -1,0 +1,1 @@
+bots 2, rounds 3, goroutines 93, requests 306, mismatches 0, 29710 requests/s (GOMAXPROCS=4, CPU=4)

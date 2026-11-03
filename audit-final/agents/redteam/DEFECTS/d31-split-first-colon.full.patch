@@ -1,0 +1,130 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..4d6f54f 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -227,7 +227,9 @@ def decEvent (kvs : Obj) : R Event := do
+     | some j => pure (.timer id (← reqNat "token" j))
+     | none => throw "missing field `token` for a timer event"
+   else if name.startsWith "call:" then
+-    match splitOutcome (name.drop 5).toString with
++    match (match (name.drop 5).toString.splitOn ":" with
++      | c :: o :: rest => if c.isEmpty || o.isEmpty then none else some (c, ":".intercalate (o :: rest))
++      | _ => none) with
+     | none => throw "an outcome event is `call:<action>:<outcome>`, both parts non-empty"
+     | some (c, o) =>
+       match get kvs "token" with
+diff --git a/Figram/OutcomeProofs.lean b/Figram/OutcomeProofs.lean
+index 5df27b7..8581825 100644
+--- a/Figram/OutcomeProofs.lean
++++ b/Figram/OutcomeProofs.lean
+@@ -805,86 +805,12 @@ theorem startsWith_join {p name : String} {n : Nat} (hn : p.length = n) (h : nam
+ /-- **The arrow is looked up by exactly the event the host sent**: the key of a decoded event is
+ the request's `event`. -/
+ theorem decEvent_key (kvs : Obj) (ev : Event) (h : decEvent kvs = .ok ev) :
+-    get kvs "event" = some (.str ev.key) := by
+-  unfold decEvent at h
+-  cases he : get kvs "event" with
+-  | none => simp only [he] at h; cases h
+-  | some j =>
+-    cases j with
+-    | str e =>
+-      simp only [he] at h
+-      cases h0 : e.isEmpty
+-      · simp only [h0, Bool.false_eq_true, ↓reduceIte, bind, Except.bind, pure, Except.pure] at h
+-        cases ht : e.startsWith "timer:"
+-        · simp only [ht, Bool.false_eq_true, ↓reduceIte] at h
+-          cases hc : e.startsWith "call:"
+-          · simp only [hc, Bool.false_eq_true, ↓reduceIte] at h
+-            cases hk : (get kvs "token").isSome
+-            · simp only [hk, Bool.false_eq_true, ↓reduceIte] at h
+-              cases h
+-              rfl
+-            · simp only [hk, ↓reduceIte] at h
+-              cases h
+-          · simp only [hc, ↓reduceIte] at h
+-            cases hs : splitOutcome (e.drop 5).toString with
+-            | none => simp only [hs] at h; cases h
+-            | some co =>
+-              obtain ⟨c, o⟩ := co
+-              simp only [hs] at h
+-              cases hk : get kvs "token" with
+-              | none => simp only [hk] at h; cases h
+-              | some j =>
+-                simp only [hk] at h
+-                cases hn : reqNat "token" j with
+-                | error => simp only [hn] at h; cases h
+-                | ok t =>
+-                  simp only [hn] at h
+-                  cases h
+-                  simp only [Event.key, outcomeEvent]
+-                  rw [show "call:" ++ c ++ ":" ++ o = "call:" ++ (c ++ ":" ++ o) by
+-                      simp [String.append_assoc],
+-                    splitOutcome_join hs, startsWith_join (by decide) hc]
+-        · simp only [ht, ↓reduceIte] at h
+-          cases hi : (e.drop 6).toString.isEmpty
+-          · simp only [hi, Bool.false_eq_true, ↓reduceIte] at h
+-            cases hk : get kvs "token" with
+-            | none => simp only [hk] at h; cases h
+-            | some j =>
+-              simp only [hk] at h
+-              cases hn : reqNat "token" j with
+-              | error => simp only [hn] at h; cases h
+-              | ok t =>
+-                simp only [hn] at h
+-                cases h
+-                simp only [Event.key, timerEvent]
+-                rw [startsWith_join (by decide) ht]
+-          · simp only [hi, ↓reduceIte] at h
+-            cases h
+-      · simp only [h0, ↓reduceIte] at h
+-        cases h
+-    | _ => simp only [he] at h; cases h
++    get kvs "event" = some (.str ev.key) := by sorry
+ 
+ /-- **`start` never takes a timer or an outcome event**: a new user has no timers and no waits. -/
+ theorem decStartEvent_ok (kvs : Obj) (e : EventId) (h : decStartEvent kvs = .ok e) :
+     get kvs "event" = some (.str e) ∧ e ≠ "" ∧ e.startsWith "timer:" = false ∧
+-      e.startsWith "call:" = false := by
+-  unfold decStartEvent at h
+-  split at h
+-  · rename_i e' he
+-    split at h
+-    · simp at h
+-    · rename_i h1
+-      split at h
+-      · simp at h
+-      · rename_i h2
+-        split at h
+-        · simp at h
+-        · rename_i h3
+-          simp only [pure, Except.pure, Except.ok.injEq] at h
+-          subst h
+-          refine ⟨he, ?_, by simpa using h2, by simpa using h3⟩
+-          intro h0; subst h0; simp at h1
+-  · simp at h
++      e.startsWith "call:" = false := by sorry
+ 
+ /-- **An outcome event of an action is decoded as that outcome** (a non-empty action name, an
+ outcome name without `:`, a token within the bounds). -/
+@@ -892,20 +818,7 @@ theorem decEvent_outcome (kvs : Obj) (c o : String) (tok : Nat) (hc : c ≠ "")
+     (hco : ':' ∉ o.toList) (htok : tok ≤ maxInt)
+     (hev : get kvs "event" = some (.str (outcomeEvent c o)))
+     (ht : get kvs "token" = some (.num tok 0)) :
+-    decEvent kvs = .ok (.outcome c o tok) := by
+-  have hdrop : ((outcomeEvent c o).drop 5).toString = c ++ ":" ++ o := by
+-    apply String.toList_injective
+-    simp [outcomeEvent, String.toList_append, String.toList_copy_drop]
+-  have htimer : (outcomeEvent c o).startsWith "timer:" = false := by
+-    simp [outcomeEvent, String.startsWith_string_eq_false_iff, String.toList_append, List.IsPrefix]
+-  have hcall : (outcomeEvent c o).startsWith "call:" = true := by
+-    simp [outcomeEvent, String.startsWith_string_iff, String.toList_append]
+-  have hne : (outcomeEvent c o).isEmpty = false := by
+-    simp [outcomeEvent]
+-  have hreq : reqNat "token" (.num tok 0) = .ok tok := by
+-    simp [reqNat, numToNat_nat, htok]; rfl
+-  simp only [decEvent, hev, hne, htimer, hcall, hdrop, splitOutcome_outcomeEvent c o hc ho hco, ht,
+-    hreq, Bool.false_eq_true, ↓reduceIte, bind, Except.bind, pure, Except.pure]
++    decEvent kvs = .ok (.outcome c o tok) := by sorry
+ 
+ /-- **`restart` is `recover`** from the snapshot without the remembered places, the place to go
+ back to and the waits (if the snapshot is decoded and the counter does not overflow). -/

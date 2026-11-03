@@ -1,0 +1,52 @@
+✔ [18/54] Built Figram.Warnings (1.0s)
+✔ [29/54] Built Figram.RandomDoc (1.2s)
+✔ [33/54] Built Figram.Correct (1.9s)
+✔ [35/54] Built Figram.LintProofs (448ms)
+✔ [37/54] Built Figram.Run (542ms)
+✔ [39/54] Built Figram.Trace (1.5s)
+✔ [41/54] Built Figram.FormatProofs (4.5s)
+✖ [43/54] Building Figram.Examples (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:270:0: Expression
+  Option.map (fun x => x.snd.getLast!) (runGolden "buy_action_order") ==
+    some
+      [Action.cancelTimer "remind", Action.call "charge" false Wait.free 4, Action.call "notify" false Wait.free 4,
+        Action.send "paid"]
+did not evaluate to `true`
+error: Figram/Examples.lean:323:0: Expression
+  Option.map (fun r => (r.fst.state, r.fst.seq, r.fst.timers, r.snd.getLast!)) (runGolden "stay_keeps_message") ==
+    some ("home", 3, [("idle", 1)], [Action.call "log" true Wait.free 3])
+did not evaluate to `true`
+error: Figram/Examples.lean:328:0: Expression
+  Option.map (fun r => (r.fst.state, r.snd.reverse.getD 1 [])) (runGolden "outcome_latest_only") == some ("catalog", [])
+did not evaluate to `true`
+error: Figram/Examples.lean:336:0: Expression
+  Option.map (fun r => List.take 3 r.snd.reverse) (runGolden "outcome_every_anywhere") ==
+    some [[], [Action.call "log" true Wait.free 6], [Action.call "log" true Wait.free 5]]
+did not evaluate to `true`
+error: Figram/Examples.lean:340:0: Expression
+  Option.map (fun r => r.snd.head!) (runGolden "outcome_recovery") ==
+    some [Action.call "log" true Wait.free 7, Action.startTimer "idle" 60000 7, Action.send "home"]
+did not evaluate to `true`
+error: Figram/Examples.lean:345:0: Expression
+  (features.step
+          { state := "item", resume := [], timers := [], seq := 4, back := none, pending := [("check_stock", 4)] }
+          (Event.named "btn:check") fun x => false).fst.pending ==
+    [("check_stock", 5)]
+did not evaluate to `true`
+error: Figram/Examples.lean:347:0: Expression
+  (features.step { state := "home", resume := [], timers := [], seq := 4, back := none, pending := [("ping", 2)] }
+          (Event.named "btn:ping") fun x => false).fst.pending ==
+    [("ping", 5), ("ping", 2)]
+did not evaluate to `true`
+✖ [45/54] Building Figram.EngineProofs (2.4s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:182:52: Type mismatch
+  hp
+has type
+  p ∈ (realizeOne tok acc (Action.call n d w token✝)).fst.pending
+but is expected to have type
+  p ∈ addWait acc.fst.pending n tok w
+Some required targets logged failures:
+- Figram.Examples
+- Figram.EngineProofs

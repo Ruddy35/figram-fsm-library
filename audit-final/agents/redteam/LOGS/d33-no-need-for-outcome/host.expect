@@ -1,0 +1,2 @@
+FAIL host contract:   users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 27, orders in the CRM 12, events processed 578 of 578 (repeated del
+gate-expect-bad=1

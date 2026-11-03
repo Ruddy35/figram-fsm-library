@@ -1,0 +1,1 @@
+event `call:x:failed`: `x` is not an action with the outcome `failed` (the prefix `call:` is reserved)

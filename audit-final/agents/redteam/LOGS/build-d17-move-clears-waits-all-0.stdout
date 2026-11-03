@@ -1,0 +1,16 @@
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:264:8: declaration uses `sorry`
+✔ [23/54] Built Figram.Warnings (1.1s)
+✔ [29/54] Built Figram.RandomDoc (2.2s)
+✔ [33/54] Built Figram.Correct (3.3s)
+✔ [35/54] Built Figram.Run (823ms)
+✔ [36/54] Built Figram.LintProofs (802ms)
+✔ [37/54] Built Figram.Trace (2.9s)
+✔ [41/54] Built Figram.FormatProofs (6.3s)
+✔ [43/54] Built Figram.Examples (2.2s)
+✔ [45/54] Built Figram.EngineProofs (2.5s)
+✔ [47/54] Built Figram.OutcomeProofs (1.2s)
+✔ [49/54] Built Figram (255ms)
+✔ [52/54] Built Main (795ms)
+✔ [54/54] Built figram:exe (297ms)
+Build completed successfully (54 jobs).

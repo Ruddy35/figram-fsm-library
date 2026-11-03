@@ -1,0 +1,8 @@
+{"figram":1,
+ "conditions":{"c":"C"},
+ "calls":{"p":"Plain","n":"Explicit defaults","o":{"text":"With outcomes","outcomes":["r"]},
+          "e":{"text":"Every bg","detached":true,"outcomes":["r"],"every":true},
+          "bg":{"text":"Bg","detached":true},
+          "ann":{"text":"Annotated","x-note":{"k":[1,2]}},
+          "empty":"Empty outcomes"},
+ "bot":{"initial":"h","children":{"h":{"on":{"btn:a":[{"do":["p","n","o","e","bg","ann"]}],"btn:b":[{}],"btn:c":[{"if":"c"}],"call:o:r":[{"to":"h"}],"call:e:r":[{}],"call:o:failed":[{"to":"h"}],"call:e:failed":[{"do":["p"]}]}}}}}

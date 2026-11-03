@@ -1,0 +1,56 @@
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:56:8: declaration uses `sorry`
+✔ [11/54] Built Figram.Warnings (746ms)
+✔ [29/54] Built Figram.RandomDoc (1.0s)
+✔ [33/54] Built Figram.Correct (1.7s)
+✔ [35/54] Built Figram.LintProofs (388ms)
+✔ [37/54] Built Figram.Run (421ms)
+✔ [39/54] Built Figram.Trace (1.5s)
+✔ [41/54] Built Figram.FormatProofs (4.2s)
+✖ [43/54] Building Figram.Examples (1.7s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:328:0: Expression
+  Option.map (fun r => (r.fst.state, r.snd.reverse.getD 1 [])) (runGolden "outcome_latest_only") == some ("catalog", [])
+did not evaluate to `true`
+error: Figram/Examples.lean:342:0: Expression
+  Option.map (fun r => (r.fst.pending, r.snd.head!)) (runGolden "outcome_recovery_stale") ==
+    some ([("ping", 6)], [Action.startTimer "idle" 60000 7, Action.send "home"])
+did not evaluate to `true`
+✔ [45/54] Built Figram.EngineProofs (2.6s)
+✖ [47/54] Building Figram.OutcomeProofs (1.1s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:254:15: Application type mismatch: The argument
+  ha
+has type
+  (s.pending.any fun x => x.fst == c) = true
+but is expected to have type
+  ?m.8 ∈ s.pending
+in the application
+  hf.left ?m.8 ha
+warning: Figram/OutcomeProofs.lean:253:31: This simp argument is unused:
+  decide_eq_true_eq
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Snapshot.accepts] at ha
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+error: Figram/OutcomeProofs.lean:438:8: Tactic `introN` failed: There are no additional binders or `let` bindings in the goal to introduce
+
+m : Machine
+hwf : m.wf = true
+s : Snapshot
+c o o' : String
+tok : Nat
+env env' : HostEnv
+ht : tok ≤ s.seq
+⊢ ((m.step s (Event.outcome c o tok) env).fst.pending.any fun x => x.fst == c) = false
+warning: Figram/OutcomeProofs.lean:437:31: This simp argument is unused:
+  decide_eq_false_iff_not
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Snapshot.accepts]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.Examples
+- Figram.OutcomeProofs

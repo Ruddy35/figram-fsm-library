@@ -1,0 +1,10 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d18-settle-removes-all-waits/figram-engine --golden examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:26:59.899Z
+end: 2026-11-03T18:26:59.960Z
+exit_code: 1
+--- stdout (639 bytes, last 200 lines)
+requests 170, mismatches 2
+   {'op': 'step', 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 4}, {'call': 'ping', 'token': 2}], 'seq': 4}, 'event': 'call:ping:pong', 'token': 2} → {'id': 118, 'snapshot': {'at': 'catalog', 'back': 'home', 'resume': {'shop': 'catal
+   {'op': 'step', 'snapshot': {'at': 'deleted_message', 'pending': [{'call': 'ping', 'token': 6}], 'seq': 6}, 'event': 'call:ping:pong', 'token': 5} → {'id': 123, 'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'seq': 7}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 7}, {'send': 'home'}]
+--- stderr (0 bytes, last 100 lines)

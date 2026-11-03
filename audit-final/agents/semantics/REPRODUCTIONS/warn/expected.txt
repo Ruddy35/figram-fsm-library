@@ -1,0 +1,11 @@
+# file: expected warnings (substring "outcome `X` of action `Y` has no arrow on `M`" or other kinds), derived from format.md:129-146
+W1_section_stay: outcome ok on s2; outcome failed on s2   (section variant without `to` stays on every message inside; s1 has arrows)
+W2_resume_back_unchecked: none from the outcome rule (resume/back not checked)
+W3_to_section: outcome ok on s1; outcome failed on s1   (an arrow into a section leads to its initial message s1)
+W4_after_unconditional_stay: one "can never fire" warning (variant after a variant without a condition)
+W5_timer_stay_no_loop: none (a stay is not a self-loop; it does not restart `timeout`)
+W6_timer_loop_control: one self-loop warning about `timeout`
+W7_root_timer_stay: arguable: the root `timer:t` stay can only fire on h (only h starts t); prose wording "stays on one" -> a warning for g would be a false positive
+W8_reach_only_by_outcome: one unreachable warning for `never` only (done is reachable through the outcome arrow)
+W9_stay_on_waiting_cond_only: none (arrows exist; rule speaks of "no arrow")
+W10_start_root_stay: outcome ok/failed: h and g have them? h has both; g has none -> warnings for g (ok, failed)

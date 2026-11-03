@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/protocol_edges.py /home/user/figram-audit/agents5/redteam/bin/mut/d29-stay-start-plain/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:38:37.505Z
+end: 2026-11-03T18:38:37.987Z
+exit_code: 1
+--- stdout (1715 bytes, last 200 lines)
+FAIL start with the event of an arrow without a target: its actions, then the initial message: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 1}], 'seq': 1}, 'actions': [{'call': 'ping', 'token': 1, 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]}
+FAIL recovered step with an accepted outcome: the wait removed, the root's arrow without a target, then the initial message: {'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 7}, 'actions': [{'cancel_timer': 'old'}, {'start_timer': 'idle', 'ms': 60000, 'token': 7}, {'send': 'home'}], 'recovered': True} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 7}, 'actions': [{'cancel_timer': 'old'}, {'call': 'log', 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 7}, {'send': 'home'}], 'recovered': True}
+FAIL recovered step with the event of an arrow without a target: its actions, then the initial message: {'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'seq': 7}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 7}, {'send': 'home'}], 'recovered': True} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'ping', 'token': 7}], 'seq': 7}, 'actions': [{'call': 'ping', 'token': 7, 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 7}, {'send': 'home'}], 'recovered': True}
+protocol edge cases 250, replies 250, mismatches 3
+--- stderr (0 bytes, last 100 lines)

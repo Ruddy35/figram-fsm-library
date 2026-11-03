@@ -1,0 +1,30 @@
+✔ [8/28] Built Figram.Core (1.3s)
+✔ [9/28] Built Figram.Chart (1.7s)
+✖ [10/28] Building Figram.CoreProofs (1.8s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/CoreProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.setup.json --json
+error: Figram/CoreProofs.lean:67:8: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  List.filter (fun p => decide (p ≠ (c, t))) s.pending
+in the target expression
+  { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+      pending := List.filter (fun p => p.fst != c) s.pending } =
+    s
+
+case outcome
+s : Snapshot
+c o : String
+t : Nat
+h : ¬(c, t) ∈ s.pending
+this : List.filter (fun p => decide (p ≠ (c, t))) s.pending = s.pending
+⊢ { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+      pending := List.filter (fun p => p.fst != c) s.pending } =
+    s
+✔ [14/28] Built Figram.Compile (1.3s)
+✔ [16/28] Built Figram.Chart:c.o (2.2s)
+✔ [17/28] Built Figram.Lint (1.0s)
+✔ [19/28] Built Figram.Core:c.o (4.2s)
+✔ [20/28] Built Figram.Format (1.6s)
+✔ [22/28] Built Figram.FormatIO (1.1s)
+✔ [24/28] Built Figram.Engine (1.1s)
+✔ [27/28] Built Figram.Engine:c.o (2.1s)
+Some required targets logged failures:
+- Figram.CoreProofs

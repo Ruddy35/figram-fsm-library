@@ -1,0 +1,8 @@
+command: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/go-head/gofig-head examples/features.bot.json examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:03:28.699Z
+end: 2026-11-03T17:03:28.707Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (78 bytes, last 100 lines)
+line 1: scenario expectations violate the protocol: step 6: scenario snapshot

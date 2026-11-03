@@ -1,0 +1,2 @@
+FAIL a move keeps the waits: {'snapshot': {'at': 'vip', 'timers': {'nudge': 4}, 'seq': 4}, 'actions': [{'cancel_timer': 'idle'}, {'start_timer': 'nudge', 'ms': 30000, 'token': 4}, {'send': 'vip'}]} ≠ expected {'snapshot': {'at': 'vip', 'timers': {'nudge': 4}, 'pending': [{'call': 'check_stock', 'token': 2}], 'seq': 4}, 'actions': [{'cancel_timer': 'idle'}, {'start_timer': 'nudge', 'ms': 30000, 'token': 4}, {'send': 'vip'}]}
+protocol edge cases 250, replies 250, mismatches 1

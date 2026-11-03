@@ -1,0 +1,2 @@
+{"figram":1,"calls":{"a":"A"},
+ "bot":{"initial":"h","children":{"h":{"timers":{"tick":1000,"timeout":10000},"on":{"timer:tick":[{"do":["a"]}],"timer:timeout":[{"to":"g"}]}},"g":{}}}}

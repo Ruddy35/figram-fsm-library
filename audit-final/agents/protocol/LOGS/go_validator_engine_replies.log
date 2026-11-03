@@ -1,0 +1,8 @@
+command: sh -c ./govalid/govalid\ \<\ replies.jsonl 
+cwd: /home/user/figram-audit/agents5/protocol
+start: 2026-11-03T17:41:22.686Z
+end: 2026-11-03T17:41:23.081Z
+exit_code: 0
+--- stdout (43 bytes, last 200 lines)
+go checkReply: 52933 replies, 0 mismatches
+--- stderr (0 bytes, last 100 lines)

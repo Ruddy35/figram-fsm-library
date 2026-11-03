@@ -1,0 +1,3 @@
+exit_code=0 log=/home/user/figram-audit/cleanup/LOGS/v030-final-gate/01-lake-build.log
+exit_code=0 log=/home/user/figram-audit/cleanup/LOGS/v030-final-gate/02-ffi-build.log
+exit_code=0 log=/home/user/figram-audit/cleanup/LOGS/v030-final-gate/03-statements.log

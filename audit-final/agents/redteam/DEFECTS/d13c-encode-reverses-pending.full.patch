@@ -1,0 +1,69 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..dd0ef9a 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -48,7 +48,7 @@ def encSnapshot (s : Snapshot) : J :=
+     ++ field "resume" (!s.resume.isEmpty) (.obj (s.resume.map fun p => (p.1, .str p.2)))
+     ++ field "timers" (!s.timers.isEmpty) (.obj (s.timers.map fun p => (p.1, .num p.2 0)))
+     ++ field "pending" (!s.pending.isEmpty)
+-        (.arr (s.pending.map fun p => .obj [("call", .str p.1), ("token", .num p.2 0)]))
++        (.arr (s.pending.reverse.map fun p => .obj [("call", .str p.1), ("token", .num p.2 0)]))
+     ++ field "seq" (s.seq != 0) (.num s.seq 0))
+ 
+ /-- An integer field of the snapshot: 0 … 2^53 − 1 (as in snapshot.schema.json). -/
+diff --git a/Figram/EngineProofs.lean b/Figram/EngineProofs.lean
+index c5fd935..e0f5e78 100644
+--- a/Figram/EngineProofs.lean
++++ b/Figram/EngineProofs.lean
+@@ -75,40 +75,7 @@ theorem mapM_pending (t : List (String × Nat)) (h : ∀ p ∈ t, p.1 ≠ "" ∧
+ 
+ /-- **A snapshot written by the engine is read back as exactly the same snapshot.** -/
+ theorem decSnapshot_encSnapshot (s : Snapshot) (h : SnapOK s) :
+-    decSnapshot (encSnapshot s) = .ok s := by
+-  obtain ⟨st, res, tms, seq, bk, pend⟩ := s
+-  obtain ⟨hst, hres, htms, hseq, hbk, hpend⟩ := h
+-  simp only at hst hres htms hseq hbk hpend
+-  have hkeys : ∀ (A : Obj), (∀ p ∈ A, p.1 ∈ snapshotKeys) → checkKeys A = .ok () := by
+-    intro A hA
+-    simp only [checkKeys]
+-    rw [List.find?_eq_none.mpr (fun p hp => by simp [hA p hp])]
+-    rfl
+-  simp only [encSnapshot, decSnapshot]
+-  rw [hkeys _ (by
+-    intro p hp
+-    simp only [List.mem_append, List.mem_singleton] at hp
+-    rcases hp with ((((rfl | hp) | hp) | hp) | hp) | hp
+-    · simp [snapshotKeys]
+-    all_goals (rw [field_keys _ _ _ p hp]; simp [snapshotKeys]))]
+-  have h1 := mapM_resume _ hres
+-  have h2 := mapM_timers _ htms
+-  have h3 := mapM_pending _ hpend
+-  cases bk with
+-  | none =>
+-    by_cases hr : res = [] <;> by_cases ht : tms = [] <;> by_cases hq : pend = [] <;>
+-      by_cases hz : seq = 0 <;>
+-      simp [checkVersion, Format.get, field, hr, ht, hq, hz, nonEmpty_str _ _ hst,
+-        h1, h2, h3, boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure] <;>
+-      (try subst hr) <;> (try subst ht) <;> (try subst hq) <;> (try subst hz) <;> rfl
+-  | some b =>
+-    have hb := nonEmpty_str "`back`" b (hbk b rfl)
+-    by_cases hr : res = [] <;> by_cases ht : tms = [] <;> by_cases hq : pend = [] <;>
+-      by_cases hz : seq = 0 <;>
+-      simp [checkVersion, Format.get, field, hr, ht, hq, hz, nonEmpty_str _ _ hst, hb,
+-        h1, h2, h3, boundedNat_num _ _ hseq, bind, Except.bind, pure, Except.pure, Functor.map,
+-        Except.map] <;>
+-      (try subst hr) <;> (try subst ht) <;> (try subst hq) <;> (try subst hz) <;> rfl
++    decSnapshot (encSnapshot s) = .ok s := by sorry
+ 
+ /-! ## A step keeps the snapshot admissible -/
+ 
+@@ -131,8 +98,7 @@ theorem mem_erase {α β} [DecidableEq α] {t : List (α × β)} {k : α} {p : 
+   simp only [erase, List.mem_filter] at h
+   exact h.1
+ 
+-theorem ne_of_not_isEmpty {s : String} (h : (!s.isEmpty) = true) : s ≠ "" := by
+-  intro he; subst he; simp at h
++theorem ne_of_not_isEmpty {s : String} (h : (!s.isEmpty) = true) : s ≠ "" := by sorry
+ 
+ theorem mem_addWait {pend : List (String × Nat)} {n : String} {tok : Nat} {w : Wait}
+     {p : String × Nat} (h : p ∈ addWait pend n tok w) : p = (n, tok) ∨ p ∈ pend := by

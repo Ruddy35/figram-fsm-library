@@ -1,0 +1,55 @@
+command: python3 /home/user/figram-audit/agents5/semantics/scripts/run_format.py 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:45:36.075Z
+end: 2026-11-03T17:45:36.586Z
+exit_code: 0
+--- stdout (5497 bytes, last 200 lines)
+ok  F00_base: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F01_empty_outcome: expect=E check=E(rc=1) schema=E :: action `x`: empty outcome name | figram: errors: 1
+ok  F02_colon_outcome: expect=E check=E(rc=1) schema=E :: action `x`: outcome `a:b` contains `:` | figram: errors: 1
+ok  F03_failed_listed: expect=E check=E(rc=1) schema=E :: action `x`: `failed` is an outcome of every action with outcomes and is not listed | figram: errors: 1
+ok  F04_dup_outcome: expect=E check=E(rc=1) schema=E :: action `x`: duplicate outcome `a` | figram: errors: 1
+ok  F05_every_without_outcomes: expect=E check=E(rc=1) schema=E :: action `x`: `every` needs `outcomes` | figram: errors: 1
+ok  F06_every_false_no_outcomes: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F07_detached_false: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F08_outcomes_empty: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F09_every_outcomes_empty: expect=E check=E(rc=1) schema=E :: action `x`: `every` needs `outcomes` | figram: errors: 1
+ok  F10_twice_in_do: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: `h` → `btn:two`: action `mk` with outcomes occurs twice in `do` | figram: errors: 1
+ok  F11_two_outcome_actions: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F12_plain_twice: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F13_undeclared_outcome: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:mk:zzz`: `mk` is not an action with the outcome `zzz` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F14_action_without_outcomes: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:log:ok`: `log` is not an action with the outcome `ok` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F15_undeclared_action: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:nope:ok`: `nope` is not an action with the outcome `ok` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F16_no_outcome_part: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:mk`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F17_empty_action: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call::ok`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F18_empty_outcome_event: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:mk:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F20_colon_action: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F21_colon_action_short: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:a:b`: `a` is not an action with the outcome `b` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F22_bare_prefix: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `call:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved) | figram: errors: 1
+ok  F23a_outcomes_string: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: `outcomes`: expected a list
+ok  F23b_outcomes_number: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: expected a list of strings
+ok  F23c_detached_string: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: `detached`: expected true or false
+ok  F23d_every_number: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: `every`: expected true or false
+ok  F24_unknown_call_key: expect=E check=E(rc=1) schema=E :: action `x`: unknown key `outcome` (annotation keys start with `x-`) | figram: errors: 1
+ok  F25_call_annotation: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F26a_resume_no_to: expect=E check=E(rc=1) schema=E :: `h` → `btn:r`: `resume` and `back` need `to` | figram: errors: 1
+ok  F26b_back_no_to: expect=E check=E(rc=1) schema=E :: `h` → `btn:r`: `resume` and `back` need `to` | figram: errors: 1
+ok  F27_empty_variant: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F29_call_without_text: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: action: missing field `text`
+ok  F30_empty_action_name: expect=E check=E(rc=1) schema=E :: calls: empty name | figram: errors: 1
+ok  F32_prefix_actions: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F33_action_ending_colon: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F34_empty_timer_event: expect=E check=E(rc=1) schema=OK  SCHEMA-DIFFERS :: event `timer:`: no such timer (the prefix `timer:` is reserved) | figram: errors: 1
+ok  F38_space_outcome: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F39_every_detached: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F41_twice_across_variants: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F44_outcomes_null: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: `outcomes`: expected a list
+ok  F45_detached_null: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: `detached`: expected true or false
+ok  F46_every_true_null_outcomes: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `x`: `outcomes`: expected a list
+ok  F49_outcome_named_like_failed_case: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F50_call_event_on_section: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F51_stay_with_if: expect=OK check=OK(rc=0) schema=OK :: ok
+ok  F52_to_null: expect=E check=E(rc=1) schema=E :: figram: cannot read the document: `to`: expected a string
+ok  F53_resume_false_no_to: expect=OK check=OK(rc=0) schema=OK :: ok
+mismatches 0
+--- stderr (0 bytes, last 100 lines)

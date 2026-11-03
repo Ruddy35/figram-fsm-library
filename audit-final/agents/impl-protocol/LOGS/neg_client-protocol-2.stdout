@@ -1,0 +1,1 @@
+client-protocol-2: rc=1 (want ≠ 0):     raise EngineError(f"engine did not start: {e}") from None|figram_client.EngineError: engine did not start: engine process failed: protocol violation: engine protocol 3, the client supports only 2|

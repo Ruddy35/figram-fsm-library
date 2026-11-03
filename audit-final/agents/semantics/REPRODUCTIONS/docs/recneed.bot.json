@@ -1,0 +1,13 @@
+{
+  "figram": 1,
+  "conditions": {"c": "C"},
+  "calls": {"mk": {"text": "Make", "outcomes": ["ok"]}},
+  "bot": {
+    "initial": "h",
+    "on": {"call:mk:failed": [{"to": "h"}]},
+    "children": {
+      "h": {"on": {"call:mk:ok": [{"if": "c", "to": "x"}, {"do": ["mk"]}], "btn:go": [{"do": ["mk"]}]}},
+      "x": {}
+    }
+  }
+}

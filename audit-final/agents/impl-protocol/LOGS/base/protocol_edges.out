@@ -1,0 +1,15 @@
+FAIL hello: protocol version 2: {'protocol': 3, 'states': 8} ≠ expected {'protocol': 2, 'states': 8}
+FAIL an extra condition does no harm: {'snapshot': {'at': 'vip', 'timers': {'nudge': 1}, 'seq': 1}, 'actions': [{'cancel_timer': 'idle'}, {'start_timer': 'nudge', 'ms': 30000, 'token': 1}, {'send': 'vip'}]} ≠ expected {'snapshot': {'at': 'vip', 'seq': 1}, 'actions': [{'cancel_timer': 'idle'}, {'send': 'vip'}]}
+FAIL leaving a message cancels its timers, then the snapshot's other timers (leftovers of an older document version; format.md section 7, decision 2): {'snapshot': {'at': 'vip', 'timers': {'nudge': 3}, 'seq': 3}, 'actions': [{'cancel_timer': 'idle'}, {'cancel_timer': 'old'}, {'start_timer': 'nudge', 'ms': 30000, 'token': 3}, {'send': 'vip'}]} ≠ expected {'snapshot': {'at': 'vip', 'seq': 3}, 'actions': [{'cancel_timer': 'idle'}, {'cancel_timer': 'old'}, {'send': 'vip'}]}
+FAIL removed message, the event processed as at the initial message: old timers cancelled, places kept: {'snapshot': {'at': 'vip', 'resume': {'shop': 'item'}, 'timers': {'nudge': 10}, 'seq': 10}, 'actions': [{'cancel_timer': 'old'}, {'start_timer': 'nudge', 'ms': 30000, 'token': 10}, {'send': 'vip'}], 'recovered': True} ≠ expected {'snapshot': {'at': 'vip', 'resume': {'shop': 'item'}, 'seq': 10}, 'actions': [{'cancel_timer': 'old'}, {'send': 'vip'}], 'recovered': True}
+FAIL start with an event, condition true: straight to the target, home neither sent nor its timer started: {'snapshot': {'at': 'vip', 'timers': {'nudge': 1}, 'seq': 1}, 'actions': [{'start_timer': 'nudge', 'ms': 30000, 'token': 1}, {'send': 'vip'}]} ≠ expected {'snapshot': {'at': 'vip', 'seq': 1}, 'actions': [{'send': 'vip'}]}
+FAIL CRLF: CR is JSON whitespace: {'id': 110, 'protocol': 3, 'states': 8} ≠ expected {'id': 110, 'protocol': 2, 'states': 8}
+FAIL exactly 1 MiB — processed: {'id': 115, 'protocol': 3, 'states': 8} ≠ expected {'id': 115, 'protocol': 2, 'states': 8}
+FAIL after too_large the process reads the next line: {'id': 117, 'protocol': 3, 'states': 8} ≠ expected {'id': 117, 'protocol': 2, 'states': 8}
+FAIL last line without \n is processed: {'id': 118, 'protocol': 3, 'states': 8} ≠ expected {'id': 118, 'protocol': 2, 'states': 8}
+FAIL --max-request 64: exactly 64 bytes: {'id': 200, 'protocol': 3, 'states': 8} ≠ expected {'id': 200, 'protocol': 2, 'states': 8}
+FAIL --max-request 64: the next line is processed: {'id': 202, 'protocol': 3, 'states': 8} ≠ expected {'id': 202, 'protocol': 2, 'states': 8}
+FAIL --max-request 0: a 3 MiB line is processed: {'id': 300, 'protocol': 3, 'states': 8} ≠ expected {'id': 300, 'protocol': 2, 'states': 8}
+FAIL --mutate: hello reports the mutation, a warning on stderr: exit code 0, stdout b'{"id":1,"protocol":3,"states":8,"mutant":"drop-call:ping"}\n', stderr b'figram-engine: WARNING: deliberately broken engine (mutation `drop-call:ping`), for testing the tests only\n'
+FAIL --max-request 100 before the document — works: exit code 0, stdout b'{"id":1,"protocol":3,"states":8}\n', stderr b''
+protocol edge cases 137, replies 137, mismatches 14

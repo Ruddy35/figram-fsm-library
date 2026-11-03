@@ -1,0 +1,1 @@
+warning: outcome `no` of action `mk` has no arrow on `home`: the variant of `home` on `btn:mkstay` waits for it there (an outcome without an arrow is ignored)

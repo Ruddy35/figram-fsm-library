@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/protocol_edges.py /home/user/figram-audit/agents5/redteam/bin/mut/d30-restart-keeps-resume/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:39:17.711Z
+end: 2026-11-03T18:39:18.200Z
+exit_code: 1
+--- stdout (1400 bytes, last 200 lines)
+FAIL restart near the limit: seq continues up to 2^53−1, timers cancelled, places cleared: {'snapshot': {'at': 'home', 'resume': {'shop': 'item'}, 'timers': {'idle': 9007199254740991}, 'seq': 9007199254740991}, 'actions': [{'cancel_timer': 'remind'}, {'start_timer': 'idle', 'ms': 60000, 'token': 9007199254740991}, {'send': 'home'}]} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 9007199254740991}, 'seq': 9007199254740991}, 'actions': [{'cancel_timer': 'remind'}, {'start_timer': 'idle', 'ms': 60000, 'token': 9007199254740991}, {'send': 'home'}]}
+FAIL restart clears the remembered places: {'snapshot': {'at': 'home', 'resume': {'shop': 'sub'}, 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]}
+FAIL restart clears the waits: {'snapshot': {'at': 'home', 'resume': {'shop': 'item'}, 'timers': {'idle': 6}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'start_timer': 'idle', 'ms': 60000, 'token': 6}, {'send': 'home'}]} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 6}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'start_timer': 'idle', 'ms': 60000, 'token': 6}, {'send': 'home'}]}
+protocol edge cases 250, replies 250, mismatches 3
+--- stderr (0 bytes, last 100 lines)

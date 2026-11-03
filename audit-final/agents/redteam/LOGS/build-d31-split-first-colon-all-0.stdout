@@ -1,0 +1,46 @@
+✔ [20/54] Built Figram.Warnings (879ms)
+✔ [29/54] Built Figram.RandomDoc (959ms)
+✔ [33/54] Built Figram.Correct (1.9s)
+✔ [35/54] Built Figram.LintProofs (263ms)
+✔ [36/54] Built Figram.Trace (1.3s)
+✔ [39/54] Built Figram.Run (373ms)
+✔ [41/54] Built Figram.FormatProofs (4.1s)
+✔ [43/54] Built Figram.Examples (1.7s)
+✔ [45/54] Built Figram.EngineProofs (2.6s)
+✔ [46/54] Built Figram.EngineProofs:c.o (647ms)
+✖ [47/54] Building Figram.OutcomeProofs (1.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:830:22: `simp` made no progress
+error: Figram/OutcomeProofs.lean:833:14: `simp` made no progress
+error: Figram/OutcomeProofs.lean:895:45: unsolved goals
+kvs : Obj
+c o : String
+tok : Nat
+hc : c ≠ ""
+ho : o ≠ ""
+hco : ¬':' ∈ o.toList
+htok : tok ≤ maxInt
+hev : Format.get kvs "event" = some (J.str (outcomeEvent c o))
+ht : Format.get kvs "token" = some (J.num (↑tok) 0)
+hdrop : (String.drop (outcomeEvent c o) 5).toString = c ++ ":" ++ o
+htimer : String.startsWith (outcomeEvent c o) "timer:" = false
+hcall : String.startsWith (outcomeEvent c o) "call:" = true
+hne : String.isEmpty (outcomeEvent c o) = false
+hreq : reqNat "token" (J.num (↑tok) 0) = Except.ok tok
+⊢ (match
+      match (c ++ ":" ++ o).splitOn ":" with
+      | c :: o :: rest => if (c.isEmpty || o.isEmpty) = true then none else some (c, ":".intercalate (o :: rest))
+      | x => none with
+    | none => throw "an outcome event is `call:<action>:<outcome>`, both parts non-empty"
+    | some (c, o) => Except.ok (Event.outcome c o tok)) =
+    Except.ok (Event.outcome c o tok)
+warning: Figram/OutcomeProofs.lean:907:55: This simp argument is unused:
+  splitOutcome_outcomeEvent c o hc ho hco
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [decEvent, hev, hne, htimer, hcall, hdrop, ht, hreq, Bool.false_eq_true, ↓reduceIte, bind,
+    Except.bind, pure, Except.pure]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.OutcomeProofs

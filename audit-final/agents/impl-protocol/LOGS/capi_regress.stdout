@@ -1,0 +1,53 @@
+PASS concurrent figram_init, 2 threads x 300 processes (rc=0)
+PASS malloc failure when copying a result (rc=0)
+PASS figram_unload(NULL) (rc=0)
+PASS unload(failed load) (rc=0)
+PASS init with 2 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 4 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 8 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 16 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 32 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 48 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 64 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 96 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 128 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 256 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 1024 MiB address-space headroom → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init under RLIMIT_AS=512MB → rc 0 (rc=0, matches '^figram_init=0 ')
+PASS init with 256 KiB headroom → Lean out-of-memory exit 1, no signal (rc=1, matches 'INTERNAL PANIC: out of memory')
+PASS lazy init (load/request before figram_init) (rc=0)
+PASS lazy init race, 8 threads x 300 processes (rc=0)
+FAIL NULL arguments and foreign handle: rc=1, want 0
+    FAIL handle still works: {"id":1,"protocol":3,"states":13}
+    ok   check_json_n(NULL, 3) → error text: error: document is NULL
+    FAIL handle still works: {"id":1,"protocol":3,"states":13}
+PASS null check: no SIGSEGV (rc=0)
+PASS null fmt: no SIGSEGV (rc=0)
+PASS null load: no SIGSEGV (rc=0)
+PASS null line: no SIGSEGV (rc=0)
+PASS null handle: no SIGSEGV (rc=0)
+PASS use-after-unload / double unload detected (rc=0)
+FAIL length variants, load_doc_ex, NUL in output: rc=1, want 0
+    FAIL load_doc_n handle works: {"id":1,"protocol":3,"states":13}
+    ok   load_doc_ex(bad, NULL) → NULL
+    ok   check text: NUL in a key is escaped, not raw: error: duplicate key `a\u0000b`
+PASS strict UTF-8 on the C ABI path (rc=0)
+PASS request size limit and empty request (rc=0)
+PASS signals preserved (defaults) (rc=0)
+PASS signals preserved (custom handlers + altstack) (rc=0)
+PASS no runtime threads or file descriptors (rc=0)
+PASS figram_init twice (rc=0)
+PASS before figram_init: check (rc=0)
+PASS before figram_init: fmt (rc=0)
+PASS before figram_init: load (rc=0)
+PASS double unload returns (rc=0)
+PASS request after unload returns (rc=0)
+PASS NUL in a document (rc=0)
+PASS invalid UTF-8 in a document (rc=0)
+PASS init side effects report (rc=0)
+PASS 64 threads on one handle (rc=0)
+PASS nesting limit on a thread with the documented stack (128 KiB) (rc=0)
+PASS protocol 3: outcomes, pending, call fields (rc=0)
+PASS harness 16x20000 + reload (rc=0)
+PASS stress 16x20000 + 4 loaders (rc=0)
+C ABI regression checks: 46, failed: 2

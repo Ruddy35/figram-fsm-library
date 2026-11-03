@@ -1,0 +1,4 @@
+features: {'outcome_events': 25, 'replies_with_pending': 24}
+all_detached         MUST                 docs=3 steps=63 violations=3
+   example: {"doc_seed": 0, "step": 3, "expected": {"snapshot": {"at": "m0", "resume": {"s4": "m0"}, "seq": 1}, "actions": [{"send": "__broken__"}]}, "actual": {"snapshot": {"at": "m0", "resume": {"s4": "m0"}, "seq": 1}, "actions": []}}
+EXPECT-RED: RED (good)

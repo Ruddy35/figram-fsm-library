@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..e1f6f78 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -154,7 +154,7 @@ def Snapshot.accepts (s : Snapshot) : Event → Bool
+ 
+ /-- An outcome removes its wait: each wait accepts one outcome. -/
+ def Snapshot.settle (s : Snapshot) : Event → Snapshot
+-  | .outcome c _ tok => { s with pending := s.pending.filter (fun p => decide (p ≠ (c, tok))) }
++  | .outcome c _ _ => { s with pending := s.pending.filter (fun p => p.1 != c) }
+   | _ => s
+ 
+ /-- A timer firing handled without a move consumes the timer. -/

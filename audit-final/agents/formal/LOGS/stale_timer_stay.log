@@ -1,0 +1,9 @@
+command: /home/user/figram-audit/agents5/formal/stale_timer_stay.sh 
+cwd: /home/user/figram-audit-worktrees/a5-formal
+start: 2026-11-03T17:51:13.531Z
+end: 2026-11-03T17:51:13.542Z
+exit_code: 0
+--- stdout (304 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"home","timers":{"idle":1,"old_name":1},"seq":2},"actions":[{"call":"log","detached":true}]}
+{"id":2,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"cancel_timer":"old_name"},{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}
+--- stderr (0 bytes, last 100 lines)

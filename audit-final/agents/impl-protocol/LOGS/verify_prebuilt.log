@@ -1,0 +1,43 @@
+command: nice -n 10 timeout 1500 ./verify-prebuilt.sh .lake/build/bin 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:06:47.263Z
+end: 2026-11-03T17:08:43.908Z
+exit_code: 1
+--- stdout (1486 bytes, last 200 lines)
+binaries: /home/user/figram-audit-worktrees/a4-protocol/.lake/build/bin
+no /home/user/figram-audit-worktrees/a4-protocol/.lake/build/bin/SHA256SUMS: checksum check skipped
+   (0 s)
+
+== Golden scenarios match the committed files
+ok (scenarios: 37)
+   (0 s)
+
+== Engine conformance
+arrow variants covered: 53 of 53
+arrow variants covered: 75 of 75
+requests 25935, mismatches 0
+documents 100, requests 91323, documents with mismatches 0
+   (11 s)
+
+== Mutation testing
+examples/pizza.bot.json: mutations 71
+examples/features.bot.json: mutations 95
+detected 166 of 166 mutations (100%)
+   (105 s)
+
+== Engine memory, threads and stack overflow
+FAIL: step 'engine_memory' failed (exit code 1), log: verify-logs/engine_memory.log
+FAIL ulimit -v 32 MiB: exit code 0, replies 2; stderr: ''
+FAIL ulimit -v 64 MiB: exit code 0, replies 2; stderr: ''
+FAIL ulimit -v 256 MiB: exit code 0, replies 2; stderr: ''
+--- log tail:
+FAIL ulimit -v 32 MiB: exit code 0, replies 2; stderr: ''
+FAIL ulimit -v 64 MiB: exit code 0, replies 2; stderr: ''
+FAIL ulimit -v 256 MiB: exit code 0, replies 2; stderr: ''
+ok   ulimit -s 24 KiB, nesting 250: exit code -6, stderr 'Stack overflow detected. Aborting.'
+ok   ulimit -s 32 KiB, nesting 250: exit code -6, stderr 'Stack overflow detected. Aborting.'
+ok   address space reserved after start-up 12 MiB (limit 64)
+ok   memory in use after 2000 requests 6 MiB (limit 16)
+ok   threads 1 (limit 1)
+engine memory: address space 12 MiB, in use 6 MiB, threads 1; failed 3
+--- stderr (0 bytes, last 100 lines)

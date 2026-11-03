@@ -1,0 +1,1 @@
+schema-head: rc=1 (want ≠ 0):   disagree: {'at': 'home', 'pending': [{'call': 'ping', 'token': 3}]}: schema False, engine True |  disagree: {'at': 'home', 'pending': [{'call': 'ping', 'token': 7}, {'call': 'ping', 'token': 3}, {'call': 'check_stock', 'token': 2}], 'seq': 7}: schema False|  disagree: {'at': 'home', 'pending': []}: schema False, engine True |

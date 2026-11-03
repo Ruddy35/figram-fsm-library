@@ -1,0 +1,20 @@
+# call:x / call::ok / call:mk: / timer: : prose only says token is allowed and required for the full forms; reserved prefixes (format.md:213-215) -> expect bad_request
+{"id":"call-noform-step","error":"","code":"bad_request"}
+{"id":"call-noform-step-token","error":"","code":"bad_request"}
+{"id":"call-empty-action","error":"","code":"bad_request"}
+{"id":"call-empty-outcome","error":"","code":"bad_request"}
+{"id":"timer-empty","error":"","code":"bad_request"}
+{"id":"start-call-noform","error":"","code":"bad_request"}
+{"id":"start-timer-empty","error":"","code":"bad_request"}
+{"id":"tok-neg","error":"","code":"bad_request"}
+{"id":"tok-frac","error":"","code":"bad_request"}
+{"id":"tok-str","error":"","code":"bad_request"}
+{"id":"tok-big","error":"","code":"bad_request"}
+{"id":"tok-negzero","snapshot":{"at":"home"},"actions":[]}
+{"id":"tok-exp","snapshot":{"at":"home","seq":20},"actions":[]}
+{"id":"need-before-overflow-step","need":["c1","c2"]}
+{"id":"stale-at-max","snapshot":{"at":"wait","pending":[{"call":"mk","token":5}],"seq":9007199254740991},"actions":[]}
+{"id":"restart-max","error":"","code":"seq_overflow"}
+{"id":"pending-null","error":"","code":"bad_snapshot"}
+{"id":"wait-token-float","snapshot":{"at":"home","seq":2},"actions":[]}
+{"id":"wait-token-frac","error":"","code":"bad_snapshot"}

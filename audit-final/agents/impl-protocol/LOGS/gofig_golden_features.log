@@ -1,0 +1,8 @@
+command: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gofig -rounds 3 -bots 2 examples/features.bot.json examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:03:28.665Z
+end: 2026-11-03T17:03:28.683Z
+exit_code: 0
+--- stdout (100 bytes, last 200 lines)
+bots 2, rounds 3, goroutines 93, requests 306, mismatches 0, 35220 requests/s (GOMAXPROCS=4, CPU=4)
+--- stderr (0 bytes, last 100 lines)

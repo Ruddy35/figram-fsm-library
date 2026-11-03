@@ -1,0 +1,4 @@
+Figram/Correct.lean:compileSpec_correct
+Figram/EngineProofs.lean:step_snapOK
+Figram/OutcomeProofs.lean:step_stay
+Figram/OutcomeProofs.lean:step_cases

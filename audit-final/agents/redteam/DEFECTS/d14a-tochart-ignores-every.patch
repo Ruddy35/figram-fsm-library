@@ -1,0 +1,13 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..001687e 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -95,7 +95,7 @@ def CallDecl.plain (c : CallDecl) : Bool :=
+ 
+ /-- Whether the machine waits for the outcomes of the action. -/
+ def CallDecl.wait (c : CallDecl) : Wait :=
+-  if c.outcomes.isEmpty then .free else if c.every then .every else .latest
++  if c.outcomes.isEmpty then .free else if c.every && false then .every else .latest
+ 
+ structure Doc where
+   requires : List String

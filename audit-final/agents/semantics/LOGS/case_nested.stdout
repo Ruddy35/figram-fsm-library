@@ -1,0 +1,11 @@
+engine exit 0
+ok id=m-x-need
+ok id=m-x-false
+ok id=m-x-true
+ok id=n-x-false
+ok id=n-x-true
+ok id=top-x
+ok id=mk-into-A
+ok id=ok-resume-inside
+ok id=ok-at-top
+TOTAL 9 mismatches 0

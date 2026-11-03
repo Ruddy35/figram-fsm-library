@@ -1,0 +1,9 @@
+command: timeout 20 .lake/build/bin/figram check /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/docs/nested.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-semantics
+start: 2026-11-03T17:48:38.180Z
+end: 2026-11-03T17:48:38.188Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (129 bytes, last 100 lines)
+warning: arrows with `resume` into `A` are drawn only from inside the section: they always leave the user on the current message

@@ -1,0 +1,4 @@
+{"id": 1, "snapshot": {"at": "m", "timers": {"timeout": 1, "tick": 1}, "seq": 1}, "actions": [{"start_timer": "tick", "ms": 60000, "token": 1}, {"start_timer": "timeout", "ms": 600000, "token": 1}, {"send": "m"}]}
+{"id": 2, "snapshot": {"at": "m", "seq": 2}, "actions": [{"call": "remind"}]}
+{"id": 3, "snapshot": {"at": "m", "seq": 2}, "actions": []}
+user moved to `gone` on timeout: False

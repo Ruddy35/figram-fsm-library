@@ -1,0 +1,8 @@
+command: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gofig -corrupt hello-protocol-2 examples/features.bot.json examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T17:03:28.618Z
+end: 2026-11-03T17:03:28.624Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (70 bytes, last 100 lines)
+hello: map[id:1 protocol:2 states:8] "" hello: protocol 2, expected 3

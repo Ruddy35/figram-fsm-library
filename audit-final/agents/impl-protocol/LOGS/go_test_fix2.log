@@ -1,0 +1,24 @@
+command: nice -n 10 timeout 900 env CC=gcc go test -count=1 -v -run \^\(TestFixCheckReplyProtocolChanges\|TestFixStartWithEvent\|TestFixOutcomes\|TestFixRequestTooLarge\|TestFixLoadReason\|TestAuditHelloAlwaysError\)\$ . 
+cwd: /home/user/figram-audit-worktrees/a4-protocol/clients/go
+start: 2026-11-03T16:53:29.308Z
+end: 2026-11-03T16:53:31.548Z
+exit_code: 0
+--- stdout (726 bytes, last 200 lines)
+=== RUN   TestAuditHelloAlwaysError
+    audit_test.go:106: open bot, hello → resp=map[id:1 protocol:3 states:13] variant="hello" err=<nil>
+--- PASS: TestAuditHelloAlwaysError (0.00s)
+=== RUN   TestFixLoadReason
+    fix_test.go:147: Load(bad) → document not loaded: missing field `bot`
+--- PASS: TestFixLoadReason (0.00s)
+=== RUN   TestFixRequestTooLarge
+    fix_test.go:166: 2 MiB event → variant "error" err <nil> code too_large
+--- PASS: TestFixRequestTooLarge (0.05s)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+=== RUN   TestFixStartWithEvent
+--- PASS: TestFixStartWithEvent (0.00s)
+=== RUN   TestFixOutcomes
+--- PASS: TestFixOutcomes (0.00s)
+PASS
+ok  	gofig	0.061s
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,13 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..5dbea56 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -276,7 +276,7 @@ def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool
+     match ev with
+     | .named e => missingStart m e gs
+     | .timer .. => []
+-    | .outcome .. => if s.accepts ev then missingStart m ev.key gs else []
++    | .outcome .. => missingStart m ev.key gs
+   else if s.accepts ev && ownsTimer (m.exitOf s.state) ev then
+     (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
+   else []

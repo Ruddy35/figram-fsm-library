@@ -1,0 +1,29 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:00:11.944Z
+end: 2026-11-03T18:00:16.206Z
+exit_code: 1
+--- stdout (1352 bytes, last 200 lines)
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:664:8: declaration uses `sorry`
+⚠ [37/54] Built Figram.Correct (1.1s)
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+✔ [39/54] Built Figram.LintProofs (361ms)
+✔ [41/54] Built Figram.Run (544ms)
+⚠ [43/54] Built Figram.EngineProofs (2.5s)
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+✔ [45/54] Built Figram.Examples (1.8s)
+✖ [47/54] Building Figram.OutcomeProofs (1.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:321:23: Application type mismatch: The argument
+  rfl
+has type
+  ?m.292 = ?m.292
+but is expected to have type
+  (s, []) = (s.settle ev, [])
+in the application
+  Or.inl rfl
+Some required targets logged failures:
+- Figram.OutcomeProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

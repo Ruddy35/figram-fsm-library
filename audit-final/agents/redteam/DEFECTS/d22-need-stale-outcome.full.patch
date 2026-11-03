@@ -1,0 +1,72 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..a0c9a2c 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -277,7 +277,7 @@ def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool
+     | .named e => missingStart m e gs
+     | .timer .. => []
+     | .outcome .. => if s.accepts ev then missingStart m ev.key gs else []
+-  else if s.accepts ev && ownsTimer (m.exitOf s.state) ev then
++  else if (s.accepts ev || (match ev with | .outcome .. => true | _ => false)) && ownsTimer (m.exitOf s.state) ev then
+     (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
+   else []
+ 
+diff --git a/Figram/EngineProofs.lean b/Figram/EngineProofs.lean
+index c5fd935..391b72c 100644
+--- a/Figram/EngineProofs.lean
++++ b/Figram/EngineProofs.lean
+@@ -433,53 +433,7 @@ ones given in the request (conditions not given do not affect the step). -/
+ theorem missing_nil_step (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool))
+     (env : HostEnv) (h : missing m s ev gs = [])
+     (hagree : ∀ n v, givenOf gs n = some v → env n = v) :
+-    m.step s ev (envOf gs) = m.step s ev env := by
+-  have hgiven : ∀ n v, givenOf gs n = some v → envOf gs n = v := by
+-    intro n v hv
+-    simp only [givenOf] at hv
+-    simp [envOf, hv]
+-  unfold Machine.step
+-  by_cases hn : s.state ∉ m.states
+-  · simp only [missing, hn, not_false_eq_true, ite_true] at h
+-    simp only [hn, not_false_eq_true, ite_true]
+-    cases ev with
+-    | timer => rfl
+-    | named e => simp only [Machine.enterBot, missingStart_choose m e gs env h hagree]
+-    | outcome c o t =>
+-      cases ha : s.accepts (.outcome c o t) with
+-      | false => simp only [Machine.enterBot, ha]; rfl
+-      | true =>
+-        simp only [ha, ite_true] at h
+-        simp only [Machine.enterBot, ha, ite_true,
+-          missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+-  · have hs : s.state ∈ m.states := by simpa using hn
+-    simp only [missing, hs, not_true_eq_false, ite_false] at h
+-    simp only [hs, not_true_eq_false, ite_false]
+-    split
+-    · rfl
+-    · rename_i hacc
+-      have hc : (s.accepts ev && ownsTimer (m.exitOf s.state) ev) = true := by
+-        simpa using hacc
+-      simp only [hc, ite_true] at h
+-      split
+-      · rfl
+-      · rename_i r hr
+-        have hneed : m.neededGuards s.state ev.key (givenOf gs) = [] := by
+-          apply List.eq_nil_iff_forall_not_mem.mpr
+-          intro n hn
+-          have hnone : givenOf gs n = none := by
+-            simp only [Machine.neededGuards, hr] at hn
+-            exact neededIn_given hn
+-          have hmem : n ∈ (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter
+-              (fun n => !(gs.any (·.1 == n))) := by
+-            refine List.mem_filter.mpr ⟨(mem_dedup _ _).mpr hn, ?_⟩
+-            simp only [givenOf, Option.map_eq_none_iff, List.find?_eq_none] at hnone
+-            simp only [Bool.not_eq_true', List.any_eq_false]
+-            exact hnone
+-          rw [h] at hmem
+-          simp at hmem
+-        simp only [Machine.neededGuards, hr] at hneed
+-        rw [find?_neededIn (envOf gs) env hneed hgiven hagree]
++    m.step s ev (envOf gs) = m.step s ev env := by sorry
+ 
+ /-- **Closure of the protocol**: for a machine that passed loading, the reply to a step
+ from an admissible snapshot contains a snapshot that the engine reads back unchanged. -/

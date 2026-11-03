@@ -1,0 +1,14 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..a9b5842 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -218,7 +218,8 @@ def realizeAfter (s : Snapshot) (T : NodeId) (pre acts : List Action) : Snapshot
+ /-- **A variant without a target**: its actions without a move — the message is neither left
+ nor entered, the places stay; a timer firing handled this way is consumed. -/
+ def stay (s : Snapshot) (ev : Event) (acts : List Action) : Snapshot × List Action :=
+-  realize (s.consume ev) s.state acts
++  let r := realize (s.consume ev) s.state acts
++  ({ r.1 with seq := s.seq }, r.2)
+ 
+ /-! ## Machine -/
+ 

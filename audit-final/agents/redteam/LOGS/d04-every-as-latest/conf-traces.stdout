@@ -1,0 +1,4 @@
+requests 17602, mismatches 145
+   {'op': 'step', 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 22}, 'pending': [{'call': 'ping', 'token': 20}], 'seq': 22}, 'event': 'btn:ping'} → {'id': 33, 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge'
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 30}, 'pending': [{'call': 'ping', 'token': 28}], 'seq': 30}, 'event': 'btn:ping'} → {'id': 178, 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 2}], 'seq': 2}, 'event': 'btn:ping'} → {'id': 184, 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 3}], 'seq': 3}, 'actions': [{'call': 'ping', 'token': 3, '

@@ -1,0 +1,8 @@
+command: bash -c timeout\ 20\ /home/user/figram-audit-worktrees/a5-semantics/.lake/build/bin/figram-engine\ F61_empty_outcomes_engine.bot.json\ \<\ F61.req.jsonl 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/format
+start: 2026-11-03T17:52:50.215Z
+end: 2026-11-03T17:52:50.223Z
+exit_code: 0
+--- stdout (64 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"h","seq":1},"actions":[{"call":"x"}]}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,2 @@
+{"id":1,"op":"hello"}
+{"id":2,"op":"step","snapshot":{"at":"wait","seq":1},"event":"call:crm:done"}

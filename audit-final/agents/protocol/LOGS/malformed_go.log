@@ -1,0 +1,11 @@
+command: sh -c ./govalid/govalid\ \<\ malformed.jsonl 
+cwd: /home/user/figram-audit/agents5/protocol
+start: 2026-11-03T17:42:01.223Z
+end: 2026-11-03T17:42:01.229Z
+exit_code: 1
+--- stdout (359 bytes, last 200 lines)
+MISMATCH want ERR got need: start {"id":1,"need":["c","c"]}
+MISMATCH want ERR got result: step {"id":1,"snapshot":{"at":"","at":"a"},"actions":[]}
+MISMATCH want ERR got result: step {"id":1,"snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"actions":[{"call":"p","token":-5,"token":6}]}
+go checkReply: 45 replies, 3 mismatches
+--- stderr (0 bytes, last 100 lines)

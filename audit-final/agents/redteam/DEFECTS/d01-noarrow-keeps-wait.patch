@@ -1,0 +1,13 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..002c3e7 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -380,7 +380,7 @@ def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot ×
+   else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
+   else
+     match m.row s.state ev.key with
+-    | none => (s.settle ev, [])
++    | none => (s, [])
+     | some r =>
+       match r.branches.find? (fun b => guardOK env b.guard) with
+       | none => (s.settle ev, [])

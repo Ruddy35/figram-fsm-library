@@ -1,0 +1,2 @@
+warning: arrow `h` on `btn:x`: variant 2 never fires, variant 1 before it has no condition
+warning: message `g` is unreachable: no arrow leads to it from the start of the bot

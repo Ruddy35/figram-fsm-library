@@ -1,0 +1,15 @@
+ Figram/Core.lean          | 2 +-
+ Figram/EngineProofs.lean  | 2 +-
+ Figram/OutcomeProofs.lean | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+Build completed successfully (54 jobs).
+ Figram.Format.instReprNodeDoc.repr]
+axiom set [Quot.sound]: 1 theorems
+axiom set [propext, Quot.sound]: 166 theorems
+axiom set [propext]: 461 theorems
+axiom set []: 500 theorems
+axiom set [propext, Classical.choice, Quot.sound]: 124 theorems
+STRICT AXIOM GATE: PASS
+STRICT GATE: PASS
+strict gate exit 0
+restored: 0 modified

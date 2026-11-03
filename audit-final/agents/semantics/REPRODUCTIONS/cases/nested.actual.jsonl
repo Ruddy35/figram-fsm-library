@@ -1,0 +1,9 @@
+{"id":"m-x-need","need":["c"]}
+{"id":"m-x-false","snapshot":{"at":"m","back":"top","resume":{"A":"m"},"timers":{"t":2},"seq":3},"actions":[{"call":"a"}]}
+{"id":"m-x-true","snapshot":{"at":"top","back":"m","resume":{"A":"m"},"seq":3},"actions":[{"cancel_timer":"t"},{"send":"top"}]}
+{"id":"n-x-false","snapshot":{"at":"n","resume":{"A":"n"},"seq":4},"actions":[{"call":"a"}]}
+{"id":"n-x-true","snapshot":{"at":"n","resume":{"A":"n"},"seq":4},"actions":[{"call":"b"}]}
+{"id":"top-x","snapshot":{"at":"top","seq":2},"actions":[{"send":"top"}]}
+{"id":"mk-into-A","snapshot":{"at":"m","back":"top","resume":{"A":"m"},"timers":{"t":2},"pending":[{"call":"mk","token":2}],"seq":2},"actions":[{"call":"mk","token":2},{"start_timer":"t","ms":7,"token":2},{"send":"m"}]}
+{"id":"ok-resume-inside","snapshot":{"at":"n","back":"top","resume":{"A":"n"},"seq":4},"actions":[{"call":"b"},{"send":"n"}]}
+{"id":"ok-at-top","snapshot":{"at":"top","back":"n","resume":{"A":"n"},"seq":4},"actions":[]}

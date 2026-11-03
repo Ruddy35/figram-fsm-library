@@ -1,0 +1,2 @@
+{"id":1,"snapshot":{"at":"home","timers":{"idle":1,"old_name":1},"seq":2},"actions":[{"call":"log","detached":true}]}
+{"id":2,"snapshot":{"at":"home","timers":{"idle":2},"seq":2},"actions":[{"cancel_timer":"idle"},{"cancel_timer":"old_name"},{"start_timer":"idle","ms":60000,"token":2},{"send":"home"}]}

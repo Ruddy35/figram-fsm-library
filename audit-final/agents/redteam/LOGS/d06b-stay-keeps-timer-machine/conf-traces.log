@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d06b-stay-keeps-timer-machine/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:08:36.432Z
+end: 2026-11-03T18:08:37.205Z
+exit_code: 1
+--- stdout (948 bytes, last 200 lines)
+requests 17602, mismatches 47
+   {'op': 'step', 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 16}, 'seq': 16}, 'event': 'timer:nudge', 'token': 16} → {'id': 23, 'snapshot': {'at': 'vip', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'timers': {'nudge': 16}, 'seq': 17}, 'actions'
+   {'op': 'step', 'snapshot': {'at': 'vip', 'timers': {'nudge': 6}, 'seq': 6}, 'event': 'timer:nudge', 'token': 6} → {'id': 272, 'snapshot': {'at': 'vip', 'timers': {'nudge': 6}, 'seq': 7}, 'actions': [{'call': 'log', 'detached': True}]}, expected {'result': {'snapshot': {'at': 'vip', 'seq': 7}, 'actio
+   {'op': 'step', 'snapshot': {'at': 'vip', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'nudge': 13}, 'seq': 13}, 'event': 'timer:nudge', 'token': 13} → {'id': 421, 'snapshot': {'at': 'vip', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'nudge': 13}, 'seq': 14}, 'act
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,21 @@
+command: sh -c .lake/build/bin/figram-engine\ examples/pizza.bot.json\ \<\ /home/user/figram-audit/agents5/protocol/outcome_edges.in 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:42:59.453Z
+end: 2026-11-03T17:42:59.461Z
+exit_code: 0
+--- stdout (1650 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"placing","resume":{"order":"placing"},"seq":6},"actions":[]}
+{"id":2,"snapshot":{"at":"menu","back":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"call":"clear_cart"},{"send":"menu"}]}
+{"id":3,"snapshot":{"at":"menu","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[]}
+{"id":4,"snapshot":{"at":"menu","back":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"send":"menu"}]}
+{"id":5,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":8}],"seq":8},"actions":[{"call":"create_order","token":8},{"send":"placing"}]}
+{"id":6,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":8}],"seq":8},"actions":[]}
+{"id":7,"snapshot":{"at":"menu","resume":{"order":"placing"},"seq":7},"actions":[{"send":"menu"}],"recovered":true}
+{"id":8,"snapshot":{"at":"menu","seq":7},"actions":[{"send":"menu"}]}
+{"id":9,"error":"an outcome event cannot start a user","code":"bad_request"}
+{"id":10,"snapshot":{"at":"done","back":"placing","seq":7},"actions":[{"call":"notify_kitchen","detached":true},{"send":"done"}]}
+{"id":11,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+{"id":12,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}
+{"id":13,"error":"missing field `token` for an outcome event","code":"bad_request"}
+{"id":14,"error":"field `token` is allowed only for a timer or an outcome event","code":"bad_request"}
+--- stderr (0 bytes, last 100 lines)

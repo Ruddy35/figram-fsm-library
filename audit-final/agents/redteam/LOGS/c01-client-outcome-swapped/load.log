@@ -1,0 +1,13 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/loadtest.py /home/user/figram-audit/agents5/redteam/bin/figram-engine examples/pizza.bot.json /home/user/figram-audit/agents5/redteam/ref/pizza.jsonl 8 1 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:01:56.144Z
+end: 2026-11-03T19:01:57.359Z
+exit_code: 1
+--- stdout (1935 bytes, last 200 lines)
+threads   8, processes 1: steps 8038 (with a conditions request 404, outcome events 32), mismatches 347, 7,122 steps/s, latency p50 994 µs, p99 2,488 µs
+   user-5 step 38: {'id': 348, 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 34}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 34}, 'actions': []} ≠ {'event': 'call:create_order:failed', 'token': 31, 'guards': {}, 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 34}, 'seq': 34}, 'actions': []}
+   user-5 step 39: {'id': 357, 'snapshot': {'at': 'reminder', 'back': 'cart', 'resume': {'order': 'cart'}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 35}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'reminder'}]} ≠ {'event': 'timer:cart_reminder', 'token': 34, 'guards': {}, 'snapshot': {'at': 'reminder', 'back': 'cart', 'resume': {'order': 'cart'}, 'seq': 35}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'send': 'reminder'}]}
+   user-10 step 21: {'id': 548, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 18}], 'seq': 18}, 'actions': []} ≠ {'event': 'call:create_order:failed', 'token': 18, 'guards': {}, 'snapshot': {'at': 'order_failed', 'back': 'menu', 'resume': {'order': 'order_failed'}, 'seq': 19}, 'actions': [{'send': 'order_failed'}]}
+   user-10 step 22: {'id': 556, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 18}], 'seq': 18}, 'actions': []} ≠ {'event': 'btn:retry', 'guards': {}, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 20}], 'seq': 20}, 'actions': [{'call': 'create_order', 'token': 20}, {'send': 'placing'}]}
+   user-10 step 23: conditions [] ≠ ['address_rejected']
+--- stderr (0 bytes, last 100 lines)

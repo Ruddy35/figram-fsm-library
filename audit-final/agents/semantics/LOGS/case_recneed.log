@@ -1,0 +1,18 @@
+command: /home/user/figram-audit/agents5/semantics/scripts/case.sh recneed.bot.json recneed 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/cases
+start: 2026-11-03T17:44:12.297Z
+end: 2026-11-03T17:44:12.330Z
+exit_code: 0
+--- stdout (194 bytes, last 200 lines)
+engine exit 0
+ok id=rec-need
+ok id=rec-c-true
+ok id=rec-c-false
+ok id=rec-stale
+ok id=stale-at-h
+ok id=accepted-at-h-need
+ok id=rec-repeated
+ok id=start-go
+ok id=rec-failed
+TOTAL 9 mismatches 0
+--- stderr (0 bytes, last 100 lines)

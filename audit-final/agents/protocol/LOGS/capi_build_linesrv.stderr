@@ -1,0 +1,4 @@
+/home/user/figram-audit/agents5/protocol/capi/linesrv.c: In function 'main':
+/home/user/figram-audit/agents5/protocol/capi/linesrv.c:8:30: warning: ignoring return value of 'fread' declared with attribute 'warn_unused_result' [-Wunused-result]
+    8 |   char* doc = malloc(n + 1); fread(doc, 1, n, f); doc[n] = 0; fclose(f);
+      |                              ^~~~~~~~~~~~~~~~~~~

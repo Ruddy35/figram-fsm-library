@@ -1,0 +1,2 @@
+{"id":1,"snapshot":{"at":"placing","resume":{"order":"placing"},"seq":6},"actions":[]}
+{"id":2,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[]}

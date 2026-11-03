@@ -1,0 +1,11 @@
+command: timeout 300 python3 metamorphic.py --engine /home/user/figram-audit-worktrees/a4-oracle/.lake/build/bin/figram-engine --docs 3 --steps 20 --only rename_nodes --break-transform rename_nodes --expect-red 
+cwd: /home/user/figram-audit-worktrees/a4-oracle/tests/compiler
+start: 2026-11-03T17:37:38.802Z
+end: 2026-11-03T17:37:38.910Z
+exit_code: 0
+--- stdout (411 bytes, last 200 lines)
+features: {'outcome_events': 25, 'replies_with_pending': 24}
+rename_nodes         MUST                 docs=3 steps=63 violations=63
+   example: {"doc_seed": 0, "step": 1, "expected": {"snapshot": {"at": "m0", "resume": {"s4": "m0"}, "seq": 1}, "actions": [{"send": "m0"}]}, "actual": {"snapshot": {"at": "N8", "resume": {"узел-7·s4": "N8"}, "seq": 1}, "actions": [{"send": "N8"}]}}
+EXPECT-RED: RED (good)
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,15 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..4d6f54f 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -227,7 +227,9 @@ def decEvent (kvs : Obj) : R Event := do
+     | some j => pure (.timer id (← reqNat "token" j))
+     | none => throw "missing field `token` for a timer event"
+   else if name.startsWith "call:" then
+-    match splitOutcome (name.drop 5).toString with
++    match (match (name.drop 5).toString.splitOn ":" with
++      | c :: o :: rest => if c.isEmpty || o.isEmpty then none else some (c, ":".intercalate (o :: rest))
++      | _ => none) with
+     | none => throw "an outcome event is `call:<action>:<outcome>`, both parts non-empty"
+     | some (c, o) =>
+       match get kvs "token" with

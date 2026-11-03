@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/random_docs.py /home/user/figram-audit/agents5/redteam/bin/mut/d02a-any-token-of-action/figram-gate /home/user/figram-audit/agents5/redteam/bin/mut/d02a-any-token-of-action/figram-engine 100 12 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:18:41.042Z
+end: 2026-11-03T18:18:50.267Z
+exit_code: 0
+--- stdout (59 bytes, last 200 lines)
+documents 100, requests 92660, documents with mismatches 0
+--- stderr (0 bytes, last 100 lines)

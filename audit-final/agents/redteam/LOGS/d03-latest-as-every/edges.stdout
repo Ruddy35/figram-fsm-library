@@ -1,0 +1,2 @@
+FAIL without every: a new call of the action replaces its wait: {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 6}, {'call': 'check_stock', 'token': 5}], 'seq': 6}, 'actions': [{'call': 'check_stock', 'token': 6}]} ≠ expected {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'seq': 6, 'pending': [{'call': 'check_stock', 'token': 6}]}, 'actions': [{'call': 'check_stock', 'token': 6}]}
+protocol edge cases 250, replies 250, mismatches 1

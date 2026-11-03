@@ -1,0 +1,68 @@
+command: nice -n 10 timeout 900 python3 check_diff.py --engine /home/user/figram-audit/agents5/redteam/bin/mut/d15c-check-rejects-failed/figram-engine --docs 20 
+cwd: /home/user/figram-audit-worktrees/a5-redteam/tests/compiler
+start: 2026-11-03T18:25:07.143Z
+end: 2026-11-03T18:25:12.780Z
+exit_code: 1
+--- stdout (6208 bytes, last 200 lines)
+none                           cases= 20 engine_accepts=  7 disagreements=13
+dup_node                       cases= 20 engine_accepts=  3 disagreements=3
+initial_grandchild             cases= 20 engine_accepts=  0 disagreements=0
+initial_missing                cases= 20 engine_accepts=  0 disagreements=0
+to_missing                     cases= 20 engine_accepts=  0 disagreements=0
+resume_to_message              cases= 20 engine_accepts=  0 disagreements=0
+undeclared_if                  cases= 20 engine_accepts=  0 disagreements=0
+undeclared_do                  cases= 20 engine_accepts=  0 disagreements=0
+timer_event_no_timer           cases= 20 engine_accepts=  0 disagreements=0
+empty_event                    cases= 20 engine_accepts=  0 disagreements=0
+empty_timer                    cases= 20 engine_accepts=  0 disagreements=0
+empty_if                       cases= 20 engine_accepts=  0 disagreements=0
+empty_cond_key                 cases= 20 engine_accepts=  0 disagreements=0
+section_timers                 cases= 20 engine_accepts=  0 disagreements=0
+message_initial                cases= 20 engine_accepts=  0 disagreements=0
+requires                       cases= 20 engine_accepts=  0 disagreements=0
+requires_empty                 cases= 20 engine_accepts= 11 disagreements=9
+big_delay                      cases= 20 engine_accepts=  0 disagreements=0
+max_delay                      cases= 20 engine_accepts= 10 disagreements=10
+frac_delay                     cases= 20 engine_accepts=  0 disagreements=0
+resume_false_explicit          cases= 20 engine_accepts= 10 disagreements=10
+resume_not_bool                cases= 20 engine_accepts=  0 disagreements=0
+unknown_key                    cases= 20 engine_accepts=  0 disagreements=0
+x_key                          cases= 20 engine_accepts= 16 disagreements=4
+misspelt_if                    cases= 20 engine_accepts=  0 disagreements=0
+timer_named_like_event         cases= 20 engine_accepts= 13 disagreements=7
+node_named_bot                 cases= 20 engine_accepts= 10 disagreements=10
+outcome_arrow_undeclared       cases= 20 engine_accepts=  0 disagreements=0
+outcome_arrow_failed_ok        cases= 20 engine_accepts=  0 disagreements=20
+outcome_arrow_declared_ok      cases= 20 engine_accepts= 10 disagreements=10
+outcome_arrow_plain_action     cases= 20 engine_accepts=  0 disagreements=0
+outcome_arrow_missing_action   cases= 20 engine_accepts=  0 disagreements=0
+outcome_arrow_malformed        cases= 20 engine_accepts=  0 disagreements=0
+outcome_arrow_colon_action_ok  cases= 20 engine_accepts= 12 disagreements=8
+dup_outcome_action_in_do       cases= 20 engine_accepts=  0 disagreements=0
+dup_plain_action_in_do         cases= 20 engine_accepts= 12 disagreements=8
+stay_with_resume               cases= 20 engine_accepts=  0 disagreements=0
+stay_with_back                 cases= 20 engine_accepts=  0 disagreements=0
+stay_ok                        cases= 20 engine_accepts=  9 disagreements=11
+to_null                        cases= 20 engine_accepts=  0 disagreements=0
+every_without_outcomes         cases= 20 engine_accepts=  0 disagreements=0
+every_false_explicit_ok        cases= 20 engine_accepts= 15 disagreements=5
+detached_false_explicit_ok     cases= 20 engine_accepts=  9 disagreements=11
+detached_not_bool              cases= 20 engine_accepts=  0 disagreements=0
+outcomes_failed                cases= 20 engine_accepts=  0 disagreements=0
+outcomes_colon                 cases= 20 engine_accepts=  0 disagreements=0
+outcomes_dup                   cases= 20 engine_accepts=  0 disagreements=0
+outcomes_empty_name            cases= 20 engine_accepts=  0 disagreements=0
+outcomes_empty_list            cases= 20 engine_accepts= 10 disagreements=10
+outcomes_empty_every           cases= 20 engine_accepts=  0 disagreements=0
+outcomes_not_list              cases= 20 engine_accepts=  0 disagreements=0
+call_unknown_key               cases= 20 engine_accepts=  0 disagreements=0
+call_x_key_ok                  cases= 20 engine_accepts= 10 disagreements=10
+call_no_text                   cases= 20 engine_accepts=  0 disagreements=0
+call_text_not_string           cases= 20 engine_accepts=  0 disagreements=0
+call_number                    cases= 20 engine_accepts=  0 disagreements=0
+call_text_object_ok            cases= 20 engine_accepts= 15 disagreements=5
+total cases 1140, disagreements 164
+DISAGREE {"kind": "resume_false_explicit", "oracle": true, "engine": false, "doc": "{\"figram\": 1, \"conditions\": {\"c1\": \"cond c1\", \"c2\": \"cond c2\", \"c3\": \"cond c3\", \"c4\": \"cond c4\"}, \"calls\": {\"k1\": \"call k1\", \"k2\": \"call k2\", \"k3\": \"call k3\", \"d1\": {\"text\": \"call d1 (background)\", \"detached\": true}, \"o1\": {\"text\": \"call o1\", \"outcomes\": [\"ok\", \"no\"]}, \"o2\": {\"text\": \"call o2 (every call answered)\", \"outcomes\": [\"done\"], \"every\": true}, \"o4\": {\"text\": \"call o4\", \"outcomes\": [\"a\", \"b\"], \"every\": true, \"detached\": true}}, \"
+DISAGREE {"kind": "outcome_arrow_failed_ok", "oracle": true, "engine": false, "doc": "{\"figram\": 1, \"conditions\": {\"c1\": \"cond c1\", \"c2\": \"cond c2\", \"c3\": \"cond c3\", \"c4\": \"cond c4\"}, \"calls\": {\"k1\": \"call k1\", \"k2\": \"call k2\", \"k3\": \"call k3\", \"oz\": {\"text\": \"added\", \"outcomes\": [\"ok\"]}}, \"bot\": {\"initial\": \"m2\", \"on\": {\"btn:a\": [{\"if\": \"c2\", \"to\": \"m5\", \"back\": true}, {\"to\": \"m3\", \"back\": true}], \"cmd:start\": [{\"if\": \"c2\", \"to\": \"s1\", \"resume\": true, \"do\": [\"k2\", \"k2\"]}, {\"if\": \"c4\", \"do\": [\"k2\"]}, {\"if\"
+DISAGREE {"kind": "outcome_arrow_declared_ok", "oracle": true, "engine": false, "doc": "{\"figram\": 1, \"conditions\": {\"c1\": \"cond c1\", \"c2\": \"cond c2\", \"c3\": \"cond c3\", \"c4\": \"cond c4\"}, \"calls\": {\"k1\": \"call k1\", \"k2\": {\"text\": \"call k2\", \"detached\": false, \"every\": false}, \"k3\": {\"text\": \"call k3\"}, \"d1\": {\"text\": \"call d1 (background)\", \"detached\": true}, \"o1\": {\"text\": \"call o1\", \"outcomes\": [\"ok\", \"no\"]}, \"o2\": {\"text\": \"call o2 (every call answered)\", \"outcomes\": [\"done\"], \"every\": true}, \"o3:x\": {\"text\": \"call o3:x (ba
+--- stderr (0 bytes, last 100 lines)

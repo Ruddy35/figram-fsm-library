@@ -1,0 +1,2 @@
+coverage: {"back-changed": 251, "call-with-token": 667, "detached-in-reply": 435, "err:seq_overflow": 39, "need": 141, "op:restart": 767, "op:start": 1278, "op:step": 13955, "outcome:accepted": 1200, "outcome:accepted-move": 268, "outcome:accepted-no-arrow": 817, "outcome:accepted-stay": 115, "outcome:ignored": 6498, "pending>=2": 7156, "recovered": 802, "start+event": 840, "stay": 398, "timer:stay-consumed": 18}
+docs 200 skipped 0 requests 16000 mismatches 0

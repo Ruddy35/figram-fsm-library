@@ -1,0 +1,4 @@
+requests 170, mismatches 13
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'event': 'btn:log'} → {'id': 78, 'snapshot': {'at': 'home', 'timers': {'idle': 2}, 'seq': 2}, 'actions': [{'cancel_timer': 'idle'}, {'call': 'log', 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 2}, {'send'
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 2}, 'event': 'btn:log'} → {'id': 79, 'snapshot': {'at': 'home', 'timers': {'idle': 3}, 'seq': 3}, 'actions': [{'cancel_timer': 'idle'}, {'call': 'log', 'detached': True}, {'start_timer': 'idle', 'ms': 60000, 'token': 3}, {'send'
+   {'op': 'step', 'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 2}, 'event': 'timer:nudge', 'token': 2} → {'id': 83, 'snapshot': {'at': 'vip', 'timers': {'nudge': 3}, 'seq': 3}, 'actions': [{'cancel_timer': 'nudge'}, {'call': 'log', 'detached': True}, {'start_timer': 'nudge', 'ms': 30000, 't

@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d13d-decode-sorts-pending-name/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:21:08.898Z
+end: 2026-11-03T18:21:09.793Z
+exit_code: 1
+--- stdout (948 bytes, last 200 lines)
+requests 17602, mismatches 59
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 30}, 'pending': [{'call': 'ping', 'token': 31}, {'call': 'check_stock', 'token': 27}], 'seq': 31}, 'event': 'btn:log'} → {'id': 3305, 'snapshot': {'at': 'home', 'back': 'reminder', 'resum
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 21}, 'pending': [{'call': 'ping', 'token': 23}, {'call': 'check_stock', 'token': 18}], 'seq': 23}, 'event': 'timer:idle', 'token': 21} → {'id': 4284, 'snapshot': {'at': 'home', 'back': 'r
+   {'op': 'step', 'snapshot': {'at': 'home', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'timers': {'idle': 21}, 'pending': [{'call': 'ping', 'token': 23}, {'call': 'check_stock', 'token': 18}], 'seq': 23}, 'event': 'cmd:start'} → {'id': 4285, 'snapshot': {'at': 'home', 'back': 'reminder', 'res
+--- stderr (0 bytes, last 100 lines)

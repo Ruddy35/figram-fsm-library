@@ -1,0 +1,155 @@
+⚠ [2/51] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:295:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:588:34: This simp argument is unused:
+  Snapshot.accepts
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, ite_true, hb, hstale, realizeAfter_eq, List.append_nil, List.nil_append,
+    Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/CoreProofs.lean:588:52: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, Snapshot.accepts, hb, hstale, realizeAfter_eq, List.append_nil,
+    List.nil_append, Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [26/54] Built Figram.Warnings (833ms)
+✔ [27/54] Built Figram.RandomDoc (1.4s)
+✔ [33/54] Built Figram.Correct (1.5s)
+✔ [34/54] Built Figram.LintProofs (297ms)
+✔ [35/54] Built Figram.Correct:c.o (602ms)
+✔ [37/54] Built Figram.Run (481ms)
+✔ [38/54] Built Figram.Trace (1.5s)
+✔ [41/54] Built Figram.FormatProofs (4.3s)
+✔ [43/54] Built Figram.Examples (1.8s)
+✖ [45/54] Building Figram.EngineProofs (2.4s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:450:51: Tactic `rfl` failed: The left-hand side
+  match m.choose m.initial (Event.outcome c o t) (envOf gs) with
+  | some b =>
+    realizeAfter (s.settle (Event.outcome c o t))
+      (m.resolve
+        { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+          pending := s.pending }
+        b.target)
+      (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+      (b.actions ++
+        m.entryOf
+          (m.resolve
+            { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+              pending := s.pending }
+            b.target))
+  | none =>
+    realizeAfter (s.settle (Event.outcome c o t)) m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+      m.initActions
+is not definitionally equal to the right-hand side
+  match m.choose m.initial (Event.outcome c o t) env with
+  | some b =>
+    realizeAfter (s.settle (Event.outcome c o t))
+      (m.resolve
+        { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+          pending := s.pending }
+        b.target)
+      (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+      (b.actions ++
+        m.entryOf
+          (m.resolve
+            { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+              pending := s.pending }
+            b.target))
+  | none =>
+    realizeAfter (s.settle (Event.outcome c o t)) m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+      m.initActions
+
+case pos.outcome.false
+m : Machine
+s : Snapshot
+gs : List (String × Bool)
+env : HostEnv
+hagree : ∀ (n : String) (v : Bool), givenOf gs n = some v → env n = v
+hgiven : ∀ (n : String) (v : Bool), givenOf gs n = some v → envOf gs n = v
+hn : ¬s.state ∈ m.states
+c o : String
+t : Nat
+h :
+  (match Event.outcome c o t with
+    | Event.named e => missingStart m e gs
+    | Event.timer id token => []
+    | Event.outcome call outcome token =>
+      if s.accepts (Event.outcome c o t) = true then missingStart m (Event.outcome c o t).key gs else []) =
+    []
+ha : s.accepts (Event.outcome c o t) = false
+⊢ (match m.choose m.initial (Event.outcome c o t) (envOf gs) with
+    | some b =>
+      realizeAfter (s.settle (Event.outcome c o t))
+        (m.resolve
+          { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+            pending := s.pending }
+          b.target)
+        (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+        (b.actions ++
+          m.entryOf
+            (m.resolve
+              { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := s.pending }
+              b.target))
+    | none =>
+      realizeAfter (s.settle (Event.outcome c o t)) m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+        m.initActions) =
+    match m.choose m.initial (Event.outcome c o t) env with
+    | some b =>
+      realizeAfter (s.settle (Event.outcome c o t))
+        (m.resolve
+          { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+            pending := s.pending }
+          b.target)
+        (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+        (b.actions ++
+          m.entryOf
+            (m.resolve
+              { state := m.initial, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := s.pending }
+              b.target))
+    | none =>
+      realizeAfter (s.settle (Event.outcome c o t)) m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers)
+        m.initActions
+warning: Figram/EngineProofs.lean:450:46: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:453:37: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ite_true, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:453:41: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ha, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:554:50: This simp argument is unused:
+  Snapshot.accepts
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.startWith, Machine.enterBot, ite_true, missingStart_choose m e gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:554:68: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.startWith, Machine.enterBot, Snapshot.accepts, missingStart_choose m e gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- Figram.EngineProofs

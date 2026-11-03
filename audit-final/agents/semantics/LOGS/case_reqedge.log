@@ -1,0 +1,28 @@
+command: /home/user/figram-audit/agents5/semantics/scripts/case.sh outcomes.bot.json reqedge 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/cases
+start: 2026-11-03T17:46:34.562Z
+end: 2026-11-03T17:46:34.594Z
+exit_code: 0
+--- stdout (425 bytes, last 200 lines)
+engine exit 0
+ok id=call-noform-step
+ok id=call-noform-step-token
+ok id=call-empty-action
+ok id=call-empty-outcome
+ok id=timer-empty
+ok id=start-call-noform
+ok id=start-timer-empty
+ok id=tok-neg
+ok id=tok-frac
+ok id=tok-str
+ok id=tok-big
+ok id=tok-negzero
+ok id=tok-exp
+ok id=need-before-overflow-step
+ok id=stale-at-max
+ok id=restart-max
+ok id=pending-null
+ok id=wait-token-float
+ok id=wait-token-frac
+TOTAL 19 mismatches 0
+--- stderr (0 bytes, last 100 lines)

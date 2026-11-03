@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 clients/go/gofig -rounds 3 -bots 4 examples/pizza.bot.json /home/user/figram-audit/agents5/redteam/ref/pizza.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:54:36.521Z
+end: 2026-11-03T18:54:36.881Z
+exit_code: 0
+--- stdout (103 bytes, last 200 lines)
+bots 4, rounds 3, goroutines 615, requests 24729, mismatches 0, 86813 requests/s (GOMAXPROCS=4, CPU=4)
+--- stderr (0 bytes, last 100 lines)

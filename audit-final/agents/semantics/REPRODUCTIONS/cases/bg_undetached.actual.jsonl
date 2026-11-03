@@ -1,0 +1,8 @@
+{"id":"hello","protocol":3,"states":2}
+{"id":"go","snapshot":{"at":"b","timers":{"t":1},"pending":[{"call":"bge","token":1},{"call":"bgo","token":1}],"seq":1},"actions":[{"call":"seqa"},{"call":"bg"},{"call":"bgo","token":1},{"call":"nd"},{"call":"bge","token":1},{"start_timer":"t","ms":5,"token":1},{"send":"b"}]}
+{"id":"s","snapshot":{"at":"a","pending":[{"call":"bgo","token":4}],"seq":4},"actions":[{"call":"bg"},{"call":"bgo","token":4}]}
+{"id":"bgo-done-elsewhere","snapshot":{"at":"b","timers":{"t":2},"pending":[{"call":"bge","token":1}],"seq":2},"actions":[{"cancel_timer":"t"},{"start_timer":"t","ms":5,"token":2},{"send":"b"}]}
+{"id":"bge-done","snapshot":{"at":"b","timers":{"t":1},"pending":[{"call":"bge","token":2},{"call":"bgo","token":1}],"seq":2},"actions":[{"call":"bg"},{"call":"bge","token":2}]}
+{"id":"start-s","snapshot":{"at":"a","pending":[{"call":"bgo","token":1}],"seq":1},"actions":[{"call":"bg"},{"call":"bgo","token":1},{"send":"a"}]}
+{"id":"restart","snapshot":{"at":"a","seq":2},"actions":[{"cancel_timer":"t"},{"send":"a"}]}
+{"id":"rec-s","snapshot":{"at":"a","pending":[{"call":"bgo","token":2}],"seq":2},"actions":[{"call":"bg"},{"call":"bgo","token":2},{"send":"a"}],"recovered":true}

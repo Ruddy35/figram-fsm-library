@@ -1,0 +1,53 @@
+c01-client-outcome-swapped: conf-golden:g edges:g host:R(expect-fail) client_contract:R(FAIL=6) selftest:R load:R
+c02-validator-detached-false: conf-golden:g edges:R(2/250) host:g client_contract:g selftest:R(2/194) load:g
+c03-client-no-token-check: conf-golden:g edges:g host:g client_contract:R(FAIL=1) selftest:g load:g
+d01-noarrow-keeps-wait: conf-golden:R(2/170) conf-traces:R(41/17602) random:R(95/100) edges:R(5/250) snap:g host:g directed:R(6/162) diff-small:R(div=69)
+d01b-allfalse-keeps-wait: conf-golden:g conf-traces:g random:R(59/100) edges:g snap:g host:g directed:R(1/162) diff-small:R(div=71) go-golden-pizza:g go-golden-features:g go-conf:g go-test:g
+d02a-any-token-of-action: conf-golden:R(2/170) conf-traces:R(111/17602) random:R(96/100) edges:R(4/250) snap:g host:g directed:R(5/162) diff-small:R(div=74) gate-golden:R gate-conf:R(2/17769) gate-traces:g gate-random:g
+d02b-any-token: conf-golden:R(3/170) conf-traces:R(114/17602) random:R(96/100) edges:R(5/250) snap:g host:g directed:R(6/162) diff-small:R(div=74) gate-golden:R gate-conf:R(3/17769) gate-traces:g gate-random:g
+d03-latest-as-every: conf-golden:R(1/170) conf-traces:R(13/17602) random:R(95/100) edges:R(1/250) snap:g host:g directed:R(2/162) diff-small:R(div=69) gate-golden:R gate-conf:R(1/17770) gate-traces:g gate-random:g
+d04-every-as-latest: conf-golden:R(1/170) conf-traces:R(145/17602) random:R(94/100) edges:R(1/250) snap:g host:g directed:R(1/162) diff-small:R(div=71) gate-golden:R gate-conf:R(1/17786) gate-traces:g gate-random:g
+d05-stay-reenters: conf-golden:R(13/170) conf-traces:R(1720/17602) random:R(98/100) edges:R(12/250) snap:g host:g directed:R(14/162) diff-small:R(div=76)
+d06-stay-keeps-timer: conf-golden:R(1/170) conf-traces:R(47/17602) random:R(32/100) edges:R(1/250) snap:g host:g directed:R(2/162) diff-small:R(div=51) gate-golden:R gate-conf:R(1/17772) gate-traces:g gate-random:g
+d06b-stay-keeps-timer-machine: conf-golden:R(1/170) conf-traces:R(47/17602) random:R(32/100) edges:R(1/250) snap:g host:g directed:R(2/162) diff-small:R(div=51)
+d07-enterbot-stay-snapshot: conf-golden:R(1/170) conf-traces:g random:g edges:R(3/250) snap:g host:g directed:R(4/162) diff-small:R(div=70) go-golden-pizza:g go-golden-features:R(3/306) go-conf:g go-test:g
+d08a-recovery-drops-waits: conf-golden:R(2/170) conf-traces:g random:g edges:R(3/250) snap:g host:g directed:R(4/162) diff-small:R(div=75)
+d08b-recovery-keeps-accepted-wait: conf-golden:R(1/170) conf-traces:g random:g edges:R(2/250) snap:g host:g directed:R(3/162) diff-small:R(div=73)
+d09-restart-keeps-pending: conf-golden:g conf-traces:g random:g edges:R(1/250) snap:g host:g client_contract:g d-engine:R(1/96) directed:R(1/162) diff-small:R(div=27) go-golden-pizza:g go-golden-features:g go-conf:g go-test:R
+d10-start-accepts-call: conf-golden:g conf-traces:g random:g edges:R(3/250) snap:g host:g client_contract:R(FAIL=1) d-engine:R(1/96) directed:R(1/162) diff-small:R(div=4)
+d11a-no-detached-flag: conf-golden:R(11/170) conf-traces:R(1403/17602) random:R(97/100) edges:R(12/250) snap:g host:R(expect-fail) directed:R(2/162) diff-small:R(div=74) gate-golden:R gate-conf:R(11/17772) gate-traces:g gate-random:g go-golden-pizza:R(6/108) go-golden-features:R(27/306) go-conf:R(15/24729) go-test:R
+d11b-no-call-token: conf-golden:R(11/170) conf-traces:R(705/17602) random:R(97/100) edges:R(6/250) snap:g host:R(expect-fail) directed:R(12/162) diff-small:R(div=75) gate-golden:R gate-conf:R(11/17772) gate-traces:g gate-random:g
+d12a-call-token-seq: conf-golden:R(11/170) conf-traces:R(705/17602) random:R(97/100) edges:R(6/250) snap:g host:g directed:R(14/162) diff-small:R(div=75) gate-golden:R gate-conf:R(11/17772) gate-traces:g gate-random:g
+d12b-call-token-seq-wait-seq1: conf-golden:R(11/170) conf-traces:R(705/17602) random:R(97/100) edges:R(6/250) snap:g host:R(expect-fail) directed:R(12/162) diff-small:R(div=75) gate-golden:R gate-conf:R(11/17772) gate-traces:g gate-random:g
+d13a-decode-reverses-pending: conf-golden:g conf-traces:R(494/17602) random:R(96/100) edges:g snap:R(1/49) host:g directed:R(3/162) diff-small:R(div=71) go-golden-pizza:g go-golden-features:g go-conf:g go-test:g
+d13b-decode-sorts-pending: conf-golden:g conf-traces:R(494/17602) random:R(96/100) edges:g snap:R(1/49) host:g directed:R(1/162) diff-small:R(div=71)
+d13c-encode-reverses-pending: conf-golden:R(1/170) conf-traces:R(602/17602) random:R(96/100) edges:R(1/250) snap:R(1/49) host:g directed:R(7/162) diff-small:R(div=72) gate-golden:R gate-conf:R(495/17772) gate-traces:R(494/17602) gate-random:R(96/100) go-golden-pizza:g go-golden-features:R(3/306) go-conf:g go-test:g
+d13d-decode-sorts-pending-name: conf-golden:g conf-traces:R(59/17602) random:R(95/100) edges:g snap:R(1/49) host:g directed:R(2/162) diff-small:R(div=66)
+d14a-tochart-ignores-every: conf-golden:R(1/170) conf-traces:R(145/17602) random:g edges:R(1/250) snap:g host:g d-engine:R(1/96) directed:R(1/162) diff-small:R(div=71) check-diff:g lint-warnings:g gate-golden:R gate-conf:R(1/17786) gate-traces:g gate-random:g
+d14b-tochart-ignores-detached: conf-golden:R(11/170) conf-traces:R(1403/17602) random:g edges:R(12/250) snap:g host:R(expect-fail) d-engine:R(3/96) directed:R(2/162) diff-small:R(div=74) check-diff:g lint-warnings:g gate-golden:R gate-conf:R(11/17772) gate-traces:g gate-random:g
+d15a-check-no-v6: conf-golden:g conf-traces:g random:g edges:g snap:g host:g d-engine:g directed:g diff-small:g check-diff:R lint-warnings:g formats:R(0/96) gate-golden:g gate-conf:g gate-traces:g gate-random:g
+d15b-check-undeclared-outcome: conf-golden:g conf-traces:g random:g edges:g snap:g host:g d-engine:g directed:g diff-small:g check-diff:R lint-warnings:g formats:R(0/96) gate-golden:g gate-conf:g gate-traces:g gate-random:g
+d15c-check-rejects-failed: conf-golden:R(2/170) conf-traces:R(2/17602) random:R edges:R(9/250) snap:R host:R(expect-fail) d-engine:R directed:R(FAIL=0) diff-small:R(div=73) check-diff:R lint-warnings:R gate-golden:g gate-conf:R gate-traces:R gate-random:R
+d15d-check-outcome-of-plain-action: conf-golden:g conf-traces:g random:g edges:g snap:g host:g d-engine:g directed:g diff-small:g check-diff:R lint-warnings:g formats:R(0/96) gate-golden:g gate-conf:g gate-traces:g gate-random:g
+d16-section-outcome-arrows-not-copied: conf-golden:R(3/170) conf-traces:R(497/17602) random:R(96/100) edges:R(6/250) snap:g host:g directed:R(6/162) diff-small:R(div=73)
+d17-move-clears-waits: conf-golden:R(2/170) conf-traces:R(1060/17602) random:R(96/100) edges:R(1/250) snap:g host:g directed:R(2/162) diff-small:R(div=75)
+d18-settle-removes-all-waits: conf-golden:R(2/170) conf-traces:R(116/17602) random:R(94/100) edges:R(2/250) snap:g host:g directed:R(2/162) diff-small:R(div=67) gate-golden:R gate-conf:R(2/17791) gate-traces:g gate-random:g
+d19-stay-no-seq: conf-golden:R(13/170) conf-traces:R(1720/17602) random:R(98/100) edges:R(14/250) snap:g host:g directed:R(15/162) diff-small:R(div=76) gate-golden:R gate-conf:R(13/17773) gate-traces:g gate-random:g
+d20-stay-consumes-all-timers: conf-golden:g conf-traces:g random:g edges:g snap:g host:g directed:R(2/162) diff-small:R(div=34) gate-golden:g gate-conf:g gate-traces:g gate-random:g go-golden-pizza:g go-golden-features:g go-conf:g go-test:g
+d21-need-stale-outcome-recovery: conf-golden:g conf-traces:g random:g edges:g snap:g host:g client_contract:g d-engine:g directed:g diff-small:R(div=1) diff-gate:R(div=22) go-golden-pizza:g go-golden-features:g go-conf:g go-test:g
+d22-need-stale-outcome: conf-golden:g conf-traces:R(1/17602) random:R(95/100) edges:g snap:g host:g client_contract:g d-engine:g directed:R(1/162) diff-small:R(div=67)
+d23-decwait-token-default: conf-golden:g conf-traces:g random:g edges:R(2/250) snap:R(1/49) host:g client_contract:g d-engine:R(1/96) directed:g diff-small:g
+d24-hello-protocol-2: conf-golden:g conf-traces:g random:g edges:R(10/250) snap:g host:R(expect-fail) client_contract:R(FAIL=0) d-engine:R(16/96) directed:g diff-small:g
+d25-stay-outcome-keeps-wait: conf-golden:R(3/170) conf-traces:R(508/17602) random:R(84/100) edges:R(5/250) snap:g host:g directed:R(3/162) diff-small:R(div=58)
+d26-recovery-stale-outcome-chooses: conf-golden:R(1/170) conf-traces:g random:g edges:R(1/250) snap:g host:g directed:R(1/162) diff-small:R(div=54)
+d27a-warning-forgets-failed: conf-golden:g conf-traces:g random:g edges:g snap:g host:g d-engine:g directed:g diff-small:g check-diff:g lint-warnings:R gate-golden:g gate-conf:g gate-traces:g gate-random:g
+d27b-warning-skips-stay: conf-golden:g conf-traces:g random:g edges:g snap:g host:g d-engine:g directed:g diff-small:g check-diff:g lint-warnings:R gate-golden:g gate-conf:g gate-traces:g gate-random:g
+d28-fmt-drops-detached: conf-golden:g conf-traces:g random:g edges:g snap:g host:g d-engine:g directed:g diff-small:g check-diff:g lint-warnings:g formats:R(0/96) gate-golden:R gate-conf:g gate-traces:g gate-random:g
+d29-stay-start-plain: conf-golden:R(1/170) conf-traces:g random:g edges:R(3/250) snap:g host:g directed:R(4/162) diff-small:R(div=53)
+d30-restart-keeps-resume: conf-golden:g conf-traces:g random:g edges:R(3/250) snap:g host:g directed:g diff-small:R(div=31)
+d31-split-first-colon: conf-golden:g conf-traces:g random:g edges:R(2/250) snap:g host:g client_contract:g d-engine:g directed:R(1/162) diff-small:R(div=56)
+d33-no-need-for-outcome: conf-golden:R(1/170) conf-traces:R(5/17602) random:R(97/100) edges:g snap:g host:R(expect-fail) client_contract:R(FAIL=2) d-engine:g directed:R(1/162) diff-small:R(div=59)
+d38-detached-no-wait: conf-golden:R(2/170) conf-traces:R(598/17602) random:R(97/100) edges:R(4/250) snap:g host:g directed:R(1/162) diff-small:R(div=67) gate-golden:R gate-conf:R(2/17814) gate-traces:g gate-random:g
+d39-every-no-dedupe: conf-golden:g conf-traces:g random:g edges:g snap:g host:g directed:R(1/162) diff-small:g diff-gate:R(div=1)
+d41-settle-after-fire: conf-golden:g conf-traces:g random:g edges:g snap:g host:g directed:g diff-small:g diff-gate:g
+d48-token-on-every-call: conf-golden:R(15/170) conf-traces:R(1963/17602) random:R(97/100) edges:R(8/250) snap:g host:R(expect-fail) directed:R(13/162) diff-small:R(div=100)

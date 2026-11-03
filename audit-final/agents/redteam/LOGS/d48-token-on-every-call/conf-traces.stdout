@@ -1,0 +1,4 @@
+requests 17602, mismatches 1963
+   {'op': 'step', 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3}, 'event': 'btn:cancel'} → {'id': 3, 'snapshot': {'at': 'menu', 'back': 'cart', 'resume': {'order': 'cart'}, 'seq': 4}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'cal
+   {'op': 'step', 'snapshot': {'at': 'pick_size', 'back': 'catalog', 'resume': {'order': 'pick_size'}, 'seq': 6}, 'event': 'btn:size'} → {'id': 6, 'snapshot': {'at': 'pick_toppings', 'back': 'catalog', 'resume': {'order': 'pick_toppings'}, 'seq': 7}, 'actions': [{'call': 'save_size', 'token': 7}, {'sen
+   {'op': 'step', 'snapshot': {'at': 'pick_toppings', 'back': 'catalog', 'resume': {'order': 'pick_toppings'}, 'seq': 7}, 'event': 'btn:add'} → {'id': 7, 'snapshot': {'at': 'cart', 'back': 'pick_toppings', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 8}, 'seq': 8}, 'actions': [{'call': 'add

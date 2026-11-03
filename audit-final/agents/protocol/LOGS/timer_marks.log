@@ -1,0 +1,12 @@
+command: sh -c .lake/build/bin/figram-engine\ examples/features.bot.json\ \<\ /home/user/figram-audit/agents5/protocol/timers.in 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:52:42.905Z
+end: 2026-11-03T17:52:42.912Z
+exit_code: 0
+--- stdout (546 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"item","resume":{"shop":"item"},"timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[{"call":"check_stock","token":6}]}
+{"id":2,"snapshot":{"at":"home","timers":{"idle":5},"seq":5},"actions":[]}
+{"id":3,"snapshot":{"at":"vip","seq":6},"actions":[{"call":"log","detached":true}]}
+{"id":4,"snapshot":{"at":"vip","seq":6},"actions":[]}
+{"id":5,"snapshot":{"at":"home","timers":{"idle":42},"seq":42},"actions":[{"start_timer":"idle","ms":60000,"token":42},{"send":"home"}],"recovered":true}
+--- stderr (0 bytes, last 100 lines)

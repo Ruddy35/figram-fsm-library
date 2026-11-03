@@ -1,0 +1,4 @@
+Figram/EngineProofs.lean:mem_addWait
+Figram/Examples.lean:#guard@345:(features.step ⟨"item", [], [], 4, none, [("check_stock", 4)]⟩ 
+Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2
+Figram/OutcomeProofs.lean:realizeOne_latest

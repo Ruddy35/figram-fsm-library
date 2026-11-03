@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 tests/engine/protocol_edges.py .lake/build/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:46:36.590Z
+end: 2026-11-03T17:46:37.084Z
+exit_code: 0
+--- stdout (51 bytes, last 200 lines)
+protocol edge cases 250, replies 250, mismatches 0
+--- stderr (0 bytes, last 100 lines)

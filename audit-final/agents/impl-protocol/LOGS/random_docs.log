@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 tests/engine/random_docs.py .lake/build/bin/figram .lake/build/bin/figram-engine 100 12 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T16:57:44.536Z
+end: 2026-11-03T16:57:53.910Z
+exit_code: 0
+--- stdout (59 bytes, last 200 lines)
+documents 100, requests 91323, documents with mismatches 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,2 @@
+warning: outcome `ok` of action `mk` has no arrow on `g`: the variant of `bot` on `cmd:start` waits for it there (an outcome without an arrow is ignored)
+warning: outcome `failed` of action `mk` has no arrow on `g`: the variant of `bot` on `cmd:start` waits for it there (an outcome without an arrow is ignored)

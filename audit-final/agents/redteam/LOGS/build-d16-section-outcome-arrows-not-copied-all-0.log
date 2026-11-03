@@ -1,0 +1,124 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:08:41.834Z
+end: 2026-11-03T18:08:51.631Z
+exit_code: 1
+--- stdout (5112 bytes, last 200 lines)
+✔ [21/54] Built Figram.Warnings (535ms)
+✔ [29/54] Built Figram.RandomDoc (955ms)
+✖ [33/54] Building Figram.Correct (1.9s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:195:6: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  List.filterMap
+    (fun e => if List.isEmpty (?f e) = true then none else some { src := ?L, event := e, branches := ?f e }) ?evs
+in the target expression
+  List.filterMap
+      (fun x =>
+        if
+            ((concatIndex
+                      (List.flatMap
+                        (fun a =>
+                          List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                        (c.index.anc L))).concat
+                  x).isEmpty =
+              true then
+          none
+        else
+          some
+            { src := L, event := x,
+              branches :=
+                (concatIndex
+                      (List.flatMap
+                        (fun a =>
+                          List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                        (c.index.anc L))).concat
+                  x })
+      (dedupFast (List.map (fun x => x.event) c.transitions)) =
+    c.rowsSpec L
+
+c : Chart
+L : NodeId
+⊢ List.filterMap
+      (fun x =>
+        if
+            ((concatIndex
+                      (List.flatMap
+                        (fun a =>
+                          List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                        (c.index.anc L))).concat
+                  x).isEmpty =
+              true then
+          none
+        else
+          some
+            { src := L, event := x,
+              branches :=
+                (concatIndex
+                      (List.flatMap
+                        (fun a =>
+                          List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                        (c.index.anc L))).concat
+                  x })
+      (dedupFast (List.map (fun x => x.event) c.transitions)) =
+    c.rowsSpec L
+
+Note: The target expression is not type-correct under the `implicit` transparency level, which may have triggered the failure. This is usually caused by unfolding of semireducible definitions in prior tactic steps. Use `set_option linter.tacticCheckInstances true` to investigate the source of the issue.
+Full error:
+  Application type mismatch: The argument
+    instDecidableEqBool
+      ((concatIndex
+              (List.flatMap
+                (fun a => List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                (c.index.anc L))).concatH
+          (x, hash x).fst (x, hash x).snd).isEmpty
+      true
+  has type
+    Decidable
+      (((concatIndex
+                (List.flatMap
+                  (fun a =>
+                    List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                  (c.index.anc L))).concatH
+            (x, hash x).fst (x, hash x).snd).isEmpty =
+        true)
+  but is expected to have type
+    Decidable
+      (((concatIndex
+                (List.flatMap
+                  (fun a =>
+                    List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                  (c.index.anc L))).concat
+            x).isEmpty =
+        true)
+  in the application
+    @ite (Option Row)
+      (((concatIndex
+                (List.flatMap
+                  (fun a =>
+                    List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                  (c.index.anc L))).concat
+            x).isEmpty =
+        true)
+      (instDecidableEqBool
+        ((concatIndex
+                (List.flatMap
+                  (fun a =>
+                    List.filter (fun p => a == L || !p.fst.startsWith "call:") ((c.transIndex c.index).concat a))
+                  (c.index.anc L))).concatH
+            (x, hash x).fst (x, hash x).snd).isEmpty
+        true)
+warning: Figram/Correct.lean:194:50: This simp argument is unused:
+  leafTab_get
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Function.comp_def, Tab.concatH_hash]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [39/54] Built Figram.Trace (1.7s)
+✔ [41/54] Built Figram.FormatProofs (4.9s)
+✔ [45/54] Built Figram.EngineProofs (2.9s)
+✔ [47/54] Built Figram.OutcomeProofs (1.3s)
+Some required targets logged failures:
+- Figram.Correct
+--- stderr (20 bytes, last 100 lines)
+error: build failed

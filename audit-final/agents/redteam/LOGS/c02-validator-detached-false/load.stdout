@@ -1,0 +1,1 @@
+threads   8, processes 1: steps 8038 (with a conditions request 412, outcome events 32), mismatches 0, 7,189 steps/s, latency p50 960 µs, p99 2,877 µs

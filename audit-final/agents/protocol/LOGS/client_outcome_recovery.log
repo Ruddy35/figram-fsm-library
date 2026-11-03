@@ -1,0 +1,9 @@
+command: timeout 60 python3 /home/user/figram-audit/agents5/protocol/client_outcome_recovery.py /home/user/figram-audit-worktrees/a5-protocol 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:49:48.018Z
+end: 2026-11-03T17:49:48.064Z
+exit_code: 0
+--- stdout (222 bytes, last 200 lines)
+not accepted, message gone: {'id': 1, 'snapshot': {'at': 'menu', 'seq': 7}, 'actions': [{'send': 'menu'}], 'recovered': True}
+not accepted, message exists: {'id': 2, 'snapshot': {'at': 'placing', 'seq': 6}, 'actions': []}
+--- stderr (0 bytes, last 100 lines)

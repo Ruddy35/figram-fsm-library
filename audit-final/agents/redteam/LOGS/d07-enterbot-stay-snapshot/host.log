@@ -1,0 +1,34 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/host_sim.py /home/user/figram-audit/agents5/redteam/bin/mut/d07-enterbot-stay-snapshot/figram-engine examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:09:10.801Z
+end: 2026-11-03T18:09:20.697Z
+exit_code: 0
+--- stdout (3450 bytes, last 200 lines)
+host by the contract, failures injected 170
+  users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 30, orders in the CRM 15, events processed 279 of 279 (repeated deliveries), lost updates 0, actions not run 0
+  outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0
+timer: tokens 3 → 6; old event: cart → cart; current: → reminder
+--- control: a host without duplicate filtering and without idempotency keys
+NAIVE host, failures injected 304
+  users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 30, orders in the CRM 15, events processed 658 of 279 (repeated deliveries), lost updates 0, actions not run 0
+  outcomes: calls with a token 23, outcome events lost 0, processed twice 42, without a call 0, waits left 0 (created 47, rejected 12, failed 6); background actions run 19 of 15, in the failure queue 0
+  the test catches the violation: yes (control attempts: 1)
+--- control: a host that records the outcome of an action outside the transaction that marks it executed
+host that records the outcome separately, failures injected 170
+  users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 27, orders in the CRM 14, events processed 274 of 274 (repeated deliveries), lost updates 0, actions not run 0
+  outcomes: calls with a token 22, outcome events lost 3, processed twice 0, without a call 0, waits left 3 (created 12, rejected 5, failed 2); background actions run 12 of 12, in the failure queue 0
+  not as expected: [('u0', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')]), ('u8', 'stuck', 'placing', 1, [(1, 'zone:1 Main St')]), ('u24', 'stuck', 'placing', 0, [])]
+  the test catches the violation: yes (control attempts: 1)
+background actions (host by the contract), failures injected 48: users 12, kitchen down for 6, users not held up 12, blocked 0, orders 12, failure queue 6 notify_kitchen with an alert, other failures 0, sequential actions not run 0
+--- control: a host that runs background actions in the user's queue, as sequential actions
+background actions (host that runs background actions in the user's queue), failures injected 44: users 12, kitchen down for 6, users not held up 6, blocked 6, orders 12, failure queue 6 notify_kitchen with an alert, other failures 0, sequential actions not run 12
+  the test catches the violation: yes
+lost snapshot (host by the contract), failures injected 116: users 12, not as expected 0, actions not run 0
+--- controls: a host that starts a user without a snapshot without the update's event, or without the high-water mark
+lost snapshot ({'first_event': False}), failures injected 97: users 12, not as expected 6, actions not run 0
+  not as expected: [('l0', 'menu', [(1, 'zone:1 Main St')]), ('l2', 'menu', [(1, 'zone:1 Main St')]), ('l4', 'menu', [(1, 'zone:1 Main St')]), ('l6', 'menu', [(1, 'zone:1 Main St')])] …
+lost snapshot ({'hwm': False}), failures injected 114: users 12, not as expected 12, actions not run 0
+  not as expected: [('l0', 'done', [(1, 'zone:1 Main St'), (1, 'zone:2 Second Ave')]), ('l1', 'done', [(1, 'zone:2 Second Ave')]), ('l2', 'done', [(1, 'zone:1 Main St'), (1, 'zone:2 Second Ave')]), ('l3', 'done', [(1, 'zone:2 Second Ave')])] …
+  the test catches the violations: yes
+contract holds
+--- stderr (0 bytes, last 100 lines)

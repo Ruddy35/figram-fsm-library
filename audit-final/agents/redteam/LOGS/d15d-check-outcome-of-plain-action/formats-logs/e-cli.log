@@ -1,0 +1,37 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/formats/e_cli_names.py --tmp /tmp
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:47:38Z
+end: 2026-11-03T18:47:38Z
+exit_code: 0
+--- stdout (2582 bytes, last 200 lines)
+ok   esc-in-target        check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `x\\u001b[2K\\u001b[1A\\u001b[32mok\\u001b[0m`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `x\\u001b[2K\\u001b[1A\\u001b[32mok\\u001b[0m`: target does not exist\n'
+ok   lf-forges-ok-line    check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `zz\\u000aok\\u000a`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `zz\\u000aok\\u000a`: target does not exist\n'
+ok   nul-in-target        check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `a\\u0000HIDDEN`: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `a\\u0000HIDDEN`: target does not exist\n'
+ok   quote-in-cond        check rc=1 engine rc=1
+        check.stdout: b'condition `c"; rm -rf "` is not described in `conditions`\n'
+        engine.stderr: b'document error: condition `c"; rm -rf "` is not described in `conditions`\n'
+ok   esc-in-dup-node      check rc=1 engine rc=1
+        check.stdout: b'node `n\\u001b]0;pwned\\u0007` is declared more than once\ninitial node `n\\u001b]0;pwned\\u0007` of section `s` must be a child of it\n'
+        engine.stderr: b'document error: node `n\\u001b]0;pwned\\u0007` is declared more than once\ndocument error: initial node `n\\u001b]0;pwned\\u0007` of section `s` must be a child of i'
+ok   cr-in-target         check rc=1 engine rc=1
+        check.stdout: b'arrow `a` \xe2\x86\x92 `x\\u000dok      `: target does not exist\n'
+        engine.stderr: b'document error: arrow `a` \xe2\x86\x92 `x\\u000dok      `: target does not exist\n'
+ok   esc-in-dup-key       check rc=1 engine rc=1
+        fmt.stderr: b'figram: cannot read the document: duplicate key `x-\\u001b[31m`\n'
+        engine.stderr: b'document error: duplicate key `x-\\u001b[31m`\n'
+ok   raw-esc-top-level    check rc=1 engine rc=1
+        fmt.stderr: b'figram: cannot read the document: unexpected character `\\u001b`\n'
+        engine.stderr: b'document error: unexpected character `\\u001b`\n'
+ok   nl-in-dup-key        check rc=1 engine rc=1
+        fmt.stderr: b'figram: cannot read the document: duplicate key `a\\u000aok\\u000a`\n'
+        engine.stderr: b'document error: duplicate key `a\\u000aok\\u000a`\n'
+fmt keeps NUL as \u0000 and the tail after it: True
+engine protocol reply escaped: True b'{"id":1,"error":"condition `\\u001b[31m\\n`: expected true or false","code":"bad_request"}\n'
+rows=9 stream-checks=54 rows-violating-P=0 control=False
+--- stderr (0 bytes, last 100 lines)

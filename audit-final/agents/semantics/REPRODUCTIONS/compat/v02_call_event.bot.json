@@ -1,0 +1,3 @@
+{"figram": 1,
+ "bot": {"initial": "wait",
+         "children": {"wait": {"on": {"call:crm:done": [{"to": "done"}]}}, "done": {}}}}

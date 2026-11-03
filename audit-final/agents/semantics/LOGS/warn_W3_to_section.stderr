@@ -1,0 +1,3 @@
+warning: message `s2` is unreachable: no arrow leads to it from the start of the bot
+warning: outcome `ok` of action `mk` has no arrow on `s1`: the variant of `h` on `btn:s` waits for it there (an outcome without an arrow is ignored)
+warning: outcome `failed` of action `mk` has no arrow on `s1`: the variant of `h` on `btn:s` waits for it there (an outcome without an arrow is ignored)

@@ -1,0 +1,39 @@
+{"at":"a"}                                                             schema=valid    engine=accepted
+{"at":"a","pending":[]}                                                schema=valid    engine=accepted
+{"at":"a","resume":{},"timers":{}}                                     schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":1},{"call":"x","token":1}]}   schema=valid    engine=accepted
+{"at":"a","pending":[{"token":1,"call":"x"}]}                          schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":5.0}]}                        schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":5e0}]}                        schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":1e-400}]}                     schema=valid    engine=rejected:bad_snapshot   <-- DISAGREE
+{"at":"a","pending":[{"call":"x","token":9007199254740990.5}]}         schema=valid    engine=rejected:bad_snapshot   <-- DISAGREE
+{"at":"a","pending":[{"call":"x","token":9007199254740991}]}           schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":9007199254740992}]}           schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":[{"call":"x","token":-0}]}                         schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":-1}]}                         schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":[{"call":"x","token":0e1001}]}                     schema=valid    engine=rejected:parse_error   <-- DISAGREE
+{"at":"a","seq":0e1001}                                                schema=valid    engine=rejected:parse_error   <-- DISAGREE
+{"at":"a","seq":1e1000}                                                schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","seq":100e-2}                                                schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"x","token":"1"}]}                        schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":[{"call":"","token":1}]}                           schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":[{"call":1,"token":1}]}                            schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":[{"call":"x","token":1,"x-note":1}]}               schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":[null]}                                            schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":null}                                              schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","pending":{}}                                                schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","v":1.0}                                                     schema=valid    engine=accepted
+{"at":"a","v":true}                                                    schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","v":1e0}                                                     schema=valid    engine=accepted
+{"at":"\ud800"}                                                        schema=valid    engine=rejected:parse_error   <-- DISAGREE
+{"at":"\u0000"}                                                        schema=valid    engine=accepted
+{"at":"a","pending":[{"call":"\udfff","token":1}]}                     schema=valid    engine=rejected:parse_error   <-- DISAGREE
+{"at":"a","back":""}                                                   schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","resume":{"":"x"}}                                           schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","timers":{"t":1.5}}                                          schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","seq":9007199254740991}                                      schema=valid    engine=accepted
+{"at":"a","seq":true}                                                  schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","x-note":1}                                                  schema=invalid  engine=rejected:bad_snapshot
+{"at":"a","at":"b"}                                                    schema=valid    engine=rejected:parse_error   <-- DISAGREE
+{"at":"a","pending":[{"call":"x","token":1,"token":2}]}                schema=valid    engine=rejected:parse_error   <-- DISAGREE
+38 snapshots, 8 disagreements

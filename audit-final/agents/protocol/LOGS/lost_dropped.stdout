@@ -1,0 +1,2 @@
+lost snapshot (host by the contract), failures injected 117: users 12, not as expected 0, actions not run 0
+scenario ok: True dropped events by kind: {'timer': 6}

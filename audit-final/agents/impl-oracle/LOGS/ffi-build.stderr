@@ -1,0 +1,12 @@
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done

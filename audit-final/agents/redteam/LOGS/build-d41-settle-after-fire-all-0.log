@@ -1,0 +1,86 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:09:23.948Z
+end: 2026-11-03T19:09:31.109Z
+exit_code: 1
+--- stdout (4590 bytes, last 200 lines)
+⚠ [2/22] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:645:8: declaration uses `sorry`
+✔ [9/51] Built Figram.Warnings (641ms)
+✔ [12/54] Built Figram.RandomDoc (1.3s)
+✖ [33/54] Building Figram.Correct (1.6s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:451:12: Type mismatch
+  fire_eq c hwf (s.settle ev) (Eq.mpr (id (congrArg (Membership.mem c.leafIds) (settle_state s ev))) hs)
+    (Eq.mpr (id (congrFun' (congrArg Membership.mem (congrFun' (congrArg c.cands (settle_state s ev)) ev.key)) b))
+      (List.mem_of_find?_eq_some hb))
+has type
+  c.compileSpec.fire (s.settle ev) (c.toF b) = c.fire (s.settle ev) b
+but is expected to have type
+  ((c.compileSpec.fire s (c.toF b)).fst.settle ev, (c.compileSpec.fire s (c.toF b)).snd) = c.fire (s.settle ev) b
+✔ [39/54] Built Figram.Trace (1.3s)
+✔ [41/54] Built Figram.FormatProofs (4.2s)
+✖ [45/54] Building Figram.EngineProofs (2.5s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:338:14: Tactic `rewrite` failed: Did not find an occurrence of the pattern
+  (realize ?s ?T ?acts).fst.seq
+in the target expression
+  ((realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+              (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+                m.entryOf (m.resolve s b.target))).fst.settle
+        ev).seq ≤
+    maxInt
+
+case h_2.isFalse
+m : Machine
+hwf : m.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : SnapOK s
+hn0 : namesOK m = true
+hexit : ∀ (x : NodeId × List Action), x ∈ m.exit → ∀ (x_1 : Action), x_1 ∈ x.snd → actionOK x_1 = true
+hentry : ∀ (x : NodeId × List Action), x ∈ m.entry → ∀ (x_1 : Action), x_1 ∈ x.snd → actionOK x_1 = true
+hrows :
+  ∀ (x : Row), x ∈ m.rows → ∀ (x_1 : FBranch), x_1 ∈ x.branches → ∀ (x : Action), x ∈ x_1.actions → actionOK x = true
+hstates : ∀ (x : NodeId), x ∈ m.states → (!String.isEmpty x) = true
+hinit : ∀ (x : Action), x ∈ m.initActions → actionOK x = true
+h✝² : ¬¬s.state ∈ m.states
+hss : SnapOK (s.settle ev)
+h✝¹ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r : Row
+hr : m.row s.state ev.key = some r
+x✝ : Option FBranch
+b : FBranch
+hb : List.find? (fun b => guardOK env b.guard) r.branches = some b
+h✝ : ¬b.target = Target.stay
+h1 :
+  ((realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+              (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+                m.entryOf (m.resolve s b.target))).fst.settle
+        ev).seq ≤
+    maxInt
+h2 :
+  ((realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+              (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+                m.entryOf (m.resolve s b.target))).fst.settle
+        ev).state ∈
+    m.states
+h3 :
+  ((realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+              (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+                m.entryOf (m.resolve s b.target))).fst.settle
+        ev).state ≠
+    ""
+⊢ SnapOK
+    ((realize (m.markBack s (m.resolve s b.target)) (m.resolve s b.target)
+            (m.exitOf s.state ++ staleCancels (m.exitOf s.state) s ++ b.actions ++
+              m.entryOf (m.resolve s b.target))).fst.settle
+      ev)
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

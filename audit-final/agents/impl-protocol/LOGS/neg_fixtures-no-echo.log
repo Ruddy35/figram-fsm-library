@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 bash /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/run.sh fixtures-no-echo 
+cwd: /home/user/figram-audit-worktrees
+start: 2026-11-03T17:01:00.591Z
+end: 2026-11-03T17:01:00.759Z
+exit_code: 0
+--- stdout (521 bytes, last 200 lines)
+fixtures-no-echo: rc=1 (want ≠ 0):   disagree: {'at': 'home', 'pending': [{'call': 'ping', 'token': 3}]}: an event without an arrow gave {'at': 'home', 'pending': [{'call': 'ping', 'token': 3}]} |  disagree: {'at': 'home', 'pending': [{'call': 'ping', 'token': 7}, {'call': 'ping', 'token': 3}, {'call': 'check_stock', 'token': 2}], 'seq': 7}: an event wit|  disagree: {'at': 'home', 'pending': [{'call': 'gone', 'token': 0}]}: an event without an arrow gave {'at': 'home', 'pending': [{'call': 'gone', 'token': 0}]} |
+--- stderr (0 bytes, last 100 lines)

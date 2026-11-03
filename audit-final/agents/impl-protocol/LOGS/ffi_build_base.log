@@ -1,0 +1,23 @@
+command: nice -n 10 timeout 900 bash ffi/build.sh 
+cwd: /home/user/figram-audit-worktrees/a4-protocol
+start: 2026-11-03T16:29:40.659Z
+end: 2026-11-03T16:29:44.202Z
+exit_code: 0
+--- stdout (174 bytes, last 200 lines)
+✔ [40/43] Built Figram:static (215ms)
+✔ [41/43] Built Figram.Api (520ms)
+Build completed successfully (43 jobs).
+done: ffi/out/libfigram.a, linker flags: ffi/out/LDFLAGS
+--- stderr (1212 bytes, last 100 lines)
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done

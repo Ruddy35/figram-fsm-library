@@ -1,0 +1,9 @@
+{"id":"rec-need","op":"step","snapshot":{"at":"gone","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:ok","token":3}
+{"id":"rec-c-true","op":"step","snapshot":{"at":"gone","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:ok","token":3,"guards":{"c":true}}
+{"id":"rec-c-false","op":"step","snapshot":{"at":"gone","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:ok","token":3,"guards":{"c":false}}
+{"id":"rec-stale","op":"step","snapshot":{"at":"gone","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:ok","token":2}
+{"id":"stale-at-h","op":"step","snapshot":{"at":"h","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:ok","token":2}
+{"id":"accepted-at-h-need","op":"step","snapshot":{"at":"h","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:ok","token":3}
+{"id":"rec-repeated","op":"step","snapshot":{"at":"gone","seq":4},"event":"call:mk:ok","token":3}
+{"id":"start-go","op":"start","event":"btn:go"}
+{"id":"rec-failed","op":"step","snapshot":{"at":"gone","pending":[{"call":"mk","token":3}],"seq":3},"event":"call:mk:failed","token":3}

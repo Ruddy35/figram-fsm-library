@@ -1,0 +1,10 @@
+Figram/EngineProofs.lean:realizeOne_inv
+Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named
+Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+Figram/OutcomeProofs.lean:realizeOne_undetach
+Figram/OutcomeProofs.lean:realizeOne_keep
+Figram/OutcomeProofs.lean:realizeOne_latest
+Figram/OutcomeProofs.lean:realizeOne_records
+Figram/OutcomeProofs.lean:foldl_records
+Figram/OutcomeProofs.lean:realizeOne_keep_tok
+Figram/OutcomeProofs.lean:realizeOne_pending_mem

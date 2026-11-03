@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/client_robustness.py", line 186, in <module>
+    eng = Engine(engine_bin, pizza, processes=2, timeout=5.0)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/../../clients/python/figram_client.py", line 696, in __init__
+    raise EngineError(f"engine did not start: {e}") from None
+figram_client.EngineError: engine did not start: engine process failed: protocol violation: engine protocol 2, the client supports only 3

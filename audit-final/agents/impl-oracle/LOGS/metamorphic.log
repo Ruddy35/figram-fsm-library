@@ -1,0 +1,20 @@
+command: timeout 840 python3 metamorphic.py --engine /home/user/figram-audit-worktrees/a4-oracle/.lake/build/bin/figram-engine --docs 40 --steps 60 
+cwd: /home/user/figram-audit-worktrees/a4-oracle/tests/compiler
+start: 2026-11-03T17:37:33.104Z
+end: 2026-11-03T17:37:38.782Z
+exit_code: 0
+--- stdout (1492 bytes, last 200 lines)
+features: {'outcome_events': 740, 'replies_with_pending': 728}
+rename_nodes         MUST                 docs=40 steps=2440 violations=0
+rename_names         MUST                 docs=40 steps=2440 violations=0
+shuffle_children     MUST                 docs=40 steps=2440 violations=0
+shuffle_on           MUST                 docs=40 steps=2440 violations=0
+annotations          MUST                 docs=40 steps=2440 violations=0
+unreachable          MUST                 docs=40 steps=2440 violations=0
+unreachable_resume   MUST                 docs=40 steps=2440 violations=0
+numbers              MUST                 docs=40 steps=2440 violations=0
+call_forms           MUST                 docs=40 steps=2440 violations=0
+all_detached         MUST                 docs=40 steps=2440 violations=0
+shuffle_timers       CLAIMED(C3c)         docs=40 steps=2440 violations=308
+   example: {"doc_seed": 1, "step": 5, "expected": {"snapshot": {"at": "m3", "back": "m2", "resume": {"s0": "m3", "s1": "m3", "s2": "m2"}, "timers": {"t1": 2, "t0": 2}, "pending": [{"call": "o4", "token": 2}], "seq": 2}, "actions": [{"call": "o4", "token": 2, "detached": true}, {"start_timer": "t0", "ms": 0, "token": 2}, {"start_timer": "t1", "ms": 1, "token": 2}, {"send": "m3"}]}, "actual": {"snapshot": {"at": "m3", "back": "m2", "resume": {"s0": "m3", "s1": "m3", "s2": "m2"}, "timers": {"t0": 2, "t1": 2}, "pending": [{"call": "o4", "token": 2}], "seq": 2}, "actions": [{"call": "o4", "token": 2, "detache
+--- stderr (0 bytes, last 100 lines)

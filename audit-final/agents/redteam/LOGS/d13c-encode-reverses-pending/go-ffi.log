@@ -1,0 +1,38 @@
+command: nice -n 10 timeout 1500 bash ffi/build.sh 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:54:04.702Z
+end: 2026-11-03T18:54:17.739Z
+exit_code: 0
+--- stdout (1341 bytes, last 200 lines)
+✔ [2/45] Built Figram.Core (1.3s)
+✔ [3/45] Built Figram.Chart (1.2s)
+✔ [5/45] Built Figram.CoreProofs (1.5s)
+✔ [7/45] Built Figram.Compile (832ms)
+✔ [9/45] Built Figram.Mutate (633ms)
+✔ [11/45] Built Figram.Core:c.o (2.8s)
+✔ [12/45] Built Figram.Lint (794ms)
+✔ [14/45] Built Figram.Correct (1.1s)
+✔ [15/45] Built Figram.LintProofs (447ms)
+✔ [17/45] Built Figram.Run (462ms)
+✔ [19/45] Built Figram.Correct:c.o (577ms)
+✔ [20/45] Built Figram.Format (1.6s)
+✔ [22/45] Built Figram.Warnings (495ms)
+✔ [24/45] Built Figram.RandomDoc (859ms)
+✔ [26/45] Built Figram.FormatIO (1.1s)
+✔ [28/45] Built Figram.Engine (858ms)
+✔ [29/45] Built Figram.Api (297ms)
+✔ [32/45] Built Figram.Trace (1.0s)
+✔ [34/45] Built Figram.FormatProofs (3.5s)
+✔ [36/45] Built Figram.Engine:c.o (1.8s)
+⚠ [37/45] Built Figram.EngineProofs (789ms)
+warning: Figram/EngineProofs.lean:77:8: declaration uses `sorry`
+warning: Figram/EngineProofs.lean:101:8: declaration uses `sorry`
+✔ [38/45] Built Figram.EngineProofs:c.o (502ms)
+✔ [39/45] Built Figram.Examples (1.9s)
+✔ [41/45] Built Figram.OutcomeProofs (1.4s)
+✔ [42/45] Built Figram (245ms)
+✔ [44/45] Built Figram.OutcomeProofs:c.o (482ms)
+✔ [45/45] Built Figram:static (45ms)
+Build completed successfully (45 jobs).
+done: ffi/out/libfigram.a, linker flags: ffi/out/LDFLAGS
+--- stderr (0 bytes, last 100 lines)

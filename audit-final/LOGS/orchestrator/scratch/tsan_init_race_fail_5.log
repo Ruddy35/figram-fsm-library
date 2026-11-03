@@ -1,0 +1,35 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=14143)
+  Read of size 8 at 0x7fed877238a8 by thread T1:
+    #0 lean_ctor_get /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:845 (contract_tsan+0xb76dd) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #1 lp_figram_List_mapTR_loop___at___00Figram_Format_renderCompact_spec__0 .lake/build/ir/Figram/FormatIO.c:5729 (contract_tsan+0xb76dd)
+    #2 lp_figram_Figram_Format_renderCompact .lake/build/ir/Figram/FormatIO.c:5782 (contract_tsan+0xb721a) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #3 lp_figram_Figram_Engine_handleWith .lake/build/ir/Figram/Engine.c:7802 (contract_tsan+0xccfd8) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #4 lp_figram_Figram_Engine_handle .lake/build/ir/Figram/Engine.c:7867 (contract_tsan+0xcd335) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #5 figram_request .lake/build/ir/Figram/Api.c:307 (contract_tsan+0xd128a) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #6 request_impl ffi/figram_ffi.c:428 (contract_tsan+0x2b052) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #7 figram_request_json ffi/figram_ffi.c:431 (contract_tsan+0x2bff7) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #8 init_worker tests/capi/contract.c:78 (contract_tsan+0x2640a) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+
+  Previous write of size 8 at 0x7fed877238a8 by thread T2:
+    #0 lean_ctor_set /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:862 (contract_tsan+0x69b2d) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #1 lp_figram_List_mapTR_loop___at___00Figram_Chart_compile_spec__0 .lake/build/ir/Figram/Compile.c:4044 (contract_tsan+0x69b2d)
+    #2 lp_figram_Figram_Chart_compile .lake/build/ir/Figram/Compile.c:4451 (contract_tsan+0x6b1c5) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #3 lp_figram_Figram_Engine_load .lake/build/ir/Figram/Engine.c:8826 (contract_tsan+0xcf837) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #4 figram_load_ex .lake/build/ir/Figram/Api.c:214 (contract_tsan+0xd0f45) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #5 load_impl ffi/figram_ffi.c:374 (contract_tsan+0x2b613) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #6 figram_load_doc ffi/figram_ffi.c:400 (contract_tsan+0x2bea3) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #7 init_worker tests/capi/contract.c:77 (contract_tsan+0x263ed) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+
+  Thread T1 (tid=14145, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 t_init_race tests/capi/contract.c:89 (contract_tsan+0x2773b) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #2 main tests/capi/contract.c:744 (contract_tsan+0x2773b)
+
+  Thread T2 (tid=14146, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1022 (libtsan.so.2+0x5ac1a) (BuildId: 2a13a7710e361d06f7babbea53065ca2be93f738)
+    #1 t_init_race tests/capi/contract.c:90 (contract_tsan+0x27755) (BuildId: f5f7bec699eb9cacc2b1186f5863431163cfef2d)
+    #2 main tests/capi/contract.c:744 (contract_tsan+0x27755)
+
+SUMMARY: ThreadSanitizer: data race /home/user/leanprover/lean4/build/release/stage1/include/lean/lean.h:845 in lean_ctor_get
+==================

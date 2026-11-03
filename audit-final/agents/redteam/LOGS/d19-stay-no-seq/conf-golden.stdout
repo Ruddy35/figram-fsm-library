@@ -1,0 +1,4 @@
+requests 170, mismatches 13
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'event': 'btn:log'} → {'id': 78, 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'call': 'log', 'detached': True}]}, expected {'result': {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 2},
+   {'op': 'step', 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 2}, 'event': 'btn:log'} → {'id': 79, 'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 2}, 'actions': [{'call': 'log', 'detached': True}]}, expected {'result': {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 3},
+   {'op': 'step', 'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 2}, 'event': 'timer:nudge', 'token': 2} → {'id': 83, 'snapshot': {'at': 'vip', 'seq': 2}, 'actions': [{'call': 'log', 'detached': True}]}, expected {'result': {'snapshot': {'at': 'vip', 'seq': 3}, 'actions': [{'call': 'log', 'de

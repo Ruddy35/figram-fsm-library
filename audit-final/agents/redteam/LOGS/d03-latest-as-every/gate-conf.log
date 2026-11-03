@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d03-latest-as-every/figram-engine --golden examples/golden.jsonl examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d03-latest-as-every/gate-pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d03-latest-as-every/gate-features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:19:02.706Z
+end: 2026-11-03T18:19:03.641Z
+exit_code: 1
+--- stdout (335 bytes, last 200 lines)
+requests 17770, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 4}], 'seq': 4}, 'event': 'btn:check'} → {'id': 96, 'snapshot': {'at': 'item', 'back': 'catalog', 'resume': {'shop': 'item'}, 'timers': {'remi
+--- stderr (0 bytes, last 100 lines)

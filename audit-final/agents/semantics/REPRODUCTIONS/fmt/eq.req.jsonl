@@ -1,0 +1,6 @@
+{"id":1,"op":"hello"}
+{"id":2,"op":"step","snapshot":{"at":"h","seq":1},"event":"btn:a"}
+{"id":3,"op":"step","snapshot":{"at":"h","pending":[{"call":"e","token":2},{"call":"o","token":2}],"seq":2},"event":"call:e:r","token":2}
+{"id":4,"op":"step","snapshot":{"at":"h","seq":2},"event":"btn:b"}
+{"id":5,"op":"start","event":"btn:c","guards":{"c":true}}
+{"id":6,"op":"step","snapshot":{"at":"h","pending":[{"call":"ann","token":2}],"seq":2},"event":"call:ann:x","token":2}

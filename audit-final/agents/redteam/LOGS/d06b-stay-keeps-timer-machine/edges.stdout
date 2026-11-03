@@ -1,0 +1,2 @@
+FAIL a timer firing handled by an arrow without a target consumes the timer: {'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 3}, 'actions': [{'call': 'log', 'detached': True}]} ≠ expected {'snapshot': {'at': 'vip', 'seq': 3}, 'actions': [{'call': 'log', 'detached': True}]}
+protocol edge cases 250, replies 250, mismatches 1

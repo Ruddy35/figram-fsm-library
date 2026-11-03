@@ -1,0 +1,2 @@
+requests 170, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'deleted_message', 'pending': [{'call': 'ping', 'token': 6}, {'call': 'check_stock', 'token': 5}], 'seq': 6}, 'event': 'call:ping:pong', 'token': 6} → {'id': 121, 'snapshot': {'at': 'deleted_message', 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 7}, 'act

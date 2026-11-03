@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 300 python3 /home/user/figram-audit/agents5/protocol/failed_unknown.py /home/user/figram-audit-worktrees/a5-protocol 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:47:55.471Z
+end: 2026-11-03T17:47:55.716Z
+exit_code: 0
+--- stdout (604 bytes, last 200 lines)
+host by the contract, failures injected 0
+  users 10: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 9, orders in the CRM 6, events processed 95 of 95 (repeated deliveries), lost updates 0, actions not run 0
+  outcomes: calls with a token 8, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 5, rejected 2, failed 1); background actions run 5 of 5, in the failure queue 0
+  not as expected: [('u4', 'finished', 'done', 2, [(1, 'zone:1 Main St'), (1, 'zone:1 Main St')])]
+scenario result: NOT as expected (duplicate orders after `failed`)
+--- stderr (0 bytes, last 100 lines)

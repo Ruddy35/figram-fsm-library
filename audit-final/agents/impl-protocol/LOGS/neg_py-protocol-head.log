@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 bash /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/run.sh py-protocol-head 
+cwd: /home/user/figram-audit-worktrees
+start: 2026-11-03T17:00:55.808Z
+end: 2026-11-03T17:00:56.291Z
+exit_code: 0
+--- stdout (521 bytes, last 200 lines)
+py-protocol-head: rc=1 (want ≠ 0): FAIL an action with outcomes: call carries the step's token, the wait is recorded; no move keeps timers and places: reply violates the protocol: snapshot: extra|FAIL a background action: call carries detached true, no token, no wait: reply violates the protocol: unknown action form: {'call': 'log', 'detached': True}: {"|FAIL a background action with outcomes: call carries token and detached: reply violates the protocol: snapshot: extra fields ['pending']: {"id":86,"snapshot":{"|
+--- stderr (0 bytes, last 100 lines)

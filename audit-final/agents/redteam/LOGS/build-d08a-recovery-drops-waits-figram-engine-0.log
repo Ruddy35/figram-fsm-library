@@ -1,0 +1,88 @@
+command: nice -n 10 timeout 1500 lake build figram-engine 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:03:20.160Z
+end: 2026-11-03T18:03:27.655Z
+exit_code: 1
+--- stdout (4245 bytes, last 200 lines)
+✔ [8/28] Built Figram.Core (1.2s)
+✔ [9/28] Built Figram.Chart (963ms)
+✖ [11/28] Building Figram.CoreProofs (1.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/CoreProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.setup.json --json
+error: Figram/CoreProofs.lean:460:4: Type mismatch
+  enterBot_state_valid m hwf s ?m.33 ev env
+has type
+  (m.enterBot s ?m.33 ev env).fst.state ∈ m.states
+but is expected to have type
+  (m.enterBot { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+          (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).fst.state ∈
+    m.states
+error: Figram/CoreProofs.lean:494:4: Type mismatch
+  enterBot_guard_local m s ?m.39 ev env₁ env₂ h'
+has type
+  m.enterBot s ?m.39 ev env₁ = m.enterBot s ?m.39 ev env₂
+but is expected to have type
+  (if ¬False then
+      m.enterBot
+        { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+        (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env₁
+    else
+      if (!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true then (s, [])
+      else
+        match m.row s.state ev.key with
+        | none => (s.settle ev, [])
+        | some r =>
+          match List.find? (fun b => guardOK env₁ b.guard) r.branches with
+          | none => (s.settle ev, [])
+          | some b => if b.target = Target.stay then stay (s.settle ev) ev b.actions else m.fire (s.settle ev) b) =
+    if ¬False then
+      m.enterBot
+        { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+        (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env₂
+    else
+      if (!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true then (s, [])
+      else
+        match m.row s.state ev.key with
+        | none => (s.settle ev, [])
+        | some r =>
+          match List.find? (fun b => guardOK env₂ b.guard) r.branches with
+          | none => (s.settle ev, [])
+          | some b => if b.target = Target.stay then stay (s.settle ev) ev b.actions else m.fire (s.settle ev) b
+error: Figram/CoreProofs.lean:616:88: unsolved goals
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : ¬s.state ∈ m.states
+⊢ m.enterBot { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+      (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env =
+    m.enterBot s (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env
+error: Figram/CoreProofs.lean:622:78: unsolved goals
+m : Machine
+s : Snapshot
+id : String
+tok : Nat
+env : HostEnv
+hs : ¬s.state ∈ m.states
+⊢ realize { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+      m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers ++ m.initActions) =
+    realize s m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers ++ m.initActions)
+error: Figram/CoreProofs.lean:669:17: Application type mismatch: The argument
+  enterBot_back m s ?m.21 ev env
+has type
+  (m.enterBot s ?m.21 ev env).fst.back = s.back
+but is expected to have type
+  (m.enterBot { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+          (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).fst.back =
+    s.back
+in the application
+  Or.inl (enterBot_back m s ?m.21 ev env)
+✔ [15/28] Built Figram.Compile (814ms)
+✔ [17/28] Built Figram.Core:c.o (2.3s)
+✔ [18/28] Built Figram.Lint (761ms)
+✔ [20/28] Built Figram.Format (1.5s)
+✔ [22/28] Built Figram.FormatIO (953ms)
+✔ [24/28] Built Figram.Engine (859ms)
+Some required targets logged failures:
+- Figram.CoreProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

@@ -1,0 +1,4 @@
+requests 17602, mismatches 705
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'help', 'resume': {'order': 'pay'}, 'seq': 30}, 'event': 'payment:success'} → {'id': 249, 'snapshot': {'at': 'placing', 'back': 'help', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 31}, 'actions': [{'call'
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'menu', 'resume': {'order': 'pay'}, 'seq': 17}, 'event': 'payment:success'} → {'id': 449, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 18}], 'seq': 18}, 'actions': [{'call'
+   {'op': 'step', 'snapshot': {'at': 'order_failed', 'back': 'menu', 'resume': {'order': 'order_failed'}, 'seq': 19}, 'event': 'btn:retry'} → {'id': 451, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 20}], 'seq': 20}, 'action

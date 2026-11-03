@@ -1,0 +1,4 @@
+requests 17772, mismatches 11
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'pick_toppings', 'resume': {'order': 'pay'}, 'seq': 7}, 'event': 'payment:success'} → {'id': 9, 'snapshot': {'at': 'placing', 'back': 'pick_toppings', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 7}], 'seq': 8}, 'actio
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'menu', 'resume': {'order': 'pay'}, 'seq': 5}, 'event': 'payment:success'} → {'id': 18, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 5}], 'seq': 6}, 'actions': [{'call': 'c
+   {'op': 'step', 'snapshot': {'at': 'pay', 'back': 'menu', 'resume': {'order': 'pay'}, 'seq': 5}, 'event': 'payment:success'} → {'id': 28, 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 5}], 'seq': 6}, 'actions': [{'call': 'c

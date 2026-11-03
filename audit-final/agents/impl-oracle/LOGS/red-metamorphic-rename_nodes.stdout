@@ -1,0 +1,4 @@
+features: {'outcome_events': 25, 'replies_with_pending': 24}
+rename_nodes         MUST                 docs=3 steps=63 violations=63
+   example: {"doc_seed": 0, "step": 1, "expected": {"snapshot": {"at": "m0", "resume": {"s4": "m0"}, "seq": 1}, "actions": [{"send": "m0"}]}, "actual": {"snapshot": {"at": "N8", "resume": {"узел-7·s4": "N8"}, "seq": 1}, "actions": [{"send": "N8"}]}}
+EXPECT-RED: RED (good)

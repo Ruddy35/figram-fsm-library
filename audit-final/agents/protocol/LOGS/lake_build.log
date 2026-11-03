@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:36:47.538Z
+end: 2026-11-03T17:36:48.428Z
+exit_code: 0
+--- stdout (40 bytes, last 200 lines)
+Build completed successfully (54 jobs).
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,7 @@
+Figram/EngineProofs.lean:mem_addWait
+Figram/EngineProofs.lean:Inv.settle
+Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named
+Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+Figram/OutcomeProofs.lean:realizeOne_keep
+Figram/OutcomeProofs.lean:realizeOne_records
+Figram/OutcomeProofs.lean:realizeOne_keep_tok

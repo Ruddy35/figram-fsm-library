@@ -1,0 +1,205 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/formats/c_schema_table.py --break lax-call --tmp /tmp
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:45:45Z
+end: 2026-11-03T18:45:46Z
+exit_code: 1
+--- stdout (26761 bytes, last 200 lines)
+id                           schema decode check | expected | class    note
+base                              1      1     1 | 111      | agree    
+figram-1.0                        1      1     1 | 111      | agree    decision 12: by value
+figram-1e0                        1      1     1 | 111      | agree    
+figram-10e-1                      1      1     1 | 111      | agree    
+figram-1+1e-16                    1      0     0 | 100      | prec     float(…)=1.0 == const 1  [figram: cannot read the document: field `figram` must be 1]
+figram-true                       0      0     0 | 000      | agree      [figram: cannot read the document: field `figram` must be 1]
+figram-str                        0      0     0 | 000      | agree      [figram: cannot read the document: field `figram` must be 1]
+figram-2                          0      0     0 | 000      | agree      [figram: cannot read the document: field `figram` must be 1]
+children-empty                    0      1     0 | 010      | struct   minProperties 1 vs V2 (initial not a child)  [initial node `a` of section `bot` must be a child of it]
+initial-not-child                 1      1     0 | 110      | V        V2  [initial node `b` of section `bot` must be a child of it]
+initial-grandchild                1      1     0 | 110      | V        V2: direct child only  [initial node `a` of section `bot` must be a child of it]
+initial-empty                     0      1     0 | 010      | struct     [initial node `bot` of section `bot` must be a child of it]
+child-name-empty                  0      1     0 | 010      | struct     [children of section `bot`: empty name | node `bot` is declared more than once]
+event-name-empty                  0      1     0 | 010      | struct     [events of node `a`: empty name]
+timer-name-empty                  0      1     0 | 010      | struct     [timers of message `a`: empty name]
+cond-name-empty                   0      1     0 | 010      | struct     [conditions: empty name]
+to-empty                          0      1     0 | 010      | struct     [`a` → `btn:x`: empty target `to`]
+if-empty                          0      1     0 | 010      | struct     [`a` → `btn:x`: empty condition name]
+do-empty-name                     0      1     0 | 010      | struct     [`a` → `btn:x`: empty action name]
+x-keys-everywhere                 1      1     1 | 111      | agree    
+non-x-unknown-keys                0      1     0 | 010      | struct   kept by the decoder (C1), an error of check: extra keys start with x- (section 5)  [document: unknown key `foo` (annotation keys start with `x-`) | node `bot`: unknown key `B]
+misspelt-if                       0      1     0 | 010      | struct   a typo is not silently ignored  [`a` → `btn:x`: unknown key `iff` (annotation keys start with `x-`)]
+misspelt-timers                   0      1     0 | 010      | struct   a typo is not silently ignored  [node `a`: unknown key `tiemrs` (annotation keys start with `x-`)]
+future-key-unless                 0      1     0 | 010      | struct   looks like a guard: an error, not ignored (a new field comes with requires, C5b)  [`a` → `btn:x`: unknown key `unless` (annotation keys start with `x-`)]
+x-ui-in-children                  0      1     0 | 010      | struct   annotation key inside children = a new message node 'x-ui'; here its key `pos` is an error  [node `x-ui`: unknown key `pos` (annotation keys start with `x-`)]
+x-ui-in-children-empty            1      1     1 | 111      | footgun  annotation key inside children = a new message node 'x-ui' (docs/format.md, section 5, says so)
+    stats: {"states":2,"rows":0,"branches":0,"resumes":0,"actions":2} (base has states=1)
+timer-7.2e6                       1      1     1 | 111      | agree    decision 12
+timer-7200000.0                   1      1     1 | 111      | agree    
+timer-72e5                        1      1     1 | 111      | agree    
+timer-720000000e-2                1      1     1 | 111      | agree    
+timer-neg-zero                    1      1     1 | 111      | agree    
+timer-neg-zero-frac               1      1     1 | 111      | agree    
+timer-0.5                         0      0     0 | 000      | agree      [figram: cannot read the document: `t`: expected a non-negative integer at most 90071992547]
+timer-neg                         0      0     0 | 000      | agree      [figram: cannot read the document: `t`: expected a non-negative integer at most 90071992547]
+timer-max                         1      1     1 | 111      | agree    
+timer-max.0                       1      1     1 | 111      | agree    
+timer-max+1                       0      1     0 | 010      | struct   fmt accepts/prints it, check rejects  [timer `t` in `a`: delay exceeds 9007199254740991 ms]
+timer-9e18                        0      1     0 | 010      | struct     [timer `t` in `a`: delay exceeds 9007199254740991 ms]
+timer-1e19                        0      0     0 | 000      | agree    decoder shortcut e>18  [figram: cannot read the document: `t`: expected a non-negative integer at most 90071992547]
+timer-max-1-half                  1      0     0 | 100      | prec     float rounds to …990  [figram: cannot read the document: `t`: expected a non-negative integer at most 90071992547]
+timer-1e-400                      1      0     0 | 100      | prec     float underflow to 0.0  [figram: cannot read the document: `t`: expected a non-negative integer at most 90071992547]
+timer-1e400                       0      0     0 | 000      | agree    Python: inf, not integer  [figram: cannot read the document: `t`: expected a non-negative integer at most 90071992547]
+timer-str                         0      0     0 | 000      | agree      [figram: cannot read the document: `t`: expected a non-negative integer]
+timer-bool                        0      0     0 | 000      | agree      [figram: cannot read the document: `t`: expected a non-negative integer]
+timer-null                        0      0     0 | 000      | agree      [figram: cannot read the document: `t`: expected a non-negative integer]
+timers-empty-on-msg               1      1     1 | 111      | agree    explicit default
+timers-on-section                 0      0     0 | 000      | agree      [figram: cannot read the document: section: `timers` is not allowed]
+initial-on-message                0      0     0 | 000      | agree      [figram: cannot read the document: `initial` without `children`]
+resume-false                      1      1     1 | 111      | agree    explicit default
+resume-str                        0      0     0 | 000      | agree      [figram: cannot read the document: `resume`: expected true or false]
+resume-null                       0      0     0 | 000      | agree      [figram: cannot read the document: `resume`: expected true or false]
+resume-to-message                 1      1     0 | 110      | V        V3  [arrow `a` → `a` with `resume`: not a section]
+back-true                         1      1     1 | 111      | agree    
+back-false                        1      1     1 | 111      | agree    explicit default
+back-str                          0      0     0 | 000      | agree      [figram: cannot read the document: `back`: expected true or false]
+back-null                         0      0     0 | 000      | agree      [figram: cannot read the document: `back`: expected true or false]
+back-no-to                        0      1     0 | 010      | struct   the fallback `to` is required (V3)  [`a` → `btn:x`: `resume` and `back` need `to`]
+back-to-missing                   1      1     0 | 110      | V        V3: the fallback exists  [arrow `a` → `nope`: target does not exist]
+back-resume-message               1      1     0 | 110      | V        V3  [arrow `a` → `a` with `resume`: not a section]
+do-empty                          1      1     1 | 111      | agree    explicit default
+do-str                            0      0     0 | 000      | agree      [figram: cannot read the document: `do`: expected a list]
+requires-empty                    1      1     1 | 111      | agree    
+requires-unknown                  0      0     0 | 000      | agree    C5b  [figram: cannot read the document: document requires extensions this reader does not know]
+requires-dup                      0      0     0 | 000      | agree      [figram: cannot read the document: document requires extensions this reader does not know]
+requires-str                      0      0     0 | 000      | agree      [figram: cannot read the document: `requires`: expected a list]
+dup-node-across-sections          1      1     0 | 110      | V        V1  [node `a` is declared more than once | initial node `a` of section `s` must be a child of i]
+undeclared-cond                   1      1     0 | 110      | V        V4  [condition `c` is not described in `conditions`]
+undeclared-call                   1      1     0 | 110      | V        V4  [action `k` is not described in `calls`]
+timer-event-no-timer              1      1     0 | 110      | V        V5  [event `timer:t`: no such timer (the prefix `timer:` is reserved)]
+timer-event-empty                 1      1     0 | 110      | V        V5  [event `timer:`: no such timer (the prefix `timer:` is reserved)]
+timer-event-other-msg             1      1     1 | 111      | footgun  V5 is global: handler for another message's timer is accepted
+to-missing                        1      1     0 | 110      | V        V3  [arrow `a` → `nope`: target does not exist]
+bot-is-message                    0      0     0 | 000      | agree      [figram: cannot read the document: `bot` must be a section]
+node-array                        0      0     0 | 000      | agree      [figram: cannot read the document: node must be an object]
+variant-no-to-undeclared-if       1      1     0 | 110      | V        V4; no `to` is no move (decision 13)  [condition `c` is not described in `conditions`]
+variant-empty                     1      1     1 | 111      | agree    no move, no actions
+variant-no-to-do                  1      1     1 | 111      | agree    actions without a move
+variant-no-to-back-false          1      1     1 | 111      | agree    explicit default
+variant-no-to-resume              0      1     0 | 010      | struct   `resume` needs `to` (V3)  [`a` → `btn:x`: `resume` and `back` need `to`]
+variant-to-null                   0      0     0 | 000      | agree      [figram: cannot read the document: `to`: expected a string]
+variant-to-num                    0      0     0 | 000      | agree      [figram: cannot read the document: `to`: expected a string]
+call-text                         1      1     1 | 111      | agree    
+call-object-text                  1      1     1 | 111      | agree    the same action as the text
+call-text-empty                   1      1     1 | 111      | agree    a description may be empty
+call-detached                     1      1     1 | 111      | agree    decision 11
+call-detached-false               1      1     1 | 111      | agree    explicit default
+DIFF call-detached-str                 1      0     0 | 000      | agree      [figram: cannot read the document: `k`: `detached`: expected true or false]
+DIFF call-detached-null                1      0     0 | 000      | agree      [figram: cannot read the document: `k`: `detached`: expected true or false]
+call-outcomes                     1      1     1 | 111      | agree    decision 12
+call-outcomes-two                 1      1     1 | 111      | agree    outcomes without arrows: a warning, not an error
+call-outcomes-empty               1      1     1 | 111      | agree    explicit default
+DIFF call-outcomes-str                 1      0     0 | 000      | agree      [figram: cannot read the document: `k`: `outcomes`: expected a list]
+DIFF call-outcomes-num                 1      0     0 | 000      | agree      [figram: cannot read the document: `k`: expected a list of strings]
+DIFF call-outcome-empty                1      1     0 | 010      | struct   outcome names are non-empty  [action `k`: empty outcome name]
+DIFF call-outcome-colon                1      1     0 | 010      | struct   an outcome name has no `:` (the event is split at the last `:`)  [action `k`: outcome `a:b` contains `:`]
+DIFF call-outcome-failed               1      1     0 | 010      | struct   `failed` is implicit  [action `k`: `failed` is an outcome of every action with outcomes and is not listed]
+DIFF call-outcome-dup                  1      1     0 | 010      | struct   unique outcomes  [action `k`: duplicate outcome `ok`]
+call-every                        1      1     1 | 111      | agree    
+call-every-false                  1      1     1 | 111      | agree    explicit default
+DIFF call-every-no-outcomes            1      1     0 | 010      | struct   `every` needs `outcomes`  [action `k`: `every` needs `outcomes`]
+DIFF call-every-outcomes-empty         1      1     0 | 010      | struct     [action `k`: `every` needs `outcomes`]
+DIFF call-every-str                    1      0     0 | 000      | agree      [figram: cannot read the document: `k`: `every`: expected true or false]
+call-all                          1      1     1 | 111      | agree    any key order, an annotation
+call-no-text                      0      0     0 | 000      | agree      [figram: cannot read the document: `k`: action: missing field `text`]
+DIFF call-text-num                     1      0     0 | 000      | agree      [figram: cannot read the document: `k`: action: missing field `text`]
+call-num                          0      0     0 | 000      | agree      [figram: cannot read the document: `k`: action: expected a text or an object]
+call-null                         0      0     0 | 000      | agree      [figram: cannot read the document: `k`: action: expected a text or an object]
+call-array                        0      0     0 | 000      | agree      [figram: cannot read the document: `k`: action: expected a text or an object]
+DIFF call-unknown-key                  1      1     0 | 010      | struct   a typo of `detached` is an error, not a sequential action  [action `k`: unknown key `detach` (annotation keys start with `x-`)]
+call-name-empty                   0      1     0 | 010      | struct     [calls: empty name]
+outcome-event-failed              1      1     1 | 111      | agree    `failed` of every action with outcomes
+outcome-event-undeclared-outcome      1      1     0 | 110      | V        V5  [event `call:k:nope`: `k` is not an action with the outcome `nope` (the prefix `call:` is r]
+outcome-event-no-outcomes         1      1     0 | 110      | V        V5: `k` has no outcomes  [event `call:k:ok`: `k` is not an action with the outcome `ok` (the prefix `call:` is reser]
+outcome-event-undeclared-action      1      1     0 | 110      | V        V5  [event `call:zz:ok`: `zz` is not an action with the outcome `ok` (the prefix `call:` is res]
+outcome-event-no-outcome          1      1     0 | 110      | V        V5: `call:` is reserved  [event `call:k`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reser]
+outcome-event-empty               1      1     0 | 110      | V        V5  [event `call:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserv]
+outcome-event-colon-action        1      1     1 | 111      | agree    split at the last `:`
+DIFF outcome-twice-in-do               1      1     1 | 110      | V        V6
+plain-twice-in-do                 1      1     1 | 111      | agree    V6 is only for actions with outcomes
+outcome-no-arrow-on-target        1      1     1 | 111      | footgun  a warning: `b` has no arrow for the outcomes, a user there would wait forever
+on-value-obj                      0      0     0 | 000      | agree      [figram: cannot read the document: `btn:x`: expected a list of variants]
+on-array                          0      0     0 | 000      | agree      [figram: cannot read the document: `on` must be an object]
+on-null                           0      0     0 | 000      | agree      [figram: cannot read the document: `on` must be an object]
+children-null                     0      0     0 | 000      | agree      [figram: cannot read the document: `children` must be an object]
+variables                         1      1     1 | 111      | agree    
+cond-desc-num                     0      0     0 | 000      | agree      [figram: cannot read the document: `c`: expected a string]
+dup-bot-key                       1      0     0 | 100      | dev      Python: last wins  [figram: cannot read the document: duplicate key `bot`]
+dup-key-in-annotation             1      0     0 | 100      | dev        [figram: cannot read the document: duplicate key `k`]
+lone-surrogate-name               1      0     0 | 100      | dev        [figram: cannot read the document: unpaired surrogate in \u escape]
+annotation-exp-1001               1      0     0 | 100      | dev      Python: inf  [figram: cannot read the document: exponent out of range: absolute value above 1000]
+annotation-depth-300              1      0     0 | 100      | dev        [figram: cannot read the document: nesting deeper than 256]
+
+snapshot id                  schema engine | expected | class   reply
+at                                1      1 | 11       | agree   {"id":0,"snapshot":{"at":"home"},"actions":[]}  
+seq-1.0                           1      1 | 11       | agree   {"id":1,"snapshot":{"at":"home","seq":1},"actions":[]}  
+seq-1e0                           1      1 | 11       | agree   {"id":2,"snapshot":{"at":"home","seq":1},"actions":[]}  
+seq-10e-1                         1      1 | 11       | agree   {"id":3,"snapshot":{"at":"home","seq":1},"actions":[]}  
+seq-neg-zero                      1      1 | 11       | agree   {"id":4,"snapshot":{"at":"home"},"actions":[]}  
+seq-neg-zero-frac                 1      1 | 11       | agree   {"id":5,"snapshot":{"at":"home"},"actions":[]}  
+seq-1.5                           0      0 | 00       | agree   {"id":6,"error":"snapshot: `seq` must be a non-negative integer","code":"bad_snapshot"}  
+seq-max.0                         1      1 | 11       | agree   {"id":7,"snapshot":{"at":"home","seq":9007199254740991},"actions":[]}  
+seq-max-1-half                    1      0 | 10       | prec    {"id":8,"error":"snapshot: `seq` must be a non-negative integer","code":"bad_snapshot"}  
+seq-1e-400                        1      0 | 10       | prec    {"id":9,"error":"snapshot: `seq` must be a non-negative integer","code":"bad_snapshot"}  
+seq-bool                          0      0 | 00       | agree   {"id":10,"error":"snapshot: `seq` must be a number","code":"bad_snapshot"}  
+seq-null                          0      0 | 00       | agree   {"id":11,"error":"snapshot: `seq` must be a number","code":"bad_snapshot"}  
+v-1                               1      1 | 11       | agree   {"id":12,"snapshot":{"at":"home"},"actions":[]}  
+v-1.0                             1      1 | 11       | agree   {"id":13,"snapshot":{"at":"home"},"actions":[]}  
+v-1e0                             1      1 | 11       | agree   {"id":14,"snapshot":{"at":"home"},"actions":[]}  
+v-true                            0      0 | 00       | agree   {"id":15,"error":"snapshot: `v` must be a number","code":"bad_snapshot"}  
+v-0                               0      0 | 00       | agree   {"id":16,"error":"snapshot: unknown version","code":"bad_snapshot"}  
+v-neg-zero                        0      0 | 00       | agree   {"id":17,"error":"snapshot: unknown version","code":"bad_snapshot"}  
+v-null                            0      0 | 00       | agree   {"id":18,"error":"snapshot: `v` must be a number","code":"bad_snapshot"}  
+v-str                             0      0 | 00       | agree   {"id":19,"error":"snapshot: `v` must be a number","code":"bad_snapshot"}  
+v-1+1e-16                         1      0 | 10       | prec    {"id":20,"error":"snapshot: `v` must be a non-negative integer","code":"bad_snapshot"}  
+token-1.0                         1      1 | 11       | agree   {"id":21,"snapshot":{"at":"home","timers":{"idle":1}},"actions":[]}  
+resume-unknown-sec                1      1 | 11       | agree   {"id":22,"snapshot":{"at":"home","resume":{"nope":"nope"}},"actions":[]}  kept as is
+back                              1      1 | 11       | agree   {"id":23,"snapshot":{"at":"home","back":"catalog"},"actions":[]}  
+back-unknown                      1      1 | 11       | agree   {"id":24,"snapshot":{"at":"home","back":"nope"},"actions":[]}  kept; "back" falls back to `to`
+back-empty                        0      0 | 00       | agree   {"id":25,"error":"snapshot: `back` is an empty string","code":"bad_snapshot"}  
+back-num                          0      0 | 00       | agree   {"id":26,"error":"snapshot: `back` must be a string","code":"bad_snapshot"}  
+back-null                         0      0 | 00       | agree   {"id":27,"error":"snapshot: `back` must be a string","code":"bad_snapshot"}  
+at-unknown                        1      1 | 11       | agree   {"id":28,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"tok  recovered
+dup-at                            1      0 | 10       | dev     {"id":29,"error":"duplicate key `at`","code":"parse_error"}  Python last wins; engine: parse error id:null (ET-07)
+at-lone-surrogate                 1      0 | 10       | dev     {"id":30,"error":"unpaired surrogate in \\u escape","code":"parse_error"}  
+unknown-field                     0      0 | 00       | agree   {"id":31,"error":"snapshot: unknown field `x-ui` (written by a newer version?)","code":"bad_snapshot"}  strict snapshot
+pending                           1      1 | 11       | agree   {"id":32,"snapshot":{"at":"home","pending":[{"call":"ping","token":3}]},"actions":[]}  
+pending-two                       1      1 | 11       | agree   {"id":33,"snapshot":{"at":"home","pending":[{"call":"ping","token":5},{"call":"check_stock","token":3}]},"acti  
+pending-key-order                 1      1 | 11       | agree   {"id":34,"snapshot":{"at":"home","pending":[{"call":"ping","token":3}]},"actions":[]}  
+pending-empty                     1      1 | 11       | agree   {"id":35,"snapshot":{"at":"home"},"actions":[]}  explicit default
+pending-dup                       1      1 | 11       | agree   {"id":36,"snapshot":{"at":"home","pending":[{"call":"ping","token":3},{"call":"ping","token":3}]},"actions":[]  not produced by the engine, accepted
+pending-unknown-action            1      1 | 11       | agree   {"id":37,"snapshot":{"at":"home","pending":[{"call":"nope","token":3}]},"actions":[]}  kept: still accepts its outcome
+pending-plain-action              1      1 | 11       | agree   {"id":38,"snapshot":{"at":"home","pending":[{"call":"log","token":3}]},"actions":[]}  kept
+pending-token-1.0                 1      1 | 11       | agree   {"id":39,"snapshot":{"at":"home","pending":[{"call":"ping","token":1}]},"actions":[]}  by value
+pending-token-neg-zero            1      1 | 11       | agree   {"id":40,"snapshot":{"at":"home","pending":[{"call":"ping","token":0}]},"actions":[]}  
+pending-token-max                 1      1 | 11       | agree   {"id":41,"snapshot":{"at":"home","pending":[{"call":"ping","token":9007199254740991}]},"actions":[]}  
+pending-token-max+1               0      0 | 00       | agree   {"id":42,"error":"snapshot: the `token` of a `pending` entry exceeds 9007199254740991","code":"bad_snapshot"}  
+pending-token-neg                 0      0 | 00       | agree   {"id":43,"error":"snapshot: the `token` of a `pending` entry must be a non-negative integer","code":"bad_snaps  
+pending-token-1.5                 0      0 | 00       | agree   {"id":44,"error":"snapshot: the `token` of a `pending` entry must be a non-negative integer","code":"bad_snaps  
+pending-token-1e-400              1      0 | 10       | prec    {"id":45,"error":"snapshot: the `token` of a `pending` entry must be a non-negative integer","code":"bad_snaps  
+pending-token-max-1-half          1      0 | 10       | prec    {"id":46,"error":"snapshot: the `token` of a `pending` entry must be a non-negative integer","code":"bad_snaps  
+pending-token-str                 0      0 | 00       | agree   {"id":47,"error":"snapshot: the `token` of a `pending` entry must be a number","code":"bad_snapshot"}  
+pending-token-bool                0      0 | 00       | agree   {"id":48,"error":"snapshot: the `token` of a `pending` entry must be a number","code":"bad_snapshot"}  
+pending-token-null                0      0 | 00       | agree   {"id":49,"error":"snapshot: the `token` of a `pending` entry must be a number","code":"bad_snapshot"}  
+pending-call-empty                0      0 | 00       | agree   {"id":50,"error":"snapshot: the `call` of a `pending` entry is an empty string","code":"bad_snapshot"}  
+pending-call-num                  0      0 | 00       | agree   {"id":51,"error":"snapshot: the `call` of a `pending` entry must be a string","code":"bad_snapshot"}  
+pending-no-token                  0      0 | 00       | agree   {"id":52,"error":"snapshot: a `pending` entry needs `token`","code":"bad_snapshot"}  
+pending-no-call                   0      0 | 00       | agree   {"id":53,"error":"snapshot: a `pending` entry needs `call`","code":"bad_snapshot"}  
+pending-extra-field               0      0 | 00       | agree   {"id":54,"error":"snapshot: a `pending` entry has only the fields `call` and `token`","code":"bad_snapshot"}  strict entries
+pending-x-key                     0      0 | 00       | agree   {"id":55,"error":"snapshot: a `pending` entry has only the fields `call` and `token`","code":"bad_snapshot"}  
+pending-entry-array               0      0 | 00       | agree   {"id":56,"error":"snapshot: a `pending` entry must be an object","code":"bad_snapshot"}  
+pending-entry-str                 0      0 | 00       | agree   {"id":57,"error":"snapshot: a `pending` entry must be an object","code":"bad_snapshot"}  
+pending-object                    0      0 | 00       | agree   {"id":58,"error":"snapshot: `pending` must be an array","code":"bad_snapshot"}  an array, not a map
+pending-null                      0      0 | 00       | agree   {"id":59,"error":"snapshot: `pending` must be an array","code":"bad_snapshot"}  
+pending-dup-key                   1      0 | 10       | dev     {"id":60,"error":"duplicate key `call`","code":"parse_error"}  Python last wins; engine: parse error
+
+rows=192 (docs 131, snapshots 61) classes={'agree': 76, 'prec': 3, 'struct': 26, 'V': 18, 'footgun': 3, 'dev': 5, 'snap-agree': 53, 'snap-prec': 5, 'snap-dev': 3} mismatches-vs-expected=14 break=lax-call
+--- stderr (0 bytes, last 100 lines)

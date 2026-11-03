@@ -1,0 +1,21 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:18:19.925Z
+end: 2026-11-03T18:18:23.255Z
+exit_code: 0
+--- stdout (761 bytes, last 200 lines)
+⚠ [19/54] Replayed Figram.EngineProofs
+warning: Figram/EngineProofs.lean:163:8: declaration uses `sorry`
+⚠ [47/54] Built Figram.OutcomeProofs (1.3s)
+warning: Figram/OutcomeProofs.lean:38:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:91:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:100:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:106:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:122:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:155:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:510:8: declaration uses `sorry`
+✔ [49/54] Built Figram (407ms)
+✔ [52/54] Built Main (707ms)
+✔ [54/54] Built figram:exe (264ms)
+Build completed successfully (54 jobs).
+--- stderr (0 bytes, last 100 lines)

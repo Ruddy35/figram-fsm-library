@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d06-stay-keeps-timer/figram-engine --golden examples/golden.jsonl examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d06-stay-keeps-timer/gate-pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/LOGS/d06-stay-keeps-timer/gate-features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:08:23.833Z
+end: 2026-11-03T18:08:24.620Z
+exit_code: 1
+--- stdout (335 bytes, last 200 lines)
+requests 17772, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 2}, 'event': 'timer:nudge', 'token': 2} → {'id': 83, 'snapshot': {'at': 'vip', 'timers': {'nudge': 2}, 'seq': 3}, 'actions': [{'call': 'log', 'detached': True}]}, expected {'result': {'snapshot': {'at': 'vip', 'seq': 3}, 'action
+--- stderr (0 bytes, last 100 lines)

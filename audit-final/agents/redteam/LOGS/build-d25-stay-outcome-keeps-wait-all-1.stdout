@@ -1,0 +1,42 @@
+⚠ [37/54] Built Figram.Correct (1.3s)
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+✔ [38/54] Built Figram.LintProofs (428ms)
+✔ [39/54] Built Figram.Correct:c.o (437ms)
+✔ [41/54] Built Figram.Run (542ms)
+⚠ [43/54] Built Figram.EngineProofs (2.6s)
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+✔ [44/54] Built Figram.EngineProofs:c.o (655ms)
+✔ [45/54] Built Figram.Examples (1.8s)
+✖ [47/54] Building Figram.OutcomeProofs (1.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:324:28: unsolved goals
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+h✝² : ¬¬s.state ∈ m.states
+h✝¹ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r✝ : Row
+heq✝¹ : m.row s.state ev.key = some r✝
+x✝ : Option FBranch
+b✝ : FBranch
+heq✝ : List.find? (fun b => guardOK env b.guard) r✝.branches = some b✝
+h✝ : b✝.target = Target.stay
+⊢ s.pending = (s.settle ev).pending
+error: Figram/OutcomeProofs.lean:451:78: unsolved goals
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+r : Row
+b : FBranch
+hs : s.state ∈ m.states
+ha : s.accepts ev = true
+ho : ownsTimer (m.exitOf s.state) ev = true
+hr : m.row s.state ev.key = some r
+hb : List.find? (fun b => guardOK env b.guard) r.branches = some b
+hst : b.target = Target.stay
+⊢ realize (s.consume ev) s.state b.actions = realize ((s.settle ev).consume ev) s.state b.actions
+Some required targets logged failures:
+- Figram.OutcomeProofs

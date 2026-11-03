@@ -1,0 +1,3 @@
+Figram/Examples.lean:#guard@423:match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\
+Figram/Examples.lean:#guard@360:(List.range 40).all fun i => let d := RandomDoc.doc i 10; d.che
+Figram/Examples.lean:#guard@140:featuresDoc.check.isEmpty

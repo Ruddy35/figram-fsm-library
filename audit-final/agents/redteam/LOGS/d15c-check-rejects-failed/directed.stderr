@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/compiler/directed.py", line 858, in <module>
+    main()
+    ~~~~^^
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/compiler/directed.py", line 841, in main
+    errs = run_case(c, mk)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/compiler/directed.py", line 782, in run_case
+    e = mk(text)
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/compiler/directed.py", line 835, in <lambda>
+    targets.append(("engine", lambda t: Engine(args.engine, t, mutate=args.mutate)))
+                                        ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/compiler/engine.py", line 33, in __init__
+    raise EngineLoadError(err.strip())
+engine.EngineLoadError: document error: event `call:ping:failed`: `ping` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:a:b:failed`: `a:b` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:bgo:failed`: `bgo` is not an action with the outcome `failed` (the prefix `call:` is reserved)
+document error: event `call:chk:failed`: `chk` is not an action with the outcome `failed` (the prefix `call:` is reserved)

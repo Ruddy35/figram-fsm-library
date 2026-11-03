@@ -1,0 +1,9 @@
+figram: the generator produced an invalid document: [event `call:k3:failed`: `k3` is not an action with the outcome `failed` (the prefix `call:` is reserved), event `call:k4:failed`: `k4` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+Traceback (most recent call last):
+  File "/home/user/figram-audit-worktrees/a5-redteam/tests/engine/random_docs.py", line 26, in <module>
+    subprocess.run([figram, "random", str(seed), size], stdout=f, check=True, timeout=T)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/home/user/figram-audit/agents5/redteam/bin/mut/d15c-check-rejects-failed/figram', 'random', '0', '12']' returned non-zero exit status 1.

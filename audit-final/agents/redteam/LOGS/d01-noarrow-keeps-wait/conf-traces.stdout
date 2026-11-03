@@ -1,0 +1,4 @@
+requests 17602, mismatches 41
+   {'op': 'step', 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 34}, 'pending': [{'call': 'create_order', 'token': 31}], 'seq': 34}, 'event': 'call:create_order:failed', 'token': 31} → {'id': 255, 'snapshot': {'at': 'cart', 'back': 'menu', 'resume':
+   {'op': 'step', 'snapshot': {'at': 'help', 'back': 'menu', 'resume': {'order': 'catalog'}, 'pending': [{'call': 'create_order', 'token': 26}], 'seq': 31}, 'event': 'call:create_order:created', 'token': 26} → {'id': 1199, 'snapshot': {'at': 'help', 'back': 'menu', 'resume': {'order': 'catalog'}, 'pend
+   {'op': 'step', 'snapshot': {'at': 'pick_size', 'back': 'catalog', 'resume': {'order': 'pick_size'}, 'pending': [{'call': 'create_order', 'token': 27}], 'seq': 30}, 'event': 'call:create_order:failed', 'token': 27} → {'id': 1620, 'snapshot': {'at': 'pick_size', 'back': 'catalog', 'resume': {'order': 

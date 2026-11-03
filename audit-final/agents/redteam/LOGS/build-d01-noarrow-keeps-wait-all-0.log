@@ -1,0 +1,40 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T17:57:35.310Z
+end: 2026-11-03T17:57:42.540Z
+exit_code: 1
+--- stdout (2127 bytes, last 200 lines)
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:664:8: declaration uses `sorry`
+✔ [22/54] Built Figram.RandomDoc (1.1s)
+✔ [23/54] Built Figram.Warnings (990ms)
+✖ [33/54] Building Figram.Correct (1.7s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Correct.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Correct.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Correct.setup.json --json
+error: Figram/Correct.lean:436:6: unsolved goals
+case pos
+c : Chart
+hwf : c.compileSpec.wf = true
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ c.leafIds
+hs' : s.state ∈ c.compileSpec.states
+hex : c.compileSpec.exitOf s.state = c.exitActs s.state
+h✝ : ¬(!(s.accepts ev && ownsTimer (c.exitActs s.state) ev)) = true
+hc : c.cands s.state ev.key = []
+⊢ s = s.settle ev
+✔ [39/54] Built Figram.Trace (1.3s)
+✔ [41/54] Built Figram.FormatProofs (4.1s)
+✖ [45/54] Building Figram.EngineProofs (2.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/EngineProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/EngineProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/EngineProofs.setup.json --json
+error: Figram/EngineProofs.lean:323:21: Type mismatch
+  hss
+has type
+  SnapOK (s.settle ev)
+but is expected to have type
+  SnapOK (s, []).fst
+Some required targets logged failures:
+- Figram.Correct
+- Figram.EngineProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

@@ -1,0 +1,27 @@
+command: scripts/build_all.sh 
+cwd: /home/user/figram-audit/agents5/redteam
+start: 2026-11-03T19:08:48.912Z
+end: 2026-11-03T19:09:57.705Z
+exit_code: 0
+--- stdout (1328 bytes, last 200 lines)
+=== d39-every-no-dedupe 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:mem_addWait (error at line 146 )
+stubbed Figram/OutcomeProofs.lean:realizeOne_keep (error at line 220 )
+build ok after 2 rounds; stubbed: ['Figram/EngineProofs.lean:mem_addWait', 'Figram/OutcomeProofs.lean:realizeOne_keep']
+restored; git status: clean
+=== d41-settle-after-fire 
+stubbed Figram/CoreProofs.lean:step_back (error at line 681 )
+stubbed Figram/CoreProofs.lean:step_state_valid (error at line 474 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:step_back', 'Figram/CoreProofs.lean:step_state_valid']
+stubbed Figram/Correct.lean:compileSpec_correct (error at line 451 )
+stubbed Figram/EngineProofs.lean:step_snapOK (error at line 338 )
+stubbed Figram/OutcomeProofs.lean:step_undetach (error at line 704 )
+stubbed Figram/OutcomeProofs.lean:step_cases (error at line 328 )
+build ok after 2 rounds; stubbed: ['Figram/CoreProofs.lean:step_back', 'Figram/CoreProofs.lean:step_state_valid', 'Figram/Correct.lean:compileSpec_correct', 'Figram/EngineProofs.lean:step_snapOK', 'Figram/OutcomeProofs.lean:step_undetach', 'Figram/OutcomeProofs.lean:step_cases']
+restored; git status: clean
+=== d48-token-on-every-call 
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+--- stderr (0 bytes, last 100 lines)

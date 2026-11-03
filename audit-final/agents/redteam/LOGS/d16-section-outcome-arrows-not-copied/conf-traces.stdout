@@ -1,0 +1,4 @@
+requests 17602, mismatches 497
+   {'op': 'step', 'snapshot': {'at': 'help', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 23}, {'call': 'ping', 'token': 20}], 'seq': 24}, 'event': 'call:ping:pong', 'token': 20} → {'id': 35, 'snapshot': {'at': 'help', 'back': 'catalog', 'resume': {'shop': 'ca
+   {'op': 'step', 'snapshot': {'at': 'help', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'pending': [{'call': 'ping', 'token': 23}], 'seq': 25}, 'event': 'call:ping:failed', 'token': 23} → {'id': 36, 'snapshot': {'at': 'help', 'back': 'catalog', 'resume': {'shop': 'catalog'}, 'seq': 25}, 'actions
+   {'op': 'step', 'snapshot': {'at': 'help', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'pending': [{'call': 'ping', 'token': 10}], 'seq': 10}, 'event': 'call:ping:pong', 'token': 10} → {'id': 58, 'snapshot': {'at': 'help', 'back': 'reminder', 'resume': {'shop': 'reminder'}, 'seq': 10}, 'actio

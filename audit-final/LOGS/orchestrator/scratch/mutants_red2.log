@@ -1,0 +1,9 @@
+doc 0 seed 700021: offered 313, run 296, 18.6s
+doc 1 seed 700022: offered 627, run 450, 47.4s
+doc 2 seed 700023: offered 594, run 381, 42.7s
+doc 3 seed 700024: offered 96, run 96, 2.1s
+doc 4 seed 700025: offered 238, run 238, 11.3s
+doc 5 seed 700026: offered 640, run 451, 53.5s
+doc 6 seed 700027: offered 339, run 313, 22.6s
+doc 7 seed 700028: offered 2119, run 434, 222.0s
+{"mutants_offered": 4966, "mutants": 2659, "killed": 1915, "survivors": 744, "equivalent_survivors": 744, "non_equivalent_survivors": 0, "kill_rate_non_equivalent": 1.0}

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 1500 lake build figram-engine 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:12:46.008Z
+end: 2026-11-03T18:12:46.544Z
+exit_code: 0
+--- stdout (40 bytes, last 200 lines)
+Build completed successfully (28 jobs).
+--- stderr (0 bytes, last 100 lines)

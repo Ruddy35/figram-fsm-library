@@ -1,0 +1,37 @@
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:664:8: declaration uses `sorry`
+⚠ [37/54] Built Figram.Correct (1.3s)
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+✔ [38/54] Built Figram.LintProofs (372ms)
+✔ [40/54] Built Figram.Correct:c.o (433ms)
+✔ [41/54] Built Figram.Run (529ms)
+⚠ [43/54] Built Figram.EngineProofs (2.5s)
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+✔ [44/54] Built Figram.EngineProofs:c.o (647ms)
+✖ [45/54] Building Figram.OutcomeProofs (1.4s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:319:21: Application type mismatch: The argument
+  rfl
+has type
+  ?m.251 = ?m.251
+but is expected to have type
+  (s, []) = (s.settle ev, [])
+in the application
+  Or.inl rfl
+error: Figram/OutcomeProofs.lean:349:4: Tactic `rfl` failed: The left-hand side
+  (s, [])
+is not definitionally equal to the right-hand side
+  (s.settle ev, [])
+
+case isFalse
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+hs : s.state ∈ m.states
+hr : m.row s.state ev.key = none
+h✝ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+⊢ (s, []) = (s.settle ev, [])
+✔ [47/54] Built Figram.Examples (2.1s)
+Some required targets logged failures:
+- Figram.OutcomeProofs

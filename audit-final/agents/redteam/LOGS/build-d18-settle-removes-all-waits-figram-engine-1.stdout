@@ -1,0 +1,7 @@
+⚠ [22/28] Built Figram.CoreProofs (1.4s)
+warning: Figram/CoreProofs.lean:56:8: declaration uses `sorry`
+✔ [23/28] Built Figram.CoreProofs:c.o (438ms)
+✔ [24/28] Built Figram.Mutate (711ms)
+✔ [26/28] Built EngineMain (554ms)
+✔ [28/28] Built «figram-engine»:exe (284ms)
+Build completed successfully (28 jobs).

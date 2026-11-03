@@ -1,0 +1,60 @@
+{"id":"hello","protocol":3,"states":6}
+{"id":"call1","snapshot":{"at":"wait","pending":[{"call":"mk","token":2}],"seq":2},"actions":[{"cancel_timer":"t"},{"call":"mk","token":2},{"send":"wait"}]}
+{"id":"need","need":["c1","c2"]}
+{"id":"bubble-root","snapshot":{"at":"rootok","seq":3},"actions":[{"send":"rootok"}]}
+{"id":"cond-stay","snapshot":{"at":"wait","seq":3},"actions":[{"call":"log"}]}
+{"id":"cond-move","snapshot":{"at":"home","timers":{"t":3},"seq":3},"actions":[{"start_timer":"t","ms":1000,"token":3},{"send":"home"}]}
+{"id":"stale-noneed","snapshot":{"at":"wait","pending":[{"call":"mk","token":2}],"seq":2},"actions":[]}
+{"id":"repeated","snapshot":{"at":"wait","seq":3},"actions":[]}
+{"id":"foreign","snapshot":{"at":"wait","pending":[{"call":"ev","token":7}],"seq":7},"actions":[]}
+{"id":"other-action-token","snapshot":{"at":"home","pending":[{"call":"mk","token":2},{"call":"ev","token":3}],"seq":3},"actions":[]}
+{"id":"ev1","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ev","token":2}],"seq":2},"actions":[{"call":"ev","token":2}]}
+{"id":"ev2","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ev","token":3},{"call":"ev","token":2}],"seq":3},"actions":[{"call":"ev","token":3}]}
+{"id":"ev-old-first","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ev","token":3}],"seq":4},"actions":[{"call":"log"}]}
+{"id":"ev-new-next","snapshot":{"at":"home","timers":{"t":1},"seq":5},"actions":[{"call":"log"}]}
+{"id":"ev-new-first","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ev","token":2}],"seq":4},"actions":[{"call":"log"}]}
+{"id":"ev-repeat","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ev","token":3}],"seq":4},"actions":[]}
+{"id":"latest1","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"mk","token":2}],"seq":2},"actions":[{"call":"mk","token":2}]}
+{"id":"latest2","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"mk","token":3}],"seq":3},"actions":[{"call":"mk","token":3}]}
+{"id":"latest-old-outcome","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"mk","token":3}],"seq":3},"actions":[]}
+{"id":"latest-new-outcome","snapshot":{"at":"rootok","seq":4},"actions":[{"cancel_timer":"t"},{"send":"rootok"}]}
+{"id":"failed-resume-none","snapshot":{"at":"s1","back":"wait","resume":{"shop":"s1"},"seq":3},"actions":[{"send":"s1"}]}
+{"id":"failed-resume-s2","snapshot":{"at":"s2","back":"wait","resume":{"shop":"s2"},"seq":3},"actions":[{"send":"s2"}]}
+{"id":"failed-root","snapshot":{"at":"err","seq":3},"actions":[{"cancel_timer":"t"},{"send":"err"}]}
+{"id":"section-back","snapshot":{"at":"home","back":"s1","resume":{"shop":"s1"},"timers":{"t":6},"seq":6},"actions":[{"start_timer":"t","ms":1000,"token":6},{"send":"home"}]}
+{"id":"section-back-none","snapshot":{"at":"home","back":"s2","resume":{"shop":"s2"},"timers":{"t":6},"seq":6},"actions":[{"start_timer":"t","ms":1000,"token":6},{"send":"home"}]}
+{"id":"no-arrow","snapshot":{"at":"home","timers":{"t":1},"seq":2},"actions":[]}
+{"id":"stay-recall","snapshot":{"at":"wait","pending":[{"call":"mk","token":3}],"seq":3},"actions":[{"call":"mk","token":3}]}
+{"id":"colon1","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ns:act","token":2}],"seq":2},"actions":[{"call":"ns:act","token":2}]}
+{"id":"colon-ok","snapshot":{"at":"rootok","seq":3},"actions":[{"cancel_timer":"t"},{"send":"rootok"}]}
+{"id":"colon-split","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ns:act","token":2}],"seq":2},"actions":[]}
+{"id":"max-noarrow","snapshot":{"at":"home","seq":9007199254740991},"actions":[]}
+{"id":"max-arrow","error":"seq_overflow","code":"seq_overflow"}
+{"id":"dup","snapshot":{"at":"home","seq":2},"actions":[]}
+{"id":"dup-move","snapshot":{"at":"s1","back":"home","resume":{"shop":"s1"},"pending":[{"call":"mk","token":2},{"call":"mk","token":2}],"seq":3},"actions":[{"cancel_timer":"t"},{"send":"s1"}]}
+{"id":"order-oldfirst","snapshot":{"at":"home","pending":[{"call":"ev","token":4},{"call":"ev","token":2},{"call":"ev","token":3}],"seq":4},"actions":[{"call":"ev","token":4}]}
+{"id":"order-accept","snapshot":{"at":"home","pending":[{"call":"ev","token":2}],"seq":4},"actions":[{"call":"log"}]}
+{"id":"empty-pending","snapshot":{"at":"home","timers":{"t":4},"seq":4},"actions":[{"cancel_timer":"t"},{"start_timer":"t","ms":1000,"token":4},{"send":"home"}]}
+{"id":"latest-two-waits-call","snapshot":{"at":"home","pending":[{"call":"mk","token":4}],"seq":4},"actions":[{"call":"mk","token":4}]}
+{"id":"latest-two-waits-old","snapshot":{"at":"home","pending":[{"call":"mk","token":3}],"seq":3},"actions":[]}
+{"id":"gone-action","snapshot":{"at":"home","seq":4},"actions":[]}
+{"id":"no-outcomes-action","snapshot":{"at":"home","seq":4},"actions":[]}
+{"id":"undeclared-outcome","snapshot":{"at":"home","seq":4},"actions":[]}
+{"id":"move-keeps","snapshot":{"at":"s1","back":"home","resume":{"shop":"s1"},"pending":[{"call":"ev","token":2}],"seq":3},"actions":[{"cancel_timer":"t"},{"send":"s1"}]}
+{"id":"restart","snapshot":{"at":"home","timers":{"t":3},"seq":3},"actions":[{"cancel_timer":"zz"},{"start_timer":"t","ms":1000,"token":3},{"send":"home"}]}
+{"id":"rec-accepted","snapshot":{"at":"rootok","back":"s1","resume":{"shop":"s2"},"seq":3},"actions":[{"cancel_timer":"x"},{"send":"rootok"}],"recovered":true}
+{"id":"rec-stale","snapshot":{"at":"home","back":"s1","resume":{"shop":"s2"},"timers":{"t":3},"pending":[{"call":"mk","token":2}],"seq":3},"actions":[{"cancel_timer":"x"},{"start_timer":"t","ms":1000,"token":3},{"send":"home"}],"recovered":true}
+{"id":"rec-stay","snapshot":{"at":"home","back":"s1","resume":{"shop":"s2"},"timers":{"t":3},"seq":3},"actions":[{"cancel_timer":"x"},{"call":"log"},{"start_timer":"t","ms":1000,"token":3},{"send":"home"}],"recovered":true}
+{"id":"rec-section","snapshot":{"at":"home","timers":{"t":3},"seq":3},"actions":[{"start_timer":"t","ms":1000,"token":3},{"send":"home"}],"recovered":true}
+{"id":"start-outcome","error":"an outcome event cannot start a user","code":"bad_request"}
+{"id":"start-outcome-token","error":"unknown request field `token`","code":"bad_request"}
+{"id":"start-stay","snapshot":{"at":"home","timers":{"t":1},"pending":[{"call":"ev","token":1}],"seq":1},"actions":[{"call":"ev","token":1},{"start_timer":"t","ms":1000,"token":1},{"send":"home"}]}
+{"id":"start-stay-seq","snapshot":{"at":"home","timers":{"t":42},"pending":[{"call":"ev","token":42}],"seq":42},"actions":[{"call":"ev","token":42},{"start_timer":"t","ms":1000,"token":42},{"send":"home"}]}
+{"id":"tok-float","snapshot":{"at":"home","seq":2},"actions":[]}
+{"id":"no-token","error":"missing field `token` for an outcome event","code":"bad_request"}
+{"id":"token-named","error":"field `token` is allowed only for a timer or an outcome event","code":"bad_request"}
+{"id":"bad-wait-extra","error":"snapshot: a `pending` entry has only the fields `call` and `token`","code":"bad_snapshot"}
+{"id":"bad-wait-notoken","error":"snapshot: a `pending` entry needs `token`","code":"bad_snapshot"}
+{"id":"bad-wait-emptycall","error":"snapshot: the `call` of a `pending` entry is an empty string","code":"bad_snapshot"}
+{"id":"bad-pending-obj","error":"snapshot: `pending` must be an array","code":"bad_snapshot"}
+{"id":"bad-wait-big","error":"snapshot: the `token` of a `pending` entry exceeds 9007199254740991","code":"bad_snapshot"}

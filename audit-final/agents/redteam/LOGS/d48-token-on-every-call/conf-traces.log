@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d48-token-on-every-call/figram-engine examples/pizza.bot.json=/home/user/figram-audit/agents5/redteam/ref/pizza.jsonl examples/features.bot.json=/home/user/figram-audit/agents5/redteam/ref/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:11:20.168Z
+end: 2026-11-03T19:11:21.070Z
+exit_code: 1
+--- stdout (950 bytes, last 200 lines)
+requests 17602, mismatches 1963
+   {'op': 'step', 'snapshot': {'at': 'cart', 'back': 'menu', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 3}, 'seq': 3}, 'event': 'btn:cancel'} → {'id': 3, 'snapshot': {'at': 'menu', 'back': 'cart', 'resume': {'order': 'cart'}, 'seq': 4}, 'actions': [{'cancel_timer': 'cart_reminder'}, {'cal
+   {'op': 'step', 'snapshot': {'at': 'pick_size', 'back': 'catalog', 'resume': {'order': 'pick_size'}, 'seq': 6}, 'event': 'btn:size'} → {'id': 6, 'snapshot': {'at': 'pick_toppings', 'back': 'catalog', 'resume': {'order': 'pick_toppings'}, 'seq': 7}, 'actions': [{'call': 'save_size', 'token': 7}, {'sen
+   {'op': 'step', 'snapshot': {'at': 'pick_toppings', 'back': 'catalog', 'resume': {'order': 'pick_toppings'}, 'seq': 7}, 'event': 'btn:add'} → {'id': 7, 'snapshot': {'at': 'cart', 'back': 'pick_toppings', 'resume': {'order': 'cart'}, 'timers': {'cart_reminder': 8}, 'seq': 8}, 'actions': [{'call': 'add
+--- stderr (0 bytes, last 100 lines)

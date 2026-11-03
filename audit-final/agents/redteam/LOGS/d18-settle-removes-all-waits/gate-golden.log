@@ -1,0 +1,9 @@
+command: bash -c /home/user/figram-audit/agents5/redteam/bin/mut/d18-settle-removes-all-waits/figram-gate\ golden\ /home/user/figram-audit/agents5/redteam/LOGS/d18-settle-removes-all-waits/ggolden/out\ \&\&\ for\ f\ in\ golden.jsonl\ pizza.bot.json\ features.bot.json\;\ do\ cmp\ /home/user/figram-audit/agents5/redteam/LOGS/d18-settle-removes-all-waits/ggolden/out/\$f\ examples/\$f\ \|\|\ exit\ 1\;\ done\;\ echo\ same 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:27:41.566Z
+end: 2026-11-03T18:27:41.580Z
+exit_code: 1
+--- stdout (163 bytes, last 200 lines)
+scenarios: 37
+/home/user/figram-audit/agents5/redteam/LOGS/d18-settle-removes-all-waits/ggolden/out/golden.jsonl examples/golden.jsonl differ: char 25352, line 35
+--- stderr (0 bytes, last 100 lines)

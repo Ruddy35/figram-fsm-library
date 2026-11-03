@@ -1,0 +1,12 @@
+Figram.Snapshot.accepts: used by Chart.step/startWith = true
+Figram.Snapshot.settle: used by Chart.step/startWith = true
+Figram.Snapshot.consume: used by Chart.step/startWith = true
+Figram.addWait: used by Chart.step/startWith = true
+Figram.realizeOne: used by Chart.step/startWith = true
+Figram.realize: used by Chart.step/startWith = true
+Figram.stay: used by Chart.step/startWith = true
+Figram.ownsTimer: used by Chart.step/startWith = true
+Figram.staleCancels: used by Chart.step/startWith = true
+Figram.guardOK: used by Chart.step/startWith = true
+Figram.Machine.step: used by Chart.step/startWith = false
+Figram.Machine.fire: used by Chart.step/startWith = false

@@ -1,0 +1,12 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..70b06be 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -250,7 +250,6 @@ def decStartEvent (kvs : Obj) : R EventId :=
+   | some (.str e) =>
+     if e.isEmpty then throw "`event` must be a non-empty string"
+     else if e.startsWith "timer:" then throw "a timer event cannot start a user"
+-    else if e.startsWith "call:" then throw "an outcome event cannot start a user"
+     else pure e
+   | _ => throw "`event` must be a non-empty string"
+ 

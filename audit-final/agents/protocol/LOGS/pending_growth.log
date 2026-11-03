@@ -1,0 +1,12 @@
+command: timeout 120 python3 /home/user/figram-audit/agents5/protocol/growth.py .lake/build/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:49:35.343Z
+end: 2026-11-03T17:49:36.117Z
+exit_code: 0
+--- stdout (346 bytes, last 200 lines)
+step 0: request 1048470 bytes -> result, pending 35316
+step 1: request 1048502 bytes -> result, pending 35317
+step 2: request 1048534 bytes -> result, pending 35318
+step 3: request 1048566 bytes -> result, pending 35319
+step 4: request 1048598 bytes -> {'id': 4, 'error': 'request is longer than the limit of 1048576 bytes', 'code': 'too_large'}
+--- stderr (0 bytes, last 100 lines)

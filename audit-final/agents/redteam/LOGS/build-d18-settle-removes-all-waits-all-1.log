@@ -1,0 +1,14 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:09:45.888Z
+end: 2026-11-03T18:09:49.554Z
+exit_code: 0
+--- stdout (283 bytes, last 200 lines)
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:56:8: declaration uses `sorry`
+✔ [47/54] Built Figram.Examples (1.0s)
+✔ [49/54] Built Figram (438ms)
+✔ [52/54] Built Main (528ms)
+✔ [54/54] Built figram:exe (239ms)
+Build completed successfully (54 jobs).
+--- stderr (0 bytes, last 100 lines)

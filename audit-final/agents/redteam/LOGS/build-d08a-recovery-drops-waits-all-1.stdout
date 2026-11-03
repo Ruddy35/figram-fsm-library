@@ -1,0 +1,118 @@
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:468:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:569:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:575:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:616:8: declaration uses `sorry`
+⚠ [37/54] Built Figram.Correct (1.3s)
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+✔ [38/54] Built Figram.Correct:c.o (450ms)
+✔ [39/54] Built Figram.Run (640ms)
+✔ [41/54] Built Figram.LintProofs (673ms)
+⚠ [43/54] Built Figram.EngineProofs (2.7s)
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+warning: Figram/EngineProofs.lean:398:46: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:401:37: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ite_true, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:401:41: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ha, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [44/54] Built Figram.EngineProofs:c.o (627ms)
+✔ [45/54] Built Figram.Examples (1.8s)
+✖ [47/54] Building Figram.OutcomeProofs (1.4s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:311:67: Application type mismatch: The argument
+  rfl
+has type
+  ?m.124 = ?m.124
+but is expected to have type
+  realize
+      ({ state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }.settle
+        ev)
+      (m.resolve
+        { state := m.initial,
+          resume :=
+            { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := [] }.resume,
+          timers :=
+            { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := [] }.timers,
+          seq :=
+            { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := [] }.seq,
+          back :=
+            { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := [] }.back,
+          pending :=
+            { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                pending := [] }.pending }
+        b✝.target)
+      (List.map (fun p => Action.cancelTimer p.fst) s.timers ++ b✝.actions ++
+        m.entryOf
+          (m.resolve
+            { state := m.initial,
+              resume :=
+                { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                    pending := [] }.resume,
+              timers :=
+                { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                    pending := [] }.timers,
+              seq :=
+                { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                    pending := [] }.seq,
+              back :=
+                { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                    pending := [] }.back,
+              pending :=
+                { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back,
+                    pending := [] }.pending }
+            b✝.target)) =
+    realize (s.settle ev) ?m.106 ?m.109
+in the application
+  ⟨fun p hp => Eq.mp (congrFun' (congrArg Membership.mem (settle_timers s ev)) p) hp, rfl⟩
+error: Figram/OutcomeProofs.lean:312:67: Application type mismatch: The argument
+  rfl
+has type
+  ?m.158 = ?m.158
+but is expected to have type
+  realize
+      ({ state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }.settle
+        ev)
+      m.initial (List.map (fun p => Action.cancelTimer p.fst) s.timers ++ m.initActions) =
+    realize (s.settle ev) ?m.140 ?m.143
+in the application
+  ⟨fun p hp => Eq.mp (congrFun' (congrArg Membership.mem (settle_timers s ev)) p) hp, rfl⟩
+error: Figram/OutcomeProofs.lean:687:4: Type mismatch
+  undetach_enterBot m s (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env (map_undetach_timerCancels s)
+has type
+  m.undetach.enterBot s (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env =
+    ((m.enterBot s (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).fst,
+      List.map Action.undetach (m.enterBot s (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).snd)
+but is expected to have type
+  m.undetach.enterBot
+      { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+      (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env =
+    ((m.enterBot
+          { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+          (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).fst,
+      List.map Action.undetach
+        (m.enterBot
+            { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := [] }
+            (List.map (fun p => Action.cancelTimer p.fst) s.timers) ev env).snd)
+Some required targets logged failures:
+- Figram.OutcomeProofs

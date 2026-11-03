@@ -1,0 +1,6 @@
+✔ [47/54] Built Figram.Warnings (572ms)
+✔ [48/54] Built Figram (236ms)
+✔ [50/54] Built Figram.Warnings:c.o (286ms)
+✔ [52/54] Built Main (536ms)
+✔ [54/54] Built figram:exe (212ms)
+Build completed successfully (54 jobs).

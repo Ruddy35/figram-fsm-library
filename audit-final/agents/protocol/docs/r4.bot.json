@@ -1,0 +1,616 @@
+{
+  "figram": 1,
+  "conditions": {
+    "c1": "Random condition c1",
+    "c2": "Random condition c2",
+    "c3": "Random condition c3"
+  },
+  "calls": {
+    "k1": "Random action k1",
+    "k2": {
+      "text": "Random action k2",
+      "detached": true
+    },
+    "k3": {
+      "text": "Random action k3",
+      "outcomes": ["ok", "no"]
+    },
+    "k4": {
+      "text": "Random action k4",
+      "detached": true,
+      "outcomes": ["done"],
+      "every": true
+    }
+  },
+  "bot": {
+    "initial": "s0",
+    "on": {
+      "cmd:start": [
+        {
+          "if": "c3",
+          "to": "s1"
+        },
+        {
+          "to": "s2",
+          "do": ["k1"]
+        }
+      ],
+      "cmd:help": [
+        {
+          "to": "m11"
+        }
+      ],
+      "call:k3:failed": [
+        {
+          "if": "c3",
+          "do": ["k2"]
+        },
+        {
+          "if": "c2",
+          "to": "s2"
+        },
+        {
+          "if": "c1",
+          "to": "m13",
+          "back": true
+        }
+      ],
+      "call:k4:done": [
+        {
+          "if": "c2",
+          "to": "m12"
+        },
+        {
+          "to": "s3",
+          "do": ["k3"]
+        }
+      ]
+    },
+    "children": {
+      "s0": {
+        "initial": "m14",
+        "children": {
+          "m14": {
+            "on": {
+              "btn:a": [
+                {
+                  "if": "c2",
+                  "to": "s4"
+                },
+                {
+                  "to": "m12"
+                }
+              ],
+              "call:k3:no": [
+                {
+                  "if": "c1",
+                  "to": "m4",
+                  "back": true
+                },
+                {
+                  "if": "c2",
+                  "to": "s4"
+                },
+                {
+                  "to": "s1",
+                  "do": ["k4"]
+                }
+              ],
+              "call:k4:failed": [
+                {
+                  "if": "c2",
+                  "to": "m3",
+                  "do": ["k2"]
+                }
+              ]
+            }
+          },
+          "m11": {
+            "on": {
+              "btn:a": [
+                {
+                  "to": "m4",
+                  "do": ["k4"]
+                }
+              ],
+              "timer:t11": [
+                {
+                  "if": "c3",
+                  "to": "m10"
+                },
+                {
+                  "to": "m14",
+                  "do": ["k3", "k4"]
+                }
+              ]
+            },
+            "timers": {
+              "t11": 92419
+            }
+          },
+          "m0": {
+            "on": {
+              "call:k4:done": [
+                {
+                  "to": "s3"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "s1": {
+        "initial": "m13",
+        "children": {
+          "m13": {},
+          "m12": {
+            "on": {
+              "call:k4:done": [
+                {
+                  "if": "c2",
+                  "to": "m13"
+                },
+                {
+                  "if": "c2",
+                  "to": "m0",
+                  "do": ["k4"]
+                },
+                {
+                  "if": "c3",
+                  "to": "m3"
+                }
+              ],
+              "call:k4:failed": [
+                {
+                  "if": "c2",
+                  "to": "s0",
+                  "back": true,
+                  "do": ["k4"]
+                },
+                {
+                  "do": ["k4"]
+                }
+              ],
+              "timer:t12": [
+                {
+                  "if": "c3",
+                  "to": "m0",
+                  "do": ["k1", "k4"]
+                },
+                {
+                  "if": "c2",
+                  "to": "s0",
+                  "do": ["k3"]
+                },
+                {
+                  "if": "c2",
+                  "to": "s4",
+                  "do": ["k3", "k4"]
+                }
+              ]
+            },
+            "timers": {
+              "t12": 32144
+            }
+          },
+          "m7": {
+            "on": {
+              "btn:b": [
+                {
+                  "if": "c3",
+                  "to": "m4"
+                },
+                {
+                  "if": "c1",
+                  "to": "s2",
+                  "resume": true,
+                  "do": ["k3"]
+                },
+                {
+                  "if": "c1",
+                  "to": "m6",
+                  "do": ["k1"]
+                }
+              ],
+              "call:k3:failed": [
+                {
+                  "to": "m9",
+                  "do": ["k4"]
+                }
+              ],
+              "call:k4:done": [
+                {
+                  "if": "c3",
+                  "to": "m13"
+                },
+                {
+                  "if": "c1",
+                  "to": "s2",
+                  "resume": true,
+                  "do": ["k4"]
+                },
+                {
+                  "to": "s4",
+                  "resume": true
+                }
+              ]
+            }
+          },
+          "m1": {
+            "on": {
+              "btn:a": [
+                {
+                  "if": "c2",
+                  "to": "s2",
+                  "resume": true,
+                  "do": ["k1", "k2"]
+                },
+                {
+                  "if": "c3",
+                  "to": "m10"
+                },
+                {
+                  "if": "c1",
+                  "to": "s1",
+                  "do": ["k1"]
+                }
+              ]
+            }
+          }
+        }
+      },
+      "s2": {
+        "initial": "m8",
+        "children": {
+          "m8": {
+            "on": {
+              "btn:b": [
+                {
+                  "if": "c1",
+                  "do": ["k4"]
+                }
+              ],
+              "call:k3:failed": [
+                {
+                  "if": "c3",
+                  "to": "s2",
+                  "resume": true
+                }
+              ]
+            }
+          },
+          "m2": {
+            "on": {
+              "call:k3:no": [
+                {
+                  "if": "c1",
+                  "to": "m2",
+                  "do": ["k4", "k2"]
+                },
+                {
+                  "if": "c3",
+                  "to": "s1",
+                  "resume": true,
+                  "do": ["k4", "k2"]
+                }
+              ],
+              "call:k3:failed": [
+                {
+                  "to": "m14"
+                }
+              ],
+              "timer:t2": [
+                {
+                  "if": "c1",
+                  "do": ["k4", "k2"]
+                },
+                {
+                  "if": "c2",
+                  "to": "s2",
+                  "do": ["k3"]
+                },
+                {
+                  "do": ["k4"]
+                }
+              ]
+            },
+            "timers": {
+              "t2": 74140
+            }
+          }
+        }
+      },
+      "s3": {
+        "initial": "m10",
+        "on": {
+          "btn:a": [
+            {
+              "do": ["k2", "k4"]
+            }
+          ],
+          "call:k3:failed": [
+            {
+              "if": "c2",
+              "to": "s3"
+            }
+          ]
+        },
+        "children": {
+          "m10": {
+            "on": {
+              "btn:c": [
+                {
+                  "to": "m12",
+                  "do": ["k4"]
+                }
+              ],
+              "call:k3:ok": [
+                {
+                  "if": "c1",
+                  "to": "s3",
+                  "do": ["k1"]
+                },
+                {
+                  "to": "m13",
+                  "do": ["k4", "k1"]
+                }
+              ],
+              "call:k4:done": [
+                {
+                  "if": "c2",
+                  "to": "m10"
+                },
+                {
+                  "if": "c1",
+                  "do": ["k4"]
+                },
+                {
+                  "if": "c2",
+                  "to": "m11"
+                }
+              ],
+              "call:k4:failed": [
+                {
+                  "to": "m11",
+                  "do": ["k3"]
+                }
+              ]
+            }
+          },
+          "m9": {
+            "on": {
+              "btn:c": [
+                {
+                  "if": "c2",
+                  "to": "m11",
+                  "do": ["k3"]
+                },
+                {
+                  "if": "c3",
+                  "to": "m11",
+                  "do": ["k1", "k4"]
+                },
+                {
+                  "to": "m8",
+                  "back": true,
+                  "do": ["k3"]
+                }
+              ],
+              "msg:text": [
+                {
+                  "if": "c2",
+                  "to": "m10",
+                  "back": true
+                },
+                {
+                  "if": "c2",
+                  "to": "m10",
+                  "do": ["k3"]
+                },
+                {
+                  "do": ["k2", "k2"]
+                }
+              ]
+            }
+          },
+          "m6": {
+            "on": {
+              "call:k3:ok": [
+                {
+                  "if": "c2",
+                  "to": "m0",
+                  "back": true
+                }
+              ],
+              "call:k4:failed": [
+                {
+                  "if": "c3",
+                  "to": "m2"
+                },
+                {
+                  "if": "c3",
+                  "to": "m1",
+                  "do": ["k3"]
+                },
+                {
+                  "if": "c2",
+                  "to": "s1",
+                  "do": ["k2"]
+                }
+              ]
+            }
+          },
+          "m5": {
+            "on": {
+              "btn:a": [
+                {
+                  "if": "c3",
+                  "to": "s1",
+                  "resume": true,
+                  "back": true,
+                  "do": ["k1", "k1"]
+                },
+                {
+                  "to": "s3"
+                }
+              ],
+              "msg:text": [
+                {
+                  "if": "c1",
+                  "to": "m3"
+                },
+                {
+                  "if": "c1",
+                  "to": "m13",
+                  "back": true,
+                  "do": ["k3", "k2"]
+                },
+                {
+                  "if": "c3",
+                  "to": "m9"
+                }
+              ],
+              "call:k3:ok": [
+                {
+                  "if": "c1",
+                  "do": ["k4"]
+                },
+                {
+                  "to": "m2",
+                  "do": ["k4"]
+                }
+              ],
+              "call:k3:failed": [
+                {
+                  "if": "c2",
+                  "to": "s0",
+                  "resume": true,
+                  "do": ["k2"]
+                },
+                {
+                  "to": "m10",
+                  "do": ["k1"]
+                }
+              ]
+            }
+          },
+          "m3": {
+            "on": {
+              "btn:c": [
+                {
+                  "if": "c1",
+                  "to": "s2",
+                  "resume": true,
+                  "do": ["k3"]
+                },
+                {
+                  "if": "c2",
+                  "to": "m9",
+                  "back": true,
+                  "do": ["k3", "k2"]
+                },
+                {
+                  "to": "m12",
+                  "do": ["k4"]
+                }
+              ],
+              "call:k3:no": [
+                {
+                  "to": "m14",
+                  "back": true
+                }
+              ]
+            }
+          }
+        }
+      },
+      "s4": {
+        "initial": "m4",
+        "children": {
+          "m4": {
+            "on": {
+              "btn:b": [
+                {
+                  "if": "c3",
+                  "to": "s3"
+                },
+                {
+                  "if": "c3",
+                  "to": "s4"
+                },
+                {
+                  "to": "m9",
+                  "do": ["k2", "k2"]
+                }
+              ],
+              "btn:c": [
+                {
+                  "if": "c1",
+                  "to": "s3",
+                  "back": true,
+                  "do": ["k1"]
+                },
+                {
+                  "to": "m9",
+                  "do": ["k2"]
+                }
+              ],
+              "call:k3:failed": [
+                {
+                  "if": "c3"
+                },
+                {
+                  "if": "c2",
+                  "to": "m3"
+                },
+                {
+                  "to": "s2",
+                  "resume": true,
+                  "do": ["k1", "k2"]
+                }
+              ],
+              "call:k4:done": [
+                {
+                  "if": "c1",
+                  "to": "m11"
+                }
+              ],
+              "call:k4:failed": [
+                {
+                  "if": "c2",
+                  "to": "s1",
+                  "resume": true,
+                  "do": ["k2", "k1"]
+                },
+                {
+                  "if": "c2",
+                  "to": "m2"
+                },
+                {
+                  "to": "s1",
+                  "do": ["k1"]
+                }
+              ],
+              "timer:t4": [
+                {
+                  "if": "c2",
+                  "to": "s4",
+                  "resume": true,
+                  "do": ["k1"]
+                },
+                {
+                  "if": "c2",
+                  "to": "m13",
+                  "do": ["k4"]
+                }
+              ]
+            },
+            "timers": {
+              "t4": 14593
+            }
+          }
+        }
+      }
+    }
+  }
+}

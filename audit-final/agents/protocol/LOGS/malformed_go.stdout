@@ -1,0 +1,4 @@
+MISMATCH want ERR got need: start {"id":1,"need":["c","c"]}
+MISMATCH want ERR got result: step {"id":1,"snapshot":{"at":"","at":"a"},"actions":[]}
+MISMATCH want ERR got result: step {"id":1,"snapshot":{"at":"placing","pending":[{"call":"create_order","token":6}],"seq":6},"actions":[{"call":"p","token":-5,"token":6}]}
+go checkReply: 45 replies, 3 mismatches

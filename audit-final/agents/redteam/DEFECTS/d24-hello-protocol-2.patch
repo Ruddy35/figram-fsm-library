@@ -1,0 +1,13 @@
+diff --git a/Figram/Engine.lean b/Figram/Engine.lean
+index 29da466..0a32569 100644
+--- a/Figram/Engine.lean
++++ b/Figram/Engine.lean
+@@ -37,7 +37,7 @@ fields, the line size limit, UTF-8) run before it: in `handle`, in
+ namespace Figram.Engine
+ open Figram.Format
+ 
+-def protocolVersion : Nat := 3
++def protocolVersion : Nat := 2
+ def snapshotKeys : List String := ["v", "at", "back", "resume", "timers", "pending", "seq"]
+ 
+ /-! ## Snapshot -/

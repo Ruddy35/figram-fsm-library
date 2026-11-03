@@ -1,0 +1,62 @@
+diff --git a/Figram/Core.lean b/Figram/Core.lean
+index e2b57e5..d28fc4a 100644
+--- a/Figram/Core.lean
++++ b/Figram/Core.lean
+@@ -166,7 +166,7 @@ def Snapshot.consume (s : Snapshot) : Event → Snapshot
+ def addWait (pend : List (String × Nat)) (n : String) (tok : Nat) : Wait → List (String × Nat)
+   | .free => pend
+   | .latest => assign pend n tok
+-  | .every => (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok)))
++  | .every => (n, tok) :: pend
+ 
+ /-- One step of executing actions: internal ones are applied to the snapshot,
+ the others go to the host; timers and actions get their token, actions with outcomes record
+diff --git a/Figram/EngineProofs.lean b/Figram/EngineProofs.lean
+index c5fd935..d10d281 100644
+--- a/Figram/EngineProofs.lean
++++ b/Figram/EngineProofs.lean
+@@ -135,15 +135,7 @@ theorem ne_of_not_isEmpty {s : String} (h : (!s.isEmpty) = true) : s ≠ "" := b
+   intro he; subst he; simp at h
+ 
+ theorem mem_addWait {pend : List (String × Nat)} {n : String} {tok : Nat} {w : Wait}
+-    {p : String × Nat} (h : p ∈ addWait pend n tok w) : p = (n, tok) ∨ p ∈ pend := by
+-  cases w with
+-  | free => exact Or.inr h
+-  | latest => exact mem_assign h
+-  | every =>
+-    simp only [addWait, List.mem_cons, List.mem_filter] at h
+-    rcases h with h | h
+-    · exact Or.inl h
+-    · exact Or.inr h.1
++    {p : String × Nat} (h : p ∈ addWait pend n tok w) : p = (n, tok) ∨ p ∈ pend := by sorry
+ 
+ /-- Removing a wait and consuming a timer keep the snapshot admissible. -/
+ theorem Inv.settle {s : Snapshot} (h : Inv s) (ev : Event) : Inv (s.settle ev) := by
+diff --git a/Figram/OutcomeProofs.lean b/Figram/OutcomeProofs.lean
+index 5df27b7..7a3b859 100644
+--- a/Figram/OutcomeProofs.lean
++++ b/Figram/OutcomeProofs.lean
+@@ -203,22 +203,7 @@ theorem realize_latest (s : Snapshot) (T : NodeId) (acts : List Action)
+ theorem realizeOne_keep (tok : Nat) (x : Snapshot) (out : List Action) (a : Action)
+     {p : String × Nat} (hp : p ∈ x.pending) (ht : p.2 ≠ tok)
+     (hl : ∀ d t, Action.call p.1 d .latest t ∉ (realizeOne tok (x, out) a).2) :
+-    p ∈ (realizeOne tok (x, out) a).1.pending := by
+-  obtain ⟨pn, pt⟩ := p
+-  cases a with
+-  | call n d w t =>
+-    show (pn, pt) ∈ addWait x.pending n tok w
+-    cases w with
+-    | free => exact hp
+-    | latest =>
+-      by_cases hn : pn = n
+-      · subst hn
+-        exact absurd (by simp [realizeOne]) (hl d tok)
+-      · simp [addWait, assign, hn, hp]
+-    | every =>
+-      simp only [addWait, List.mem_cons, List.mem_filter, Prod.mk.injEq, decide_eq_true_eq]
+-      exact Or.inr ⟨hp, fun h => ht (congrArg Prod.snd h)⟩
+-  | _ => exact hp
++    p ∈ (realizeOne tok (x, out) a).1.pending := by sorry
+ 
+ theorem foldl_keep (tok : Nat) (acts : List Action) (x : Snapshot) (out : List Action)
+     {p : String × Nat} (hp : p ∈ x.pending) (ht : p.2 ≠ tok)

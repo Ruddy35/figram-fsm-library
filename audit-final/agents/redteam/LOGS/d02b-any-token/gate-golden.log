@@ -1,0 +1,9 @@
+command: bash -c /home/user/figram-audit/agents5/redteam/bin/mut/d02b-any-token/figram-gate\ golden\ /home/user/figram-audit/agents5/redteam/LOGS/d02b-any-token/ggolden/out\ \&\&\ for\ f\ in\ golden.jsonl\ pizza.bot.json\ features.bot.json\;\ do\ cmp\ /home/user/figram-audit/agents5/redteam/LOGS/d02b-any-token/ggolden/out/\$f\ examples/\$f\ \|\|\ exit\ 1\;\ done\;\ echo\ same 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:18:52.431Z
+end: 2026-11-03T18:18:52.444Z
+exit_code: 1
+--- stdout (149 bytes, last 200 lines)
+scenarios: 37
+/home/user/figram-audit/agents5/redteam/LOGS/d02b-any-token/ggolden/out/golden.jsonl examples/golden.jsonl differ: char 21769, line 32
+--- stderr (0 bytes, last 100 lines)

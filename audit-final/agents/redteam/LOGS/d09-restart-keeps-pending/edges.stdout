@@ -1,0 +1,2 @@
+FAIL restart clears the waits: {'snapshot': {'at': 'home', 'timers': {'idle': 6}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'start_timer': 'idle', 'ms': 60000, 'token': 6}, {'send': 'home'}]} ≠ expected {'snapshot': {'at': 'home', 'timers': {'idle': 6}, 'seq': 6}, 'actions': [{'cancel_timer': 'remind'}, {'start_timer': 'idle', 'ms': 60000, 'token': 6}, {'send': 'home'}]}
+protocol edge cases 250, replies 250, mismatches 1

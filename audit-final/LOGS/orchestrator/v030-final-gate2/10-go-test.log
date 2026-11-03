@@ -1,0 +1,8 @@
+command: go test -count=1 ./...
+cwd: /home/user/figram-audit-worktrees/cleanup-int/clients/go
+start: 2026-11-03T20:11:44Z
+end: 2026-11-03T20:11:49Z
+exit_code: 0
+--- stdout (18 bytes, last 200 lines)
+ok  	gofig	4.362s
+--- stderr (0 bytes, last 100 lines)

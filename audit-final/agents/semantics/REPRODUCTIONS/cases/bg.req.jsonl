@@ -1,0 +1,8 @@
+{"id":"hello","op":"hello"}
+{"id":"go","op":"step","snapshot":{"at":"a"},"event":"btn:go"}
+{"id":"s","op":"step","snapshot":{"at":"a","seq":3},"event":"btn:s"}
+{"id":"bgo-done-elsewhere","op":"step","snapshot":{"at":"b","timers":{"t":1},"pending":[{"call":"bge","token":1},{"call":"bgo","token":1}],"seq":1},"event":"call:bgo:done","token":1}
+{"id":"bge-done","op":"step","snapshot":{"at":"b","timers":{"t":1},"pending":[{"call":"bge","token":1},{"call":"bgo","token":1}],"seq":1},"event":"call:bge:done","token":1}
+{"id":"start-s","op":"start","event":"btn:s"}
+{"id":"restart","op":"restart","snapshot":{"at":"b","timers":{"t":1},"pending":[{"call":"bge","token":1},{"call":"bgo","token":1}],"seq":1}}
+{"id":"rec-s","op":"step","snapshot":{"at":"zz","seq":1},"event":"btn:s"}

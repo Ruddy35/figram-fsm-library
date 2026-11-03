@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/mut/d33-no-need-for-outcome/figram-engine --golden examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:41:15.551Z
+end: 2026-11-03T18:41:15.608Z
+exit_code: 1
+--- stdout (333 bytes, last 200 lines)
+requests 170, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 6}], 'seq': 6}, 'event': 'call:create_order:rejected', 'token': 6} → {'id': 19, 'snapshot': {'at': 'order_failed', 'back': 'menu', 'resume': {'order': 'order_fai
+--- stderr (0 bytes, last 100 lines)

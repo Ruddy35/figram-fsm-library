@@ -1,0 +1,18 @@
+command: /home/user/figram-audit/agents5/semantics/scripts/case.sh nested.bot.json nested 
+cwd: /home/user/figram-audit/agents5/semantics/REPRODUCTIONS/cases
+start: 2026-11-03T17:48:49.454Z
+end: 2026-11-03T17:48:49.488Z
+exit_code: 0
+--- stdout (179 bytes, last 200 lines)
+engine exit 0
+ok id=m-x-need
+ok id=m-x-false
+ok id=m-x-true
+ok id=n-x-false
+ok id=n-x-true
+ok id=top-x
+ok id=mk-into-A
+ok id=ok-resume-inside
+ok id=ok-at-top
+TOTAL 9 mismatches 0
+--- stderr (0 bytes, last 100 lines)

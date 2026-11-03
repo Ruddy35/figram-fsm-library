@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 bash /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/negctl/run.sh py-pending-lax 
+cwd: /home/user/figram-audit-worktrees
+start: 2026-11-03T17:00:57.438Z
+end: 2026-11-03T17:00:58.036Z
+exit_code: 0
+--- stdout (209 bytes, last 200 lines)
+py-pending-lax: rc=1 (want ≠ 0): FAIL validator on {"id":5,"snapshot":{"at":"home","pending":[{"call":"ping"}]},"actions":[]}: accepted, expected rejected|protocol edge cases 250, replies 250, mismatches 1|
+--- stderr (0 bytes, last 100 lines)

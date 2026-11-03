@@ -1,0 +1,207 @@
+command: scripts/plan2.sh 
+cwd: /home/user/figram-audit/agents5/redteam
+start: 2026-11-03T18:18:38.932Z
+end: 2026-11-03T18:43:26.951Z
+exit_code: 0
+--- stdout (58503 bytes, last 200 lines)
+conf-golden            exit=1   requests 170, mismatches 13 
+conf-traces            exit=1   requests 17602, mismatches 1720 
+edges                  exit=1   FAIL an action with outcomes: call carries the step's token, the wait is recorded; no move keeps timers and places: {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=1   documents 100, requests 91644, documents with mismatches 98 
+directed               exit=1   FAIL [engine] conformance/outcome_latest_replaces -- decision 12: a new call of the same action replaces its wait, the outcome of the earlier call is ignored FAIL [engine] conformance/outcome_every_keeps_each -- decision 12: with 
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 18435, "all-false": 3171, "branch-unowned-timer": 4950, "all-false-unowned-timer": 1075, "dead": 4054, "branch-stale-outcome": 663, "all-false-stale-outcome": 129}, "requests": 3097
+gate-conf              exit=1   requests 17773, mismatches 13 | cov: arrow variants covered: 75 of 75 arrow variants covered: 53 of 53 
+gate-traces            exit=0   requests 17603, mismatches 0 
+gate-golden            exit=1   scenarios: 37 /home/user/figram-audit/agents5/redteam/LOGS/d19-stay-no-seq/ggolden/out/golden.jsonl examples/golden.jsonl differ: char 18893, line 29 
+gate-random            exit=0   documents 100, requests 91597, documents with mismatches 0 
+=== d20-stay-consumes-all-timers: conf-golden conf-traces edges snap host random directed diff-small gate-conf gate-traces gate-golden gate-random
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=1   FAIL [engine] conformance/stay_consumes_fired_timer -- decision 13: a timer firing handled by an arrow without a target is consumed (removed from `timers`, a redelivery is ignored); leaving cancels the timers of the message by the
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 49481, "all-false": 8356, "branch-unowned-timer": 10010, "all-false-unowned-timer": 1900, "dead": 9128, "branch-stale-outcome": 2178, "all-false-stale-outcome": 419}, "requests": 79
+gate-conf              exit=0   requests 17772, mismatches 0 | cov: arrow variants covered: 75 of 75 arrow variants covered: 53 of 53 
+gate-traces            exit=0   requests 17602, mismatches 0 
+gate-golden            exit=0   scenarios: 37 same 
+gate-random            exit=0   documents 100, requests 91644, documents with mismatches 0 
+=== d21-need-stale-outcome-recovery: conf-golden conf-traces edges snap host random directed diff-small d-engine client
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+client_contract        exit=0   ok   condition not filled in → EngineError ok   value not bool → EngineError ok   not a dict → EngineError 
+client_faults          exit=0   
+client_robust          exit=0   
+=== d22-need-stale-outcome: conf-golden conf-traces edges snap host random directed diff-small d-engine client
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=1   requests 17602, mismatches 1 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=1   documents 100, requests 91644, documents with mismatches 95 
+directed               exit=1   FAIL [engine] conformance/outcome_not_accepted_needs_nothing -- rule 2: an outcome without its wait is ignored before any condition is asked cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 1 
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+client_contract        exit=0   ok   condition not filled in → EngineError ok   value not bool → EngineError ok   not a dict → EngineError 
+client_faults          exit=0   
+client_robust          exit=0   
+=== d23-decwait-token-default: conf-golden conf-traces edges snap host random directed diff-small d-engine client
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=1   FAIL a pending entry without a token — bad_snapshot: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 0}], 'seq': 1}, 'actions': [{'cancel_timer': 'idle'}, {'start_timer': 'idle', 'ms': 60
+snap                   exit=1   snapshots 49, replies 49, schema/engine mismatches 1 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=0   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+d-engine               exit=1       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+client_contract        exit=0   ok   condition not filled in → EngineError ok   value not bool → EngineError ok   not a dict → EngineError 
+client_faults          exit=0   
+client_robust          exit=0   
+=== d24-hello-protocol-2: conf-golden conf-traces edges snap host random directed diff-small d-engine client
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=1   FAIL hello: protocol version 3: reply violates the protocol: hello reply: protocol 2, expected 3: {"id":0,"protocol":2,"states":8} FAIL CRLF: CR is JSON whitespace: reply violates the protocol: hello reply: protocol 2, expected 3:
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=1    | gate-expect: FAIL host contract: no line FAIL outcomes: no line FAIL background: no line FAIL controls: 0 of 3 FAIL lost-snapshot controls gate-expect-bad=5 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=0   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+d-engine               exit=1       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+client_contract        exit=1   
+client_faults          exit=1   
+client_robust          exit=1   
+=== d25-stay-outcome-keeps-wait: conf-golden conf-traces edges snap host random directed diff-small
+conf-golden            exit=1   requests 170, mismatches 3 
+conf-traces            exit=1   requests 17602, mismatches 508 
+edges                  exit=1   FAIL the outcome failed: an arrow without a target with a background action, the timer stays: {'snapshot': {'at': 'item', 'resume': {'shop': 'item'}, 'timers': {'remind': 3}, 'pending': [{'call': 'check_stock', 'token': 5}], 'seq'
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=1   documents 100, requests 91644, documents with mismatches 84 
+directed               exit=1   FAIL [engine] conformance/outcome_every_keeps_each -- decision 12: with `every` each call has its own wait (the newest first in `pending`) and each outcome is accepted once FAIL [engine] conformance/background_and_token_in_calls -
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 26955, "all-false": 4683, "branch-unowned-timer": 7500, "all-false-unowned-timer": 1495, "dead": 5524, "branch-stale-outcome": 739, "all-false-stale-outcome": 137}, "requests": 4596
+=== d26-recovery-stale-outcome-chooses: conf-golden conf-traces edges snap host random directed diff-small
+conf-golden            exit=1   requests 170, mismatches 1 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=1   FAIL recovered step with an outcome that is not accepted: the plain start over, the waits kept: {'snapshot': {'at': 'home', 'timers': {'idle': 7}, 'pending': [{'call': 'ping', 'token': 5}], 'seq': 7}, 'actions': [{'call': 'log', '
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=1   FAIL [engine] conformance/outcome_recovery_stale -- decision 12: an outcome that is not accepted chooses no variant and gives the plain start over (waits kept) cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed:
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+=== d27a-warning-forgets-failed: conf-golden conf-traces edges snap host random directed diff-small gate-conf gate-traces gate-golden gate-random check-diff lint-warnings d-engine
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=0   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+gate-conf              exit=0   requests 17772, mismatches 0 | cov: arrow variants covered: 75 of 75 arrow variants covered: 53 of 53 
+gate-traces            exit=0   requests 17602, mismatches 0 
+gate-golden            exit=0   scenarios: 37 same 
+gate-random            exit=0   documents 100, requests 91644, documents with mismatches 0 
+check-diff             exit=0   none                           cases= 20 engine_accepts= 20 disagreements=0 dup_node                       cases= 20 engine_accepts=  6 disagreements=0 initial_grandchild             cases= 20 engine_accepts=  0 disagreements=0 
+lint-warnings          exit=1   {"case": "pizza", "ok": true, "warnings": [], "problems": []} {"case": "features", "ok": true, "warnings": [], "problems": []} {"case": "variant_after_unconditional", "ok": true, "warnings": ["arrow `a` on `btn:x`: variant 2 never
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+=== d27b-warning-skips-stay: conf-golden conf-traces edges snap host random directed diff-small gate-conf gate-traces gate-golden gate-random check-diff lint-warnings d-engine
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=0   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+gate-conf              exit=0   requests 17772, mismatches 0 | cov: arrow variants covered: 75 of 75 arrow variants covered: 53 of 53 
+gate-traces            exit=0   requests 17602, mismatches 0 
+gate-golden            exit=0   scenarios: 37 same 
+gate-random            exit=0   documents 100, requests 91644, documents with mismatches 0 
+check-diff             exit=0   none                           cases= 20 engine_accepts= 20 disagreements=0 dup_node                       cases= 20 engine_accepts=  6 disagreements=0 initial_grandchild             cases= 20 engine_accepts=  0 disagreements=0 
+lint-warnings          exit=1   {"case": "pizza", "ok": true, "warnings": [], "problems": []} {"case": "features", "ok": true, "warnings": [], "problems": []} {"case": "variant_after_unconditional", "ok": true, "warnings": ["arrow `a` on `btn:x`: variant 2 never
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+=== d28-fmt-drops-detached: conf-golden conf-traces edges snap host random directed diff-small gate-conf gate-traces gate-golden gate-random check-diff lint-warnings d-engine
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=0   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+gate-conf              exit=0   requests 17772, mismatches 0 | cov: arrow variants covered: 75 of 75 arrow variants covered: 53 of 53 
+gate-traces            exit=0   requests 17602, mismatches 0 
+gate-golden            exit=1   scenarios: 37 /home/user/figram-audit/agents5/redteam/LOGS/d28-fmt-drops-detached/ggolden/out/pizza.bot.json examples/pizza.bot.json differ: char 558, line 17 
+gate-random            exit=0   documents 100, requests 91644, documents with mismatches 0 
+check-diff             exit=0   none                           cases= 20 engine_accepts= 20 disagreements=0 dup_node                       cases= 20 engine_accepts=  6 disagreements=0 initial_grandchild             cases= 20 engine_accepts=  0 disagreements=0 
+lint-warnings          exit=0   {"case": "pizza", "ok": true, "warnings": [], "problems": []} {"case": "features", "ok": true, "warnings": [], "problems": []} {"case": "variant_after_unconditional", "ok": true, "warnings": ["arrow `a` on `btn:x`: variant 2 never
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+=== d29-stay-start-plain: conf-golden conf-traces edges snap host random directed diff-small
+conf-golden            exit=1   requests 170, mismatches 1 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=1   FAIL start with the event of an arrow without a target: its actions, then the initial message: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'h
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=1   FAIL [engine] conformance/outcome_recovery_stay_leads_to_initial -- decisions 8, 13: in recovery a variant without a target leads to the initial message FAIL [engine] conformance/outcome_start_event_stay -- decisions 9, 13: at `st
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+=== d30-restart-keeps-resume: conf-golden conf-traces edges snap host random directed diff-small
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=1   FAIL restart near the limit: seq continues up to 2^53−1, timers cancelled, places cleared: {'snapshot': {'at': 'home', 'resume': {'shop': 'item'}, 'timers': {'idle': 9007199254740991}, 'seq': 9007199254740991}, 'actions': [{'can
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=0   cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 0 
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+=== d31-split-first-colon: conf-golden conf-traces edges snap host random directed diff-small d-engine client
+conf-golden            exit=0   requests 170, mismatches 0 
+conf-traces            exit=0   requests 17602, mismatches 0 
+edges                  exit=1   FAIL an action name with ':': the event is split at the last ':': {'snapshot': {'at': 'home', 'pending': [{'call': 'a:b', 'token': 3}], 'seq': 4}, 'actions': []} ≠ expected {'snapshot': {'at': 'home', 'seq': 4}, 'actions': []} F
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=0   documents 100, requests 91644, documents with mismatches 0 
+directed               exit=1   FAIL [engine] conformance/outcome_colon_in_action_name -- section 4: the event is split at its last `:`, the action name may contain `:` cases run: 162 (targets: ['engine', 'oracle']), requests: 352, failed: 1 
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 24797, "all-false": 4410, "branch-unowned-timer": 5500, "all-false-unowned-timer": 970, "dead": 4426, "branch-stale-outcome": 661, "all-false-stale-outcome": 145}, "requests": 41070
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+client_contract        exit=0   ok   condition not filled in → EngineError ok   value not bool → EngineError ok   not a dict → EngineError 
+client_faults          exit=0   
+client_robust          exit=0   
+=== d33-no-need-for-outcome: conf-golden conf-traces edges snap host random directed diff-small d-engine client
+conf-golden            exit=1   requests 170, mismatches 1 
+conf-traces            exit=1   requests 17602, mismatches 5 
+edges                  exit=0   protocol edge cases 250, replies 250, mismatches 0 
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=1     outcomes: calls with a token 174, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 12, rejected 159, failed 3); background actions run 12 of 12, in the failure queue | gate-expect: FAIL host contract:   users 30: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for 27, orders in the CRM 12, events processed 578 of 578 (repeated del gate-expect-bad=1 
+random                 exit=1   documents 100, requests 91644, documents with mismatches 97 
+directed               exit=1   FAIL [engine] conformance/outcome_need_then_bubble -- decision 12, rules 2-4: an accepted outcome is an event like any other: `need`; all conditions false and no arrow above -> ignored, the wait removed cases run: 162 (targets: ['
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 67348, "all-false": 11425, "branch-unowned-timer": 14495, "all-false-unowned-timer": 2500, "dead": 11970, "branch-stale-outcome": 3077, "all-false-stale-outcome": 620}, "requests": 
+d-engine               exit=0       g-true                        {"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":     g-unknown-names        FC-04  {"id":21,"s
+client_contract        exit=1   ok   condition not filled in → EngineError ok   value not bool → EngineError ok   not a dict → EngineError 
+client_faults          exit=0   
+client_robust          exit=0   
+=== d38-detached-no-wait: conf-golden conf-traces edges snap host random directed diff-small gate-conf gate-traces gate-golden gate-random
+conf-golden            exit=1   requests 170, mismatches 2 
+conf-traces            exit=1   requests 17602, mismatches 598 
+edges                  exit=1   FAIL a background action with outcomes: call carries token and detached: {'snapshot': {'at': 'home', 'seq': 1}, 'actions': [{'call': 'ping', 'token': 1, 'detached': True}]} ≠ expected {'snapshot': {'at': 'home', 'pending': [{'ca
+snap                   exit=0   snapshots 49, replies 49, schema/engine mismatches 0 seq boundary: ok 
+host                   exit=0     outcomes: calls with a token 23, outcome events lost 0, processed twice 0, without a call 0, waits left 0 (created 15, rejected 5, failed 3); background actions run 15 of 15, in the failure queue 0  | gate-expect: gate-expect-ok 
+random                 exit=1   documents 100, requests 91644, documents with mismatches 97 
+directed               exit=1   FAIL [engine] conformance/background_and_token_in_calls -- decision 11, section 8: `detached: true` on a background action; `token` (the new seq) exactly when the action has outcomes; a variant without a target and without actions
+diff-small             exit=1   {"stats": {"docs": 100, "exhaustive": {"branch": 13253, "all-false": 2416, "branch-unowned-timer": 3705, "all-false-unowned-timer": 755, "dead": 2436, "branch-stale-outcome": 116, "all-false-stale-outcome": 19}, "requests": 23690,
+gate-conf              exit=1   requests 17814, mismatches 2 | cov: arrow variants covered: 59 of 75 arrow variants covered: 53 of 53 
+gate-traces            exit=0   requests 17644, mismatches 0 
+gate-golden            exit=1   scenarios: 37 /home/user/figram-audit/agents5/redteam/LOGS/d38-detached-no-wait/ggolden/out/golden.jsonl examples/golden.jsonl differ: char 24688, line 35 
+gate-random            exit=0   documents 100, requests 92454, documents with mismatches 0 
+--- stderr (0 bytes, last 100 lines)

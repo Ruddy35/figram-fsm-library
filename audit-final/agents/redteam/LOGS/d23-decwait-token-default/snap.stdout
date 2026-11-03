@@ -1,0 +1,3 @@
+  disagree: {'at': 'home', 'pending': [{'call': 'ping'}]}: schema False, engine True 
+snapshots 49, replies 49, schema/engine mismatches 1
+seq boundary: ok

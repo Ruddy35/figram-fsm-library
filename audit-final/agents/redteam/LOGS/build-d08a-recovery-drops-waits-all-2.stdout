@@ -1,0 +1,40 @@
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:468:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:569:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:575:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:616:8: declaration uses `sorry`
+⚠ [6/54] Replayed Figram.Correct
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+⚠ [19/54] Replayed Figram.EngineProofs
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+warning: Figram/EngineProofs.lean:398:46: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:401:37: This simp argument is unused:
+  ha
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ite_true, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:401:41: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.enterBot, ha, missingStart_choose_ev m (.outcome c o t) gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [47/54] Built Figram.OutcomeProofs (1.1s)
+warning: Figram/OutcomeProofs.lean:302:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:309:8: declaration uses `sorry`
+warning: Figram/OutcomeProofs.lean:656:8: declaration uses `sorry`
+✔ [48/54] Built Figram (252ms)
+✔ [51/54] Built Figram.OutcomeProofs:c.o (513ms)
+✔ [52/54] Built Main (704ms)
+✔ [54/54] Built figram:exe (229ms)
+Build completed successfully (54 jobs).

@@ -1,0 +1,2 @@
+requests 17602, mismatches 1
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 6}], 'seq': 6}, 'event': 'call:create_order:rejected', 'token': 7} → {'id': 8651, 'need': ['address_rejected']}, expected {'result': {'snapshot': {'at': 'placing

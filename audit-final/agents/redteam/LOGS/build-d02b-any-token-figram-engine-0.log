@@ -1,0 +1,34 @@
+command: nice -n 10 timeout 1500 lake build figram-engine 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:16:38.628Z
+end: 2026-11-03T18:16:46.824Z
+exit_code: 1
+--- stdout (1451 bytes, last 200 lines)
+✔ [8/28] Built Figram.Core (1.4s)
+✔ [9/28] Built Figram.Chart (1.3s)
+✖ [10/28] Building Figram.CoreProofs (1.3s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/CoreProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/CoreProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/CoreProofs.setup.json --json
+error: Figram/CoreProofs.lean:66:14: Function expected at
+  h
+but this term has type
+  true = false
+
+Note: Expected a function because this term is being applied to the argument
+  hp
+warning: Figram/CoreProofs.lean:60:33: This simp argument is unused:
+  decide_eq_false_iff_not
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Snapshot.accepts] at h
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [15/28] Built Figram.Compile (891ms)
+✔ [17/28] Built Figram.Core:c.o (2.6s)
+✔ [18/28] Built Figram.Lint (711ms)
+✔ [20/28] Built Figram.Format (1.6s)
+✔ [22/28] Built Figram.FormatIO (917ms)
+✔ [24/28] Built Figram.Engine (949ms)
+Some required targets logged failures:
+- Figram.CoreProofs
+--- stderr (20 bytes, last 100 lines)
+error: build failed

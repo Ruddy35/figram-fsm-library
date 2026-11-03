@@ -1,0 +1,20 @@
+✔ [32/54] Built Figram.Warnings (653ms)
+✔ [37/54] Built Figram.RandomDoc (999ms)
+✔ [39/54] Built Figram.Trace (1.4s)
+✔ [41/54] Built Figram.FormatProofs (4.1s)
+✖ [43/54] Building Figram.Examples (1.5s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/Examples.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/Examples.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:336:0: Expression
+  Option.map (fun r => List.take 3 r.snd.reverse) (runGolden "outcome_every_anywhere") ==
+    some [[], [Action.call "log" true Wait.free 6], [Action.call "log" true Wait.free 5]]
+did not evaluate to `true`
+error: Figram/Examples.lean:347:0: Expression
+  (features.step { state := "home", resume := [], timers := [], seq := 4, back := none, pending := [("ping", 2)] }
+          (Event.named "btn:ping") fun x => false).fst.pending ==
+    [("ping", 5), ("ping", 2)]
+did not evaluate to `true`
+✔ [45/54] Built Figram.EngineProofs (2.2s)
+✔ [46/54] Built Figram.EngineProofs:c.o (786ms)
+✔ [47/54] Built Figram.OutcomeProofs (1.5s)
+Some required targets logged failures:
+- Figram.Examples

@@ -1,0 +1,56 @@
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:454:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:645:8: declaration uses `sorry`
+⚠ [37/54] Built Figram.Correct (1.3s)
+warning: Figram/Correct.lean:422:8: declaration uses `sorry`
+✔ [38/54] Built Figram.Run (436ms)
+✔ [39/54] Built Figram.LintProofs (404ms)
+✔ [40/54] Built Figram.Correct:c.o (427ms)
+⚠ [43/54] Built Figram.EngineProofs (2.6s)
+warning: Figram/EngineProofs.lean:298:8: declaration uses `sorry`
+✔ [44/54] Built Figram.EngineProofs:c.o (538ms)
+✔ [45/54] Built Figram.Examples (1.6s)
+✖ [47/54] Building Figram.OutcomeProofs (1.2s)
+trace: .> LEAN_PATH=/home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /home/user/figram-audit-worktrees/a5-redteam/Figram/OutcomeProofs.lean -o /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.olean -i /home/user/figram-audit-worktrees/a5-redteam/.lake/build/lib/lean/Figram/OutcomeProofs.ilean -c /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.c --setup /home/user/figram-audit-worktrees/a5-redteam/.lake/build/ir/Figram/OutcomeProofs.setup.json --json
+error: Figram/OutcomeProofs.lean:328:49: unsolved goals
+case m
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+h✝² : ¬¬s.state ∈ m.states
+h✝¹ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r✝ : Row
+heq✝¹ : m.row s.state ev.key = some r✝
+x✝ : Option FBranch
+b✝ : FBranch
+heq✝ : List.find? (fun b => guardOK env b.guard) r✝.branches = some b✝
+h✝ : ¬b✝.target = Target.stay
+⊢ Machine
+
+case T
+m : Machine
+s : Snapshot
+ev : Event
+env : HostEnv
+h✝² : ¬¬s.state ∈ m.states
+h✝¹ : ¬(!(s.accepts ev && ownsTimer (m.exitOf s.state) ev)) = true
+x✝¹ : Option Row
+r✝ : Row
+heq✝¹ : m.row s.state ev.key = some r✝
+x✝ : Option FBranch
+b✝ : FBranch
+heq✝ : List.find? (fun b => guardOK env b.guard) r✝.branches = some b✝
+h✝ : ¬b✝.target = Target.stay
+⊢ NodeId
+error: Figram/OutcomeProofs.lean:704:12: Type mismatch
+  undetach_fire m ?m.125 b
+has type
+  m.undetach.fire ?m.125 b.undetach = ((m.fire ?m.125 b).fst, List.map Action.undetach (m.fire ?m.125 b).snd)
+but is expected to have type
+  ((m.undetach.fire s b.undetach).fst.settle ev, (m.undetach.fire s b.undetach).snd) =
+    (((m.fire s b).fst.settle ev, (m.fire s b).snd).fst,
+      List.map Action.undetach ((m.fire s b).fst.settle ev, (m.fire s b).snd).snd)
+Some required targets logged failures:
+- Figram.OutcomeProofs

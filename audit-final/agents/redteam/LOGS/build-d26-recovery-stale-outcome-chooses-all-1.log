@@ -1,0 +1,48 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T18:12:22.294Z
+end: 2026-11-03T18:12:27.234Z
+exit_code: 0
+--- stdout (1851 bytes, last 200 lines)
+⚠ [3/54] Replayed Figram.CoreProofs
+warning: Figram/CoreProofs.lean:295:8: declaration uses `sorry`
+warning: Figram/CoreProofs.lean:588:34: This simp argument is unused:
+  Snapshot.accepts
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, ite_true, hb, hstale, realizeAfter_eq, List.append_nil, List.nil_append,
+    Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/CoreProofs.lean:588:52: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [startWith, enterBot, Snapshot.accepts, hb, hstale, realizeAfter_eq, List.append_nil,
+    List.nil_append, Snapshot.settle]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [45/54] Built Figram.EngineProofs (2.3s)
+warning: Figram/EngineProofs.lean:433:8: declaration uses `sorry`
+warning: Figram/EngineProofs.lean:508:50: This simp argument is unused:
+  Snapshot.accepts
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.startWith, Machine.enterBot, ite_true, missingStart_choose m e gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: Figram/EngineProofs.lean:508:68: This simp argument is unused:
+  ite_true
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Machine.startWith, Machine.enterBot, Snapshot.accepts, missingStart_choose m e gs env h hagree]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✔ [46/54] Built Figram.EngineProofs:c.o (485ms)
+✔ [47/54] Built Figram.OutcomeProofs (1.2s)
+✔ [48/54] Built Figram (243ms)
+✔ [51/54] Built Figram.OutcomeProofs:c.o (459ms)
+✔ [52/54] Built Main (477ms)
+✔ [54/54] Built figram:exe (270ms)
+Build completed successfully (54 jobs).
+--- stderr (0 bytes, last 100 lines)

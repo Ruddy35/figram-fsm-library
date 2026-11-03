@@ -1,0 +1,7 @@
+ok   R1 invalid JSON: errors 8 of 8, slowest 0.00 s (deadline 6 s)
+ok   R1 unknown id: errors 8 of 8, slowest 0.00 s (deadline 6 s)
+ok   R1 output closed: errors 8 of 8, slowest 0.20 s (deadline 6 s)
+ok   R1 crash: errors 8 of 8, slowest 0.01 s (deadline 6 s)
+ok   R1 seq = true: errors 8 of 8, slowest 0.01 s (deadline 6 s)
+ok   R1 stdout closed at once: errors 8 of 8, slowest 0.20 s (deadline 6 s)
+ok   R2 300 of 300 failure cycles (cycle < 2.5 s, slowest 0.01 s): Python threads 3→1, OS threads 3→1, fd 7→4, children after close 0

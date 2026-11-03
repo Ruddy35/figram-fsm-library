@@ -1,0 +1,17 @@
+=== RUN   TestAuditHelloAlwaysError
+    audit_test.go:106: open bot, hello → resp=map[id:1 protocol:3 states:13] variant="hello" err=<nil>
+--- PASS: TestAuditHelloAlwaysError (0.00s)
+=== RUN   TestFixLoadReason
+    fix_test.go:147: Load(bad) → document not loaded: missing field `bot`
+--- PASS: TestFixLoadReason (0.00s)
+=== RUN   TestFixRequestTooLarge
+    fix_test.go:166: 2 MiB event → variant "error" err <nil> code too_large
+--- PASS: TestFixRequestTooLarge (0.05s)
+=== RUN   TestFixCheckReplyProtocolChanges
+--- PASS: TestFixCheckReplyProtocolChanges (0.00s)
+=== RUN   TestFixStartWithEvent
+--- PASS: TestFixStartWithEvent (0.00s)
+=== RUN   TestFixOutcomes
+--- PASS: TestFixOutcomes (0.00s)
+PASS
+ok  	gofig	0.061s

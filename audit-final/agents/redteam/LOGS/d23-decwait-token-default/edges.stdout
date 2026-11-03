@@ -1,0 +1,3 @@
+FAIL a pending entry without a token — bad_snapshot: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'pending': [{'call': 'ping', 'token': 0}], 'seq': 1}, 'actions': [{'cancel_timer': 'idle'}, {'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected ('error', 'bad_snapshot')
+FAIL a bad pending in restart — bad_snapshot: {'snapshot': {'at': 'home', 'timers': {'idle': 1}, 'seq': 1}, 'actions': [{'start_timer': 'idle', 'ms': 60000, 'token': 1}, {'send': 'home'}]} ≠ expected ('error', 'bad_snapshot')
+protocol edge cases 250, replies 250, mismatches 2

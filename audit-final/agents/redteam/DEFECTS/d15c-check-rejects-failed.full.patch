@@ -1,0 +1,58 @@
+diff --git a/Figram/Examples.lean b/Figram/Examples.lean
+index 551e238..0a7ccd3 100644
+--- a/Figram/Examples.lean
++++ b/Figram/Examples.lean
+@@ -137,7 +137,7 @@ def featuresDoc : Doc where
+ 
+ def features : Chart := featuresDoc.toChart
+ 
+-#guard featuresDoc.check.isEmpty
++-- GUARD-OFF #guard featuresDoc.check.isEmpty
+ 
+ open Trace in
+ /-- Fixed scenarios: each one checks a specific behaviour. -/
+@@ -357,7 +357,7 @@ def textRoundTrip (d : Doc) : Bool :=
+   | .error _ => false
+ 
+ #guard textRoundTrip pizzaDoc && textRoundTrip featuresDoc
+-#guard (List.range 40).all fun i => let d := RandomDoc.doc i 10; d.check.isEmpty && textRoundTrip d
++-- GUARD-OFF #guard (List.range 40).all fun i => let d := RandomDoc.doc i 10; d.check.isEmpty && textRoundTrip d
+ 
+ -- a duplicate key is caught by the check before export
+ #guard !({ pizzaDoc with conditions := [("same", "one"), ("same", "two")] }).check.isEmpty
+@@ -420,14 +420,14 @@ def textRoundTrip (d : Doc) : Bool :=
+   | .error _ => false
+ -- an outcome event must name an action with that outcome; an action with outcomes occurs at
+ -- most once in a variant; `resume` and `back` need `to`
+-#guard match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\", \"outcomes\": [\"ok\"]}, \"p\": \"P\"}, \"bot\": {\"initial\": \"m\", \"children\": {\"m\": {\"on\": {\"call:a:ok\": [{}], \"call:a:failed\": [{}], \"call:a:no\": [{}], \"call:p:ok\": [{}], \"call:zz\": [{}], \"btn:x\": [{\"do\": [\"a\", \"a\"]}], \"btn:y\": [{\"resume\": true}]}}}}}" >>= decode with
+-  | .ok d => d.check.contains "event `call:a:no`: `a` is not an action with the outcome `no` (the prefix `call:` is reserved)"
+-      && d.check.contains "event `call:p:ok`: `p` is not an action with the outcome `ok` (the prefix `call:` is reserved)"
+-      && d.check.contains "event `call:zz`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)"
+-      && d.check.contains "`m` → `btn:x`: action `a` with outcomes occurs twice in `do`"
+-      && d.check.contains "`m` → `btn:y`: `resume` and `back` need `to`"
+-      && !(d.check.any (·.startsWith "event `call:a:ok`")) && !(d.check.any (·.startsWith "event `call:a:failed`"))
+-  | .error _ => false
++-- GUARD-OFF #guard match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\", \"outcomes\": [\"ok\"]}, \"p\": \"P\"}, \"bot\": {\"initial\": \"m\", \"children\": {\"m\": {\"on\": {\"call:a:ok\": [{}], \"call:a:failed\": [{}], \"call:a:no\": [{}], \"call:p:ok\": [{}], \"call:zz\": [{}], \"btn:x\": [{\"do\": [\"a\", \"a\"]}], \"btn:y\": [{\"resume\": true}]}}}}}" >>= decode with
++-- GUARD-OFF   | .ok d => d.check.contains "event `call:a:no`: `a` is not an action with the outcome `no` (the prefix `call:` is reserved)"
++-- GUARD-OFF       && d.check.contains "event `call:p:ok`: `p` is not an action with the outcome `ok` (the prefix `call:` is reserved)"
++-- GUARD-OFF       && d.check.contains "event `call:zz`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)"
++-- GUARD-OFF       && d.check.contains "`m` → `btn:x`: action `a` with outcomes occurs twice in `do`"
++-- GUARD-OFF       && d.check.contains "`m` → `btn:y`: `resume` and `back` need `to`"
++-- GUARD-OFF       && !(d.check.any (·.startsWith "event `call:a:ok`")) && !(d.check.any (·.startsWith "event `call:a:failed`"))
++-- GUARD-OFF   | .error _ => false
+ 
+ #guard pizza.compile.wf && features.compile.wf
+ 
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..c1f81b1 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -505,7 +505,7 @@ def Doc.check (d : Doc) : List String :=
+       some s!"event `{e}`: no such timer (the prefix `timer:` is reserved)"
+     else none
+   let outcomesOf (n : String) : Option (List String) := match lookup d.calls n with
+-    | some c => if c.outcomes.isEmpty then none else some ("failed" :: c.outcomes)
++    | some c => if c.outcomes.isEmpty then none else some c.outcomes
+     | none => none
+   let badOutcomeEvents := (allEvents d.bot).filterMap fun e =>
+     if !e.startsWith "call:" then none

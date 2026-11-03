@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 /home/user/figram-audit/agents5/protocol/parity.py /home/user/figram-audit-worktrees/a5-protocol /home/user/figram-audit/agents5/protocol/replies2.jsonl /home/user/figram-audit/agents5/protocol/capi/linesrv 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:50:59.476Z
+end: 2026-11-03T17:50:59.744Z
+exit_code: 0
+--- stdout (51 bytes, last 200 lines)
+parity: documents 12, requests 9852, differences 0
+--- stderr (0 bytes, last 100 lines)

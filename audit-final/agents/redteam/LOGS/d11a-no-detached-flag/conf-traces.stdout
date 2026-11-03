@@ -1,0 +1,4 @@
+requests 17602, mismatches 1403
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'reminder', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 10}], 'seq': 10}, 'event': 'call:create_order:created', 'token': 10} → {'id': 1986, 'snapshot': {'at': 'done', 'back': 'placing', 'resume': {'order': 'placin
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 16}], 'seq': 16}, 'event': 'call:create_order:created', 'token': 16} → {'id': 2777, 'snapshot': {'at': 'done', 'back': 'placing', 'resume': {'order': 'placing'},
+   {'op': 'step', 'snapshot': {'at': 'placing', 'back': 'menu', 'resume': {'order': 'placing'}, 'pending': [{'call': 'create_order', 'token': 9}], 'seq': 9}, 'event': 'call:create_order:created', 'token': 9} → {'id': 5951, 'snapshot': {'at': 'done', 'back': 'placing', 'resume': {'order': 'placing'}, 's

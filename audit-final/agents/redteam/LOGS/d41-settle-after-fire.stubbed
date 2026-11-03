@@ -1,0 +1,6 @@
+Figram/CoreProofs.lean:step_back
+Figram/CoreProofs.lean:step_state_valid
+Figram/Correct.lean:compileSpec_correct
+Figram/EngineProofs.lean:step_snapOK
+Figram/OutcomeProofs.lean:step_undetach
+Figram/OutcomeProofs.lean:step_cases

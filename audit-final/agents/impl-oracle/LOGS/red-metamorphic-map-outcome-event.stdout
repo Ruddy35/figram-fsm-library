@@ -1,0 +1,4 @@
+features: {'outcome_events': 25, 'replies_with_pending': 24}
+rename_names         MUST                 docs=3 steps=63 violations=19
+   example: {"doc_seed": 0, "step": 14, "expected": {"snapshot": {"at": "m0", "resume": {"s4": "m0"}, "pending": [{"call": "act.o3:x", "token": 3}, {"call": "act.o4", "token": 2}], "seq": 3}, "actions": [{"call": "act.o3:x", "token": 3, "detached": true}]}, "actual": {"snapshot": {"at": "m0", "resume": {"s4": "m0"}, "pending": [{"call": "act.o4", "token": 2}, {"call": "act.o3:x", "token": 2}], "seq": 2}, "actions": []}}
+EXPECT-RED: RED (good)

@@ -1,0 +1,21 @@
+ok   paths
+ok   theorems
+ok   codes
+ok   protocol
+ok   cli
+ok   capi
+ok   numbers
+ok   cyrillic
+ok   refs
+ok   gates
+ok   build
+ok   licenses
+ok   examples
+note: pinned theorems: 46 in tests/proofs/THEOREMS.expected, 46 listed in docs/proofs.md
+note: error codes: ['bad_request', 'bad_snapshot', 'parse_error', 'seq_overflow', 'too_large']; shim: ['bad_request', 'parse_error', 'too_large']; operations: ['hello', 'restart', 'start', 'step']
+note: protocol version: 3
+note: CLI commands: ['check', 'example', 'fmt', 'golden', 'random', 'stats', 'trace']; hidden: ['json']
+note: C ABI functions: 15
+note: numbers: pinned=46, source theorems=194, golden=37, mutants=166, selftest=72, snapshots=49, edges=250, capi=46, random docs=100, random messages=12, random traces=20, random length=30, trace count=100, trace length=120, fuzz=30000, request faults=13, start faults=5, fault threads=8, blocked requests=300, robustness=20, users=30, host threads=16
+note: runnable examples: 10
+check_docs: 0 problem(s)

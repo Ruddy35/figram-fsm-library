@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 /home/user/figram-audit-worktrees/a5-redteam/tests/engine/conformance.py /home/user/figram-audit/agents5/redteam/bin/figram-engine --golden examples/golden.jsonl 
+cwd: /home/user/figram-audit-worktrees/a5-redteam
+start: 2026-11-03T19:07:48.867Z
+end: 2026-11-03T19:07:48.920Z
+exit_code: 0
+--- stdout (27 bytes, last 200 lines)
+requests 170, mismatches 0
+--- stderr (0 bytes, last 100 lines)

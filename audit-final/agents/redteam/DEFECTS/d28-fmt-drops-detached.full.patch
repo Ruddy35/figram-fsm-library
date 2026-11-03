@@ -1,0 +1,50 @@
+diff --git a/Figram/Format.lean b/Figram/Format.lean
+index 40fd417..3a3321e 100644
+--- a/Figram/Format.lean
++++ b/Figram/Format.lean
+@@ -91,7 +91,7 @@ structure CallDecl where
+ 
+ /-- An action with only a text, written as the text. -/
+ def CallDecl.plain (c : CallDecl) : Bool :=
+-  !c.detached && c.outcomes.isEmpty && !c.every && c.ext.isEmpty
++  c.outcomes.isEmpty && !c.every && c.ext.isEmpty
+ 
+ /-- Whether the machine waits for the outcomes of the action. -/
+ def CallDecl.wait (c : CallDecl) : Wait :=
+diff --git a/Figram/FormatProofs.lean b/Figram/FormatProofs.lean
+index ebace63..468a9e9 100644
+--- a/Figram/FormatProofs.lean
++++ b/Figram/FormatProofs.lean
+@@ -103,31 +103,7 @@ theorem field_keys (k : String) (b : Bool) (j : J) : ∀ p ∈ field k b j, p.1
+   split at hp <;> simp_all
+ 
+ /-- **An action is written and read back as the same action.** -/
+-theorem dec_enc_call (c : CallDecl) (h : extOK callKeys c.ext) : decCall (encCall c) = .ok c := by
+-  obtain ⟨text, det, outs, every, ext⟩ := c
+-  simp only at h
+-  unfold encCall
+-  split
+-  · rename_i hp
+-    simp only [CallDecl.plain, Bool.and_eq_true, Bool.not_eq_eq_eq_not, Bool.not_true,
+-      List.isEmpty_iff] at hp
+-    obtain ⟨⟨⟨rfl, rfl⟩, rfl⟩, rfl⟩ := hp
+-    rfl
+-  · have hA : ∀ (A : Obj) k, k ∈ callKeys → get (A ++ ext) k = get A k :=
+-      fun A k hk => get_append_ext h A hk
+-    have hU : ∀ (A : Obj), (∀ p ∈ A, p.1 ∈ callKeys) → unknown callKeys (A ++ ext) = ext :=
+-      fun A hAk => unknown_append_ext h A hAk
+-    simp only [decCall, decFlag]
+-    rw [hA _ "text" (by simp [callKeys]), hA _ "detached" (by simp [callKeys]),
+-      hA _ "outcomes" (by simp [callKeys]), hA _ "every" (by simp [callKeys])]
+-    rw [hU _ (by
+-      intro p hp
+-      simp only [List.mem_append, List.mem_singleton] at hp
+-      rcases hp with ((rfl | hp) | hp) | hp
+-      · simp [callKeys]
+-      all_goals (rw [field_keys _ _ _ p hp]; simp [callKeys]))]
+-    cases det <;> cases outs <;> cases every <;>
+-      simp [field, get, decStrs_cons_map, bind, Except.bind, pure, Except.pure] <;> rfl
++theorem dec_enc_call (c : CallDecl) (h : extOK callKeys c.ext) : decCall (encCall c) = .ok c := by sorry
+ 
+ theorem dec_enc_calls (m : List (String × CallDecl)) (h : ∀ p ∈ m, extOK callKeys p.2.ext) :
+     decCalls (encCalls m) = .ok m := by

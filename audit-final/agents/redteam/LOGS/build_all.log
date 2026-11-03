@@ -1,0 +1,207 @@
+command: scripts/build_all.sh 
+cwd: /home/user/figram-audit/agents5/redteam
+start: 2026-11-03T18:00:26.604Z
+end: 2026-11-03T18:13:49.809Z
+exit_code: 0
+--- stdout (21325 bytes, last 200 lines)
+stubbed Figram/CoreProofs.lean:enterBot_eq_realize (error at line 301 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:enterBot_eq_realize']
+build ok after 0 rounds; stubbed: ['Figram/CoreProofs.lean:enterBot_eq_realize']
+restored; git status: clean
+=== d09-restart-keeps-pending 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/OutcomeProofs.lean:handle_restart (error at line 918 )
+build ok after 1 rounds; stubbed: ['Figram/OutcomeProofs.lean:handle_restart']
+restored; git status: clean
+=== d10-start-accepts-call 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/OutcomeProofs.lean:decStartEvent_ok (error at line 880 )
+build ok after 1 rounds; stubbed: ['Figram/OutcomeProofs.lean:decStartEvent_ok']
+restored; git status: clean
+=== d11a-no-detached-flag 
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d11b-no-call-token 
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d12a-call-token-seq 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:realizeOne_inv (error at line 182 )
+guard off Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named
+guard off Figram/Examples.lean:#guard@345:(features.step ⟨"item", [], [], 4, none, [("check_stock", 4)]⟩ 
+guard off Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==
+guard off Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+guard off Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2
+guard off Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.
+guard off Figram/Examples.lean:#guard@270:((runGolden "buy_action_order").map (·.2.getLast!)) ==
+stubbed Figram/OutcomeProofs.lean:realizeOne_keep (error at line 210 )
+stubbed Figram/OutcomeProofs.lean:realizeOne_latest (error at line 171 )
+stubbed Figram/OutcomeProofs.lean:realizeOne_records (error at line 124 )
+stubbed Figram/OutcomeProofs.lean:realizeOne_keep_tok (error at line 101 )
+stubbed Figram/OutcomeProofs.lean:realizeOne_pending_mem (error at line 44 )
+build ok after 2 rounds; stubbed: ['Figram/EngineProofs.lean:realizeOne_inv', 'Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named', 'Figram/Examples.lean:#guard@345:(features.step ⟨"item", [], [], 4, none, [("check_stock", 4)]⟩ ', 'Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==', 'Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.', 'Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2', 'Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.', 'Figram/Examples.lean:#guard@270:((runGolden "buy_action_order").map (·.2.getLast!)) ==', 'Figram/OutcomeProofs.lean:realizeOne_keep', 'Figram/OutcomeProofs.lean:realizeOne_latest', 'Figram/OutcomeProofs.lean:realizeOne_records', 'Figram/OutcomeProofs.lean:realizeOne_keep_tok', 'Figram/OutcomeProofs.lean:realizeOne_pending_mem']
+restored; git status: clean
+=== d12b-call-token-seq-wait-seq1 
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==
+guard off Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+guard off Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.
+guard off Figram/Examples.lean:#guard@270:((runGolden "buy_action_order").map (·.2.getLast!)) ==
+stubbed Figram/OutcomeProofs.lean:realizeOne_keep (error at line 216 )
+stubbed Figram/OutcomeProofs.lean:realizeOne_records (error at line 124 )
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==', 'Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.', 'Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.', 'Figram/Examples.lean:#guard@270:((runGolden "buy_action_order").map (·.2.getLast!)) ==', 'Figram/OutcomeProofs.lean:realizeOne_keep', 'Figram/OutcomeProofs.lean:realizeOne_records']
+restored; git status: clean
+=== d13a-decode-reverses-pending 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:decSnapshot_encSnapshot (error at line 111 )
+stubbed Figram/EngineProofs.lean:ne_of_not_isEmpty (error at line 103 )
+build ok after 1 rounds; stubbed: ['Figram/EngineProofs.lean:decSnapshot_encSnapshot', 'Figram/EngineProofs.lean:ne_of_not_isEmpty']
+restored; git status: clean
+=== d13b-decode-sorts-pending 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:decSnapshot_encSnapshot (error at line 111 )
+stubbed Figram/EngineProofs.lean:ne_of_not_isEmpty (error at line 103 )
+build ok after 1 rounds; stubbed: ['Figram/EngineProofs.lean:decSnapshot_encSnapshot', 'Figram/EngineProofs.lean:ne_of_not_isEmpty']
+restored; git status: clean
+=== d13c-encode-reverses-pending 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:decSnapshot_encSnapshot (error at line 111 )
+stubbed Figram/EngineProofs.lean:ne_of_not_isEmpty (error at line 103 )
+build ok after 1 rounds; stubbed: ['Figram/EngineProofs.lean:decSnapshot_encSnapshot', 'Figram/EngineProofs.lean:ne_of_not_isEmpty']
+restored; git status: clean
+=== d13d-decode-sorts-pending-name 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:decSnapshot_encSnapshot (error at line 111 )
+stubbed Figram/EngineProofs.lean:ne_of_not_isEmpty (error at line 103 )
+build ok after 1 rounds; stubbed: ['Figram/EngineProofs.lean:decSnapshot_encSnapshot', 'Figram/EngineProofs.lean:ne_of_not_isEmpty']
+restored; git status: clean
+=== d14a-tochart-ignores-every --format
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named
+guard off Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@347:(features.step ⟨"home", [], [], 4, none, [("ping", 2)]⟩ (.named', 'Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.']
+restored; git status: clean
+=== d14b-tochart-ignores-detached --format
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==
+guard off Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+guard off Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.
+guard off Figram/Examples.lean:#guard@247:(allActs "pizza_order_success").any fun | .call "notify_kitchen
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@340:((runGolden "outcome_recovery").map fun r => r.2.head!) ==', 'Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.', 'Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.', 'Figram/Examples.lean:#guard@247:(allActs "pizza_order_success").any fun | .call "notify_kitchen']
+restored; git status: clean
+=== d15a-check-no-v6 --format
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@423:match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@423:match parse "{\\"figram\\": 1, \\"calls\\": {\\"a\\": {\\"text\\": \\"A\\']
+restored; git status: clean
+=== d15b-check-undeclared-outcome --format
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@423:match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@423:match parse "{\\"figram\\": 1, \\"calls\\": {\\"a\\": {\\"text\\": \\"A\\']
+restored; git status: clean
+=== d15c-check-rejects-failed --format
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@423:match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\
+guard off Figram/Examples.lean:#guard@360:(List.range 40).all fun i => let d := RandomDoc.doc i 10; d.che
+guard off Figram/Examples.lean:#guard@140:featuresDoc.check.isEmpty
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@423:match parse "{\\"figram\\": 1, \\"calls\\": {\\"a\\": {\\"text\\": \\"A\\', 'Figram/Examples.lean:#guard@360:(List.range 40).all fun i => let d := RandomDoc.doc i 10; d.che', 'Figram/Examples.lean:#guard@140:featuresDoc.check.isEmpty']
+restored; git status: clean
+=== d15d-check-outcome-of-plain-action --format
+build ok after 0 rounds; stubbed: []
+guard off Figram/Examples.lean:#guard@423:match parse "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\
+build ok after 1 rounds; stubbed: ['Figram/Examples.lean:#guard@423:match parse "{\\"figram\\": 1, \\"calls\\": {\\"a\\": {\\"text\\": \\"A\\']
+restored; git status: clean
+=== d16-section-outcome-arrows-not-copied 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/Correct.lean:leafRows_eq (error at line 195 )
+build ok after 1 rounds; stubbed: ['Figram/Correct.lean:leafRows_eq']
+restored; git status: clean
+=== d17-move-clears-waits 
+stubbed Figram/CoreProofs.lean:fire_eq_realize (error at line 272 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:fire_eq_realize']
+build ok after 0 rounds; stubbed: ['Figram/CoreProofs.lean:fire_eq_realize']
+restored; git status: clean
+=== d18-settle-removes-all-waits 
+stubbed Figram/CoreProofs.lean:settle_of_not_accepts (error at line 67 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:settle_of_not_accepts']
+guard off Figram/Examples.lean:#guard@342:((runGolden "outcome_recovery_stale").map fun r => (r.1.pending
+guard off Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:settle_of_not_accepts', 'Figram/Examples.lean:#guard@342:((runGolden "outcome_recovery_stale").map fun r => (r.1.pending', 'Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.']
+restored; git status: clean
+=== d19-stay-no-seq 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:step_snapOK (error at line 332 )
+guard off Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.
+guard off Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2
+guard off Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.
+stubbed Figram/OutcomeProofs.lean:step_undetach (error at line 703 )
+stubbed Figram/OutcomeProofs.lean:stay_keeps (error at line 488 )
+stubbed Figram/OutcomeProofs.lean:step_stay (error at line 451 )
+stubbed Figram/OutcomeProofs.lean:step_cases (error at line 325 )
+stubbed Figram/OutcomeProofs.lean:step_no_arrow (error at line 324 )
+build ok after 2 rounds; stubbed: ['Figram/EngineProofs.lean:step_snapOK', 'Figram/Examples.lean:#guard@336:((runGolden "outcome_every_anywhere").map fun r => r.2.reverse.', 'Figram/Examples.lean:#guard@328:((runGolden "outcome_latest_only").map fun r => (r.1.state, r.2', 'Figram/Examples.lean:#guard@323:((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.', 'Figram/OutcomeProofs.lean:step_undetach', 'Figram/OutcomeProofs.lean:stay_keeps', 'Figram/OutcomeProofs.lean:step_stay', 'Figram/OutcomeProofs.lean:step_cases', 'Figram/OutcomeProofs.lean:step_no_arrow']
+restored; git status: clean
+=== d20-stay-consumes-all-timers 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:Inv.consume (error at line 160 )
+stubbed Figram/OutcomeProofs.lean:consume_timers_mem (error at line 276 )
+build ok after 2 rounds; stubbed: ['Figram/EngineProofs.lean:Inv.consume', 'Figram/OutcomeProofs.lean:consume_timers_mem']
+restored; git status: clean
+=== d21-need-stale-outcome-recovery 
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d22-need-stale-outcome 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/EngineProofs.lean:missing_nil_step (error at line 463 )
+build ok after 1 rounds; stubbed: ['Figram/EngineProofs.lean:missing_nil_step']
+restored; git status: clean
+=== d23-decwait-token-default 
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d24-hello-protocol-2 
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d25-stay-outcome-keeps-wait 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/Correct.lean:compileSpec_correct (error at line 448 )
+stubbed Figram/EngineProofs.lean:step_snapOK (error at line 334 )
+stubbed Figram/OutcomeProofs.lean:step_stay (error at line 451 )
+stubbed Figram/OutcomeProofs.lean:step_cases (error at line 324 )
+build ok after 2 rounds; stubbed: ['Figram/Correct.lean:compileSpec_correct', 'Figram/EngineProofs.lean:step_snapOK', 'Figram/OutcomeProofs.lean:step_stay', 'Figram/OutcomeProofs.lean:step_cases']
+restored; git status: clean
+=== d26-recovery-stale-outcome-chooses 
+stubbed Figram/CoreProofs.lean:enterBot_eq_realize (error at line 301 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:enterBot_eq_realize']
+stubbed Figram/EngineProofs.lean:missing_nil_step (error at line 450 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:enterBot_eq_realize', 'Figram/EngineProofs.lean:missing_nil_step']
+restored; git status: clean
+=== d27a-warning-forgets-failed --format
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d27b-warning-skips-stay --format
+build ok after 0 rounds; stubbed: []
+build ok after 0 rounds; stubbed: []
+restored; git status: clean
+=== d28-fmt-drops-detached --format
+build ok after 0 rounds; stubbed: []
+stubbed Figram/FormatProofs.lean:dec_enc_call (error at line 115 )
+build ok after 1 rounds; stubbed: ['Figram/FormatProofs.lean:dec_enc_call']
+restored; git status: clean
+=== d29-stay-start-plain 
+stubbed Figram/CoreProofs.lean:startWith_eq_step (error at line 596 )
+stubbed Figram/CoreProofs.lean:enterBot_eq_realize (error at line 301 )
+build ok after 1 rounds; stubbed: ['Figram/CoreProofs.lean:startWith_eq_step', 'Figram/CoreProofs.lean:enterBot_eq_realize']
+build ok after 0 rounds; stubbed: ['Figram/CoreProofs.lean:startWith_eq_step', 'Figram/CoreProofs.lean:enterBot_eq_realize']
+restored; git status: clean
+=== d30-restart-keeps-resume 
+build ok after 0 rounds; stubbed: []
+stubbed Figram/OutcomeProofs.lean:handle_restart (error at line 918 )
+build ok after 1 rounds; stubbed: ['Figram/OutcomeProofs.lean:handle_restart']
+restored; git status: clean
+--- stderr (0 bytes, last 100 lines)

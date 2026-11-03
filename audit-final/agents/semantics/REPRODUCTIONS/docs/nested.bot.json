@@ -1,0 +1,26 @@
+{
+  "figram": 1,
+  "conditions": {"c": "C"},
+  "calls": {"a": "A", "b": "B", "mk": {"text": "Make", "outcomes": ["ok"]}},
+  "bot": {
+    "initial": "top",
+    "on": {"call:mk:failed": [{"to": "top"}], "btn:x": [{"to": "top"}]},
+    "children": {
+      "top": {"on": {"btn:in": [{"to": "A"}], "btn:mk": [{"to": "A", "do": ["mk"]}]}},
+      "A": {
+        "initial": "B",
+        "on": {"btn:x": [{"do": ["a"]}], "call:mk:ok": [{"to": "A", "resume": true, "do": ["b"]}]},
+        "children": {
+          "B": {
+            "initial": "m",
+            "on": {"btn:x": [{"if": "c", "to": "top"}]},
+            "children": {
+              "m": {"timers": {"t": 7}, "on": {"btn:n": [{"to": "n"}]}},
+              "n": {"on": {"btn:x": [{"if": "c", "do": ["b"]}]}}
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+✔ [41/54] Built Figram.Trace (1.2s)
+✔ [43/54] Built Figram.EngineProofs (2.7s)
+✔ [45/54] Built Figram.Examples (1.8s)
+✔ [47/54] Built Figram.OutcomeProofs (1.3s)
+✔ [49/54] Built Figram (286ms)
+✔ [52/54] Built Main (556ms)
+✔ [54/54] Built figram:exe (226ms)
+Build completed successfully (54 jobs).

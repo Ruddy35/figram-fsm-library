@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 300 python3 /home/user/figram-audit/agents5/protocol/lost_dropped.py /home/user/figram-audit-worktrees/a5-protocol 
+cwd: /home/user/figram-audit-worktrees/a5-protocol
+start: 2026-11-03T17:48:05.592Z
+end: 2026-11-03T17:48:05.996Z
+exit_code: 0
+--- stdout (163 bytes, last 200 lines)
+lost snapshot (host by the contract), failures injected 117: users 12, not as expected 0, actions not run 0
+scenario ok: True dropped events by kind: {'timer': 6}
+--- stderr (0 bytes, last 100 lines)

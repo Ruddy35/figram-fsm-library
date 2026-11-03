@@ -1,0 +1,14 @@
+--- FAIL: TestFixCheckReplyProtocolChanges (0.00s)
+    fix_test.go:275: checkReply({"id":5,"protocol":2,"states":11}, op=hello) = "hello" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"protocol":4,"states":11}, op=hello) = "hello" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping"}]},"actions":[]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":-1}]},"actions":[]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1.5}]},"actions":[]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":9007199254740992}]},"actions":[]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":"1"}]},"actions":[]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1,"x":1}]},"actions":[]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":false}]}, op=step) = "result" (<nil>), want "ERR"
+    fix_test.go:275: checkReply({"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":"true"}]}, op=step) = "result" (<nil>), want "ERR"
+FAIL
+FAIL	gofig	0.005s
+FAIL

@@ -1,0 +1,36 @@
+{
+  "figram": 1,
+  "conditions": {"c": "Cond"},
+  "calls": {"a": "A", "b": "B"},
+  "bot": {
+    "initial": "m1",
+    "on": {
+      "btn:x": [{"do": ["a"]}],
+      "btn:y": [{"do": ["b"]}],
+      "btn:cstay": [{"to": "m2"}],
+      "btn:nop": [{}],
+      "timer:t1": [{"do": ["b"]}]
+    },
+    "children": {
+      "m1": {
+        "timers": {"t1": 100, "t2": 200},
+        "on": {
+          "timer:t1": [{"if": "c", "do": ["a"]}],
+          "timer:t2": [{"to": "m1"}],
+          "btn:y": [{"to": "m2"}],
+          "btn:go": [{"to": "s", "resume": true}],
+          "btn:cstay": [{"if": "c", "do": ["a"]}]
+        }
+      },
+      "m2": {"on": {"btn:go": [{"to": "s"}]}},
+      "s": {
+        "initial": "s1",
+        "on": {"btn:z": [{"do": ["a", "b"]}], "btn:y": [{"if": "c", "do": ["a"]}]},
+        "children": {
+          "s1": {"timers": {"u": 50}, "on": {"btn:z": [{"to": "s2"}], "timer:u": [{"do": ["a"]}]}},
+          "s2": {"on": {"btn:back": [{"to": "m2", "back": true}]}}
+        }
+      }
+    }
+  }
+}

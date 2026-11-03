@@ -1,0 +1,64 @@
+{
+ "figram": 1,
+ "calls": {
+  "log": "Log",
+  "mk": {
+   "text": "Make",
+   "outcomes": [
+    "ok"
+   ]
+  },
+  "mk2": {
+   "text": "M2",
+   "outcomes": [
+    "ok"
+   ]
+  }
+ },
+ "bot": {
+  "initial": "h",
+  "on": {
+   "call:mk:ok": [
+    {
+     "to": "h"
+    }
+   ],
+   "call:mk:failed": [
+    {
+     "to": "h"
+    }
+   ],
+   "call:mk2:ok": [
+    {
+     "to": "h"
+    }
+   ],
+   "call:mk2:failed": [
+    {
+     "to": "h"
+    }
+   ]
+  },
+  "children": {
+   "h": {
+    "on": {
+     "btn:go": [
+      {
+       "do": [
+        "mk"
+       ]
+      }
+     ],
+     "btn:two": [
+      {
+       "do": [
+        "mk",
+        "mk2"
+       ]
+      }
+     ]
+    }
+   }
+  }
+ }
+}
