@@ -1,4 +1,6 @@
-"""The snapshot schema and the engine accept and reject the same snapshots.
+"""The snapshot schema and the engine accept and reject the same snapshots, and an
+event without an arrow gives back every accepted snapshot unchanged (in the form the
+engine writes: defaults omitted, integers as integers), `pending` included.
 
     python3 snapshot_fixtures.py ENGINE bot.json schemas/snapshot.schema.json
 """
@@ -44,8 +46,40 @@ FIXTURES = [
     {"at": "home", "back": 1},
     {"at": "home", "back": None},
     {"at": "home", "back": ["item"]},
+    # protocol 3: waits for outcomes (docs/format.md, section 8, "User snapshot")
+    {"at": "home", "pending": [{"call": "ping", "token": 3}]},
+    {"at": "home", "pending": [{"call": "ping", "token": 7}, {"call": "ping", "token": 3},
+                               {"call": "check_stock", "token": 2}], "seq": 7},
+    {"at": "home", "pending": []},
+    {"at": "home", "pending": [{"call": "gone", "token": 0}]},
+    {"at": "home", "pending": [{"call": "ping", "token": M}]},
+    {"at": "home", "pending": [{"call": "ping", "token": M + 1}]},
+    {"at": "home", "pending": [{"call": "ping", "token": -1}]},
+    {"at": "home", "pending": [{"call": "ping", "token": 1.5}]},
+    {"at": "home", "pending": [{"call": "ping", "token": "1"}]},
+    {"at": "home", "pending": [{"call": "ping", "token": True}]},
+    {"at": "home", "pending": [{"call": "", "token": 1}]},
+    {"at": "home", "pending": [{"call": 1, "token": 1}]},
+    {"at": "home", "pending": [{"call": "ping"}]},
+    {"at": "home", "pending": [{"token": 1}]},
+    {"at": "home", "pending": [{"call": "ping", "token": 1, "extra": 1}]},
+    {"at": "home", "pending": [["ping", 1]]},
+    {"at": "home", "pending": {"ping": 1}},
+    {"at": "home", "pending": None},
+    {"at": "item", "resume": {"shop": "item"}, "timers": {"remind": 3}, "back": "catalog",
+     "pending": [{"call": "check_stock", "token": 3}], "seq": 3},
     [],
 ]
+
+
+def written(snap):
+    """The form in which the engine writes an accepted snapshot: `v` and the defaults
+    (`seq` 0, empty `resume`, `timers`, `pending`) are omitted."""
+    out = {k: v for k, v in snap.items() if k != "v"}
+    for k, empty in (("seq", 0), ("resume", {}), ("timers", {}), ("pending", [])):
+        if out.get(k, None) == empty and type(out.get(k)) is type(empty):
+            del out[k]
+    return out
 
 engine, doc, schema_path = sys.argv[1:4]
 validator = jsonschema.Draft202012Validator(json.load(open(schema_path)))
@@ -88,6 +122,10 @@ for snap, (variant, resp) in zip(FIXTURES, replies):
         # a rejected snapshot has exactly the code bad_snapshot (docs/format.md, section 8, "Errors")
         bad += 1
         print(f"  disagree: {snap}: error code {resp.get('code')!r} instead of 'bad_snapshot'")
+    elif by_engine and (resp["snapshot"] != written(snap) or resp["actions"] != []):
+        # an event without an arrow changes nothing (rule 4): every field comes back, pending too
+        bad += 1
+        print(f"  disagree: {snap}: an event without an arrow gave {resp['snapshot']} {resp['actions']}")
 print(f"snapshots {len(FIXTURES)}, replies {len(replies)}, schema/engine mismatches {bad}")
 
 # At the seq boundary the engine never returns a snapshot that it cannot read itself.
