@@ -7,11 +7,12 @@ of examples/*.bot.json) we build non-canonical variants of the SAME document:
   V0  the base text as is
   V1  compact, ensure_ascii (every non-ASCII char as \\uXXXX, surrogate pairs)
   V2  known keys shuffled inside fixed-key objects, explicit defaults
-      (resume:false, do:[], on:{}, timers:{}, requires:[], variables:{}),
+      (resume:false, do:[], on:{}, timers:{}, requires:[], variables:{}; an action
+      written as {"text": …} with detached:false, every:false, outcomes:[]),
       timer delays rewritten as 7.2e3 / 7200.0 / 72e2 / 7200000e-3 / -0
   V3  annotations: x-… keys with small random JSON values
       (unicode, escapes, control chars, numbers with fractions/exponents,
-      nested arrays/objects, empty containers) in doc/section/message/variant
+      nested arrays/objects, empty containers) in doc/section/message/variant/action
   V4  V2 + V3 + random whitespace (space, tab, CR, LF)
   V5  V3 with unknown keys without the x- prefix as well (at least one)
 
@@ -50,7 +51,9 @@ DEFAULT_KEYS = {
     "msg": [("on", Obj()), ("timers", Obj())],
     "sec": [("on", Obj())],
     "var": [("resume", False), ("back", False), ("do", [])],
+    "call": [("detached", False), ("every", False), ("outcomes", [])],
 }
+CALL_KEYS = ["text", "detached", "outcomes", "every"]
 
 
 def rand_str(r):
@@ -128,6 +131,25 @@ def transform(j, r, shuffle, defaults, annotate, numbers, plain=False):
     def on(o):
         return Obj((ev, [var(x) for x in vs]) for ev, vs in o)
 
+    def call(c):
+        """An action: the text form and the object form are the same action (section 4)."""
+        if isinstance(c, str):
+            if not (defaults or annotate) or r.random() < 0.3:
+                return c
+            c = Obj([("text", c)])
+        c = Obj(c)
+        if defaults:
+            for k, d in DEFAULT_KEYS["call"]:
+                if not c.has(k) and r.random() < 0.5 and not (k == "outcomes" and c.has("every")):
+                    insert_at(r, c, (k, d))
+        if annotate:
+            for _ in range(r.randint(0, 2)):
+                k = ann_key(r, [kk for kk, _ in c] + CALL_KEYS, plain)
+                insert_at(r, c, (k, rand_value(r)))
+        if shuffle:
+            c = shuffle_known(c, CALL_KEYS)
+        return c
+
     def node(n):
         n = Obj(n)
         is_sec = n.has("children")
@@ -180,6 +202,8 @@ def transform(j, r, shuffle, defaults, annotate, numbers, plain=False):
     for k, v in d:
         if k == "bot":
             out.append((k, node(v)))
+        elif k == "calls":
+            out.append((k, Obj((kk, call(x)) for kk, x in v)))
         elif k == "figram" and numbers:
             out.append((k, RawNum(r.choice(["1", "1.0", "1e0", "10e-1", "0.1e1", "1.000", "100E-2"]))))
         else:
@@ -289,7 +313,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=250)
     ap.add_argument("--break", dest="brk", default=None,
-                    help="deliberate oracle bug: sort-unknown | keep-resume-false | keep-num-text | drop-unknown")
+                    help="deliberate oracle bug: sort-unknown | keep-resume-false | keep-num-text | drop-unknown"
+                         " | to-required | call-always-object | keep-detached-false")
     ap.add_argument("--strict", action="store_true", help="count known-finding rows as failures")
     ap.add_argument("--tmp", default=os.environ.get("TMPDIR", "/tmp"))
     a = ap.parse_args()

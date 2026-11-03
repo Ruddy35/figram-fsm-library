@@ -11,13 +11,16 @@ rewritten by hand for the protocol changes of the audit fix cycle: every
 error carries a machine `code`, a parse error echoes a leading scalar `id`,
 requests are strict (unknown fields, `token` only on timer events and only as
 an integer 0…2^53−1, non-empty `event`, non-empty timer name), `start` takes an
-optional `seq`, invalid UTF-8 is a parse error.  The column `why` says which
+optional `seq`, invalid UTF-8 is a parse error.  The rows `o-…` of protocol 3
+(outcome events with their token, `pending` in the snapshot, the `token` and
+`detached` fields of `call`) were written by hand from docs/format.md (section 7,
+decisions 11–13; section 8) before they were run.  The column `why` says which
 rule each reply follows.
 
 Rows tagged ET-07 / ET-12 / FC-xx are defects found during the audit; their
 expectations now encode the FIXED behaviour.
 
-    python3 d_engine_requests.py [--break flip|lax-id] [--record]
+    python3 d_engine_requests.py [--break flip|lax-id|keep-wait|no-detached] [--record]
 """
 
 import argparse
@@ -31,27 +34,28 @@ from common import ENGINE, ROOT, run  # noqa: E402
 DOC = os.path.join(ROOT, "examples", "features.bot.json")
 H = '{"at":"home"}'
 ITEM = '{"at":"item","timers":{"remind":5},"seq":5}'
+PEND = '{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6}'
 
 # (row id, request line, expected reply, tag, why)
 ROWS = [
     # ---- id of every JSON type -----------------------------------------
-    ("id-absent", '{"op":"hello"}', '{"id":null,"protocol":2,"states":8}', "", "missing id -> null"),
-    ("id-null", '{"id":null,"op":"hello"}', '{"id":null,"protocol":2,"states":8}', "", ""),
-    ("id-true", '{"id":true,"op":"hello"}', '{"id":true,"protocol":2,"states":8}', "", "any JSON echoed"),
-    ("id-str", '{"id":"abc","op":"hello"}', '{"id":"abc","protocol":2,"states":8}', "", ""),
+    ("id-absent", '{"op":"hello"}', '{"id":null,"protocol":3,"states":8}', "", "missing id -> null"),
+    ("id-null", '{"id":null,"op":"hello"}', '{"id":null,"protocol":3,"states":8}', "", ""),
+    ("id-true", '{"id":true,"op":"hello"}', '{"id":true,"protocol":3,"states":8}', "", "any JSON echoed"),
+    ("id-str", '{"id":"abc","op":"hello"}', '{"id":"abc","protocol":3,"states":8}', "", ""),
     ("id-str-esc", '{"id":"\\u00e9\\ud83d\\ude00\\u0000\\/","op":"hello"}',
-     '{"id":"é😀\\u0000/","protocol":2,"states":8}', "ET-07", "echoed by value: escapes re-spelled"),
-    ("id-neg-zero", '{"id":-0,"op":"hello"}', '{"id":0,"protocol":2,"states":8}', "ET-07", "by value"),
-    ("id-1.5e3", '{"id":1.5e3,"op":"hello"}', '{"id":15e2,"protocol":2,"states":8}', "ET-07", "by value"),
-    ("id-1E2", '{"id":1E2,"op":"hello"}', '{"id":1e2,"protocol":2,"states":8}', "ET-07", ""),
-    ("id-0.1e1", '{"id":0.1e1,"op":"hello"}', '{"id":1,"protocol":2,"states":8}', "ET-07", ""),
-    ("id-1.10", '{"id":1.10,"op":"hello"}', '{"id":1.10,"protocol":2,"states":8}', "", ""),
+     '{"id":"é😀\\u0000/","protocol":3,"states":8}', "ET-07", "echoed by value: escapes re-spelled"),
+    ("id-neg-zero", '{"id":-0,"op":"hello"}', '{"id":0,"protocol":3,"states":8}', "ET-07", "by value"),
+    ("id-1.5e3", '{"id":1.5e3,"op":"hello"}', '{"id":15e2,"protocol":3,"states":8}', "ET-07", "by value"),
+    ("id-1E2", '{"id":1E2,"op":"hello"}', '{"id":1e2,"protocol":3,"states":8}', "ET-07", ""),
+    ("id-0.1e1", '{"id":0.1e1,"op":"hello"}', '{"id":1,"protocol":3,"states":8}', "ET-07", ""),
+    ("id-1.10", '{"id":1.10,"op":"hello"}', '{"id":1.10,"protocol":3,"states":8}', "", ""),
     ("id-bigint", '{"id":12345678901234567890123,"op":"hello"}',
-     '{"id":12345678901234567890123,"protocol":2,"states":8}', "", "exact"),
-    ("id-1e400", '{"id":1e400,"op":"hello"}', '{"id":1e400,"protocol":2,"states":8}', "", ""),
-    ("id-array", '{"id":[1,{"a":2}],"op":"hello"}', '{"id":[1,{"a":2}],"protocol":2,"states":8}', "", ""),
-    ("id-object", '{"id":{},"op":"hello"}', '{"id":{},"protocol":2,"states":8}', "", ""),
-    ("id-after-op", '{"op":"hello","id":7}', '{"id":7,"protocol":2,"states":8}', "", "key order irrelevant"),
+     '{"id":12345678901234567890123,"protocol":3,"states":8}', "", "exact"),
+    ("id-1e400", '{"id":1e400,"op":"hello"}', '{"id":1e400,"protocol":3,"states":8}', "", ""),
+    ("id-array", '{"id":[1,{"a":2}],"op":"hello"}', '{"id":[1,{"a":2}],"protocol":3,"states":8}', "", ""),
+    ("id-object", '{"id":{},"op":"hello"}', '{"id":{},"protocol":3,"states":8}', "", ""),
+    ("id-after-op", '{"op":"hello","id":7}', '{"id":7,"protocol":3,"states":8}', "", "key order irrelevant"),
     ("id-dup", '{"id":1,"id":2,"op":"hello"}', '{"id":1,"error":"duplicate key `id`","code":"parse_error"}', "ET-07",
      "parse error: leading scalar id echoed"),
     # ---- unknown / misspelt top-level fields ---------------------------
@@ -72,8 +76,8 @@ ROWS = [
     ("not-object", '[1]', '{"id":null,"error":"request must be an object","code":"bad_request"}', "", "valid JSON, no echo"),
     # ---- guards ---------------------------------------------------------
     ("g-true", '{"id":10,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":true}}',
-     '{"id":10,"snapshot":{"at":"vip","seq":1},"actions":[{"cancel_timer":"idle"},{"send":"vip"}]}', "",
-     "exit(home) cancels idle"),
+     '{"id":10,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":"vip"}]}', "",
+     "exit(home) cancels idle, entry(vip) starts nudge"),
     ("g-false", '{"id":11,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"is_vip":false}}',
      '{"id":11,"snapshot":{"at":"catalog","back":"home","resume":{"shop":"catalog"},"seq":1},"actions":[{"cancel_timer":"idle"},{"send":"catalog"}]}',
      "", "shop -> catalog, place remembered"),
@@ -97,7 +101,7 @@ ROWS = [
      '{"id":20,"error":"condition `other`: expected true or false","code":"bad_request"}', "FC-04",
      "names not checked, but values of unknown names are"),
     ("g-unknown-names", '{"id":21,"op":"step","snapshot":' + H + ',"event":"btn:go","guards":{"":true,"zz":false,"is_vip":true}}',
-     '{"id":21,"snapshot":{"at":"vip","seq":1},"actions":[{"cancel_timer":"idle"},{"send":"vip"}]}', "FC-04",
+     '{"id":21,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"cancel_timer":"idle"},{"start_timer":"nudge","ms":30000,"token":1},{"send":"vip"}]}', "FC-04",
      "unknown names ignored"),
     # ---- token / timers -------------------------------------------------
     ("t-match", '{"id":30,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind","token":5}',
@@ -121,8 +125,8 @@ ROWS = [
     ("t-missing", '{"id":37,"op":"step","snapshot":' + ITEM + ',"event":"timer:remind"}',
      '{"id":37,"error":"missing field `token` for a timer event","code":"bad_request"}', "", ""),
     ("t-on-named", '{"id":38,"op":"step","snapshot":' + ITEM + ',"event":"btn:other","token":"junk"}',
-     '{"id":38,"error":"field `token` is allowed only for a timer event","code":"bad_request"}', "",
-     "token only on timer events"),
+     '{"id":38,"error":"field `token` is allowed only for a timer or an outcome event","code":"bad_request"}', "",
+     "token only on timer and outcome events"),
     # ---- event ----------------------------------------------------------
     ("e-empty", '{"id":40,"op":"step","snapshot":' + H + ',"event":""}',
      '{"id":40,"error":"`event` must be a non-empty string","code":"bad_request"}', "", "empty event rejected"),
@@ -134,7 +138,7 @@ ROWS = [
     ("e-num", '{"id":44,"op":"step","snapshot":' + H + ',"event":5}',
      '{"id":44,"error":"`event` must be a non-empty string","code":"bad_request"}', "", "text names the real problem"),
     ("e-TIMER", '{"id":45,"op":"step","snapshot":' + ITEM + ',"event":"TIMER:remind","token":5}',
-     '{"id":45,"error":"field `token` is allowed only for a timer event","code":"bad_request"}', "",
+     '{"id":45,"error":"field `token` is allowed only for a timer or an outcome event","code":"bad_request"}', "",
      "case-sensitive: TIMER: is a named event"),
     ("e-TIMER-notoken", '{"id":46,"op":"step","snapshot":' + ITEM + ',"event":"TIMER:remind"}',
      '{"id":46,"snapshot":{"at":"item","timers":{"remind":5},"seq":5},"actions":[]}', "", "rule 4"),
@@ -180,10 +184,65 @@ ROWS = [
      '{"id":67,"error":"`seq` must be an integer from 0 to 9007199254740991","code":"bad_request"}', "", ""),
     ("start-seq-str", '{"id":68,"op":"start","seq":"1"}',
      '{"id":68,"error":"`seq` must be an integer from 0 to 9007199254740991","code":"bad_request"}', "", ""),
+    # ---- protocol 3: actions with outcomes, background actions (section 7, decisions 11-12) ----
+    ("o-call-token", '{"id":80,"op":"step","snapshot":' + ITEM + ',"event":"btn:check"}',
+     '{"id":80,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[{"call":"check_stock","token":6}]}',
+     "", "token = the step's seq, a wait recorded; no move: the timer stays"),
+    ("o-detached-token", '{"id":81,"op":"step","snapshot":' + H + ',"event":"btn:ping"}',
+     '{"id":81,"snapshot":{"at":"home","pending":[{"call":"ping","token":1}],"seq":1},"actions":[{"call":"ping","token":1,"detached":true}]}',
+     "", "call, token, detached in this order"),
+    ("o-detached", '{"id":82,"op":"step","snapshot":' + H + ',"event":"btn:log"}',
+     '{"id":82,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":true}]}',
+     "", "no outcomes: no token, no wait"),
+    ("o-accepted", '{"id":83,"op":"step","snapshot":' + PEND + ',"event":"call:check_stock:yes","token":6}',
+     '{"id":83,"snapshot":{"at":"item2","resume":{"shop":"item2"},"seq":7},"actions":[{"cancel_timer":"remind"},{"send":"item2"}]}',
+     "", "the wait removed, then an event like any other"),
+    ("o-token-6.0", '{"id":84,"op":"step","snapshot":' + PEND + ',"event":"call:check_stock:no","token":6.0}',
+     '{"id":84,"snapshot":{"at":"catalog","back":"item","resume":{"shop":"catalog"},"seq":7},"actions":[{"cancel_timer":"remind"},{"send":"catalog"}]}',
+     "", "token by value"),
+    ("o-stale", '{"id":85,"op":"step","snapshot":' + PEND + ',"event":"call:check_stock:yes","token":5}',
+     '{"id":85,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[]}',
+     "", "rule 2: no wait with this token, ignored"),
+    ("o-other-action", '{"id":86,"op":"step","snapshot":' + PEND + ',"event":"call:ping:pong","token":6}',
+     '{"id":86,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":6}],"seq":6},"actions":[]}',
+     "", "the token of another action's wait"),
+    ("o-no-arrow", '{"id":87,"op":"step","snapshot":{"at":"home","pending":[{"call":"check_stock","token":6}],"seq":6},"event":"call:check_stock:yes","token":6}',
+     '{"id":87,"snapshot":{"at":"home","seq":6},"actions":[]}',
+     "", "accepted without an arrow: ignored, but the wait is gone"),
+    ("o-failed-stay", '{"id":88,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping","token":3}],"seq":6},"event":"call:ping:failed","token":3}',
+     '{"id":88,"snapshot":{"at":"home","seq":7},"actions":[]}',
+     "", "an arrow without a target and without actions: seq + 1"),
+    ("o-every", '{"id":89,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping","token":3}],"seq":6},"event":"btn:ping"}',
+     '{"id":89,"snapshot":{"at":"home","pending":[{"call":"ping","token":7},{"call":"ping","token":3}],"seq":7},"actions":[{"call":"ping","token":7,"detached":true}]}',
+     "", "every: a wait per call, the newest first"),
+    ("o-latest", '{"id":90,"op":"step","snapshot":' + PEND + ',"event":"btn:check"}',
+     '{"id":90,"snapshot":{"at":"item","timers":{"remind":5},"pending":[{"call":"check_stock","token":7}],"seq":7},"actions":[{"call":"check_stock","token":7}]}',
+     "", "a new call replaces the wait"),
+    ("o-no-token", '{"id":91,"op":"step","snapshot":' + PEND + ',"event":"call:check_stock:yes"}',
+     '{"id":91,"error":"missing field `token` for an outcome event","code":"bad_request"}', "", "token required"),
+    ("o-malformed", '{"id":92,"op":"step","snapshot":' + PEND + ',"event":"call:check_stock","token":6}',
+     '{"id":92,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}',
+     "", "no outcome part"),
+    ("o-empty-outcome", '{"id":93,"op":"step","snapshot":' + PEND + ',"event":"call:check_stock:","token":6}',
+     '{"id":93,"error":"an outcome event is `call:<action>:<outcome>`, both parts non-empty","code":"bad_request"}',
+     "", ""),
+    ("o-start", '{"id":94,"op":"start","event":"call:ping:pong"}',
+     '{"id":94,"error":"an outcome event cannot start a user","code":"bad_request"}', "", "a new user has no waits"),
+    ("o-start-token", '{"id":95,"op":"start","event":"call:ping:pong","token":1}',
+     '{"id":95,"error":"unknown request field `token`","code":"bad_request"}', "", "start takes no token"),
+    ("o-restart", '{"id":96,"op":"restart","snapshot":' + PEND + '}',
+     '{"id":96,"snapshot":{"at":"home","timers":{"idle":7},"seq":7},"actions":[{"cancel_timer":"remind"},{"start_timer":"idle","ms":60000,"token":7},{"send":"home"}]}',
+     "", "restart clears the waits"),
+    ("o-pending-no-token", '{"id":97,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping"}]},"event":"x"}',
+     '{"id":97,"error":"snapshot: a `pending` entry needs `token`","code":"bad_snapshot"}', "", ""),
+    ("o-pending-dup-key", '{"id":98,"op":"step","snapshot":{"at":"home","pending":[{"call":"ping","token":1,"token":2}]},"event":"x"}',
+     '{"id":98,"error":"duplicate key `token`","code":"parse_error"}', "", "id echoed"),
+    ("o-pending-empty", '{"id":99,"op":"step","snapshot":{"at":"home","pending":[]},"event":"x"}',
+     '{"id":99,"snapshot":{"at":"home"},"actions":[]}', "", "an empty pending is not written"),
     # ---- framing --------------------------------------------------------
     ("two-objects", '{"id":60,"op":"hello"}{"id":61,"op":"hello"}',
      '{"id":60,"error":"extra text after the JSON value","code":"parse_error"}', "ET-07", "id of the first object echoed"),
-    ("crlf", '{"id":62,"op":"hello"}\r', '{"id":62,"protocol":2,"states":8}', "", "CR is JSON whitespace"),
+    ("crlf", '{"id":62,"op":"hello"}\r', '{"id":62,"protocol":3,"states":8}', "", "CR is JSON whitespace"),
     ("bom", '﻿{"id":63,"op":"hello"}', '{"id":null,"error":"unexpected character `﻿`","code":"parse_error"}', "",
      "BOM rejected, not whitespace: no echo"),
     # ---- invalid UTF-8 (raw bytes) ----------------------------------------
@@ -198,7 +257,7 @@ ROWS = [
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--break", dest="brk", default=None, help="flip | lax-id")
+    ap.add_argument("--break", dest="brk", default=None, help="flip | lax-id | keep-wait | no-detached")
     ap.add_argument("--record", action="store_true", help="print actual replies only")
     a = ap.parse_args()
     data = b"".join((line if isinstance(line, bytes) else line.encode("utf-8")) + b"\n" for _, line, *_ in ROWS)
@@ -212,6 +271,12 @@ def main():
     for (rid, line, exp, tag, why), got in zip(ROWS, replies):
         if a.brk == "flip" and rid == "g-true":
             exp = exp.replace("vip", "shop")
+        if a.brk == "keep-wait" and rid == "o-no-arrow":
+            # a broken oracle: an outcome without an arrow keeps its wait
+            exp = exp.replace('"at":"home",', '"at":"home","pending":[{"call":"check_stock","token":6}],')
+        if a.brk == "no-detached" and rid.startswith("o-"):
+            # a broken oracle of protocol 2: `call` has no `detached` field
+            exp = exp.replace(',"detached":true', "")
         if a.brk == "lax-id" and isinstance(line, str):
             # a broken oracle that believes the id is echoed byte-for-byte
             try:
