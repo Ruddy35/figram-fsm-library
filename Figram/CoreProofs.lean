@@ -22,6 +22,51 @@ import Figram.Core
 
 namespace Figram
 
+/-! ## Removing a wait and consuming a timer keep the rest of the snapshot -/
+
+@[simp] theorem settle_state (s : Snapshot) (ev : Event) : (s.settle ev).state = s.state := by
+  cases ev <;> rfl
+@[simp] theorem settle_resume (s : Snapshot) (ev : Event) : (s.settle ev).resume = s.resume := by
+  cases ev <;> rfl
+@[simp] theorem settle_timers (s : Snapshot) (ev : Event) : (s.settle ev).timers = s.timers := by
+  cases ev <;> rfl
+@[simp] theorem settle_seq (s : Snapshot) (ev : Event) : (s.settle ev).seq = s.seq := by
+  cases ev <;> rfl
+@[simp] theorem settle_back (s : Snapshot) (ev : Event) : (s.settle ev).back = s.back := by
+  cases ev <;> rfl
+@[simp] theorem consume_state (s : Snapshot) (ev : Event) : (s.consume ev).state = s.state := by
+  cases ev <;> rfl
+@[simp] theorem consume_resume (s : Snapshot) (ev : Event) : (s.consume ev).resume = s.resume := by
+  cases ev <;> rfl
+@[simp] theorem consume_seq (s : Snapshot) (ev : Event) : (s.consume ev).seq = s.seq := by
+  cases ev <;> rfl
+@[simp] theorem consume_back (s : Snapshot) (ev : Event) : (s.consume ev).back = s.back := by
+  cases ev <;> rfl
+@[simp] theorem consume_pending (s : Snapshot) (ev : Event) : (s.consume ev).pending = s.pending := by
+  cases ev <;> rfl
+
+/-- An event other than an outcome removes no wait. -/
+theorem settle_of_not_outcome (s : Snapshot) (ev : Event) (h : ∀ c o t, ev ≠ .outcome c o t) :
+    s.settle ev = s := by
+  cases ev with
+  | outcome c o t => exact absurd rfl (h c o t)
+  | _ => rfl
+
+/-- An outcome that is not accepted removes no wait. -/
+theorem settle_of_not_accepts (s : Snapshot) (ev : Event) (h : s.accepts ev = false) :
+    s.settle ev = s := by
+  cases ev with
+  | outcome c o t =>
+    simp only [Snapshot.accepts, decide_eq_false_iff_not] at h
+    simp only [Snapshot.settle]
+    have : s.pending.filter (fun p => decide (p ≠ (c, t))) = s.pending :=
+      List.filter_eq_self.mpr (fun p hp => by
+        simp only [decide_eq_true_eq]
+        rintro rfl
+        exact h hp)
+    rw [this]
+  | _ => rfl
+
 theorem realizeOne_state (tok : Nat) (acc : Snapshot × List Action) (a : Action) :
     (realizeOne tok acc a).1.state = acc.1.state := by
   cases a <;> rfl
@@ -163,7 +208,7 @@ theorem foldl_cancels_only (tok : Nat) (pre : List Action) (x : Snapshot) (out :
       ({ x with timers := x.timers.filter (fun p => !pre.contains (.cancelTimer p.1)) }, out ++ pre) := by
   induction pre generalizing x out with
   | nil =>
-    obtain ⟨st, res, tms, seq, bk⟩ := x
+    obtain ⟨st, res, tms, seq, bk, pend⟩ := x
     simp only [List.foldl_nil, List.contains_nil, Bool.not_false, List.append_nil,
       List.filter_eq_self.mpr (fun _ _ => rfl)]
   | cons a as ih =>
@@ -245,29 +290,39 @@ theorem recover_eq_realize (m : Machine) (s : Snapshot) :
   simp [realizeAfter]
 
 /-- Entering the bot is `realize` of `pre`, the chosen variant's actions and the entry of its
-target, or of `pre` and the first-entry actions. -/
+target, or of `pre` and the first-entry actions, from the snapshot without the wait of an
+accepted outcome. -/
 theorem enterBot_eq_realize (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
     (env : HostEnv) :
     m.enterBot s pre ev env =
-      match m.choose m.initial ev env with
-      | some b => realize s (m.resolve s b.target) (pre ++ b.actions ++ m.entryOf (m.resolve s b.target))
-      | none => realize s m.initial (pre ++ m.initActions) := by
+      match (if s.accepts ev then m.choose m.initial ev env else none) with
+      | some b => realize (s.settle ev) (m.resolve { s with state := m.initial } b.target)
+          (pre ++ b.actions ++ m.entryOf (m.resolve { s with state := m.initial } b.target))
+      | none => realize (s.settle ev) m.initial (pre ++ m.initActions) := by
   unfold enterBot
-  cases m.choose m.initial ev env <;> simp only [realizeAfter_eq, List.append_assoc]
+  cases (if s.accepts ev then m.choose m.initial ev env else none) <;>
+    simp only [realizeAfter_eq, List.append_assoc]
 
-/-- Entering the bot with a chosen variant is `realize` of `pre`, its actions and the entry of
-its target. -/
+/-- Entering the bot with an accepted event and a chosen variant is `realize` of `pre`, its
+actions and the entry of its target (resolved as if the user stood on the initial message). -/
 theorem enterBot_eq_realize_some (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
-    (env : HostEnv) (b : FBranch) (hb : m.choose m.initial ev env = some b) :
+    (env : HostEnv) (b : FBranch) (ha : s.accepts ev = true)
+    (hb : m.choose m.initial ev env = some b) :
     m.enterBot s pre ev env =
-      realize s (m.resolve s b.target) (pre ++ b.actions ++ m.entryOf (m.resolve s b.target)) := by
-  rw [enterBot_eq_realize, hb]
+      realize (s.settle ev) (m.resolve { s with state := m.initial } b.target)
+        (pre ++ b.actions ++ m.entryOf (m.resolve { s with state := m.initial } b.target)) := by
+  rw [enterBot_eq_realize]
+  simp only [ha, ↓reduceIte, hb]
 
-/-- Entering the bot without a chosen variant is `realize` of `pre` and the first-entry actions. -/
+/-- Entering the bot without a chosen variant (or with an outcome it does not wait for) is
+`realize` of `pre` and the first-entry actions. -/
 theorem enterBot_eq_realize_none (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
-    (env : HostEnv) (hb : m.choose m.initial ev env = none) :
-    m.enterBot s pre ev env = realize s m.initial (pre ++ m.initActions) := by
-  rw [enterBot_eq_realize, hb]
+    (env : HostEnv) (hb : s.accepts ev = false ∨ m.choose m.initial ev env = none) :
+    m.enterBot s pre ev env = realize (s.settle ev) m.initial (pre ++ m.initActions) := by
+  rw [enterBot_eq_realize]
+  rcases hb with hb | hb
+  · rw [hb]; rfl
+  · split <;> simp_all
 
 /-- The arrow found is one of the machine's arrows. -/
 theorem row_mem {m : Machine} {s : NodeId} {e : EventId} {r : Row} (h : m.row s e = some r) :
@@ -289,7 +344,7 @@ theorem wf_parts {m : Machine} (h : m.wf = true) :
   exact ⟨h.1.1, h.1.2, fun r hr => ⟨(h.2 r hr).1, fun v hv => (h.2 r hr).2 v hv⟩⟩
 
 theorem resolve_mem {m : Machine} (hwf : m.wf = true) (s : Snapshot) (t : Target)
-    (ht : m.targetOK t = true) : m.resolve s t ∈ m.states := by
+    (ht : m.targetOK t = true) (hs : s.state ∈ m.states) : m.resolve s t ∈ m.states := by
   obtain ⟨_, _, hres⟩ := wf_parts hwf
   induction t with
   | node n => simpa [targetOK, resolve] using ht
@@ -317,6 +372,7 @@ theorem resolve_mem {m : Machine} (hwf : m.wf = true) (s : Snapshot) (t : Target
       · assumption
       · exact ih hfb
     · exact ih hfb
+  | stay => exact hs
 
 theorem find?_congr {α} (l : List α) (p q : α → Bool)
     (h : ∀ x ∈ l, p x = q x) : l.find? p = l.find? q := by
@@ -331,28 +387,34 @@ theorem find?_congr {α} (l : List α) (p q : α → Bool)
 
 theorem choose_mem {m : Machine} {n : NodeId} {ev : Event} {env : HostEnv} {b : FBranch}
     (h : m.choose n ev env = some b) : ∃ r ∈ m.rows, b ∈ r.branches := by
-  cases ev with
-  | timer => simp [choose] at h
-  | named e =>
-    simp only [choose] at h
-    split at h
+  unfold choose at h
+  split at h
+  · cases h
+  · split at h
     · cases h
     · rename_i r hr
       exact ⟨r, row_mem hr, List.mem_of_find?_eq_some h⟩
+
+/-- The chosen variant of an accepted event when entering the bot. -/
+theorem enterChoice_mem {m : Machine} {s : Snapshot} {ev : Event} {env : HostEnv} {b : FBranch}
+    (h : (if s.accepts ev then m.choose m.initial ev env else none) = some b) :
+    m.choose m.initial ev env = some b := by
+  split at h
+  · exact h
+  · cases h
 
 /-- The choice depends only on the conditions in `requiredGuards`, as in `step_guard_local`. -/
 theorem choose_guard_local (m : Machine) (n : NodeId) (ev : Event) (env₁ env₂ : HostEnv)
     (h : ∀ g ∈ m.rowGuards n ev.key, env₁ g = env₂ g) :
     m.choose n ev env₁ = m.choose n ev env₂ := by
-  cases ev with
-  | timer => rfl
-  | named e =>
-    simp only [choose]
-    unfold rowGuards at h
+  unfold choose
+  split
+  · rfl
+  · unfold rowGuards at h
     split
     · rfl
     · rename_i r hr
-      simp only [Event.key, hr] at h
+      simp only [hr] at h
       have hfind : (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₁ b.guard)
           = (untilUnguarded (·.guard) r.branches).find? (fun b => guardOK env₂ b.guard) := by
         apply find?_congr
@@ -380,9 +442,9 @@ theorem enterBot_state_valid (m : Machine) (hwf : m.wf = true) (s : Snapshot)
   rw [enterBot_eq_realize]
   split
   · rename_i b hb
-    obtain ⟨r, hr, hbr⟩ := choose_mem hb
+    obtain ⟨r, hr, hbr⟩ := choose_mem (enterChoice_mem hb)
     simp only [realize_state]
-    exact resolve_mem hwf s _ (hrows r hr b hbr)
+    exact resolve_mem hwf _ _ (hrows r hr b hbr) hinit
   · simp only [realize_state]; exact hinit
 
 theorem start_state_valid (m : Machine) (hwf : m.wf = true) : m.start.1.state ∈ m.states := by
@@ -401,14 +463,16 @@ theorem step_state_valid (m : Machine) (hwf : m.wf = true)
     split
     · exact hs
     · split
-      · exact hs
+      · simpa using hs
       · rename_i r hr
         split
-        · exact hs
+        · simpa using hs
         · rename_i b hb
-          simp only [fire_eq_realize, realize_state]
-          exact resolve_mem hwf s _ (hrows r (row_mem hr) b
-            (List.mem_of_find?_eq_some hb))
+          split
+          · simpa [stay, realize_state] using hs
+          · simp only [fire_eq_realize, realize_state]
+            exact resolve_mem hwf _ _ (hrows r (row_mem hr) b
+              (List.mem_of_find?_eq_some hb)) (by simpa using hs)
 
 /-- A firing of a timer the current message does not own (its exit does not cancel
 the timer) reads no arrows: the snapshot stays the same and there are no actions.
@@ -459,7 +523,7 @@ theorem foldl_cancels (tok : Nat) (acts : List Action) (x : Snapshot) (out : Lis
   | cons a as ih =>
     obtain ⟨id, rfl⟩ := h a (by simp)
     have hx' : { x with timers := erase x.timers id } = x := by
-      obtain ⟨st, res, tms, seq, bk⟩ := x
+      obtain ⟨st, res, tms, seq, bk, pend⟩ := x
       simp only at hx
       subst hx
       rfl
@@ -467,13 +531,15 @@ theorem foldl_cancels (tok : Nat) (acts : List Action) (x : Snapshot) (out : Lis
     rw [ih _ (fun b hb => h b (by simp [hb]))]
     simp
 
-/-- The target depends only on the remembered places and the place to go back to. -/
-theorem resolve_congr (m : Machine) {s s' : Snapshot} (hr : s.resume = s'.resume)
-    (hb : s.back = s'.back) (t : Target) : m.resolve s t = m.resolve s' t := by
+/-- The target depends only on the message, the remembered places and the place to go back to. -/
+theorem resolve_congr (m : Machine) {s s' : Snapshot} (hst : s.state = s'.state)
+    (hr : s.resume = s'.resume) (hb : s.back = s'.back) (t : Target) :
+    m.resolve s t = m.resolve s' t := by
   induction t with
   | node _ => rfl
   | resume sec => simp only [resolve, hr]
   | back fb ih => simp only [resolve, hb, ih]
+  | stay => simp only [resolve, hst]
 
 theorem withBack_withBack (s : Snapshot) (a b : Option NodeId) :
     (s.withBack a).withBack b = s.withBack b := rfl
@@ -505,9 +571,10 @@ of the initial message (they only cancel its timers, which were never started) f
 actions of `startWith`. -/
 theorem startWith_eq_step (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch)
     (hi : m.initial ∈ m.states) (hb : m.choose m.initial (.named e) env = some b)
+    (hst : b.target ≠ .stay)
     (hexit : ∀ a ∈ m.exitOf m.initial, ∃ id, a = .cancelTimer id) :
-    ((m.step ⟨m.initial, [], [], n, none⟩ (.named e) env).1.withBack none,
-      (m.step ⟨m.initial, [], [], n, none⟩ (.named e) env).2) =
+    ((m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env).1.withBack none,
+      (m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env).2) =
       ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) := by
   have hrow : ∃ r, m.row m.initial e = some r ∧ r.branches.find? (fun b => guardOK env b.guard) = some b := by
     simp only [choose] at hb
@@ -515,28 +582,32 @@ theorem startWith_eq_step (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) 
     · cases hb
     · rename_i r hr; exact ⟨r, hr, hb⟩
   obtain ⟨r, hr, hfb⟩ := hrow
-  have hstale : staleCancels (m.exitOf m.initial) ⟨m.initial, [], [], n, none⟩ = [] := rfl
-  have hstep : m.step ⟨m.initial, [], [], n, none⟩ (.named e) env = m.fire ⟨m.initial, [], [], n, none⟩ b := by
+  have hstale : staleCancels (m.exitOf m.initial) ⟨m.initial, [], [], n, none, []⟩ = [] := rfl
+  have hstep : m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env =
+      m.fire ⟨m.initial, [], [], n, none, []⟩ b := by
     simp only [step, hi, not_true_eq_false, ite_false, Snapshot.accepts, ownsTimer, Bool.and_self,
-      Bool.not_true, Bool.false_eq_true, Event.key, hr, hfb]
+      Bool.not_true, Bool.false_eq_true, Event.key, hr, hfb, hst, Snapshot.settle]
   rw [hstep, fire_withBack_none m _ b rfl]
-  simp only [startWith, enterBot, hb, hstale, realizeAfter_eq, List.append_nil, List.nil_append]
+  simp only [startWith, enterBot, Snapshot.accepts, ite_true, hb, hstale, realizeAfter_eq,
+    List.append_nil, List.nil_append, Snapshot.settle]
   show List.foldl _ _ ((m.exitOf m.initial ++ b.actions) ++ _) = _
   rw [List.append_assoc, List.foldl_append,
-    foldl_cancels _ _ _ _ rfl hexit, foldl_realize_out,
-    resolve_congr m (s := ⟨m.initial, [], [], n, none⟩) (s' := ⟨"", [], [], n, none⟩) rfl rfl]
+    foldl_cancels _ _ _ _ rfl hexit, foldl_realize_out]
   rfl
 
 /-- **A variant into the initial message enters it once**: if the chosen variant leads to the
 initial message, entering with the event is the first entry with the variant's actions in
 front (one entry, one `send` of the initial message). -/
-theorem startWith_initial (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (b : FBranch)
-    (hb : m.choose m.initial ev env = some b)
-    (hT : m.resolve ⟨"", [], [], n, none⟩ b.target = m.initial)
+theorem startWith_initial (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch)
+    (hb : m.choose m.initial (.named e) env = some b)
+    (hT : m.resolve ⟨m.initial, [], [], n, none, []⟩ b.target = m.initial)
     (hinit : m.entryOf m.initial = m.initActions) :
-    m.startWith n ev env =
-      realize ⟨"", [], [], n, none⟩ m.initial (b.actions ++ m.initActions) := by
-  simp only [startWith, enterBot, hb, hT, hinit, realizeAfter_eq, List.nil_append]
+    m.startWith n (.named e) env =
+      realize ⟨"", [], [], n, none, []⟩ m.initial (b.actions ++ m.initActions) := by
+  rw [startWith, enterBot_eq_realize_some _ _ _ _ _ b rfl hb]
+  show realize _ (m.resolve ⟨m.initial, [], [], n, none, []⟩ b.target) _ = _
+  rw [hT, hinit, List.nil_append]
+  rfl
 
 /-- **A snapshot whose message no longer exists enters the bot again with the event**: the
 timers of the old place are cancelled first and the remembered places are kept. -/
@@ -549,13 +620,15 @@ theorem step_recover (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv)
 uses (with the remembered places kept). -/
 theorem step_recover_timer (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env : HostEnv)
     (hs : s.state ∉ m.states) : m.step s (.timer id tok) env = m.recover s := by
-  simp only [step, hs, not_false_eq_true, ite_true, enterBot_eq_realize, choose, recover_eq_realize]
+  simp only [step, hs, not_false_eq_true, ite_true, enterBot_eq_realize, choose, ite_self,
+    recover_eq_realize, Snapshot.settle]
 
 /-- Without a matching variant, entering with an event is the plain first entry. -/
 theorem startWith_unmatched (m : Machine) (n : Nat) (ev : Event) (env : HostEnv)
     (hb : m.choose m.initial ev env = none) :
-    m.startWith n ev env = realize ⟨"", [], [], n, none⟩ m.initial m.initActions := by
-  simp only [startWith, enterBot, hb, realizeAfter_eq, List.nil_append]
+    m.startWith n ev env = realize ⟨"", [], [], n, none, []⟩ m.initial m.initActions := by
+  rw [startWith, enterBot_eq_realize_none _ _ _ _ _ (Or.inr hb)]
+  cases ev <;> rfl
 
 /-! ## Back to the previous section -/
 
@@ -584,7 +657,7 @@ recovery of a snapshot whose message no longer exists leave no message of the ma
 theorem enterBot_back (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event)
     (env : HostEnv) : (m.enterBot s pre ev env).1.back = s.back := by
   rw [enterBot_eq_realize]
-  split <;> exact realize_back _ _ _
+  split <;> (rw [realize_back]; exact settle_back _ _)
 
 /-- **The place to go back to is always a message the user left**: after a step it is the old
 place or the message of the snapshot, which is a message of the machine. -/
@@ -599,14 +672,16 @@ theorem step_back (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) :
     split
     · exact Or.inl rfl
     · split
-      · exact Or.inl rfl
+      · exact Or.inl (settle_back _ _)
       · split
-        · exact Or.inl rfl
+        · exact Or.inl (settle_back _ _)
         · rename_i b _
-          rw [fire_back]
           split
-          · exact Or.inl rfl
-          · exact Or.inr ⟨hs, rfl⟩
+          · left; simp [stay, realize_back]
+          · rw [fire_back]
+            split
+            · exact Or.inl (settle_back _ _)
+            · exact Or.inr ⟨hs, by simp⟩
 
 end Machine
 end Figram

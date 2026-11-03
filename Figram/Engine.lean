@@ -2,7 +2,7 @@ import Figram.FormatIO
 import Figram.Compile
 
 /-!
-# Engine: the protocol "one JSON line per request, one JSON line per reply", version 2
+# Engine: the protocol "one JSON line per request, one JSON line per reply", version 3
 
 The document is loaded and compiled once. Every request is one line, every
 reply is one line with the same `id`. The full description is in docs/format.md,
@@ -17,7 +17,8 @@ Requests (no other fields are allowed in a request):
   continuing the counter (old timer tokens never match new ones);
 * `{"id": 3, "op": "step", "snapshot": {...}, "event": "btn:checkout",
    "guards": {"cart_not_empty": true}}` — a step;
-  for a timer firing: `"event": "timer:<name>", "token": <token>`.
+  for a timer firing: `"event": "timer:<name>", "token": <token>`; for the outcome of an
+  action: `"event": "call:<action>:<outcome>", "token": <token>`.
 
 Replies:
 * `{"id": 3, "snapshot": {...}, "actions": [...]}` — the step is done
@@ -36,8 +37,8 @@ fields, the line size limit, UTF-8) run before it: in `handle`, in
 namespace Figram.Engine
 open Figram.Format
 
-def protocolVersion : Nat := 2
-def snapshotKeys : List String := ["v", "at", "back", "resume", "timers", "seq"]
+def protocolVersion : Nat := 3
+def snapshotKeys : List String := ["v", "at", "back", "resume", "timers", "pending", "seq"]
 
 /-! ## Snapshot -/
 
@@ -46,6 +47,8 @@ def encSnapshot (s : Snapshot) : J :=
     ++ field "back" s.back.isSome (.str (s.back.getD ""))
     ++ field "resume" (!s.resume.isEmpty) (.obj (s.resume.map fun p => (p.1, .str p.2)))
     ++ field "timers" (!s.timers.isEmpty) (.obj (s.timers.map fun p => (p.1, .num p.2 0)))
+    ++ field "pending" (!s.pending.isEmpty)
+        (.arr (s.pending.map fun p => .obj [("call", .str p.1), ("token", .num p.2 0)]))
     ++ field "seq" (s.seq != 0) (.num s.seq 0))
 
 /-- An integer field of the snapshot: 0 … 2^53 − 1 (as in snapshot.schema.json). -/
@@ -67,6 +70,20 @@ def decResumeEntry (p : String × J) : R (String × String) := do
 def decTimerEntry (p : String × J) : R (String × Nat) := do
   if p.1.isEmpty then throw "snapshot: empty timer name"
   pure (p.1, ← boundedNat "a timer token" p.2)
+
+/-- A wait of `pending`: exactly the fields `call` (a non-empty name) and `token`. -/
+def decWait : J → R (String × Nat)
+  | .obj kvs => do
+    if kvs.any (fun p => p.1 != "call" && p.1 != "token") then
+      throw "snapshot: a `pending` entry has only the fields `call` and `token`"
+    let c ← match get kvs "call" with
+      | some j => nonEmpty "the `call` of a `pending` entry" j
+      | none => throw "snapshot: a `pending` entry needs `call`"
+    let t ← match get kvs "token" with
+      | some j => boundedNat "the `token` of a `pending` entry" j
+      | none => throw "snapshot: a `pending` entry needs `token`"
+    pure (c, t)
+  | _ => throw "snapshot: a `pending` entry must be an object"
 
 def checkKeys (kvs : Obj) : R Unit :=
   match kvs.find? (fun p => decide (p.1 ∉ snapshotKeys)) with
@@ -97,10 +114,14 @@ def decSnapshot : J → R Snapshot
       | none => pure []
       | some (.obj m) => m.mapM decTimerEntry
       | some _ => throw "snapshot: `timers` must be an object"
+    let pend ← match get kvs "pending" with
+      | none => pure []
+      | some (.arr xs) => xs.mapM decWait
+      | some _ => throw "snapshot: `pending` must be an array"
     let seq ← match get kvs "seq" with
       | none => pure 0
       | some j => boundedNat "`seq`" j
-    pure ⟨st, res, tms, seq, bk⟩
+    pure ⟨st, res, tms, seq, bk, pend⟩
   | _ => throw "snapshot must be an object"
 
 /-! ## Request errors -/
@@ -139,7 +160,8 @@ def errorJ (id : J) (c : ErrCode) (text : String) : J :=
 
 def encAction : Action → Option J
   | .send n => some (.obj [("send", .str n)])
-  | .call n => some (.obj [("call", .str n)])
+  | .call n d w tok => some (.obj ([("call", .str n)]
+      ++ field "token" (w != .free) (.num tok 0) ++ field "detached" d (.bool true)))
   | .startTimer id ms tok => some (.obj [("start_timer", .str id), ("ms", .num ms 0), ("token", .num tok 0)])
   | .cancelTimer id => some (.obj [("cancel_timer", .str id)])
   | .remember .. => none
@@ -190,8 +212,9 @@ def decGuards (kvs : Obj) : R (List (String × Bool)) :=
       | (k, _) => throw s!"condition `{k}`: expected true or false"
   | some _ => throw "`guards` must be an object"
 
-/-- The request event: a non-empty string; `timer:<name>` (with a non-empty name) only
-with a token, any other event without a token. -/
+/-- The request event: a non-empty string; `timer:<name>` (with a non-empty name) and
+`call:<action>:<outcome>` (split at the last `:`, both parts non-empty) only with a token, any
+other event without a token. -/
 def decEvent (kvs : Obj) : R Event := do
   let name ← match get kvs "event" with
     | some (.str e) => if e.isEmpty then throw "`event` must be a non-empty string" else pure e
@@ -203,8 +226,15 @@ def decEvent (kvs : Obj) : R Event := do
     match get kvs "token" with
     | some j => pure (.timer id (← reqNat "token" j))
     | none => throw "missing field `token` for a timer event"
+  else if name.startsWith "call:" then
+    match splitOutcome (name.drop 5).toString with
+    | none => throw "an outcome event is `call:<action>:<outcome>`, both parts non-empty"
+    | some (c, o) =>
+      match get kvs "token" with
+      | some j => pure (.outcome c o (← reqNat "token" j))
+      | none => throw "missing field `token` for an outcome event"
   else
-    if (get kvs "token").isSome then throw "field `token` is allowed only for a timer event"
+    if (get kvs "token").isSome then throw "field `token` is allowed only for a timer or an outcome event"
     pure (.named name)
 
 /-- The `seq` of `start`: the user's high-water mark, 0 if absent. -/
@@ -213,13 +243,14 @@ def decStartSeq (kvs : Obj) : R Nat :=
   | none => pure 0
   | some j => reqNat "seq" j
 
-/-- The event of `start`: a non-empty string that is not a timer event (a new user has no
-timers). -/
+/-- The event of `start`: a non-empty string that is neither a timer nor an outcome event (a new
+user has no timers and no waits). -/
 def decStartEvent (kvs : Obj) : R EventId :=
   match get kvs "event" with
   | some (.str e) =>
     if e.isEmpty then throw "`event` must be a non-empty string"
     else if e.startsWith "timer:" then throw "a timer event cannot start a user"
+    else if e.startsWith "call:" then throw "an outcome event cannot start a user"
     else pure e
   | _ => throw "`event` must be a non-empty string"
 
@@ -245,6 +276,7 @@ def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool
     match ev with
     | .named e => missingStart m e gs
     | .timer .. => []
+    | .outcome .. => if s.accepts ev then missingStart m ev.key gs else []
   else if s.accepts ev && ownsTimer (m.exitOf s.state) ev then
     (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
   else []
@@ -295,12 +327,12 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
       pure (result id s as false)
   | some (.str "restart") =>
     -- Start the user over without resetting the counter: cancel the user's timers,
-    -- run the first-entry actions, clear the remembered places and the place to go back to.
-    -- Tokens keep growing, so late events of old timers never match new ones.
+    -- run the first-entry actions, clear the remembered places, the place to go back to and
+    -- the waits. Tokens keep growing, so late events of old timers never match new ones.
     let s ← match get kvs "snapshot" with
       | some j => withCode .badSnapshot (decSnapshot j)
       | none => throw (.badRequest, "missing field `snapshot`")
-    let (s', as) := m.recover { s with resume := [], back := none }
+    let (s', as) := m.recover { s with resume := [], back := none, pending := [] }
     if s'.seq > maxInt then throw (.seqOverflow, "seq_overflow")
     pure (result id s' as false)
   | some (.str "step") =>
@@ -397,6 +429,7 @@ def handleBytes (mutant : Option String) (limit : Nat) (m : Machine) (b : ByteAr
 def actionOK : Action → Bool
   | .remember sec n => !sec.isEmpty && !n.isEmpty
   | .startTimer id _ _ => !id.isEmpty
+  | .call n _ w _ => w == .free || !n.isEmpty
   | _ => true
 
 /-- All names that can get into a snapshot are non-empty. -/

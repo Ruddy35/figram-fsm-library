@@ -26,11 +26,12 @@ For every Telegram update (it carries an `update_id`):
    timer in the snapshot, and a redelivery would be accepted again).
 3. **Step.** The host reads the snapshot and calls `step`. If the engine answers `need`, the
    host computes the conditions and repeats `step` with `guards`. Conditions are computed on
-   data where **all `call` actions committed by earlier steps of this user are already
-   applied** (and the actions of the current step are not). Actions are executed by a separate
-   executor (section 2), so before a step wait until the user's pending outbox actions are
-   executed (a per-user barrier) — or execute the calls that change data read by conditions in
-   the same transaction as the snapshot. Otherwise `cart_not_empty` after "Add" reads an empty
+   data where **all sequential `call` actions committed by earlier steps of this user are
+   already applied** (and the actions of the current step are not). Actions are executed by a
+   separate executor (section 2), so before a step wait until the user's pending outbox actions
+   are executed (a per-user barrier) — or execute the calls that change data read by conditions
+   in the same transaction as the snapshot. Background actions (`"detached": true`, section 2)
+   are not part of the barrier. Otherwise `cart_not_empty` after "Add" reads an empty
    cart, and a balance check allows two purchases with the same money. Conditions may also
    depend on the data of the event itself (message text, button payload).
 
@@ -113,7 +114,32 @@ A separate executor takes actions from the outbox in order and marks them execut
   text), store the data with the action in the same transaction.
 * **Failures.** A permanent failure of an external system must not stop execution for other
   users: after a few attempts the action goes to a separate failure queue with an alert, and
-  that user's queue waits for a decision.
+  that user's queue waits for a decision. An action with outcomes does not stop the user: its
+  failure is the outcome `failed` (below), and the queue goes on. A background action does not
+  stop the user either.
+* **Background actions** (`{"call": …, "detached": true}`, [format.md](format.md), section 7,
+  decision 11) are not waited for: the barrier of section 1, step 3 does not include them, and
+  the executor may run them from a separate queue, in any order relative to the user's other
+  actions, after the commit that produced them. After a few failed attempts such an action goes
+  to the failure queue with an alert, and the user goes on. Declare an action as a background
+  action only if no condition reads its effect (a condition computed before it ran sees the old
+  data) and no other action needs it to have run first — a notification, a log entry, an
+  analytics event. It may run twice like any action, so it takes the idempotency key too.
+* **Outcomes.** A `call` with a `token` has outcomes ([format.md](format.md), section 7,
+  decision 12). After performing the action, the host delivers exactly one event
+  `call:<action>:<outcome>` with that token: a declared outcome whenever the external system
+  answered, a negative answer included (`rejected` with the reason is an outcome, not a
+  failure), or `failed` when the action could not be performed (no answer, a server error,
+  retries exhausted). The outcome is an event of the user and goes through section 1: one at a
+  time per user, duplicate filtering with the `update_id` `call:<action>:<token>`, the atomic
+  write. Record it in the same transaction that marks the action executed (or record it first
+  when the action runs outside the transaction), so that a failure cannot lose it: a wait whose
+  outcome never comes stays in the snapshot — with `every` for good — and a user waiting for it
+  on a "please wait" message waits forever. Store the details of the outcome (the error of the
+  external system) with the event: conditions and message texts read them. A sequential action
+  with outcomes runs in order, so the user's next steps wait for it and its outcome follows
+  them; a background action with outcomes may answer at any time, between other steps of the
+  user, and the arrows of the message the user is on then handle it.
 * **Timer deadlines** are counted from the step's commit (store the time in the outbox), not
   from the moment the executor reaches `start_timer`.
 * **send** — sending a message to the user, "at least once". A resend after a failure is
@@ -139,10 +165,11 @@ A separate executor takes actions from the outbox in order and marks them execut
   and ignores a stale one. A missed or late cancellation therefore does not break correctness —
   provided the rule above is followed. A cancellation without that rule, executed after a newer
   start, removes the new timer, and the reminder is lost.
-* **Timer events come only from the scheduler.** The host builds events from Telegram updates
-  itself, with its own prefixes (`btn:`, `msg:`, `cmd:`, `payment:`), and never passes the
-  engine a `timer:…` event or a `token` field taken from user input (button payload, text,
-  deep-link parameter): reject a payload that would produce a `timer:…` name. A token is not a
+* **Timer events come only from the scheduler** and outcome events only from the executor. The
+  host builds events from Telegram updates itself, with its own prefixes (`btn:`, `msg:`,
+  `cmd:`, `payment:`), and never passes the engine a `timer:…` or `call:…` event or a `token`
+  field taken from user input (button payload, text, deep-link parameter): reject a payload
+  that would produce such a name. A token is not a
   secret: it equals the `seq` of a transition and is easy to guess; the engine checks that the
   token is current, not who sent the event. A forged firing is accepted and executes the timer
   arrow's actions, including `call`.
@@ -156,8 +183,11 @@ A separate executor takes actions from the outbox in order and marks them execut
   change: the timer's entry with the same token stays in `timers` until the user leaves the
   message, and leaving emits `cancel_timer` for it although the event was already delivered. A
   redelivery of the same event is accepted again and, with other condition values, makes a
-  transition; therefore keep the mark `timer:<name>:<token>` until the user's `seq` is greater
-  than the token (section 1, step 2). For the same reason `snapshot.timers` is not a list of
+  transition; therefore keep the mark `timer:<name>:<token>` while the user's snapshot still
+  holds the timer with that token (section 1, step 2) — not only until `seq` passes the token:
+  an arrow without a target (format.md, section 7, decision 13) on another event raises `seq`
+  and leaves the timer in place. A firing handled by an arrow without a target removes the
+  timer from the snapshot. For the same reason `snapshot.timers` is not a list of
   scheduled events: rebuilding the scheduler from it brings back timers that already fired. If
   a conditional reminder must not be lost, give the timer arrow a last variant without a
   condition.
@@ -178,7 +208,8 @@ A separate executor takes actions from the outbox in order and marks them execut
 To start a user over (a support command, "delete my data" while keeping the account), the `seq`
 counter must continue, not restart from zero. Use `restart` with the **latest committed**
 snapshot (read under the user's lock, section 1), not `start` without `seq`. `restart` cancels
-the old timers, clears the remembered places and the place to go back to, and continues `seq`,
+the old timers, clears the remembered places, the place to go back to and the waits for
+outcomes (outcomes of earlier actions are then ignored), and continues `seq`,
 so the tokens of new timers do not match the tokens of late old events, and the keys
 `user:seq:index` of new actions do not match keys of executed ones.
 
@@ -311,6 +342,9 @@ concurrently, with one shared `timeout`.
   entry into it; if the reminder matters, `restart` the affected users (section 4). Removing
   the old timers' events from the scheduler in advance is not required — like any cancellation
   under the rule of section 3, it is an optimisation.
+* Waits for outcomes are kept: a wait of an action that is removed or loses its outcomes in the
+  new version still accepts its outcome, which the arrows of the new version then handle (an
+  outcome without an arrow is ignored, its wait removed).
 * Renamed conditions and actions: a host built for the old version passes a condition under its
   old name — the engine ignores it as extra and answers `need` again. Deploy the host and the
   document together; `hello` does not report the document version.

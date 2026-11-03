@@ -33,6 +33,11 @@ def guardNames (c : Chart) (s : Snapshot) (ev : Event) : List String :=
     match ev with
     | .named e => dedup ((untilUnguarded (·.guard) (c.cands (c.enter c.root) e)).filterMap (·.guard))
     | .timer .. => []
+    | .outcome .. =>
+      -- an outcome without a wait chooses nothing there
+      if s.accepts ev then
+        dedup ((untilUnguarded (·.guard) (c.cands (c.enter c.root) ev.key)).filterMap (·.guard))
+      else []
   else if s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     dedup ((untilUnguarded (·.guard) (c.cands s.state ev.key)).filterMap (·.guard))
   else []
@@ -51,6 +56,7 @@ def stepJ (c : Chart) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) :
   let recovered := decide (s.state ∉ c.leafIds)
   let tok : Obj := match ev with
     | .timer _ t => [("token", .num t 0)]
+    | .outcome _ _ t => [("token", .num t 0)]
     | .named _ => []
   (s', .obj ([("event", .str ev.key)] ++ tok ++
     [("guards", .obj (gs.map fun p => (p.1, .bool p.2))),
@@ -88,8 +94,16 @@ def Gen.rnd (g : Gen) (n : Nat) : Nat × Gen :=
   let r := lcg g.r
   ((r >>> 33) % max n 1, { g with r := r })
 
+/-- The outcomes of action `call` that have an arrow somewhere in the chart, and `failed`. -/
+def outcomesOf (c : Chart) (call : String) : List String :=
+  "failed" :: c.events.filterMap fun e =>
+    if e.startsWith "call:" then
+      (splitOutcome (e.drop 5).toString).bind fun (n, o) => if n == call && o != "failed" then some o else none
+    else none
+
 /-- Choosing an event: the message's own events are 8 times as likely as global ones,
-timers fire with the current or a stale token, occasionally an unknown event. -/
+timers fire with the current or a stale token, a waited-for action reports an outcome (with the
+token of its wait or a wrong one), occasionally an unknown event. -/
 def Gen.pickEvent (g : Gen) : Event × Gen := Id.run do
   let (roll, g) := g.rnd 100
   if roll < 15 && !g.s.timers.isEmpty then
@@ -101,8 +115,16 @@ def Gen.pickEvent (g : Gen) : Event × Gen := Id.run do
     let (id, tok) := g.s.timers.getD i ("", 0)
     return (.timer id (if tok > 0 then tok - 1 else tok + 1), g)
   if roll < 23 then return (.named "unknown:event", g)
+  if roll < 38 && !g.s.pending.isEmpty then
+    let (i, g) := g.rnd g.s.pending.length
+    let (call, tok) := g.s.pending.getD i ("", 0)
+    let outs := outcomesOf g.c call
+    let (j, g) := g.rnd outs.length
+    let (wrong, g) := g.rnd 6
+    return (.outcome call (outs.getD j "failed") (if wrong == 0 then tok + 1 else tok), g)
   let L := g.s.state
-  let live := g.c.events.filter (fun e => !e.startsWith "timer:" && !(g.c.cands L e).isEmpty)
+  let live := g.c.events.filter (fun e =>
+    !e.startsWith "timer:" && !e.startsWith "call:" && !(g.c.cands L e).isEmpty)
   if live.isEmpty then return (.named "unknown:event", g)
   let weighted := live.flatMap fun e =>
     List.replicate (2 ^ (3 - min (depthOf g.c L e) 3)) e
@@ -145,6 +167,10 @@ inductive In where
   | timerNow (id : String)
   /-- A timer firing with a stale token. -/
   | timerStale (id : String) (token : Nat)
+  /-- Outcome `outcome` of the newest call of action `call` (the token of its newest wait). -/
+  | outcomeNow (call outcome : String) (guards : List (String × Bool) := [])
+  /-- Outcome `outcome` of action `call` with a given token. -/
+  | outcomeTok (call outcome : String) (token : Nat) (guards : List (String × Bool) := [])
 
 def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List In) :
     J × Snapshot × List (List Action) := Id.run do
@@ -165,6 +191,8 @@ def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List I
       | .ev n gs | .start n gs => (Event.named n, gs)
       | .timerNow id => (Event.timer id ((lookup s.timers id).getD 0), [])
       | .timerStale id t => (Event.timer id t, [])
+      | .outcomeNow c o gs => (Event.outcome c o (((s.pending.find? (·.1 == c)).map (·.2)).getD 0), gs)
+      | .outcomeTok c o t gs => (Event.outcome c o t, gs)
     let gs := pick (guardNames c s ev) given
     let a := (c.step s ev (envOf gs)).2
     let (s', j) := stepJ c s ev gs

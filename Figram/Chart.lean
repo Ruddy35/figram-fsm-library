@@ -50,6 +50,15 @@ that the behaviour is the same.
    as the place to go back to; a move between messages of one section keeps it. "Back" leads
    to that place, otherwise (none yet, or no longer in the chart) to its fallback target.
    Entering the bot (decisions 8 and 9) leaves no message and keeps the place.
+11. A background action (`detached`) is a flag for the host; it changes nothing in the machine.
+12. An action with outcomes records a wait (action, token of the step) in the snapshot; an
+   outcome event is accepted only with the token of a wait for its action, removes the wait and
+   is then matched like any event (bubbling, decision 1). Moves keep the waits; a new call of
+   the action replaces its wait unless every call is answered (`Wait.every`). In recovery an
+   outcome without a wait chooses no variant.
+13. A variant without a target (`Dest.stay`) performs its actions without a move (`stay`): no
+   exit, no entry, a handled timer firing is consumed. When entering the bot it leads to the
+   initial message.
 -/
 
 namespace Figram
@@ -74,6 +83,8 @@ inductive Dest where
   | history (sec : NodeId)
   /-- "Back to the previous section" (decision 10), otherwise `fallback`. -/
   | back (fallback : Dest)
+  /-- No move (decision 13). -/
+  | stay
   deriving DecidableEq, Repr
 
 /-- The target without "back": where a "back" leads when there is no place to go back to. -/
@@ -86,6 +97,7 @@ def Dest.histSec : Dest → Option NodeId
   | .node _ => none
   | .history s => some s
   | .back fb => fb.histSec
+  | .stay => none
 
 structure Branch where
   /-- The name of a condition written as text; none means "otherwise / always". -/
@@ -183,6 +195,7 @@ def resolve (c : Chart) (s : Snapshot) : Dest → NodeId
     match s.back with
     | some v => if v ∈ c.leafIds then v else c.resolve s fb
     | none => c.resolve s fb
+  | .stay => s.state
 
 /-- Decision 10: a move from the snapshot's message to `T` across a section boundary makes
 the message left the place to go back to. -/
@@ -207,37 +220,40 @@ def initActs (c : Chart) : List Action := c.entryActs (c.enter c.root)
 
 def start (c : Chart) : Snapshot × List Action := realize .fresh (c.enter c.root) c.initActs
 
-/-- The variant chosen for a named event at message `L` (bubbling as in `step`). A timer
-firing chooses nothing. -/
+/-- The variant chosen for a named event or an outcome at message `L` (bubbling as in `step`).
+A timer firing chooses nothing. -/
 def choose (c : Chart) (L : NodeId) (ev : Event) (env : HostEnv) : Option Branch :=
   match ev with
   | .timer .. => none
-  | .named e => (c.cands L e).find? (fun b => guardOK env b.guard)
+  | _ => (c.cands L ev.key).find? (fun b => guardOK env b.guard)
 
 /-- **Entering the bot with an event** (decision 9): the event is matched as if the user stood
 on the initial message, which is neither entered nor left. A chosen variant gives `pre`, its
-actions and the entry of its target; otherwise `pre` and the first-entry actions. -/
+actions and the entry of its target (without a target: the initial message); otherwise `pre`
+and the first-entry actions. An outcome is matched only if `s` waits for it, and removes its
+wait (decision 12). -/
 def enterBot (c : Chart) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
     Snapshot × List Action :=
-  match c.choose (c.enter c.root) ev env with
+  match (if s.accepts ev then c.choose (c.enter c.root) ev env else none) with
   | some b =>
-    let T := c.resolve s b.target
-    realize s T (pre ++ b.actions ++ c.entryActs T)
-  | none => realize s (c.enter c.root) (pre ++ c.initActs)
+    let T := c.resolve { s with state := c.enter c.root } b.target
+    realize (s.settle ev) T (pre ++ b.actions ++ c.entryActs T)
+  | none => realize (s.settle ev) (c.enter c.root) (pre ++ c.initActs)
 
 /-- The user's first entry with a first event, the counter continued from `n`. -/
 def startWith (c : Chart) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  c.enterBot ⟨"", [], [], n, none⟩ [] ev env
+  c.enterBot ⟨"", [], [], n, none, []⟩ [] ev env
 
 /-- **The reference semantics of the designer's chart.** A snapshot whose message is no longer
-in the chart enters the bot again with the event (decisions 8 and 9). -/
+in the chart enters the bot again with the event (decisions 8 and 9). An accepted outcome removes
+its wait (decision 12); a variant without a target acts without a move (decision 13). -/
 def step (c : Chart) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   if s.state ∉ c.leafIds then c.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
   else if !(s.accepts ev && ownsTimer (c.exitActs s.state) ev) then (s, [])
   else
     match (c.cands s.state ev.key).find? (fun b => guardOK env b.guard) with
-    | none => (s, [])
-    | some b => c.fire s b
+    | none => (s.settle ev, [])
+    | some b => if b.target = .stay then stay (s.settle ev) ev b.actions else c.fire (s.settle ev) b
 
 end Chart
 end Figram

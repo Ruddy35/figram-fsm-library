@@ -72,7 +72,7 @@ theorem mapRows_unowned_timer (m : Machine) (f : Nat → Row → Row) (s : Snaps
 
 def callNames (m : Machine) : List String :=
   let names := ((branches m).flatMap (·.actions)).filterMap fun
-    | .call n => some n
+    | .call n .. => some n
     | _ => none
   names.foldl (fun acc n => if acc.contains n then acc else acc ++ [n]) []
 
@@ -86,7 +86,7 @@ def mutants (m : Machine) : List String :=
   (callNames m).map (s!"drop-call:{·}")
   ++ (bs.filterMap fun (b, k) => match b.target with
       | .node n => if m.states.any (· != n) then some s!"redirect:{k}" else none
-      | .resume _ | .back _ => some s!"redirect:{k}")
+      | .resume _ | .back _ | .stay => some s!"redirect:{k}")
   ++ (bs.filterMap fun (b, k) => if b.actions.length ≥ 2 && b.actions.reverse != b.actions then
         some s!"reverse-actions:{k}" else none)
   ++ (bs.filterMap fun (b, k) => if b.guard.isSome then some s!"drop-guard:{k}" else none)
@@ -102,11 +102,11 @@ def mutants (m : Machine) : List String :=
 def apply (m : Machine) (spec : String) : Option Machine :=
   match spec.splitOn ":" with
   | ["drop-call", n] => some (mapBranches m fun _ b =>
-      { b with actions := b.actions.filter (· != .call n) })
+      { b with actions := b.actions.filter fun | .call n' .. => n' != n | _ => true })
   | ["redirect", k] => k.toNat?.map fun k => mapBranches m fun i b =>
       if i != k then b else
       let other := (m.states.find? fun s => match b.target with
-        | .node n => s != n | .resume _ | .back _ => true).getD m.initial
+        | .node n => s != n | .resume _ | .back _ | .stay => true).getD m.initial
       { b with target := .node other }
   | ["reverse-actions", k] => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with actions := b.actions.reverse } else b

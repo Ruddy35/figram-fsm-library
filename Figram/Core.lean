@@ -4,19 +4,21 @@
 This is everything the engine executes. The building blocks:
 
 * **state** (`NodeId`) — the message the user is on;
-* **event** (`Event`) — a button press, a text, a command or a timer firing;
+* **event** (`Event`) — a button press, a text, a command, a timer firing or the outcome of an
+  action;
 * **arrow** (`Row`) with ordered variants (`FBranch`): the first variant whose
   condition holds wins;
 * **condition** — the name of a developer's condition; the host computes its value;
 * **action** (`Action`).
 
 The target of a variant is a message, "resume the section where the user left
-off" (`Target.resume`) or "back to the previous section" (`Target.back`): the place
-is read from the snapshot during the step.
+off" (`Target.resume`), "back to the previous section" (`Target.back`) — the place
+is read from the snapshot during the step — or none (`Target.stay`): the variant's actions
+without a move.
 
 The user snapshot (`Snapshot`) holds the current message, the remembered places
-of sections, the active timers with their tokens, the step counter and the place to
-go back to.
+of sections, the active timers with their tokens, the step counter, the place to
+go back to and the waits for the outcomes of actions.
 
 A step is the pure function `Machine.step`. Effects are only returned to the host.
 
@@ -67,21 +69,50 @@ def erase {α β} [DecidableEq α] (t : List (α × β)) (k : α) : List (α × 
 
 def timerEvent (id : String) : EventId := "timer:" ++ id
 
+/-- The event of outcome `o` of action `c`: `call:<c>:<o>`. -/
+def outcomeEvent (c o : String) : EventId := "call:" ++ c ++ ":" ++ o
+
+/-- `<c>:<o>` split at its last `:` into the action and the outcome, both non-empty (an outcome
+name contains no `:`, an action name may). -/
+def splitOutcome (s : String) : Option (String × String) :=
+  let parts := s.splitOn ":"
+  match parts.getLast? with
+  | none => none
+  | some o =>
+    let c := ":".intercalate parts.dropLast
+    if parts.length < 2 || c.isEmpty || o.isEmpty then none else some (c, o)
+
 inductive Event where
   | named (name : EventId)
   /-- A firing of timer `id` started with token `token`. -/
   | timer (id : String) (token : Nat)
+  /-- Outcome `outcome` of action `call` performed with token `token`. -/
+  | outcome (call : String) (outcome : String) (token : Nat)
   deriving DecidableEq, Repr
 
 def Event.key : Event → EventId
   | .named n => n
   | .timer id _ => timerEvent id
+  | .outcome c o _ => outcomeEvent c o
+
+/-- Whether a step waits for the outcome of an action. -/
+inductive Wait where
+  /-- The action has no outcomes. -/
+  | free
+  /-- Only the latest call of the action is answered: a new call replaces the wait. -/
+  | latest
+  /-- Every call of the action is answered once. -/
+  | every
+  deriving DecidableEq, Repr
 
 inductive Action where
   /-- Send a message. -/
   | send (n : NodeId)
-  /-- Call the developer's code. -/
-  | call (name : String)
+  /-- Call the developer's code. `detached`: a background action, which the host may run later
+  and in any order (it does not affect the machine). An action with outcomes (`wait ≠ .free`)
+  gets the token of the step, which records a wait in the snapshot; the engine assigns the
+  token when it executes the step. -/
+  | call (name : String) (detached : Bool) (wait : Wait) (token : Nat)
   /-- Start a timer. The engine assigns the token when it executes the step. -/
   | startTimer (id : String) (ms : Nat) (token : Nat)
   | cancelTimer (id : String)
@@ -105,25 +136,48 @@ structure Snapshot where
   /-- The place to go back to: the message the user left when they last crossed a section
   boundary (`Machine.markBack`). -/
   back : Option NodeId
+  /-- Waits for outcomes: action → token of the call, the newest first. -/
+  pending : List (String × Nat)
   deriving DecidableEq, Repr
 
-def Snapshot.fresh : Snapshot := ⟨"", [], [], 0, none⟩
+def Snapshot.fresh : Snapshot := ⟨"", [], [], 0, none, []⟩
 
 /-- The snapshot with another place to go back to. -/
 def Snapshot.withBack (s : Snapshot) (b : Option NodeId) : Snapshot := { s with back := b }
 
-/-- Whether the event is accepted: a timer firing only with the current token. -/
+/-- Whether the event is accepted: a timer firing only with the current token, an outcome only
+with the token of a wait for its action. -/
 def Snapshot.accepts (s : Snapshot) : Event → Bool
   | .named _ => true
   | .timer id tok => decide (lookup s.timers id = some tok)
+  | .outcome c _ tok => decide ((c, tok) ∈ s.pending)
+
+/-- An outcome removes its wait: each wait accepts one outcome. -/
+def Snapshot.settle (s : Snapshot) : Event → Snapshot
+  | .outcome c _ tok => { s with pending := s.pending.filter (fun p => decide (p ≠ (c, tok))) }
+  | _ => s
+
+/-- A timer firing handled without a move consumes the timer. -/
+def Snapshot.consume (s : Snapshot) : Event → Snapshot
+  | .timer id _ => { s with timers := erase s.timers id }
+  | _ => s
+
+/-- The waits after action `n` with token `tok` is performed. -/
+def addWait (pend : List (String × Nat)) (n : String) (tok : Nat) : Wait → List (String × Nat)
+  | .free => pend
+  | .latest => assign pend n tok
+  | .every => (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok)))
 
 /-- One step of executing actions: internal ones are applied to the snapshot,
-the others go to the host; timers get their token. -/
+the others go to the host; timers and actions get their token, actions with outcomes record
+their wait. -/
 def realizeOne (tok : Nat) (acc : Snapshot × List Action) : Action → Snapshot × List Action
   | .remember sec n => ({ acc.1 with resume := assign acc.1.resume sec n }, acc.2)
   | .startTimer id ms _ =>
     ({ acc.1 with timers := assign acc.1.timers id tok }, acc.2 ++ [.startTimer id ms tok])
   | .cancelTimer id => ({ acc.1 with timers := erase acc.1.timers id }, acc.2 ++ [.cancelTimer id])
+  | .call n d w _ =>
+    ({ acc.1 with pending := addWait acc.1.pending n tok w }, acc.2 ++ [.call n d w tok])
   | a => (acc.1, acc.2 ++ [a])
 
 /-- Cancel the snapshot's timers that `exit` does not cancel (leftovers of a previous
@@ -133,8 +187,8 @@ def staleCancels (exit : List Action) (s : Snapshot) : List Action :=
 
 /-- A firing of timer `id` belongs to the message whose exit cancels that timer. -/
 def ownsTimer (exit : List Action) : Event → Bool
-  | .named _ => true
   | .timer id _ => exit.contains (.cancelTimer id)
+  | _ => true
 
 /-- A transition to `T` with actions `acts`: the new snapshot and the actions for the host.
 This is the specification: every cancelled timer is a pass over the timers and every action a
@@ -161,6 +215,11 @@ def realizeAfter (s : Snapshot) (T : NodeId) (pre acts : List Action) : Snapshot
   if pre = s.timers.map (fun p => .cancelTimer p.1) then realizeClear s T pre acts
   else realize s T (pre ++ acts)
 
+/-- **A variant without a target**: its actions without a move — the message is neither left
+nor entered, the places stay; a timer firing handled this way is consumed. -/
+def stay (s : Snapshot) (ev : Event) (acts : List Action) : Snapshot × List Action :=
+  realize (s.consume ev) s.state acts
+
 /-! ## Machine -/
 
 /-- The values of the developer's conditions, supplied by the host. -/
@@ -185,6 +244,8 @@ inductive Target where
   /-- "Back to the previous section": the place to go back to (`Snapshot.back`) if it is a
   message of the machine, otherwise `fallback`. -/
   | back (fallback : Target)
+  /-- No move: the variant's actions on the current message (`stay`). -/
+  | stay
   deriving DecidableEq, Repr
 
 /-- The target without "back": where a "back" leads when there is no place to go back to. -/
@@ -249,6 +310,7 @@ def resolve (m : Machine) (s : Snapshot) : Target → NodeId
     match s.back with
     | some v => if v ∈ m.states then v else m.resolve s fb
     | none => m.resolve s fb
+  | .stay => s.state
 
 def entryOf (m : Machine) (n : NodeId) : List Action := (lookup m.entry n).getD []
 def exitOf (m : Machine) (n : NodeId) : List Action := (lookup m.exit n).getD []
@@ -279,46 +341,50 @@ def recover (m : Machine) (s : Snapshot) : Snapshot × List Action :=
 /-- The user's first entry. -/
 def start (m : Machine) : Snapshot × List Action := realize .fresh m.initial m.initActions
 
-/-- The variant chosen for a named event at message `n`, by the arrows of `n` (with those of
-its sections). A timer firing chooses nothing: it belongs to a message the user entered. -/
+/-- The variant chosen for a named event or an outcome at message `n`, by the arrows of `n`
+(with those of its sections). A timer firing chooses nothing: it belongs to a message the user
+entered. -/
 def choose (m : Machine) (n : NodeId) (ev : Event) (env : HostEnv) : Option FBranch :=
   match ev with
   | .timer .. => none
-  | .named e =>
-    match m.row n e with
+  | _ =>
+    match m.row n ev.key with
     | none => none
     | some r => r.branches.find? (fun b => guardOK env b.guard)
 
 /-- **Entering the bot with an event.** The event is matched as if the user stood on the
 initial message, which is neither entered nor left: if a variant is chosen, `pre`, the
-variant's actions and the entry of its target; otherwise `pre` and the first-entry actions.
-`s` gives the counter, the remembered places and the place to go back to, which entering
-the bot does not change (the user leaves no message of the machine). -/
+variant's actions and the entry of its target (a variant without a target leads to the initial
+message); otherwise `pre` and the first-entry actions. An outcome without a wait in `s` chooses
+nothing; an accepted one removes its wait. `s` gives the counter, the remembered places, the
+place to go back to and the waits, which entering the bot does not change otherwise (the user
+leaves no message of the machine). -/
 def enterBot (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv) :
     Snapshot × List Action :=
-  match m.choose m.initial ev env with
+  match (if s.accepts ev then m.choose m.initial ev env else none) with
   | some b =>
-    let T := m.resolve s b.target
-    realizeAfter s T pre (b.actions ++ m.entryOf T)
-  | none => realizeAfter s m.initial pre m.initActions
+    let T := m.resolve { s with state := m.initial } b.target
+    realizeAfter (s.settle ev) T pre (b.actions ++ m.entryOf T)
+  | none => realizeAfter (s.settle ev) m.initial pre m.initActions
 
 /-- The user's first entry with a first event, the counter continued from `n`. -/
 def startWith (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
-  m.enterBot ⟨"", [], [], n, none⟩ [] ev env
+  m.enterBot ⟨"", [], [], n, none, []⟩ [] ev env
 
 /-- **A step of the machine.** If the snapshot's message no longer exists, the user enters the
 bot again with the event (`enterBot`), the timers of the old place cancelled and the remembered
-places kept. -/
+places kept. An accepted outcome removes its wait, also when no variant is chosen. A variant
+without a target acts without a move (`stay`). -/
 def step (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) : Snapshot × List Action :=
   if s.state ∉ m.states then m.enterBot s (s.timers.map (fun p => .cancelTimer p.1)) ev env
   else if !(s.accepts ev && ownsTimer (m.exitOf s.state) ev) then (s, [])
   else
     match m.row s.state ev.key with
-    | none => (s, [])
+    | none => (s.settle ev, [])
     | some r =>
       match r.branches.find? (fun b => guardOK env b.guard) with
-      | none => (s, [])
-      | some b => m.fire s b
+      | none => (s.settle ev, [])
+      | some b => if b.target = .stay then stay (s.settle ev) ev b.actions else m.fire (s.settle ev) b
 
 /-- The conditions of the arrow of message `n` for the event with key `e`: those of the
 variants up to and including the first one without a condition. Later variants cannot be
@@ -358,6 +424,7 @@ def targetOK (m : Machine) : Target → Bool
   | .node n => decide (n ∈ m.states)
   | .resume sec => m.resumes.any (fun r => decide (r.sec = sec))
   | .back fb => m.targetOK fb
+  | .stay => true
 
 /-- The export check: all targets exist. -/
 def wf (m : Machine) : Bool :=

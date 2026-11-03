@@ -69,7 +69,7 @@ def lintCore (c : Chart) : List String := Id.run do
         if !sec s then
           errs := errs.push
             s!"arrow `{shown t.src}` → `{shown s}` with `resume`: not a section"
-      | .back _ => pure ()
+      | .back _ | .stay => pure ()
   let leaves := keySet c.leafIds
   for tm in c.timers do
     if !leaves.contains tm.node then
@@ -135,11 +135,13 @@ def lintWarnings (c : Chart) : List String := Id.run do
   let owns (L : NodeId) (e : EventId) : Bool := match timerOfEvent e with
     | none => true
     | some x => (m.exitOf L).contains (.cancelTimer x)
-  -- "back" leads to a message the user has already been on, or to its fallback
-  let target (b : FBranch) : NodeId := match b.target.base with
+  -- "back" leads to a message the user has already been on, or to its fallback; a variant
+  -- without a target stays on the message
+  let target (L : NodeId) (b : FBranch) : NodeId := match b.target.base with
     | .node n => n
     | .resume sec => ((m.resumes.find? (·.sec == sec)).map (·.default)).getD sec
     | .back _ => m.initial
+    | .stay => L
   let mut seen : Tab Unit := (Tab.empty m.states.length).insert m.initial ()
   let mut queue : Array NodeId := #[m.initial]
   let mut i := 0
@@ -156,7 +158,7 @@ def lintWarnings (c : Chart) : List String := Id.run do
               | some g => gs.contains g
               | none => false
             if let some g := b.guard then gs := g :: gs
-            let T := target b
+            let T := target L b
             unless dead || seen.contains T do
               seen := seen.insert T ()
               queue := queue.push T
