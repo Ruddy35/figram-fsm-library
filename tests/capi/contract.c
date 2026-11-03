@@ -75,6 +75,11 @@ static void* init_worker(void* arg) {
   pthread_barrier_wait(&bar);
   long rc = figram_init();
   void* m = figram_load_doc(g_doc);
+  /* Both threads make their first request at once, after both loads: the memory a load frees
+     is then reused by the other thread only after this barrier, which TSan sees (the Lean
+     allocator is not instrumented, and a reuse during the other thread's load was reported as a
+     race between two unrelated objects at the same address). */
+  pthread_barrier_wait(&bar);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
   long ok = rc == 0 && m && r && strstr(r, "\"protocol\":3");
   if (r) figram_free(r);
