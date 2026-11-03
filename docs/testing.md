@@ -229,6 +229,9 @@ the repository and exits with status 0 when they agree:
 * the error codes in [format.md](format.md) equal those produced by the engine
   (`ErrCode.name` in `Figram/Engine.lean`), the C shim and the protocol validators, and every
   request field of every operation is documented;
+* the protocol version of the engine (`protocolVersion`) is the one stated by
+  [format.md](format.md), `schemas/snapshot.schema.json`, `ffi/figram.h` and the protocol
+  validators of the Python and Go clients;
 * the CLI commands documented in the README equal the commands of the usage text in `Main.lean`;
 * the functions documented in [embedding.md](embedding.md) equal those declared in
   `ffi/figram.h`, which equal those exported by `ffi/figram_ffi.c`;
