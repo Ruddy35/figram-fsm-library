@@ -148,6 +148,17 @@ CASES += [
         "S": {"initial": "s1", "children": {"s1": {"on": {"btn:a": [{"to": "a"}]}}}}}}), []),
     ("outcome_plain_action_not_checked_ok", d3({"initial": "a", "children": {
         "a": {"on": {"btn:x": [{"do": ["k"]}, ]}}}}), []),
+    # a timer arrow without a target on a section fires only on the messages that own the timer
+    ("outcome_section_timer_stay_owner_only_ok", d3({"initial": "h", "on": {"timer:t": [{"do": ["chk"]}]},
+                                                    "children": {
+        "h": {"timers": {"t": 10}, "on": {"btn:g": [{"to": "g"}], "call:chk:yes": [{"to": "g"}],
+                                          "call:chk:no": [{"to": "g"}], "call:chk:failed": [{"to": "g"}]}},
+        "g": {"on": {"btn:h": [{"to": "h"}]}}}}), []),
+    ("outcome_section_timer_stay_owner_checked", d3({"initial": "h", "on": {"timer:t": [{"do": ["chk"]}]},
+                                                    "children": {
+        "h": {"timers": {"t": 10}, "on": {"btn:g": [{"to": "g"}], "call:chk:yes": [{"to": "g"}]}},
+        "g": {"on": {"btn:h": [{"to": "h"}]}}}}),
+     ["outcome `no` of action `chk` has no arrow on `h`: the variant of `bot` on `timer:t`"], ["no arrow on `g`"]),
 ]
 
 # FC-07: rejected documents with the root section in the messages

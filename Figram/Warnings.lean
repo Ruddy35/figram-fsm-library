@@ -15,7 +15,7 @@ exits with status 0.
 namespace Figram.Format
 
 /-- A variant with an action with outcomes leads to a message (or, without a target, stays on
-the messages under its arrow) where an outcome of that action, `failed` included, has no arrow
+the messages under its arrow where it fires) where an outcome of that action, `failed` included, has no arrow
 on the message or its sections: the outcome would be ignored, and a user waiting there would
 wait for good. Variants with "resume" or "back" are not checked (their target depends on the
 snapshot). -/
@@ -33,7 +33,11 @@ def Doc.outcomeWarnings (d : Doc) : List String := Id.run do
             let os := ((lookup d.calls n).map (·.outcomes)).getD [] ++ ["failed"]
             let waiting : List NodeId := match b.target with
               | .node x => [ix.enter x]
-              | .stay => c.leafIds.filter fun l => (ix.anc l).contains t.src
+              -- the messages under the arrow where it fires: for a timer, only those that own it
+              | .stay => c.leafIds.filter fun l => (ix.anc l).contains t.src &&
+                  match Chart.timerOfEvent t.event with
+                  | some x => (m.exitOf l).contains (.cancelTimer x)
+                  | none => true
               | _ => []
             for M in waiting do
               for o in os do
