@@ -42,6 +42,29 @@ def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.
     table := table.push (s, out.toList)
   return { m with table := table.toList }
 
+/-- Change the variants, given the message whose arrows they are and their running number. -/
+def mapBranchesAt (m : Machine) (f : NodeId → Nat → FBranch → FBranch) : Machine := Id.run do
+  let mut k := 0
+  let mut table : Array (NodeId × List Row) := #[]
+  for (s, rs) in m.table do
+    let mut out : Array Row := #[]
+    for r in rs do
+      let mut bs : Array FBranch := #[]
+      for b in r.branches do
+        bs := bs.push (f s k b)
+        k := k + 1
+      out := out.push { r with branches := bs.toList }
+    table := table.push (s, out.toList)
+  return { m with table := table.toList }
+
+/-- Change every call of action `n` (in the variants and in the first-entry actions). -/
+def mapCalls (m : Machine) (n : String) (f : Bool → Wait → Bool × Wait) : Machine :=
+  let g : Action → Action := fun
+    | .call n' d w t => if n' == n then .call n' (f d w).1 (f d w).2 t else .call n' d w t
+    | a => a
+  { mapBranches m (fun _ b => { b with actions := b.actions.map g }) with
+    initActions := m.initActions.map g }
+
 /-- Arrow mutations change neither the messages nor the exit actions. -/
 theorem mapBranches_states (m : Machine) (f : Nat → FBranch → FBranch) :
     (mapBranches m f).states = m.states := rfl
@@ -76,6 +99,13 @@ def callNames (m : Machine) : List String :=
     | _ => none
   names.foldl (fun acc n => if acc.contains n then acc else acc ++ [n]) []
 
+/-- The names of the actions with outcomes. -/
+def waitNames (m : Machine) : List String :=
+  let names := ((branches m).flatMap (·.actions) ++ m.initActions).filterMap fun
+    | .call n _ w _ => if w != .free then some n else none
+    | _ => none
+  names.foldl (fun acc n => if acc.contains n then acc else acc ++ [n]) []
+
 /-- The actions visible to the host (the internal "remember the place" is not). -/
 def visible (as : List Action) : List Action :=
   as.filter fun | .remember .. => false | _ => true
@@ -98,6 +128,12 @@ def mutants (m : Machine) : List String :=
   ++ (if m.resumes.any (!·.members.isEmpty) then ["resume-default"] else [])
   ++ (if m.entry.any (·.2.any fun | .startTimer .. => true | _ => false) then ["drop-timer-start"] else [])
   ++ (if m.zone.any (fun z => m.zone.any (·.2 != z.2)) then ["one-zone"] else [])
+  -- actions with outcomes and background actions: the flag, the wait and its kind
+  ++ (callNames m).map (s!"detach-flip:{·}")
+  ++ (waitNames m).map (s!"wait-free:{·}")
+  ++ (waitNames m).map (s!"wait-swap:{·}")
+  -- a variant without a target that leaves and enters its message again
+  ++ (bs.filterMap fun (b, k) => if b.target == .stay then some s!"stay-reenter:{k}" else none)
 
 def apply (m : Machine) (spec : String) : Option Machine :=
   match spec.splitOn ":" with
@@ -123,6 +159,14 @@ def apply (m : Machine) (spec : String) : Option Machine :=
   | ["drop-timer-start"] => some { m with entry := m.entry.map fun e =>
       (e.1, e.2.filter fun | .startTimer .. => false | _ => true) }
   | ["one-zone"] => some { m with zone := m.zone.map fun e => (e.1, none) }
+  | ["detach-flip", n] => some (mapCalls m n fun d w => (!d, w))
+  | ["wait-free", n] => some (mapCalls m n fun d _ => (d, .free))
+  | ["wait-swap", n] => some (mapCalls m n fun d w => (d, match w with
+      | .latest => .every
+      | .every => .latest
+      | .free => .free))
+  | ["stay-reenter", k] => k.toNat?.map fun k => mapBranchesAt m fun s i b =>
+      if i == k && b.target == .stay then { b with target := .node s } else b
   | _ => none
 
 end Figram.Mutate

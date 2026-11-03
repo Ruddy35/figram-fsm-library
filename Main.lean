@@ -10,8 +10,9 @@ import Figram.RandomDoc
   to stderr with the prefix `warning:`, exit status 0;
 * `figram fmt <bot.json>` — the canonical form;
 * `figram stats <bot.json>` — the size of the compiled machine;
-* `figram trace <bot.json> <count> <length> <seed>` — random reference
-  scenarios (JSONL); the coverage of arrow variants goes to stderr;
+* `figram trace <bot.json> <count> <length> <seed> [--directed]` — random reference
+  scenarios (JSONL); with `--directed`, also the shortest scenarios a search finds for the arrow
+  variants the random ones missed; the coverage of arrow variants goes to stderr;
 * `figram random <seed> <messages>` — a random valid document;
 * `figram golden <dir>` — the fixed scenarios and their documents;
 * `figram json` — parse the lines of stdin with the text layer (for tests).
@@ -23,7 +24,8 @@ open Figram Figram.Format
 
 def usage : String :=
   "usage: figram example | check <bot.json> | fmt <bot.json> | stats <bot.json>\n" ++
-  "       | trace <bot.json> <count> <length> <seed> | random <seed> <messages> | golden <dir>"
+  "       | trace <bot.json> <count> <length> <seed> [--directed] | random <seed> <messages>\n" ++
+  "       | golden <dir>"
 
 def readDoc (path : String) : IO Doc := do
   let txt ← IO.FS.readFile path
@@ -64,6 +66,26 @@ partial def jsonLines (data : ByteArray) (out : IO.FS.Stream) (start : Nat) : IO
   out.putStr (reply ++ "\n")
   jsonLines data out (stop + 1)
 
+/-- `figram trace`: `count` random scenarios of length `len`; with `directed`, also the shortest
+scenarios found for the arrow variants the random ones missed (`Trace.directed`). -/
+def trace (p count len seed : String) (directed : Bool) : IO Unit := do
+  let c ← checked (← readDoc p)
+  let count ← posArg "count" count
+  let len ← posArg "length" len
+  let seed ← natArg "seed" seed
+  let mut covered : List String := []
+  for i in List.range count do
+    let (j, cov) := Trace.random c len (seed + i * 7919) covered
+    IO.println (renderCompact j)
+    covered := cov
+  if directed then
+    let (extra, all) := Trace.directed c covered
+    for j in extra do
+      IO.println (renderCompact j)
+    IO.eprintln s!"directed scenarios: {extra.length}"
+    covered := all
+  IO.eprintln s!"arrow variants covered: {covered.length} of {Trace.totalBranches c}"
+
 def run (args : List String) : IO Unit := do
   match args with
   | ["example"] => IO.println (print (encode Examples.pizzaDoc))
@@ -86,17 +108,8 @@ def run (args : List String) : IO Unit := do
     IO.println (renderCompact (.obj [("states", .num m.states.length 0), ("rows", .num m.rows.length 0),
       ("branches", .num branches 0), ("resumes", .num m.resumes.length 0),
       ("actions", .num actions 0)]))
-  | ["trace", p, count, len, seed] =>
-    let c ← checked (← readDoc p)
-    let count ← posArg "count" count
-    let len ← posArg "length" len
-    let seed ← natArg "seed" seed
-    let mut covered : List String := []
-    for i in List.range count do
-      let (j, cov) := Trace.random c len (seed + i * 7919)
-      IO.println (renderCompact j)
-      covered := cov.foldl (fun acc x => if acc.contains x then acc else x :: acc) covered
-    IO.eprintln s!"arrow variants covered: {covered.length} of {Trace.totalBranches c}"
+  | ["trace", p, count, len, seed] => trace p count len seed false
+  | ["trace", p, count, len, seed, "--directed"] => trace p count len seed true
   | ["random", seed, n] =>
     let d := RandomDoc.doc (← natArg "seed" seed) (← posArg "messages" n)
     let errs := d.check

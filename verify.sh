@@ -180,7 +180,7 @@ echo "ok ($(cat "$T/golden.out"))"
 
 step "Engine conformance: golden and random scenarios"
 for d in pizza features; do
-  $F trace examples/$d.bot.json 200 40 7 > "$T/$d.jsonl" 2> "$T/$d.cov"
+  $F trace examples/$d.bot.json 200 40 7 --directed > "$T/$d.jsonl" 2> "$T/$d.cov"
   cat "$T/$d.cov"
   expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "coverage $d"
 done

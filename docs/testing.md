@@ -45,8 +45,11 @@ Steps, in order:
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
 6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (26 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
-7. **Conformance** — `figram trace` generates 200 random reference scenarios of length 40 for
-   each example document and must cover every arrow variant; `tests/engine/conformance.py`
+7. **Conformance** — `figram trace … --directed` generates 200 random reference scenarios of
+   length 40 for each example document (the choice of events and conditions is guided towards
+   the variants not covered yet) and then, for the variants they missed, the shortest scenarios a
+   breadth-first search over the reachable places finds; together they must cover every arrow
+   variant; `tests/engine/conformance.py`
    replays the golden and the random scenarios against `figram-engine` and requires zero
    mismatches. The reference scenarios come from the proved chart semantics, not from the
    engine.
