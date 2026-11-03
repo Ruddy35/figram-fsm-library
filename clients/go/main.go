@@ -426,10 +426,13 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		if !ok || len(need) == 0 {
 			return "", fmt.Errorf("need: %v", rest["need"])
 		}
+		seen := map[string]bool{}
 		for _, n := range need {
-			if !nameOK(n) {
+			s, _ := n.(string)
+			if !nameOK(n) || seen[s] {
 				return "", fmt.Errorf("need: %v", n)
 			}
+			seen[s] = true
 		}
 		return "need", nil
 	}

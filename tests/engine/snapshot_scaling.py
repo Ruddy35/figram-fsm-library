@@ -1,9 +1,10 @@
 """The time of one request grows linearly with the size of the snapshot.
 
-A host may hand the engine a snapshot with very many timers or remembered places (a corrupted
-or forged row): leaving a message, recovery (with and without a variant for the event at the
-initial message) and `restart` cancel every timer of the snapshot, and entering a message
-remembers its place among all the remembered places. One request is measured at two sizes, N
+A host may hand the engine a snapshot with very many timers, remembered places or waits (a
+corrupted or forged row): leaving a message, recovery (with and without a variant for the event at the
+initial message) and `restart` cancel every timer of the snapshot, entering a message
+remembers its place among all the remembered places, an outcome removes its wait among all the
+waits, and a call of an action with outcomes adds or replaces its wait among them. One request is measured at two sizes, N
 and 4·N entries; the result of the larger one must cancel every timer of the snapshot and keep
 every remembered place (a fast but wrong engine does not pass). Linear time gives a ratio of about 4; the check requires at most 8 (quadratic
 time gives about 16) and at most 3 s for the larger request.
@@ -34,6 +35,11 @@ def timers(n):
     return {f"t{i}": 1 for i in range(n)}
 
 
+def waits(n, last=None):
+    """n waits of other actions (and `last`, a wait of an action of the document)."""
+    return [{"call": f"w{i}", "token": 1} for i in range(n)] + ([last] if last else [])
+
+
 CASES = [
     # what, request for n entries
     ("leave a message: cancel all timers",
@@ -50,6 +56,17 @@ CASES = [
                 "event": "timer:t0", "token": 1}),
     ("restart: cancel all timers",
      lambda n: {"op": "restart", "snapshot": {"at": "item", "timers": timers(n), "seq": 1}}),
+    ("an outcome: remove its wait among all waits",
+     lambda n: {"op": "step", "snapshot": {"at": "item", "seq": 1,
+                                           "pending": waits(n, {"call": "check_stock", "token": 1})},
+                "event": "call:check_stock:yes", "token": 1}),
+    ("a call answered at its latest call: replace its wait among all waits",
+     lambda n: {"op": "step", "snapshot": {"at": "item", "seq": 1,
+                                           "pending": waits(n, {"call": "check_stock", "token": 1})},
+                "event": "btn:check"}),
+    ("a call with every: add a wait among all waits",
+     lambda n: {"op": "step", "snapshot": {"at": "item", "seq": 1, "pending": waits(n)},
+                "event": "btn:ping"}),
     ("enter a message: remember the place among all places",
      lambda n: {"op": "step", "snapshot": {"at": "home", "seq": 1,
                                            "resume": {f"s{i}": "m" for i in range(n)}},
@@ -89,6 +106,13 @@ def wrong(req, reply):
     resume = got.get("resume", {})
     if any(resume.get(k) != v for k, v in snap.get("resume", {}).items()):
         return "a remembered place is lost"
+    # every wait of another action stays; the answered or replaced one is gone
+    pend = {(w["call"], w["token"]) for w in got.get("pending", [])}
+    others = [(w["call"], w["token"]) for w in snap.get("pending", []) if w["call"].startswith("w")]
+    if any(w not in pend for w in others):
+        return "a wait of another action is lost"
+    if any(w["call"] == "check_stock" and w["token"] == 1 for w in got.get("pending", [])):
+        return "the answered or replaced wait is still there"
     return None
 
 

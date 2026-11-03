@@ -593,6 +593,8 @@ def run_raw(section, args, cases, final_newline=True):
 # (reply, op, accepted?): the same rows as TestFixCheckReplyProtocolChanges in clients/go.
 R = '{"id":5,"snapshot":%s,"actions":%s}'
 VALIDATOR = [
+    ('{"id":5,"protocol":3,"states":-1}', "hello", False),
+    ('{"id":5,"protocol":3,"states":18446744073709551616}', "hello", False),
     ('{"id":5,"protocol":3,"states":8}', "hello", True),
     ('{"id":5,"protocol":3,"states":8,"mutant":"drop-call:ping"}', "hello", True),
     ('{"id":5,"protocol":2,"states":8}', "hello", False),

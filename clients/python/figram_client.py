@@ -147,7 +147,8 @@ def _check_hello(resp: dict) -> None:
     # "mutant" — only from the corrupted test engine (FIGRAM_ALLOW_MUTANTS).
     if not {"protocol", "states"} <= keys <= {"protocol", "states", "mutant"}:
         raise ProtocolError(f"hello reply: fields {sorted(keys)}")
-    if type(resp["protocol"]) is not int or type(resp["states"]) is not int:
+    if type(resp["protocol"]) is not int or type(resp["states"]) is not int \
+            or not 0 <= resp["states"] <= MAX_INT:
         raise ProtocolError(f"hello reply: {resp!r}")
     if "mutant" in resp and type(resp["mutant"]) is not str:
         raise ProtocolError(f"hello reply: mutant {resp['mutant']!r}")
@@ -800,10 +801,13 @@ class Engine:
         """Deliver the outcome of an action with outcomes: the step with the event
         `call:<action>:<outcome>` and the `token` of its `call` action
         (docs/format.md, section 7, decision 12; docs/host-contract.md, section 2).
-        `outcome` is a declared outcome of the action or "failed". The engine accepts
+        `outcome` is a declared outcome of the action or "failed" (the engine also
+        accepts an undeclared name, which only removes the wait). The engine accepts
         it only while `snapshot["pending"]` holds a wait for the action with this
-        token; otherwise the reply is the unchanged snapshot without actions. A
-        malformed argument raises ValueError before anything is sent."""
+        token; otherwise the reply is the unchanged snapshot without actions — or,
+        if the snapshot's message is no longer in the document, the plain start over
+        with `recovered: true`. A malformed argument raises ValueError before
+        anything is sent."""
         return self.step(key, snapshot, outcome_event(action, outcome), guards, check_token(token))
 
     def _conditional(self, proc, request: dict, guards) -> dict:

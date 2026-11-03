@@ -223,6 +223,7 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		// Protocol 2: start with an event may answer need; snapshots carry back.
 		{"start", `{"id":5,"need":["is_vip"]}`, "need"},
 		{"start", `{"id":5,"need":[]}`, "ERR"},
+		{"step", `{"id":5,"need":["is_vip","is_vip"]}`, "ERR"},
 		{"restart", `{"id":5,"need":["is_vip"]}`, "ERR"},
 		{"hello", `{"id":5,"need":["is_vip"]}`, "ERR"},
 		{"start", `{"id":5,"snapshot":{"at":"vip","back":"home","seq":1},"actions":[{"send":"vip"}]}`, "result"},

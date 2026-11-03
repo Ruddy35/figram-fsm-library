@@ -84,8 +84,8 @@ Steps, in order:
     protocol validators on hand-written replies), and
     `tests/engine/snapshot_scaling.py`: leaving a message, recovery (with and without a variant
     for the event at the initial message, and with a late timer event) and `restart` with
-    20 000 and 80 000 snapshot timers, and entering a message among as many remembered places,
-    take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
+    20 000 and 80 000 snapshot timers, entering a message among as many remembered places, and
+    an outcome and calls of actions with outcomes among as many waits, take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
     most 3 s; the quadratic engine before 0.2.0 took 42 s). The time is the CPU time of an
     engine process that answers only that request, so load on the machine does not turn the
     check red; the larger request must cancel every snapshot timer and keep every remembered
