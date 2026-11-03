@@ -8,6 +8,8 @@ For every case `figram check` must exit 0, print exactly "ok" on stdout and on
 stderr only lines "warning: …"; every expected fragment must occur in some
 warning, and documents without defects must produce no warning at all
 (warnings never change the verdict: a document valid before stays valid).
+With --expect-red the exit status is inverted (a negative control: run against a broken
+`figram`, e.g. filter_bin.py with FILTER_DEFECT=drop-outcome-warnings, which must FAIL some case).
 FC-07 cases are rejected documents: the root is called `bot`, never ``, and
 "is declared more than once" is reported once per name."""
 
@@ -87,6 +89,67 @@ CASES = [
         "g": {"on": {"btn:w": [{"to": "w"}]}}}}), []),
 ]
 
+# The warning about outcomes without an arrow (docs/format.md, section 3, "Warnings"): a variant
+# with an action with outcomes leads to a message (or, without `to`, stays on one) where an outcome
+# of that action, `failed` included, has no arrow on the message or its sections; variants with
+# `resume` or `back` are not checked.  (name, document, wanted fragments, fragments that must NOT
+# occur in any warning)
+O = {"conditions": {"c1": "c1"},
+     "calls": {"k": "k", "chk": {"text": "check", "outcomes": ["yes", "no"]},
+               "ping": {"text": "ping", "outcomes": ["pong"], "every": True, "detached": True}}}
+
+
+def d3(bot):
+    x = {"figram": 1}
+    x.update(O)
+    x["bot"] = bot
+    return x
+
+
+ALL_CHK = {"call:chk:yes": [{"to": "a"}], "call:chk:no": [{"to": "a"}], "call:chk:failed": [{"to": "a"}]}
+CASES += [
+    ("outcome_target_lacks_arrows", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {"on": {"call:chk:yes": [{"to": "a"}]}}}}),
+     ["outcome `no` of action `chk` has no arrow on `w`", "outcome `failed` of action `chk` has no arrow on `w`",
+      "the variant of `a` on `btn:x` waits for it there"], ["outcome `yes`"]),
+    ("outcome_stay_on_message", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"do": ["k", "chk"]}]}}}}),
+     ["outcome `yes` of action `chk` has no arrow on `a`", "outcome `no` of action `chk` has no arrow on `a`",
+      "outcome `failed` of action `chk` has no arrow on `a`"], []),
+    ("outcome_every_background_checked", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"do": ["ping"]}], "call:ping:pong": [{}]}}}}),
+     ["outcome `failed` of action `ping` has no arrow on `a`"], ["outcome `pong`"]),
+    ("outcome_timer_arrow_variant_checked", d3({"initial": "a", "children": {
+        "a": {"timers": {"t": 5}, "on": {"timer:t": [{"do": ["chk"]}], "call:chk:yes": [{}],
+                                         "call:chk:no": [{}]}}}}),
+     ["outcome `failed` of action `chk` has no arrow on `a`: the variant of `a` on `timer:t`"], []),
+    ("outcome_into_section_checks_landing", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"to": "S", "do": ["chk"]}], **ALL_CHK}},
+        "S": {"initial": "s1", "children": {"s1": {"on": {"btn:a": [{"to": "a"}]}}}}}}),
+     ["outcome `yes` of action `chk` has no arrow on `s1`"], ["no arrow on `a`"]),
+    ("outcome_section_stay_each_message", d3({"initial": "S", "children": {
+        "S": {"initial": "a", "on": {"btn:x": [{"do": ["chk"]}]}, "children": {
+            "a": {"on": dict(ALL_CHK, **{"btn:b": [{"to": "b"}]})}, "b": {"on": {"btn:a": [{"to": "a"}]}}}}}}),
+     ["outcome `yes` of action `chk` has no arrow on `b`: the variant of `S` on `btn:x`"], ["no arrow on `a`"]),
+    ("outcome_arrows_on_root_ok", d3({"initial": "a", "on": ALL_CHK, "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}}, "w": {"on": {"btn:a": [{"to": "a"}]}}}}), []),
+    ("outcome_arrows_on_section_ok", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "S": {"initial": "w", "on": ALL_CHK, "children": {"w": {}}}}}), []),
+    ("outcome_conditional_arrow_counts_ok", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {"on": {"call:chk:yes": [{"if": "c1", "to": "a"}], "call:chk:no": [{"if": "c1", "to": "a"}],
+                     "call:chk:failed": [{"if": "c1", "to": "a"}]}}}}), []),
+    ("outcome_resume_back_not_checked_ok", d3({"initial": "a", "on": {"btn:b": [{"to": "a", "back": True,
+                                                                                 "do": ["chk"]}]},
+                                              "children": {
+        "a": {"on": {"btn:x": [{"to": "S", "resume": True, "do": ["chk"]}]}},
+        "S": {"initial": "s1", "children": {"s1": {"on": {"btn:a": [{"to": "a"}]}}}}}}), []),
+    ("outcome_plain_action_not_checked_ok", d3({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"do": ["k"]}, ]}}}}), []),
+]
+
 # FC-07: rejected documents with the root section in the messages
 FC07 = [
     ("fc07_root_initial_and_empty_child", '{"figram":1,"bot":{"initial":"b","children":{"a":{},"":{}}}}'),
@@ -105,9 +168,12 @@ def run(figram, text):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--figram", required=True)
+    ap.add_argument("--expect-red", action="store_true")
     a = ap.parse_args()
     fails = 0
-    for name, doc, want in CASES:
+    for entry in CASES:
+        name, doc, want = entry[:3]
+        absent = entry[3] if len(entry) > 3 else []
         rc, out, err = run(a.figram, json.dumps(doc, ensure_ascii=False))
         lines = [ln for ln in err.splitlines() if ln.strip()]
         ws = [ln[len("warning: "):] for ln in lines if ln.startswith("warning: ")]
@@ -121,6 +187,9 @@ def main():
         for frag in want:
             if not any(frag in w for w in ws):
                 errs.append(f"missing warning containing {frag!r}; got {ws}")
+        for frag in absent:
+            if any(frag in w for w in ws):
+                errs.append(f"warning containing {frag!r} not expected; got {ws}")
         fails += bool(errs)
         print(json.dumps({"case": name, "ok": not errs, "warnings": ws, "problems": errs},
                          ensure_ascii=False))
@@ -141,7 +210,10 @@ def main():
                          ensure_ascii=False))
     total = len(CASES) + len(FC07)
     print(f"cases {total}, failed {fails}")
-    sys.exit(1 if fails else 0)
+    if a.expect_red:
+        print("EXPECT-RED:", "RED (good)" if fails else "STILL GREEN")
+        sys.exit(0 if fails else 1)
+    sys.exit(1 if fails or not total else 0)
 
 
 if __name__ == "__main__":

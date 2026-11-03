@@ -54,6 +54,12 @@ CASES = {
               "children": {"a": {"on": {"btn:x": [{"to": "b"}]}}, "b": {}, "c": {}}}}}),
     # message nobody can reach (not initial, no arrow into it)
     "unreachable_message": d({"initial": "a", "children": {"a": {}, "lost": {"on": {"btn:x": [{"to": "a"}]}}}}),
+    # 0.3.0: the user waits on `w` for the outcome of `chk`, but `no` and `failed` have no arrow
+    # there: such an outcome is ignored (its wait removed) and the user waits forever
+    "outcome_without_arrow": dict(d({"initial": "a", "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {"on": {"call:chk:yes": [{"to": "a"}]}}}}),
+        calls={"chk": {"text": "check", "outcomes": ["yes", "no"]}}),
 }
 
 
@@ -74,6 +80,7 @@ WARN = {
     "duplicate_guard_in_arrow": "condition `c1` is repeated",
     "need_for_shadowed_section_guard": None,
     "unreachable_message": "message `lost` is unreachable",
+    "outcome_without_arrow": "outcome `no` of action `chk` has no arrow on `w`",
 }
 
 
@@ -121,6 +128,13 @@ def evidence(engine, name, doc):
             return {"engine_reply": r}
         if name == "unreachable_message":
             return {"states": e.states}
+        if name == "outcome_without_arrow":
+            s = e.req({"op": "start"})["snapshot"]
+            w = e.req({"op": "step", "snapshot": s, "event": "btn:x"})
+            tok = w["snapshot"]["pending"][0]["token"]
+            r = e.req({"op": "step", "snapshot": w["snapshot"], "event": "call:chk:no", "token": tok})
+            again = e.req({"op": "step", "snapshot": r["snapshot"], "event": "call:chk:yes", "token": tok})
+            return {"waiting": w["snapshot"], "after_no": r, "late_yes_actions": again["actions"]}
     finally:
         e.close()
 
@@ -140,6 +154,10 @@ EXPECT = {
         ev["engine_reply"].get("need") == ["c2"] if os.environ.get("CC04") == "baseline"
         else "need" not in ev["engine_reply"] and ev["engine_reply"]["snapshot"]["at"] == "b"),
     "unreachable_message": lambda ev: ev["states"] == 2,
+    # the outcome is accepted (the wait is gone) but nothing happens, and the wait cannot be answered again
+    "outcome_without_arrow": lambda ev: ev["after_no"]["actions"] == [] and
+        ev["after_no"]["snapshot"].get("at") == "w" and "pending" not in ev["after_no"]["snapshot"] and
+        ev["late_yes_actions"] == [],
 }
 
 

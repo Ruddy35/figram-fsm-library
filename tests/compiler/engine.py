@@ -48,6 +48,7 @@ class Engine:
         line = self.p.stdout.readline()
         if not line:
             return None
+        self.last_line = line   # the reply bytes (difflib_core.check_bytes)
         rep = json.loads(line)
         if rep.get("id") != self.n:
             raise AssertionError(f"id mismatch {rep.get('id')} != {self.n}")
