@@ -34,8 +34,8 @@ BIN=${BIN:-${FIGRAM_BIN:-}}
 for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an executable file"; done
 BIN=$(cd "$BIN" && pwd)
 cd "$(dirname "$0")"
-MIN_MUTANTS=118        # mutations in the two example documents (fewer is a failure)
-MIN_SELFTEST_OK=39     # passed checks of the harness self-test
+MIN_MUTANTS=166        # mutations in the two example documents (fewer is a failure)
+MIN_SELFTEST_OK=72     # passed checks of the harness self-test
 F=$BIN/figram
 E=$BIN/figram-engine
 P=tests/engine
@@ -106,7 +106,7 @@ echo "ok ($(cat "$T/golden.out"))"
 
 step "Engine conformance"
 for d in pizza features; do
-  $F trace examples/$d.bot.json 200 40 7 > "$T/$d.jsonl" 2> "$T/$d.cov"
+  $F trace examples/$d.bot.json 100 120 7 > "$T/$d.jsonl" 2> "$T/$d.cov"
   cat "$T/$d.cov"
   expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "coverage $d"
 done
@@ -135,11 +135,11 @@ expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2
 step "Snapshots, protocol edges and the JSON text layer"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
-  'g[0] >= 30 and g[0] == g[1] and g[2] == 0' "snapshots"
+  'g[0] >= 49 and g[0] == g[1] and g[2] == 0' "snapshots"
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 137 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 250 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
 logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
 expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 6 and g[1] == 0' \
   "time linear in the snapshot size"
@@ -166,7 +166,15 @@ step "Host contract and load test"
 logged host python3 $P/host_sim.py $E examples/pizza.bot.json
 expect "$LOGS/host.log" '^  users (\d+): outcome as expected \(.*\) for (\d+), orders in the CRM (\d+), events processed (\d+) of (\d+) .*lost updates (\d+), actions not run (\d+)$' \
   'g[0] > 0 and g[0] == g[1] and 0 < g[2] <= g[0] and g[3] == g[4] and g[5] == 0 and g[6] == 0' "host contract"
-expect "$LOGS/host.log" '^  the test catches the violation: yes(?: \(control attempts: \d+\))?$' 'True' "control host without the contract"
+# Outcomes of actions (docs/host-contract.md, section 2): exactly one outcome event per call with a token.
+expect "$LOGS/host.log" '^  outcomes: calls with a token (\d+), outcome events lost (\d+), processed twice (\d+), without a call (\d+), waits left (\d+) \(created (\d+), rejected (\d+), failed (\d+)\); background actions run (\d+) of (\d+), in the failure queue (\d+)$' \
+  'g[0] > 0 and g[1] == g[2] == g[3] == g[4] == 0 and g[6] > 0 and g[7] > 0 and g[5] + g[6] + g[7] == g[0] and 0 < g[8] == g[9] and g[10] == 0' "host contract: outcomes"
+expect "$LOGS/host.log" '^background actions \(host by the contract\), failures injected \d+: users (\d+), kitchen down for (\d+), users not held up (\d+), blocked (\d+), orders (\d+), failure queue (\d+) notify_kitchen with an alert, other failures (\d+), sequential actions not run (\d+)$' \
+  'g[0] > 0 and 0 < g[1] < g[0] and g[2] == g[0] == g[4] and g[3] == 0 and g[5] == g[1] and g[6] == g[7] == 0' "host contract: background actions"
+# Controls: no duplicate filtering, an outcome recorded outside the transaction, background actions in the user's queue.
+[ "$(grep -cE '^  the test catches the violation: yes( \(control attempts: [0-9]+\))?$' "$LOGS/host.log")" -eq 3 ] \
+  || fail "host contract: the three controls (duplicates, lost outcomes, background actions in the user's queue) must be caught"
+expect "$LOGS/host.log" '^  the test catches the violations: yes$' 'True' "controls of the lost snapshot"
 logged load python3 $P/loadtest.py $E examples/pizza.bot.json "$T/pizza.jsonl" 64 2
 expect "$LOGS/load.log" '^threads +(\d+), processes (\d+): steps (\d+) .*mismatches (\d+),' \
   'g[0] == 64 and g[2] > 0 and g[3] == 0' "load"
