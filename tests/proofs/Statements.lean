@@ -231,6 +231,80 @@ example : ∀ (m : Machine) (s : Snapshot) (p : String × Nat),
 example : ∀ (m : Machine) (s : Snapshot), s.Fresh →
     (m.recover { s with resume := [], back := none, pending := [] }).1.Fresh := @restart_fresh
 
+-- the first entry without a variant; no duplicate waits; waits survive a document update;
+-- a timer consumed without a move; tokens grow; each call is answered once for good
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv), m.choose m.initial ev env = none →
+    m.startWith n ev env = realize ⟨"", [], [], n, none, []⟩ m.initial m.initActions :=
+  @Machine.startWith_unmatched
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.pending.Nodup → (m.step s ev env).1.pending.Nodup := @Machine.step_nodup
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv),
+    (m.startWith n ev env).1.pending.Nodup := @Machine.startWith_nodup
+example : ∀ (m : Machine) (s : Snapshot) (inp : List Input),
+    s.pending.Nodup → (m.run s inp).1.pending.Nodup := @Machine.run_nodup
+example : ∀ (m : Machine) (s : Snapshot) (c o : String) (tok : Nat) (env : HostEnv),
+    (c, tok) ∈ s.pending → tok ≤ s.seq →
+    (c, tok) ∉ (m.step s (.outcome c o tok) env).1.pending ∧
+      m.step s (.outcome c o tok) env ≠ (s, []) := @Machine.step_outcome_accepted
+example : ∀ (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env env' : HostEnv) (r : Row)
+    (b : FBranch), s.Fresh → s.state ∈ m.states → s.accepts (.timer id tok) = true →
+    ownsTimer (m.exitOf s.state) (.timer id tok) = true → m.row s.state (Event.timer id tok).key = some r →
+    r.branches.find? (fun b => guardOK env b.guard) = some b → b.target = .stay →
+    m.step (m.step s (.timer id tok) env).1 (.timer id tok) env' =
+      ((m.step s (.timer id tok) env).1, []) := @Machine.step_stay_timer_once
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    ((m.step s ev env).1.seq = s.seq ∧ (m.step s ev env).2 = []) ∨
+      (m.step s ev env).1.seq = s.seq + 1 := @Machine.step_seq
+example : ∀ (m : Machine) (s : Snapshot) (ev ev' : Event) (env env' : HostEnv) (n n' : String)
+    (d d' : Bool) (w w' : Wait) (t t' : Nat), Action.call n d w t ∈ (m.step s ev env).2 →
+    Action.call n' d' w' t' ∈ (m.step (m.step s ev env).1 ev' env').2 → t' = t + 1 :=
+  fun m s ev ev' env env' _ _ _ _ _ _ _ _ h1 h2 => Machine.consecutive_tokens m s ev ev' env env' h1 h2
+example : ∀ (m : Machine), m.wf = true → ∀ (s : Snapshot) (c o o' : String) (tok : Nat)
+    (env env' : HostEnv) (inp : List Input), tok ≤ s.seq →
+    m.step (m.run (m.step s (.outcome c o tok) env).1 inp).1 (.outcome c o' tok) env' =
+      ((m.run (m.step s (.outcome c o tok) env).1 inp).1, []) := @Machine.outcome_once_forever
+example : ∀ (m : Machine) (n : Nat), (startAt m n).1.Fresh := @startAt_fresh
+
+-- the reference semantics: an accepted outcome without a matching variant only loses its wait;
+-- V6 after `check`, and then one call of an action with outcomes per step; V5 after `check`;
+-- `restart` of a compiled machine leaves no waits; a document's variants only call actions, and
+-- its variants without a target move nothing; named events never have reserved keys
+example : ∀ (c : Chart) (s : Snapshot) (a o : String) (tok : Nat) (env : HostEnv),
+    s.state ∈ c.leafIds → (a, tok) ∈ s.pending →
+    (c.cands s.state (outcomeEvent a o)).find? (fun b => guardOK env b.guard) = none →
+    c.step s (.outcome a o tok) env =
+      ({ s with pending := s.pending.filter (fun p => decide (p ≠ (a, tok))) }, []) :=
+  @Chart.step_outcome_unmatched
+example : ∀ (c : Chart), c.WaitsOnce → ∀ (s : Snapshot) (ev : Event) (env : HostEnv),
+    (waitNames (c.step s ev env).2).Nodup := @Chart.step_waits_once
+example : ∀ (c : Chart), c.compile.wf = true → c.WaitsOnce → ∀ (s : Snapshot) (ev : Event)
+    (env : HostEnv), (waitNames (c.compile.step s ev env).2).Nodup := @Chart.compile_step_waits_once
+example : ∀ (c : Chart) (s : Snapshot),
+    (c.compile.recover { s with resume := [], back := none, pending := [] }).1.pending = [] :=
+  @Chart.restart_no_waits
+example : ∀ (d : Doc), d.check = [] → d.toChart.WaitsOnce := @check_waitsOnce
+example : ∀ (d : Doc), d.check = [] → ∀ t ∈ d.toChart.transitions, t.event.startsWith "call:" = true →
+    ∃ n o c, splitOutcome (t.event.drop 5).toString = some (n, o) ∧ lookup d.calls n = some c ∧
+      c.outcomes ≠ [] ∧ (o = "failed" ∨ o ∈ c.outcomes) := @check_outcome_events
+example : ∀ (d : Doc), d.check = [] → ∀ (s : Snapshot) (ev : Event) (env : HostEnv),
+    (waitNames (d.toChart.compile.step s ev env).2).Nodup := @check_step_waits_once
+example : ∀ (d : Doc), ∀ t ∈ d.toChart.transitions, ∀ b ∈ t.branches, ∀ a ∈ b.actions,
+    ∃ n dt w tok, a = Action.call n dt w tok := @toChart_calls
+example : ∀ (d : Doc), d.toChart.compile.wf = true → ∀ (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.state ∈ d.toChart.leafIds → s.accepts ev = true →
+    ownsTimer (d.toChart.exitActs s.state) ev = true → ∀ (b : Branch),
+    (d.toChart.cands s.state ev.key).find? (fun b => guardOK env b.guard) = some b →
+    b.target = .stay →
+    (d.toChart.compile.step s ev env).1.state = s.state ∧
+      (d.toChart.compile.step s ev env).1.resume = s.resume ∧
+      (d.toChart.compile.step s ev env).1.back = s.back ∧
+      (d.toChart.compile.step s ev env).1.timers = (s.consume ev).timers ∧
+      (d.toChart.compile.step s ev env).1.seq = s.seq + 1 ∧
+      ∀ a ∈ (d.toChart.compile.step s ev env).2, ∃ n dt w tok, a = Action.call n dt w tok :=
+  @doc_stay
+example : ∀ (kvs : Obj) (n : String), decEvent kvs = .ok (.named n) → ∀ (c o id : String),
+    n ≠ outcomeEvent c o ∧ n ≠ timerEvent id := fun _ _ h => decEvent_named_key h
+
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse
 #print Figram.Format.parseValue

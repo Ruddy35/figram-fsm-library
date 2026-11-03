@@ -168,6 +168,12 @@ def addWait (pend : List (String × Nat)) (n : String) (tok : Nat) : Wait → Li
   | .latest => assign pend n tok
   | .every => (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok)))
 
+/-- The actions with outcomes that `acts` call, in order (with repetitions). -/
+def waitNames (acts : List Action) : List String :=
+  acts.filterMap fun
+    | .call n _ w _ => if w = .free then none else some n
+    | _ => none
+
 /-- One step of executing actions: internal ones are applied to the snapshot,
 the others go to the host; timers and actions get their token, actions with outcomes record
 their wait. -/

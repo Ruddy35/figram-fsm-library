@@ -59,7 +59,9 @@ keeping them is a special case of C1. An unknown key must start with `x-` (an an
 (b) An extension that changes meaning is declared in `requires`; a reader that does not know
 it rejects the whole document instead of misreading it. *Proved:* `decode_requires`.
 (c) A new field has a default value equal to the old behaviour, so old documents mean the
-same to a new reader.
+same to a new reader. One exception, in release 0.3.0: the event prefix `call:` became
+reserved for the outcomes of actions (decision 12 of section 7), so a document of an earlier
+release with an arrow on an event `call:…` is rejected and must rename that event.
 
 ## 3. Derivation
 
@@ -93,7 +95,8 @@ text can be read back. The model
 does not distinguish negative zero: `-0.0` is written as `0.0` (in annotations too — the sign
 of a zero is lost after `figram fmt`).
 
-Integer fields (delays, `figram`, and in the snapshot `v`, `seq` and timer tokens) are checked
+Integer fields (delays, `figram`, in the snapshot `v`, `seq`, the tokens of timers and of waits,
+and in a request `token` and the `seq` of `start`) are checked
 exactly, by the value `m · 10^e`: `1e-400`, `9007199254740990.5` and `1.0000000000000001` are
 not integers, and both `figram check` and the engine reject them. JSON Schema validators that
 read numbers as doubles (for example Python `jsonschema`) round such values to the nearest
@@ -121,7 +124,8 @@ document built programmatically (names in maps are non-empty and unique, annotat
 collide with format keys), that every unknown key starts with `x-` (section 5), the value
 ranges of integer fields (a timer delay at most 2^53 − 1), that the outcomes of an action are
 non-empty names without `:`, unique and other than `failed` (which every action with outcomes
-has), that `every` is set only together with `outcomes`, and, as its last step, that the
+has; `"outcomes": []` is the default, an action without outcomes), that `every` is set only
+together with a non-empty `outcomes`, and, as its last step, that the
 chart compiles to a well-formed machine (section 7). A document that passes `check` is
 guaranteed to be encoded into the JSON model `J` and decoded back (theorem `check_roundtrip`);
 the round trip through text (`print`/`parse`) is not proved and is covered by tests.
@@ -172,8 +176,8 @@ Document = { "figram": 1,
              …annotations }
 
 Call     = { "text":       Text,
-             "detached"?:  true,                (a background action, decision 11)
-             "outcomes"?:  [Name],              (the outcomes it reports, decision 12)
+             "detached"?:  true,                (a background action, decision 11 of section 7)
+             "outcomes"?:  [Name],              (the outcomes it reports, decision 12 of section 7)
              "every"?:     true,                (every call is answered, not only the latest)
              …annotations }
 
@@ -191,7 +195,7 @@ Message  = { "on"?:     Arrows,
 Arrows   = { Event: [Variant] }                 (the first matching variant wins)
 
 Variant  = { "if"?:     Name,                   (absent — "otherwise / always")
-             "to"?:     Name,                   (absent — no move, decision 13)
+             "to"?:     Name,                   (absent — no move, decision 13 of section 7)
              "resume"?: true,                   (resume where the user left off)
              "back"?:   true,                   (back to the previous section; otherwise `to`)
              "do"?:     [Name],
@@ -211,7 +215,8 @@ All names (of nodes, events, timers, conditions, actions, variables) are non-emp
 within their map.
 
 A timer firing arrives as the event `timer:<name>`, and an outcome of an action as the event
-`call:<action>:<outcome>`; the prefixes `timer:` and `call:` are reserved. An outcome name
+`call:<action>:<outcome>`; the prefixes `timer:` and `call:` are reserved (`call:` since release
+0.3.0, section 2, C5c). An outcome name
 contains no `:`, so the event is split at its last `:` (an action name may contain `:`). The
 format does not restrict other event names; the examples use the conventions `btn:…`, `cmd:…`,
 `msg:…`, `payment:…`.
@@ -458,9 +463,12 @@ Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, `back`, the keys and v
 `resume`, the keys of `timers` and the actions of `pending` are non-empty strings. `pending`
 lists the waits in the engine's order (the newest first); a wait of an action that is no longer
 in the document, or no longer has outcomes, is kept and still accepts its outcome. The same
-wait listed twice (the engine never writes that) is one wait: its outcome removes both entries.
+wait listed twice (the engine never creates that, but writes back what it was given) is one
+wait: its outcome removes both entries.
 A `back` or `resume` value that is not a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
-[`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows; an unknown field or
+[`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows, written in JSON text
+that the parser of section 8 accepts (no duplicate keys, no lone surrogates, exponents in
+range: otherwise `parse_error`); an unknown field or
 an unknown version is an error (such a snapshot was written by a newer engine). `seq` grows by
 1 with every transition, including an arrow without a target (decision 13); it is the token of
 the timers started and the actions with outcomes performed in that transition and the basis of
@@ -494,9 +502,10 @@ Requests are strict: only the fields in the table and `id` are allowed (`hello` 
 `snapshot`, `event`, `guards`, `token`). Any other field, such as the typo `gaurds`, is a
 `bad_request` error. `event` is a non-empty string. `token` is allowed only with a timer event
 (`timer:<name>` with a non-empty name) or an outcome event (`call:<action>:<outcome>`, split at
-the last `:`, both parts non-empty) and is required there; an event starting with `call:` that
-is not of this form (`call:x`) is a `bad_request` error, with or without `token`; `start` takes neither event and no
-`token`, and takes `guards` only with `event`. `token` and the `seq` of `start` are integers
+the last `:`, both parts non-empty) and is required there; an event with a reserved prefix that
+is not of this form (`timer:`, `call:x`, `call::ok`, `call:a:`) is a `bad_request` error, with
+or without `token`. `start` takes neither a timer nor an outcome event, no `token`, and
+`guards` only with `event`. `token` and the `seq` of `start` are integers
 from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object
 "condition → true/false"; extra conditions do no harm, but every value must be a boolean.
 
@@ -548,8 +557,8 @@ Rules of a step:
    matches).
 3. If a variant needs conditions that are not in `guards`, the reply is `{"need": [...]}`. The
    host computes these conditions as [host-contract.md](host-contract.md) requires (section 1,
-   step 3: on data where all `call` actions committed by earlier steps of this user are applied
-   and the actions of the current step are not) and repeats the request with the same snapshot
+   step 3: on data where all sequential `call` actions committed by earlier steps of this user
+   are applied and the actions of the current step are not) and repeats the request with the same snapshot
    and event, adding them to `guards`. `need` contains only conditions that can affect the
    choice: the conditions of the variants in order (the message's variants, then those of the
    enclosing sections) up to the first variant without a condition or the first condition
@@ -688,10 +697,11 @@ The `figram-engine` process reads requests as bytes:
 
 The embedded library (C, Go) takes one request per call, with the same limit and the same
 UTF-8 check; an empty request gets `parse_error` (the process skips an empty line without a
-reply). The library produces four errors itself, before parsing, always with `id: null` (no
+reply). The library produces these errors itself, before parsing, always with `id: null` (no
 `id` echo: the reply already belongs to the call): an empty request and, in the `_n` functions,
-a request with a NUL byte (`parse_error`), invalid UTF-8 (`parse_error`) and a request over the
-limit (`too_large`). All other errors, including `parse_error` for invalid JSON, are produced as
+a request with a NUL byte (`parse_error`), invalid UTF-8 (`parse_error`), a request over the
+limit (`too_large`), and a NULL handle or request, a pointer that is not a handle or an
+unloaded machine (`bad_request`, [`ffi/figram.h`](../ffi/figram.h)). All other errors, including `parse_error` for invalid JSON, are produced as
 in the process, with the `id` echo; a request of only spaces, tabs and `\r`, which the process
 skips without a reply, gets `parse_error` ("unexpected end of input"). See
 [embedding.md](embedding.md).

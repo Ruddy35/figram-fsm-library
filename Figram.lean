@@ -17,3 +17,4 @@ import Figram.RandomDoc
 import Figram.Mutate
 import Figram.EngineProofs
 import Figram.OutcomeProofs
+import Figram.OutcomeDocProofs

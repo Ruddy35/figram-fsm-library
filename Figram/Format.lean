@@ -441,20 +441,6 @@ partial def nodeErrors (id : NodeId) : NodeDoc → List String
     ++ extErrors s!"node `{id}`" nodeKeys ext
     ++ cs.flatMap fun p => nodeErrors p.1 p.2
 
-partial def allTimers : NodeDoc → List String
-  | .message _ ts _ => ts.map (·.1)
-  | .sec _ cs _ _ => cs.flatMap fun p => allTimers p.2
-
-partial def allEvents : NodeDoc → List String
-  | .message on _ _ => on.map (·.1)
-  | .sec _ cs on _ => on.map (·.1) ++ cs.flatMap fun p => allEvents p.2
-
-/-- Every variant with the node and the event of its arrow. -/
-partial def allVariants (id : NodeId) : NodeDoc → List (NodeId × EventId × Variant)
-  | .message on _ _ => on.flatMap fun p => p.2.map fun v => (id, p.1, v)
-  | .sec _ cs on _ => (on.flatMap fun p => p.2.map fun v => (id, p.1, v))
-      ++ cs.flatMap fun p => allVariants p.1 p.2
-
 /-- The errors of the declaration of action `n`. -/
 def callErrors (n : String) (c : CallDecl) : List String :=
   let w := s!"action `{n}`"
@@ -499,24 +485,26 @@ def Doc.check (d : Doc) : List String :=
     | .call n .. => if n = "" || d.calls.any (·.1 == n) then none
                     else some s!"action `{n}` is not described in `calls`"
     | _ => none
-  let timers := allTimers d.bot
-  let badTimerEvents := (allEvents d.bot).filterMap fun e =>
+  -- the events, timers and variants of the document are those of its chart, in document order
+  let events := c.transitions.map (·.event)
+  let timers := c.timers.map (·.id)
+  let badTimerEvents := events.filterMap fun e =>
     if e.startsWith "timer:" && !(timers.contains (e.drop 6).toString) then
       some s!"event `{e}`: no such timer (the prefix `timer:` is reserved)"
     else none
   let outcomesOf (n : String) : Option (List String) := match lookup d.calls n with
     | some c => if c.outcomes.isEmpty then none else some ("failed" :: c.outcomes)
     | none => none
-  let badOutcomeEvents := (allEvents d.bot).filterMap fun e =>
+  let badOutcomeEvents := events.filterMap fun e =>
     if !e.startsWith "call:" then none
     else match splitOutcome (e.drop 5).toString with
       | none => some s!"event `{e}`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)"
       | some (n, o) =>
         if (outcomesOf n).any (·.contains o) then none
         else some s!"event `{e}`: `{n}` is not an action with the outcome `{o}` (the prefix `call:` is reserved)"
-  let twiceInDo := (allVariants "bot" d.bot).flatMap fun (id, e, v) =>
-    (dups (v.calls.filter fun n => (outcomesOf n).isSome)).map fun n =>
-      s!"`{id}` → `{e}`: action `{n}` with outcomes occurs twice in `do`"
+  let twiceInDo := c.transitions.flatMap fun t => t.branches.flatMap fun b =>
+    (dups (waitNames b.actions)).map fun n =>
+      s!"`{Chart.shown t.src}` → `{t.event}`: action `{n}` with outcomes occurs twice in `do`"
   let structural :=
     (if d.requires.all (· ∈ knownFeatures) then [] else ["document requires extensions this reader does not know"])
     ++ (match d.bot with | .sec .. => [] | .message .. => ["`bot` must be a section"])

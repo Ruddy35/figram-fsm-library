@@ -83,7 +83,26 @@ open Lean Elab Command Meta in
       ``Figram.Engine.decStartEvent_ok,
       ``Figram.Engine.handle_restart,
       ``Figram.Engine.restart_pending,
-      ``Figram.Engine.restart_fresh
+      ``Figram.Engine.restart_fresh,
+      ``Figram.Machine.step_nodup,
+      ``Figram.Machine.startWith_nodup,
+      ``Figram.Machine.run_nodup,
+      ``Figram.Machine.step_outcome_accepted,
+      ``Figram.Machine.step_stay_timer_once,
+      ``Figram.Machine.step_seq,
+      ``Figram.Machine.consecutive_tokens,
+      ``Figram.Machine.outcome_once_forever,
+      ``Figram.Chart.step_outcome_unmatched,
+      ``Figram.Chart.step_waits_once,
+      ``Figram.Chart.compile_step_waits_once,
+      ``Figram.Chart.restart_no_waits,
+      ``Figram.Format.toChart_calls,
+      ``Figram.Format.doc_stay,
+      ``Figram.Format.check_waitsOnce,
+      ``Figram.Format.check_outcome_events,
+      ``Figram.Format.check_step_waits_once,
+      ``Figram.Engine.decEvent_named_key,
+      ``Figram.Engine.startAt_fresh
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -159,3 +178,22 @@ open Lean Elab Command Meta in
 #print axioms Figram.Engine.handle_restart
 #print axioms Figram.Engine.restart_pending
 #print axioms Figram.Engine.restart_fresh
+#print axioms Figram.Machine.step_nodup
+#print axioms Figram.Machine.startWith_nodup
+#print axioms Figram.Machine.run_nodup
+#print axioms Figram.Machine.step_outcome_accepted
+#print axioms Figram.Machine.step_stay_timer_once
+#print axioms Figram.Machine.step_seq
+#print axioms Figram.Machine.consecutive_tokens
+#print axioms Figram.Machine.outcome_once_forever
+#print axioms Figram.Chart.step_outcome_unmatched
+#print axioms Figram.Chart.step_waits_once
+#print axioms Figram.Chart.compile_step_waits_once
+#print axioms Figram.Chart.restart_no_waits
+#print axioms Figram.Format.toChart_calls
+#print axioms Figram.Format.doc_stay
+#print axioms Figram.Format.check_waitsOnce
+#print axioms Figram.Format.check_outcome_events
+#print axioms Figram.Format.check_step_waits_once
+#print axioms Figram.Engine.decEvent_named_key
+#print axioms Figram.Engine.startAt_fresh

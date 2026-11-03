@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 70 theorems are pinned: `./verify.sh` elaborates
+The statements of these 89 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -45,7 +45,7 @@ through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`
 | `Figram.Machine.startWith_eq_step` | Entering with an event that chooses a variant with a target is a step from the snapshot standing on the initial message (no timers, no places, no place to go back to): the same snapshot except that the step may remember the initial message as the place to go back to (it leaves the initial message, entering does not), and the step's actions are the initial message's exit actions (cancelling timers that were never started) followed by those of `startWith`. |
 | `Figram.Machine.startWith_initial` | If the variant chosen for a named event leads to the initial message, entering is exactly the first entry with the variant's actions in front: one entry, one `send` of the initial message. |
 | `Figram.Chart.compile_initActions` | In a compiled machine the first-entry actions are the entry actions of the initial message (the last hypothesis of `startWith_initial`). |
-| `Figram.Machine.startWith_unmatched` | Without a matching variant (or for a timer or an outcome event), entering is the plain first entry. |
+| `Figram.Machine.startWith_unmatched` | Without a matching variant (and always for a timer event), entering is the plain first entry; for an outcome event see `startWith_outcome`. |
 | `Figram.Machine.enterBot_state_valid` | For a well-formed machine, entering ends on a state of the machine. |
 | `Figram.Machine.enterBot_guard_local` | Entering depends only on the conditions in `requiredGuards` of the initial message and the event. |
 | `Figram.Machine.step_recover` | A step from a snapshot whose message no longer exists is entering the bot with the event, after cancelling the snapshot's timers and keeping its remembered places (decision 8). |
@@ -83,23 +83,53 @@ Decisions 11–13 ([format.md](format.md), section 7): an action with outcomes r
 | `Figram.Machine.step_records_wait` | Every call of a reply has the token of the step (the new `seq`), and a call of an action with outcomes records its wait with that token. |
 | `Figram.Machine.step_latest_replaces` | After a call answered only at its latest call (`every` absent), the only wait of that action is the new one. |
 | `Figram.Machine.step_fresh` | No token of a wait or of a timer exceeds `seq` (`Snapshot.Fresh`): a step keeps it. |
-| `Figram.Machine.startWith_fresh` | The first entry (with or without an event) establishes it. |
+| `Figram.Machine.startWith_fresh` | The first entry with an event establishes it (`Figram.Engine.startAt_fresh`: without an event). |
 | `Figram.Snapshot.Fresh.accepts_le` | In such a snapshot an accepted outcome has a token given before the snapshot. |
-| `Figram.Machine.step_outcome_once` | **Each call is answered once**: after an outcome of a call with such a token, any outcome of the same call (the same or another one) is ignored. |
+| `Figram.Machine.step_outcome_once` | After an outcome of a call with such a token, the next outcome of the same call (the same or another one) is ignored; `outcome_once_forever` extends it to any events in between. |
 | `Figram.Machine.startWith_outcome` | On the first entry an outcome event chooses nothing: a new user waits for nothing. |
 | `Figram.Machine.step_stay` | A variant without a target chosen on the message is its actions without a move, from the snapshot without the wait answered and without the timer that fired. |
 | `Figram.Machine.stay_keeps` | Such a variant (with actions that call the developer's code or send) keeps the message, the remembered places, the place to go back to and the other timers; the counter grows by one. |
 | `Figram.Machine.enterBot_stay` | On entering the bot (recovery, `start` with an event) such a variant leads to the initial message. |
-| `Figram.Machine.step_undetach` | **Background actions do not affect the machine**: the machine with every action in the foreground (`Machine.undetach`) takes the same step, with the same reply up to the flag `detached`. |
+| `Figram.Machine.step_undetach` | **Background actions do not affect the machine**: the machine with every action in the foreground (`Machine.undetach`, all actions at once) takes the same step, with the same reply up to the flag `detached`. |
 | `Figram.Machine.startWith_undetach` | The same for the first entry. |
 | `Figram.Machine.recover_undetach` | The same for `restart`. |
 | `Figram.splitOutcome_outcomeEvent` | The event `call:<action>:<outcome>` splits back into the action and the outcome (the outcome name has no `:`). |
 | `Figram.Engine.decEvent_key` | The arrow is looked up by exactly the event the host sent: the key of a decoded event is the request's `event`. |
-| `Figram.Engine.decEvent_outcome` | An outcome event of an action (a non-empty name, an outcome without `:`, a token within the bounds) is decoded as that outcome. |
+| `Figram.Engine.decEvent_outcome` | An outcome event of an action (a non-empty name, an outcome without `:`, a token within the bounds, written as an integer) is decoded as that outcome. |
 | `Figram.Engine.decStartEvent_ok` | `start` never takes a timer or an outcome event. |
 | `Figram.Engine.handle_restart` | A `restart` request with a decodable snapshot and no `seq` overflow replies with `recover` from the snapshot without the remembered places, the place to go back to and the waits. |
-| `Figram.Engine.restart_pending` | After `restart` only the waits of the first-entry actions remain: late outcomes of earlier calls are ignored. |
+| `Figram.Engine.restart_pending` | After `restart` only the waits of the first-entry actions of the machine remain (for a compiled machine none: `Figram.Chart.restart_no_waits`), so late outcomes of earlier calls are ignored. |
 | `Figram.Engine.restart_fresh` | `restart` keeps the tokens fresh. |
+
+The properties that need the chart, the compiler or the document (`Figram/OutcomeDocProofs.lean`):
+
+| Theorem | Meaning |
+|---|---|
+| `Figram.Machine.step_nodup` | A step never writes the same wait twice (from a snapshot without duplicates). |
+| `Figram.Machine.startWith_nodup` | The first entry has no duplicate waits. |
+| `Figram.Machine.run_nodup` | Over a whole session the waits stay without duplicates. |
+| `Figram.Machine.step_outcome_accepted` | **Waits survive a document update**: under every machine, also one where the action is gone or lost its outcomes, the outcome of a wait in the snapshot (with a token before the snapshot) is accepted and removes the wait. |
+| `Figram.Machine.step_stay_timer_once` | A timer firing handled by a variant without a target is consumed: from a fresh snapshot its redelivery is ignored. |
+| `Figram.Machine.step_seq` | A step either keeps `seq` and has no actions, or raises `seq` by one. |
+| `Figram.Machine.consecutive_tokens` | The calls of the next step carry the token of this step plus one. |
+| `Figram.Machine.outcome_once_forever` | **Each call is answered once, for good**: after an outcome of a call with such a token, whatever events follow, any later outcome of the same call is ignored. |
+| `Figram.Engine.startAt_fresh` | `start` without an event gives fresh tokens. |
+| `Figram.Chart.step_outcome_unmatched` | In the reference semantics an accepted outcome without a matching variant (no arrow, or all conditions false) is ignored, and its wait is removed. |
+| `Figram.Format.check_waitsOnce` | **V6 after `check`**: in every variant of a checked document an action with outcomes occurs at most once. |
+| `Figram.Chart.step_waits_once` | Given V6 (`Chart.WaitsOnce`), a step of the reference semantics calls each action with outcomes at most once. |
+| `Figram.Chart.compile_step_waits_once` | The same for the compiled machine. |
+| `Figram.Format.check_step_waits_once` | For a document that passed `check`, a step of its compiled machine calls each action with outcomes at most once (one wait per action and step). |
+| `Figram.Format.check_outcome_events` | **V5 after `check`**: every arrow of a checked document on an event `call:…` names an action declared with outcomes and one of its outcomes or `failed`. |
+| `Figram.Chart.restart_no_waits` | `restart` of a compiled machine leaves no waits at all. |
+| `Figram.Format.toChart_calls` | Every action of every variant of a document is a call of the developer's code. |
+| `Figram.Format.doc_stay` | **Decision 13 for every document**: a variant without a target keeps the message, the places and the place to go back to, consumes only the timer that fired, raises `seq` by one and emits only calls. |
+| `Figram.Engine.decEvent_named_key` | A named event decoded by the engine never has the key of an outcome or a timer event: those arrows are reached only with a token. |
+
+The reference semantics `Chart.step` uses the same helpers for waits, tokens and variants
+without a target as the machine (`Snapshot.accepts`, `settle`, `consume`, `addWait`, `stay`,
+`realize` in `Figram/Core.lean`), so `compile_correct` and the conformance tests cannot find an
+error in them. They are checked by the theorems above and by the independent oracle of
+`tests/compiler` (written from the prose, it does not read the Lean sources).
 
 ### Linear-time execution
 
@@ -201,7 +231,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (299 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (355 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from
@@ -250,7 +280,8 @@ lake env lean tests/proofs/CounterexamplesNegative.lean  # must fail with 4 erro
   tested by `tests/engine/protocol_edges.py` and the formats suite.
 * **The CLI, the C shim** (`ffi/*.c`, `ffi/*.cpp`), **the Go and Python clients.** They are
   covered by the test suites in [testing.md](testing.md).
-* **The texts of `check` diagnostics.** The decisive checks are `compile.wf` and `Doc.wfOK`, which
-  are hypotheses of the theorems; the messages themselves are not specified.
+* **The texts of `check` diagnostics** and most of its checks. The decisive checks are
+  `compile.wf` and `Doc.wfOK`, which are hypotheses of the theorems, and V5 and V6
+  (`check_outcome_events`, `check_waitsOnce`); the messages themselves are not specified.
 * **Code outside Figram:** the developer's conditions and actions, the host, and the trusted
   base — the Lean kernel, the Lean compiler and runtime, the C compiler and the system libraries.
