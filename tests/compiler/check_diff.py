@@ -128,7 +128,80 @@ def inject(rng, d, kind):
     if kind == "node_named_bot":
         rng.choice(secs)[1]["children"]["bot"] = {}
         return True
-    return False
+    return inject_calls(rng, d, kind, ns, msgs, arrows)
+
+
+def outcome_action(d):
+    """An action with outcomes of the document (one is added if there is none)."""
+    calls = d.setdefault("calls", {})
+    for k, v in calls.items():
+        if isinstance(v, dict) and v.get("outcomes"):
+            return k, v["outcomes"]
+    calls["oz"] = {"text": "added", "outcomes": ["ok"]}
+    return "oz", ["ok"]
+
+
+def inject_calls(rng, d, kind, ns, msgs, arrows):
+    """Defects of 0.3.0: V3 (`resume`/`back` need `to`), V5 (`call:` events), V6, and the
+    checks of action declarations (docs/format.md, section 3, "What remains in V")."""
+    node = rng.choice(ns)[1]
+    on = node.setdefault("on", {})
+    calls = d.setdefault("calls", {})
+    if kind.startswith("outcome_arrow_") and kind != "outcome_arrow_colon_action_ok":
+        a, outs = outcome_action(d)
+        ev = {"outcome_arrow_undeclared": f"call:{a}:zz", "outcome_arrow_failed_ok": f"call:{a}:failed",
+              "outcome_arrow_declared_ok": f"call:{a}:{outs[0]}", "outcome_arrow_plain_action": "call:k1:failed",
+              "outcome_arrow_missing_action": "call:nope:failed",
+              "outcome_arrow_malformed": rng.choice([f"call:{a}", "call:", f"call::{outs[0]}", f"call:{a}:"])}[kind]
+        if kind == "outcome_arrow_plain_action":
+            calls["k1"] = "call k1"
+        on[ev] = [{"to": msgs[0][0]}] if rng.random() < 0.5 else [{}]
+        return True
+    if kind == "outcome_arrow_colon_action_ok":
+        calls["q:r"] = {"text": "q:r", "outcomes": ["s"]}
+        on["call:q:r:s"] = [{}]
+        return True
+    if kind in ("dup_outcome_action_in_do", "dup_plain_action_in_do") and arrows:
+        a = outcome_action(d)[0] if kind == "dup_outcome_action_in_do" else "k1"
+        calls.setdefault(a, "call " + a)
+        rng.choice(arrows)[3]["do"] = ["k2", a, a] if "k2" in calls else [a, a]
+        return True
+    if kind in ("stay_with_resume", "stay_with_back", "stay_ok", "to_null") and arrows:
+        v = rng.choice(arrows)[3]
+        v.pop("to", None)
+        v.pop("resume", None)
+        v.pop("back", None)
+        if kind == "stay_with_resume":
+            v["resume"] = True
+        elif kind == "stay_with_back":
+            v["back"] = True
+        elif kind == "to_null":
+            v["to"] = None
+        return True
+    decl = {"every_without_outcomes": {"text": "t", "every": True},
+            "every_false_explicit_ok": {"text": "t", "every": False},
+            "detached_false_explicit_ok": {"text": "t", "detached": False},
+            "detached_not_bool": {"text": "t", "detached": 1},
+            "outcomes_failed": {"text": "t", "outcomes": ["ok", "failed"]},
+            "outcomes_colon": {"text": "t", "outcomes": ["a:b"]},
+            "outcomes_dup": {"text": "t", "outcomes": ["a", "a"]},
+            "outcomes_empty_name": {"text": "t", "outcomes": [""]},
+            "outcomes_empty_list": {"text": "t", "outcomes": []},
+            "outcomes_empty_every": {"text": "t", "outcomes": [], "every": True},
+            "outcomes_not_list": {"text": "t", "outcomes": "ok"},
+            "call_unknown_key": {"text": "t", "outcome": ["ok"]},
+            "call_x_key_ok": {"text": "t", "x-ui": {"icon": 1}},
+            "call_no_text": {"outcomes": ["ok"]},
+            "call_text_not_string": {"text": 5},
+            "call_number": 5,
+            "call_text_object_ok": {"text": "only a text"}}.get(kind)
+    if decl is None:
+        return False
+    calls["zk"] = decl
+    if arrows and rng.random() < 0.5:      # also use it in a `do`
+        v = rng.choice(arrows)[3]
+        v["do"] = v.get("do", []) + ["zk"]
+    return True
 
 
 KINDS = ["none", "dup_node", "initial_grandchild", "initial_missing", "to_missing",
@@ -136,7 +209,16 @@ KINDS = ["none", "dup_node", "initial_grandchild", "initial_missing", "to_missin
          "empty_event", "empty_timer", "empty_if", "empty_cond_key", "section_timers",
          "message_initial", "requires", "requires_empty", "big_delay", "max_delay", "frac_delay",
          "resume_false_explicit", "resume_not_bool", "unknown_key", "x_key", "misspelt_if",
-         "timer_named_like_event", "node_named_bot"]
+         "timer_named_like_event", "node_named_bot",
+         # 0.3.0
+         "outcome_arrow_undeclared", "outcome_arrow_failed_ok", "outcome_arrow_declared_ok",
+         "outcome_arrow_plain_action", "outcome_arrow_missing_action", "outcome_arrow_malformed",
+         "outcome_arrow_colon_action_ok", "dup_outcome_action_in_do", "dup_plain_action_in_do",
+         "stay_with_resume", "stay_with_back", "stay_ok", "to_null", "every_without_outcomes",
+         "every_false_explicit_ok", "detached_false_explicit_ok", "detached_not_bool", "outcomes_failed",
+         "outcomes_colon", "outcomes_dup", "outcomes_empty_name", "outcomes_empty_list",
+         "outcomes_empty_every", "outcomes_not_list", "call_unknown_key", "call_x_key_ok", "call_no_text",
+         "call_text_not_string", "call_number", "call_text_object_ok"]
 
 
 def main():
@@ -152,7 +234,8 @@ def main():
         for kind in KINDS:
             rng = random.Random(args.seed * 7919 + k * 101 + KINDS.index(kind))
             d = to_json(gen_model(rng, n_msgs=rng.choice([4, 8]), n_secs=rng.choice([2, 3]),
-                                  max_depth=3, p_hist=0.3, p_timer=0.4))
+                                  max_depth=3, p_hist=0.3, p_timer=0.4, p_feat=rng.choice([0.0, 0.7]),
+                                  p_stay=rng.choice([0.0, 0.15])))
             if not inject(rng, d, kind):
                 continue
             text = dumps(d)
@@ -172,7 +255,7 @@ def main():
                 bad.append({"kind": kind, "oracle": o, "engine": e, "doc": text})
     total = sum(c[0] for c in counts.values())
     for kind, (n, acc, dis) in counts.items():
-        print(f"{kind:24s} cases={n:3d} engine_accepts={acc:3d} disagreements={dis}")
+        print(f"{kind:30s} cases={n:3d} engine_accepts={acc:3d} disagreements={dis}")
     print(f"total cases {total}, disagreements {len(bad)}")
     for b in bad[:3]:
         print("DISAGREE", json.dumps(b, ensure_ascii=False)[:600])

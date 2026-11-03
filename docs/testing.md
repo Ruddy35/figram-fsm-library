@@ -150,11 +150,17 @@ Most tests also run with a deliberately broken oracle or a mutant `figram`, whic
 `FIGRAM` and `FIGRAM_ENGINE` name the binaries under test (default: `.lake/build/bin`); the logs
 go to `LOGDIR` (default `tests/formats/logs`).
 
-**Compiler** (`tests/compiler/run_all.sh [ENGINE FIGRAM [LOGDIR]]`, about 8 minutes): an
+**Compiler** (`tests/compiler/run_all.sh [ENGINE FIGRAM [LOGDIR]]`, about 10 minutes): an
 independent oracle written from the prose of [format.md](format.md) and
 [host-contract.md](host-contract.md) (not from `Figram/Chart.lean`), directed and random
 differential tests, document upgrades, mutants, metamorphic tests, and red runs of the oracle
-itself with deliberately wrong readings.
+itself with deliberately wrong readings. The random documents use background actions, actions
+with outcomes (latest and `every`) and arrows without a target; the driver delivers outcomes
+with the token of a wait of `pending` and with wrong ones, and compares every reply with the
+oracle byte for byte (the key order inside `resume` and `timers` aside). Each rule of decisions
+11–13 has a hand-written case in `tests/compiler/directed.py`, and is red on a deliberately wrong
+oracle and on a deliberately broken engine (`tests/compiler/filter_bin.py` damages the replies of
+the real one).
 `tests/compiler/perf_scale.py` measures load and step time on large documents (below).
 
 **C ABI** (`tests/capi/build.sh`, `tests/capi/sanitizers.sh`, `tests/capi/mutants.sh`, under a

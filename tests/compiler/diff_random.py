@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Differential test: independent oracle vs figram-engine on random documents,
-random event sequences (stale/forged timer tokens), stale snapshots and
-document upgrades v1 -> v2 (docs/host-contract.md, section 6).
+random event sequences (stale/forged timer tokens; outcome events with the token of a wait
+of `pending`, a stale or forged token, an undeclared outcome), stale snapshots (forged,
+duplicated and foreign waits) and document upgrades v1 -> v2 (docs/host-contract.md,
+section 6; an action removed, losing its outcomes or `every`).  Every reply is compared
+with the oracle byte for byte (difflib_core.check_bytes).
 
   python3 diff_random.py --engine BIN [--docs N] [--steps N] [--seed S]
                          [--mutate M] [--oracle-bug B] [--expect-red]
@@ -29,8 +32,11 @@ from oracle import Bot, DocError, Options, snap_from_json
 def make_model(seed):
     rng = random.Random(seed)
     size = rng.choice([(4, 1, 2), (8, 3, 3), (12, 4, 4), (20, 8, 6), (6, 5, 5)])
+    # background actions, actions with outcomes (latest / every) and arrows without a target
+    # (docs/format.md, section 7, decisions 11-13) in most documents, none in some
     model = gen_model(rng, n_msgs=size[0], n_secs=size[1], max_depth=size[2],
-                      p_hist=rng.choice([0.0, 0.2, 0.4]), p_timer=rng.choice([0.2, 0.5]))
+                      p_hist=rng.choice([0.0, 0.2, 0.4]), p_timer=rng.choice([0.2, 0.5]),
+                      p_feat=rng.choice([0.0, 0.5, 0.8, 1.0]), p_stay=rng.choice([0.0, 0.12, 0.25]))
     return rng, model
 
 
@@ -42,7 +48,15 @@ def one_doc(args, seed, stats, hits, divs):
     try:
         bot = Bot(text, opts)
     except DocError as e:
+        # the generator keeps documents valid (V1-V6); a document the oracle rejects must be
+        # rejected by the engine too (acceptance is the subject of check_diff.py)
         stats["gen_invalid"] = stats.get("gen_invalid", 0) + 1
+        try:
+            Engine(args.engine, text, mutate=args.mutate).close()
+            divs.append({"seed": seed, "what": "engine accepted a doc the oracle rejects", "doc": text,
+                         "oracle": e.errors})
+        except EngineLoadError:
+            pass
         return
     try:
         eng = Engine(args.engine, text, mutate=args.mutate)
@@ -68,11 +82,32 @@ def one_doc(args, seed, stats, hits, divs):
                     stats.setdefault("hits_steps", {})
                     stats["hits_steps"][x + "@exhaustive"] = stats["hits_steps"].get(x + "@exhaustive", 0) + 1
                 hits |= h
+            for op, ev, tok, g, x, tag in exhaustive.initial_cases(bot, rng):
+                stats.setdefault("initial_cases", {})
+                key = "-".join(tag)
+                stats["initial_cases"][key] = stats["initial_cases"].get(key, 0) + 1
+                h = set()
+                if op == "start":
+                    do_start_with(bot, eng, ev, rng, stats, seq=x, hits=h, fixed_guards=g)
+                else:
+                    do_step(bot, eng, x, ev, tok, rng, h, stats, fixed_guards=g)
+                for y in h:
+                    stats.setdefault("hits_steps", {})
+                    stats["hits_steps"][y + "@initial"] = stats["hits_steps"].get(y + "@initial", 0) + 1
+                hits |= h
         if rng.random() < 0.5:   # a new user with a first event (format.md §7, decision 9)
-            first = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": 0, "back": None}
+            first = {"at": bot.landing(bot.ROOT), "resume": {}, "timers": {}, "seq": 0, "back": None,
+                     "pending": []}
             ev, token, _ = pick_event(rng, bot, first, {})
+            if token is not None and ev.startswith("call:") and rng.random() < 0.5:
+                do_start_with(bot, eng, ev, rng, stats)      # rejected: no outcome starts a user
+            h = set()
             snap = do_start_with(bot, eng, ev if token is None else "btn:zz", rng, stats,
-                                 seq=rng.choice([0, 0, 41]))
+                                 seq=rng.choice([0, 0, 41]), hits=h)
+            for x in h:
+                stats.setdefault("hits_steps", {})
+                stats["hits_steps"][x + "@start"] = stats["hits_steps"].get(x + "@start", 0) + 1
+            hits |= h
         else:
             snap = do_start(bot, eng, stats)
         older = [snap_from_json(snap)]
@@ -124,7 +159,7 @@ def one_doc(args, seed, stats, hits, divs):
                 snap = do_start(bot, eng, stats)
                 perturbed = False
             s = snap_from_json(snap)
-            for t, tok in s["timers"].items():
+            for t, tok in list(s["timers"].items()) + [("call:" + w["call"], w["token"]) for w in s["pending"]]:
                 tokens.setdefault(t, [])
                 if tok not in tokens[t]:
                     tokens[t].append(tok)
