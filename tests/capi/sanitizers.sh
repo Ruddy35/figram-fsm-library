@@ -20,6 +20,7 @@ for v in asan tsan; do
   run "$v limit" $B/contract_$v limit $D
   run "$v signals custom" $B/contract_$v signals custom
   run "$v init_race" $B/contract_$v init_race $D
+  run "$v protocol3" $B/contract_$v protocol3 $D2
 done
 run "asan stress 16x5000+4" $B/stress_asan $D 16 5000 4
 run "tsan stress 16x2000 (no loaders)" $B/stress_tsan $D 16 2000 0
