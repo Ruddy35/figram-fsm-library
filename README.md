@@ -130,7 +130,7 @@ the differential tests.
 $ figram check examples/pizza.bot.json
 ok
 $ figram stats examples/pizza.bot.json
-{"states":11,"rows":40,"branches":42,"resumes":1,"actions":31}
+{"states":13,"rows":50,"branches":53,"resumes":1,"actions":39}
 $ figram example | cmp - examples/pizza.bot.json && echo identical
 identical
 $ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram fmt /dev/stdin

@@ -523,7 +523,7 @@ $ printf '%s\n' \
 >   '{"id":4,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout"}' \
 >   '{"id":5,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}' \
 >   | figram-engine examples/pizza.bot.json
-{"id":1,"protocol":2,"states":11}
+{"id":1,"protocol":3,"states":13}
 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
 {"id":3,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 {"id":4,"need":["cart_not_empty"]}
@@ -582,7 +582,7 @@ $ printf '%s\n' \
 >   '{"id":3,"op":"start","event":"cmd:start"}' \
 >   | figram-engine examples/features.bot.json
 {"id":1,"need":["is_vip"]}
-{"id":2,"snapshot":{"at":"vip","seq":1},"actions":[{"send":"vip"}]}
+{"id":2,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"start_timer":"nudge","ms":30000,"token":1},{"send":"vip"}]}
 {"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
 ```
 
