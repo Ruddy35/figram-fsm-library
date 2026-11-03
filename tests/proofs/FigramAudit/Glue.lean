@@ -62,32 +62,56 @@ theorem load_sound {txt : String} {m : Machine} (h : Engine.load txt = .ok m) :
 /-! ## G5/G6: decision 7 at the protocol level (it does NOT hold in the Core model) -/
 
 theorem decEvent_named {kvs : Obj} {n : String} (h : decEvent kvs = .ok (.named n)) :
-    n.startsWith "timer:" = false := by
+    n.startsWith "timer:" = false ∧ n.startsWith "call:" = false := by
+  -- `decEvent` also rejects an empty event, an empty timer name and a token on a named event,
+  -- and decodes `call:` events as outcomes
   unfold decEvent at h
-  cases hg : get kvs "event" with
-  | none => simp [hg, bind, Except.bind, throw, throwThe, MonadExceptOf.throw] at h
+  cases he : get kvs "event" with
+  | none => simp only [he] at h; cases h
   | some j =>
     cases j with
     | str e =>
-      -- `decEvent` also rejects an empty event, an empty timer name and a token on a
-      -- named event; the statement is unchanged
-      by_cases he : e.isEmpty = true
-      · simp [hg, he, bind, Except.bind, throw, throwThe, MonadExceptOf.throw] at h
-      · simp only [hg, he, Bool.false_eq_true, ite_false, bind, Except.bind, pure, Except.pure] at h
-        by_cases hs : e.startsWith "timer:" = true
-        · simp only [hs, ite_true] at h
-          split at h
-          · simp [throw, throwThe, MonadExceptOf.throw] at h
-          · split at h
-            · split at h <;> simp at h
-            · simp [throw, throwThe, MonadExceptOf.throw] at h
-        · simp only [hs, Bool.false_eq_true, ite_false] at h
-          split at h
-          · simp [throw, throwThe, MonadExceptOf.throw] at h
-          · simp only [Except.ok.injEq, Event.named.injEq] at h
-            subst h
-            simpa using hs
-    | _ => simp [hg, bind, Except.bind, throw, throwThe, MonadExceptOf.throw] at h
+      simp only [he] at h
+      cases h0 : e.isEmpty
+      · simp only [h0, Bool.false_eq_true, ↓reduceIte, bind, Except.bind, pure, Except.pure] at h
+        cases ht : e.startsWith "timer:"
+        · simp only [ht, Bool.false_eq_true, ↓reduceIte] at h
+          cases hc : e.startsWith "call:"
+          · simp only [hc, Bool.false_eq_true, ↓reduceIte] at h
+            cases hk : (get kvs "token").isSome
+            · simp only [hk, Bool.false_eq_true, ↓reduceIte] at h
+              cases h
+              exact ⟨ht, hc⟩
+            · simp only [hk, ↓reduceIte] at h
+              cases h
+          · simp only [hc, ↓reduceIte] at h
+            cases hs : splitOutcome (e.drop 5).toString with
+            | none => simp only [hs] at h; cases h
+            | some co =>
+              obtain ⟨c, o⟩ := co
+              simp only [hs] at h
+              cases hk : get kvs "token" with
+              | none => simp only [hk] at h; cases h
+              | some j =>
+                simp only [hk] at h
+                cases hn : reqNat "token" j with
+                | error => simp only [hn] at h; cases h
+                | ok t => simp only [hn] at h; cases h
+        · simp only [ht, ↓reduceIte] at h
+          cases hi : (e.drop 6).toString.isEmpty
+          · simp only [hi, Bool.false_eq_true, ↓reduceIte] at h
+            cases hk : get kvs "token" with
+            | none => simp only [hk] at h; cases h
+            | some j =>
+              simp only [hk] at h
+              cases hn : reqNat "token" j with
+              | error => simp only [hn] at h; cases h
+              | ok t => simp only [hn] at h; cases h
+          · simp only [hi, ↓reduceIte] at h
+            cases h
+      · simp only [h0, ↓reduceIte] at h
+        cases h
+    | _ => simp only [he] at h; cases h
 
 /-- Any step that fires on an event whose key starts with `timer:` and that was decoded by
 `decEvent` is a timer event carrying the CURRENT token of that timer. -/
@@ -98,10 +122,13 @@ theorem timer_key_needs_token (m : Machine) {kvs : Obj} {ev : Event}
     ∃ id tok, ev = .timer id tok ∧ lookup s.timers id = some tok := by
   cases ev with
   | named n =>
-    have := decEvent_named hev
+    have := (decEvent_named hev).1
     simp only [Event.key] at hk
     rw [this] at hk
     cases hk
+  | outcome c o t =>
+    exfalso
+    simp [Event.key, outcomeEvent, String.toList_append] at hk
   | timer id tok =>
     refine ⟨id, tok, rfl, ?_⟩
     by_cases hl : lookup s.timers id = some tok
@@ -159,22 +186,22 @@ theorem start_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true) :
   have hinv := foldl_inv 1 (by decide) m.initActions hinit
     ({ Snapshot.fresh with state := m.initial, seq := Snapshot.fresh.seq + 1 }, [])
     ⟨fun p hp => by simp [Snapshot.fresh] at hp, fun p hp => by simp [Snapshot.fresh] at hp,
-      fun v hv => by simp [Snapshot.fresh] at hv⟩
-  refine ⟨?_, hinv.1, hinv.2.1, ?_, hinv.2.2⟩
+      fun v hv => by simp [Snapshot.fresh] at hv, fun p hp => by simp [Snapshot.fresh] at hp⟩
+  refine ⟨?_, hinv.1, hinv.2.1, ?_, hinv.2.2.1, hinv.2.2.2⟩
   · exact ne_of_not_isEmpty (hstates _ hmem)
   · show (realize Snapshot.fresh m.initial m.initActions).1.seq ≤ maxInt
     rw [realize_seq]; decide
 
 theorem restart_snapOK (m : Machine) (hwf : m.wf = true) (hn : namesOK m = true)
     (s : Snapshot) (hs : SnapOK s) (hseq : s.seq + 1 ≤ maxInt) :
-    SnapOK (m.recover { s with resume := [], back := none }).1 := by
+    SnapOK (m.recover { s with resume := [], back := none, pending := [] }).1 := by
   simp only [namesOK, Bool.and_eq_true, List.all_eq_true] at hn
   obtain ⟨⟨⟨⟨hstates, hinit⟩, _⟩, _⟩, _⟩ := hn
   have hi := (Machine.wf_parts hwf).1
   rw [Machine.recover_eq_realize]
-  have hs' : SnapOK { s with resume := [], back := none } :=
-    ⟨hs.state, by simp, hs.timers, hs.seq, by simp⟩
-  refine realize_snapOK { s with resume := [], back := none } m.initial _ hs'
+  have hs' : SnapOK { s with resume := [], back := none, pending := [] } :=
+    ⟨hs.state, by simp, hs.timers, hs.seq, by simp, by simp⟩
+  refine realize_snapOK { s with resume := [], back := none, pending := [] } m.initial _ hs'
     (ne_of_not_isEmpty (hstates _ hi)) ?_ hseq
   · intro a ha
     simp only [List.mem_append, List.mem_map] at ha
@@ -261,6 +288,27 @@ theorem decTimerEntry_ok {p : String × J} {q : String × Nat} (h : decTimerEntr
     obtain ⟨_, h, _⟩ := h
     exact absurd h except_throw_ne
 
+theorem decWait_ok {j : J} {q : String × Nat} (h : decWait j = .ok q) :
+    q.1 ≠ "" ∧ q.2 ≤ maxInt := by
+  cases j with
+  | obj kvs =>
+    simp only [decWait] at h
+    split at h
+    · exact absurd h except_throw_ne
+    · rcases hc : Format.get kvs "call" with _ | jc
+      · simp only [hc] at h; rw [except_bind_ok] at h; obtain ⟨_, h1, _⟩ := h
+        exact absurd h1 except_throw_ne
+      simp only [hc] at h
+      rw [except_bind_ok] at h; obtain ⟨c, hc', h⟩ := h
+      rcases ht : Format.get kvs "token" with _ | jt
+      · simp only [ht] at h; rw [except_bind_ok] at h; obtain ⟨_, h1, _⟩ := h
+        exact absurd h1 except_throw_ne
+      simp only [ht] at h
+      rw [except_bind_ok] at h; obtain ⟨t, ht', h⟩ := h
+      rw [except_pure_ok] at h; subst h
+      exact ⟨nonEmpty_ok hc', boundedNat_ok ht'⟩
+  | _ => exact absurd h except_throw_ne
+
 theorem decSnapshot_sound {j : J} {s : Snapshot} (h : decSnapshot j = .ok s) : SnapOK s := by
   cases j with
   | obj kvs =>
@@ -295,13 +343,21 @@ theorem decSnapshot_sound {j : J} {s : Snapshot} (h : decSnapshot j = .ok s) : S
                  | (rw [except_pure_ok] at htms; subst htms; simp)
                  | (intro p hp; obtain ⟨x, _, hx⟩ := mapM_except_mem _ _ _ htms p hp
                     exact decTimerEntry_ok hx))
+    all_goals (rcases hpd : Format.get kvs "pending" with _ | (_ | _ | _ | _ | xs | _) <;>
+      simp only [hpd] at h <;> rw [except_bind_ok] at h <;> obtain ⟨pend, hpend, h⟩ := h <;>
+      (try exact absurd hpend except_throw_ne))
+    all_goals (have hP : ∀ p ∈ pend, p.1 ≠ "" ∧ p.2 ≤ maxInt := by
+                 first
+                 | (rw [except_pure_ok] at hpend; subst hpend; simp)
+                 | (intro p hp; obtain ⟨x, _, hx⟩ := mapM_except_mem _ _ _ hpend p hp
+                    exact decWait_ok hx))
     all_goals (rcases hq : Format.get kvs "seq" with _ | jq <;>
       simp only [hq] at h <;> rw [except_bind_ok] at h <;> obtain ⟨seq, hseq, h⟩ := h)
     all_goals (have hS : seq ≤ maxInt := by
                  first
                  | (rw [except_pure_ok] at hseq; subst hseq; simp [maxInt])
                  | exact boundedNat_ok hseq)
-    all_goals (rw [except_pure_ok] at h; subst h; exact ⟨hst, hR, hT, hS, hB⟩)
+    all_goals (rw [except_pure_ok] at h; subst h; exact ⟨hst, hR, hT, hS, hB, hP⟩)
   | _ => exact absurd h except_throw_ne
 
 /-- G10: closed protocol for `step` without an external `SnapOK` hypothesis: the snapshot

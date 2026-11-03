@@ -75,12 +75,12 @@ def outcomeEvent (c o : String) : EventId := "call:" ++ c ++ ":" ++ o
 /-- `<c>:<o>` split at its last `:` into the action and the outcome, both non-empty (an outcome
 name contains no `:`, an action name may). -/
 def splitOutcome (s : String) : Option (String × String) :=
-  let parts := s.splitOn ":"
-  match parts.getLast? with
-  | none => none
-  | some o =>
-    let c := ":".intercalate parts.dropLast
-    if parts.length < 2 || c.isEmpty || o.isEmpty then none else some (c, o)
+  let r := s.toList.reverse
+  match r.dropWhile (· != ':') with
+  | [] => none
+  | _ :: c =>
+    let o := r.takeWhile (· != ':')
+    if c.isEmpty || o.isEmpty then none else some (String.ofList c.reverse, String.ofList o.reverse)
 
 inductive Event where
   | named (name : EventId)

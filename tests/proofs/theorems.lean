@@ -59,7 +59,31 @@ open Lean Elab Command Meta in
       ``Figram.Machine.fire_eq_realize,
       ``Figram.Machine.enterBot_eq_realize_some,
       ``Figram.Machine.enterBot_eq_realize_none,
-      ``Figram.Machine.recover_eq_realize
+      ``Figram.Machine.recover_eq_realize,
+      ``Figram.Machine.step_rejected,
+      ``Figram.Machine.step_no_arrow,
+      ``Figram.Machine.step_pending_new,
+      ``Figram.Machine.step_keeps_wait,
+      ``Figram.Machine.step_records_wait,
+      ``Figram.Machine.step_latest_replaces,
+      ``Figram.Machine.step_fresh,
+      ``Figram.Machine.startWith_fresh,
+      ``Figram.Snapshot.Fresh.accepts_le,
+      ``Figram.Machine.step_outcome_once,
+      ``Figram.Machine.step_stay,
+      ``Figram.Machine.stay_keeps,
+      ``Figram.Machine.enterBot_stay,
+      ``Figram.Machine.startWith_outcome,
+      ``Figram.Machine.step_undetach,
+      ``Figram.Machine.startWith_undetach,
+      ``Figram.Machine.recover_undetach,
+      ``Figram.splitOutcome_outcomeEvent,
+      ``Figram.Engine.decEvent_key,
+      ``Figram.Engine.decEvent_outcome,
+      ``Figram.Engine.decStartEvent_ok,
+      ``Figram.Engine.handle_restart,
+      ``Figram.Engine.restart_pending,
+      ``Figram.Engine.restart_fresh
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -111,3 +135,27 @@ open Lean Elab Command Meta in
 #print axioms Figram.Machine.enterBot_eq_realize_some
 #print axioms Figram.Machine.enterBot_eq_realize_none
 #print axioms Figram.Machine.recover_eq_realize
+#print axioms Figram.Machine.step_rejected
+#print axioms Figram.Machine.step_no_arrow
+#print axioms Figram.Machine.step_pending_new
+#print axioms Figram.Machine.step_keeps_wait
+#print axioms Figram.Machine.step_records_wait
+#print axioms Figram.Machine.step_latest_replaces
+#print axioms Figram.Machine.step_fresh
+#print axioms Figram.Machine.startWith_fresh
+#print axioms Figram.Snapshot.Fresh.accepts_le
+#print axioms Figram.Machine.step_outcome_once
+#print axioms Figram.Machine.step_stay
+#print axioms Figram.Machine.stay_keeps
+#print axioms Figram.Machine.enterBot_stay
+#print axioms Figram.Machine.startWith_outcome
+#print axioms Figram.Machine.step_undetach
+#print axioms Figram.Machine.startWith_undetach
+#print axioms Figram.Machine.recover_undetach
+#print axioms Figram.splitOutcome_outcomeEvent
+#print axioms Figram.Engine.decEvent_key
+#print axioms Figram.Engine.decEvent_outcome
+#print axioms Figram.Engine.decStartEvent_ok
+#print axioms Figram.Engine.handle_restart
+#print axioms Figram.Engine.restart_pending
+#print axioms Figram.Engine.restart_fresh
