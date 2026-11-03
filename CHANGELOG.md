@@ -54,8 +54,16 @@ command names and the exit statuses; the texts of messages are for humans and ma
   carry `token` (an action with outcomes) and `detached`, and requests may send outcome events with
   `token`; an engine or a validator of version 2 rejects them, so roll the engine back only
   together with the snapshots.
-- Event names starting with `call:` are reserved for outcomes: `start` rejects them, and a
-  `step` with such an event needs `token`.
+- **Breaking for documents:** event names starting with `call:` are reserved for outcomes. A
+  document with an arrow on an event `call:…` that is not an outcome of a declared action is
+  rejected by `figram check` and the engine; rename such events. `start` rejects outcome events,
+  a `step` with one needs `token`, and an event with a reserved prefix that is not well formed
+  (`timer:`, `call:x`) is `bad_request`.
+- `failed` means that the host gave up without an answer, not that the action was not performed:
+  the host reconciles a call whose answer was lost before delivering `failed`
+  ([docs/host-contract.md](docs/host-contract.md), section 2; `host_sim` checks it with a CRM
+  that creates the order and loses the answer, and a control host without reconciliation
+  creates a second order).
 - The pinned statements of `startWith_eq_step`, `startWith_initial`, `startWith_unmatched`,
   `enterBot_eq_realize_some`, `enterBot_eq_realize_none` (the snapshot has waits; an outcome is
   matched only with a wait) and `toChart_decls` (the chart depends on the declarations of actions

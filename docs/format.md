@@ -464,7 +464,9 @@ Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, `back`, the keys and v
 lists the waits in the engine's order (the newest first); a wait of an action that is no longer
 in the document, or no longer has outcomes, is kept and still accepts its outcome. The same
 wait listed twice (the engine never creates that, but writes back what it was given) is one
-wait: its outcome removes both entries.
+wait: its outcome removes both entries. The engine never writes a token greater than `seq`
+either; a snapshot with such a token is accepted, and the guarantees that every call is
+answered once ([proofs.md](proofs.md)) assume it is not.
 A `back` or `resume` value that is not a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
 [`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows, written in JSON text
 that the parser of section 8 accepts (no duplicate keys, no lone surrogates, exponents in
@@ -546,14 +548,16 @@ Rules of a step:
 1. If the snapshot's message is not in the document, the user starts the bot again: all of the
    user's timers are cancelled, then the event is processed as for `start` with that event
    (decisions 8 and 9 of section 7, the rules of `start` with an event below), with the
-   remembered places kept and `seq` continued; `need` can be asked as for a step. The reply
+   remembered places and the waits kept and `seq` continued — an outcome event too, if the
+   snapshot waits for it (`start` itself rejects outcome events), otherwise it chooses nothing; `need` can be asked as for a step. The reply
    carries `"recovered": true`.
 2. A timer event is ignored (the snapshot does not change, no actions) if its token differs
    from the current one or if the timer does not belong to the current message (this happens
    only with a snapshot written under a previous document version). Leaving a message cancels
    its timers and every other timer of the snapshot. An outcome event is ignored if `pending`
    has no wait for its action with its token; otherwise the wait is removed, and the outcome is
-   processed as an event (the reply carries the snapshot without the wait even if no arrow
+   processed as an event (any outcome name is accepted: the engine does not keep the
+   declarations, and an undeclared outcome has no arrow, V5) (the reply carries the snapshot without the wait even if no arrow
    matches).
 3. If a variant needs conditions that are not in `guards`, the reply is `{"need": [...]}`. The
    host computes these conditions as [host-contract.md](host-contract.md) requires (section 1,

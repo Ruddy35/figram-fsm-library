@@ -16,7 +16,9 @@ A production setup in miniature:
   outcome event `call:create_order:<outcome>` with the token of the call in the
   same transaction that marks the action executed: `rejected` with the reason
   when the CRM says no (a business answer is an outcome), `failed` when the CRM
-  does not answer after a few attempts (section 2, "Outcomes"). The outcome is an
+  does not answer after a few attempts and has not acted (section 2, "Outcomes": when the
+  answer was lost after the CRM acted, the host reconciles by the key of the call and delivers
+  the real outcome). The outcome is an
   event of the user and goes through section 1 like an update (the update_id
   `call:create_order:<token>`); its details (the reason) are stored with it and
   the condition `address_rejected` reads them;
@@ -174,18 +176,31 @@ class DB:
 
 class CRM:
     """An external system: a call with the same key runs once and gets the same answer.
-    `down[user]` — how many calls of the user it does not answer; `stock_out` — users whose
-    next order it rejects for another reason than the address."""
+    `down[user]` — how many calls of the user it does not answer; `lost[user]` — how many answers
+    to the user's calls are lost after the CRM acted (the order is created, the host hears
+    nothing); `stock_out` — users whose next order it rejects for another reason than the
+    address. `lookup` is the reconciliation query: the answer to a key, if the CRM acted."""
 
-    def __init__(self, down=None, stock_out=()):
+    def __init__(self, down=None, stock_out=(), lost=None):
         self._lock = threading.Lock()
         self.executed = {}     # key -> (user, name, data, (outcome, details))
         self.down = dict(down or {})
+        self.lost = dict(lost or {})
         self.stock_out = set(stock_out)
+
+    def lookup(self, key):
+        with self._lock:
+            return self.executed[key][3] if key in self.executed else None
+
+    def _lose(self, user):
+        if self.lost.get(user, 0) > 0:
+            self.lost[user] -= 1
+            raise Down("the answer of the CRM is lost")
 
     def call(self, key, user, name, data):
         with self._lock:
             if key in self.executed:
+                self._lose(user)
                 return self.executed[key][3]
             if self.down.get(user, 0) > 0:
                 self.down[user] -= 1
@@ -200,6 +215,7 @@ class CRM:
                 else:
                     answer = ("created", {"order": key})
             self.executed[key] = (user, name, data, answer)
+            self._lose(user)
             return answer
 
     def orders(self, user=None):
@@ -231,13 +247,14 @@ class Kitchen:
 
 class Host:
     def __init__(self, engine, crash_rate, naive=False, barrier=True, first_event=True, hwm=True,
-                 atomic_outcome=True, background_queue=True, crm=None, kitchen=None):
+                 atomic_outcome=True, background_queue=True, crm=None, kitchen=None, reconcile=True):
         self.naive = naive         # control host without the contract
         self.barrier = barrier     # host contract, section 1, step 3: earlier actions run before the conditions
         self.first_event = first_event  # section 1, step 3: a new user is started with the update's event
         self.hwm = hwm             # section 4: a user without a snapshot continues the high-water mark
         self.atomic_outcome = atomic_outcome  # section 2: the outcome is recorded with the "executed" mark
         self.background_queue = background_queue  # section 2: background actions outside the user's queue
+        self.reconcile = reconcile  # section 2: before `failed`, ask the system whether the call took effect
         self.crashes = 0
         self.engine = engine
         self.db = DB()
@@ -345,6 +362,9 @@ class Host:
                     return
             else:
                 answer = self._external(e, lambda: self.crm.call(key, e["user"], name, self.db.get_data(e["user"])))
+                if answer is None and "token" in a and self.reconcile:
+                    # no answer is not "not performed": reconcile by the key of the call
+                    answer = self.crm.lookup(key)
                 if "token" in a:
                     # an action with outcomes: exactly one outcome event with the token of the call
                     outcome, details = answer if answer is not None else ("failed", {"error": "no answer"})
@@ -525,8 +545,9 @@ def plan(u):
     closed = in_zone and u % 5 == 2           # the CRM rejects the address, the user types another
     down = in_zone and u % 5 == 4             # the CRM does not answer: failed, the user retries
     stock = in_zone and u % 7 == 0 and not closed and not down   # rejected for another reason, retry
+    lost = in_zone and u % 11 in (6, 8) and not closed and not down and not stock  # created, answer lost
     addresses = [CLOSED, GOOD] if closed else [GOOD if in_zone else FAR]
-    return {"addresses": addresses, "empty_first": u % 3 == 0, "down": down, "stock": stock,
+    return {"addresses": addresses, "empty_first": u % 3 == 0, "down": down, "stock": stock, "lost": lost,
             "expect": ("done", 1, addresses[-1]) if in_zone else ("pickup", 0, None)}
 
 
@@ -558,14 +579,16 @@ def replay_lost(host, engine, users):
     return lost
 
 
-def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, barrier=True, atomic_outcome=True):
+def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, barrier=True, atomic_outcome=True,
+                    reconcile=True):
     random.seed(1)
     engine = Engine(engine_path, doc, processes=2)
     plans = {f"u{u}": plan(u) for u in range(users)}
     crm = CRM(down={k: MAX_ATTEMPTS for k, p in plans.items() if p["down"]},
-              stock_out={k for k, p in plans.items() if p["stock"]})
+              stock_out={k for k, p in plans.items() if p["stock"]},
+              lost={k: MAX_ATTEMPTS for k, p in plans.items() if p["lost"]})
     host = Host(engine, crash_rate, naive, barrier, atomic_outcome=atomic_outcome, crm=crm,
-                kitchen=Kitchen(flaky=True))
+                kitchen=Kitchen(flaky=True), reconcile=reconcile)
     host.start_executor()
     sent = set()
     ends = {}
@@ -597,7 +620,8 @@ def scenario_orders(engine_path, doc, users=30, crash_rate=0.15, naive=False, ba
     notify = [e for e in host.db.outbox if e["action"].get("call") == "notify_kitchen"]
     kitchen_ok = len(host.kitchen.executed) == len(notify) == len(crm.orders()) and not host.db.failures
     engine.close()
-    name = ("NAIVE host" if naive else "host by the contract" if barrier and atomic_outcome
+    name = ("NAIVE host" if naive else "host that delivers `failed` without reconciling" if not reconcile
+            else "host by the contract" if barrier and atomic_outcome
             else "host WITHOUT the barrier" if not barrier else "host that records the outcome separately")
     print(f"{name}, failures injected {host.crashes}")
     print(f"  users {users}: outcome as expected (done/pickup, orders 1/0, cart and address in the order) for {expected_ok}, "
@@ -776,6 +800,9 @@ if __name__ == "__main__":
     ok2 = control("duplicate orders", lambda: scenario_orders(engine_path, doc, naive=True)) and ok2
     print("--- control: a host that records the outcome of an action outside the transaction that marks it executed")
     ok2 = control("lost outcomes", lambda: scenario_orders(engine_path, doc, atomic_outcome=False)) and ok2
+    print("--- control: a host that delivers `failed` for a call whose answer was lost, without reconciling it")
+    ok2 = control("duplicate orders after a lost answer",
+                  lambda: scenario_orders(engine_path, doc, reconcile=False), attempts=1) and ok2
     ok3 = scenario_background(engine_path, doc)
     print("--- control: a host that runs background actions in the user's queue, as sequential actions")
     background_control = scenario_background(engine_path, doc, background_queue=False)
