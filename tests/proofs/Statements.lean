@@ -305,6 +305,30 @@ example : ∀ (d : Doc), d.toChart.compile.wf = true → ∀ (s : Snapshot) (ev 
 example : ∀ (kvs : Obj) (n : String), decEvent kvs = .ok (.named n) → ∀ (c o id : String),
     n ≠ outcomeEvent c o ∧ n ≠ timerEvent id := fun _ _ h => decEvent_named_key h
 
+-- what the helpers shared by the chart semantics and the machine compute
+example : ∀ (s : Snapshot) (e : EventId), s.accepts (.named e) = true := @Snapshot.accepts_named
+example : ∀ (s : Snapshot) (id : String) (tok : Nat),
+    s.accepts (.timer id tok) = decide ((s.timers.find? (fun p => decide (p.1 = id))).map (·.2) = some tok) :=
+  @Snapshot.accepts_timer
+example : ∀ (s : Snapshot) (c o : String) (tok : Nat),
+    s.accepts (.outcome c o tok) = decide ((c, tok) ∈ s.pending) := @Snapshot.accepts_outcome
+example : ∀ (s : Snapshot) (c o : String) (tok : Nat),
+    s.settle (.outcome c o tok) = { s with pending := s.pending.filter (fun p => decide (p ≠ (c, tok))) } :=
+  @Snapshot.settle_outcome
+example : ∀ (s : Snapshot) (id : String) (tok : Nat),
+    s.consume (.timer id tok) = { s with timers := s.timers.filter (fun p => decide (p.1 ≠ id)) } :=
+  @Snapshot.consume_timer
+example : ∀ (s : Snapshot) (ev : Event), (∀ id t, ev ≠ .timer id t) → s.consume ev = s :=
+  @Snapshot.consume_other
+example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), addWait pend n tok .free = pend :=
+  @addWait_free
+example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat),
+    addWait pend n tok .latest = (n, tok) :: pend.filter (fun p => decide (p.1 ≠ n)) := @addWait_latest
+example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat),
+    addWait pend n tok .every = (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok))) := @addWait_every
+example : ∀ (s : Snapshot) (ev : Event) (acts : List Action),
+    stay s ev acts = realize (s.consume ev) s.state acts := @stay_eq
+
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse
 #print Figram.Format.parseValue

@@ -104,6 +104,10 @@ for f in golden.jsonl pizza.bot.json features.bot.json; do
 done
 echo "ok ($(cat "$T/golden.out"))"
 
+step "Warnings of figram check: expected fragments, none on clean documents"
+logged lint_warnings python3 tests/compiler/lint_warnings.py --figram $F
+expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 29 and g[1] == 0' "warnings"
+
 step "Engine conformance"
 for d in pizza features; do
   $F trace examples/$d.bot.json 200 40 7 --directed > "$T/$d.jsonl" 2> "$T/$d.cov"

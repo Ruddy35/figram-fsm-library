@@ -178,6 +178,10 @@ for f in golden.jsonl pizza.bot.json features.bot.json; do
 done
 echo "ok ($(cat "$T/golden.out"))"
 
+step "Warnings of figram check: expected fragments, none on clean documents"
+logged lint_warnings python3 tests/compiler/lint_warnings.py --figram $F
+expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 29 and g[1] == 0' "warnings"
+
 step "Engine conformance: golden and random scenarios"
 for d in pizza features; do
   $F trace examples/$d.bot.json 200 40 7 --directed > "$T/$d.jsonl" 2> "$T/$d.cov"
@@ -372,8 +376,12 @@ expect "$LOGS/load.log" '^threads +(\d+), processes (\d+): steps (\d+) .*mismatc
 if command -v go >/dev/null; then
   step "Go: embedded engine, scenarios from many goroutines"
   G=clients/go
-  (cd $G && CC=${CC:-gcc} go build -ldflags=-extldflags=-Wl,--gc-sections -o gofig .) > "$LOGS/go_build.log" 2>&1 || { cat "$LOGS/go_build.log"; fail "go build"; }
-  (cd $G && CC=${CC:-gcc} go build -race -o gofig-race .) > "$LOGS/go_build_race.log" 2>&1 \
+  # Go does not track the C library of cgo: a changed ffi/out/libfigram.a alone does not relink
+  # the binary. Remove the old binaries and put the library's hash into the link flags.
+  LIBHASH=$(sha256sum ffi/out/libfigram.a | cut -c1-16)
+  rm -f $G/gofig $G/gofig-race
+  (cd $G && CC=${CC:-gcc} go build -ldflags="-extldflags=-Wl,--gc-sections -X main.figramLib=$LIBHASH" -o gofig .) > "$LOGS/go_build.log" 2>&1 || { cat "$LOGS/go_build.log"; fail "go build"; }
+  (cd $G && CC=${CC:-gcc} go build -race -ldflags="-X main.figramLib=$LIBHASH" -o gofig-race .) > "$LOGS/go_build_race.log" 2>&1 \
     || { cat "$LOGS/go_build_race.log"; fail "go build -race"; }
   SHOW=1 logged go_conf $G/gofig -rounds 3 -bots 4 examples/pizza.bot.json "$T/pizza.jsonl"
   expect "$LOGS/go_conf.log" '^bots (\d+), rounds (\d+), goroutines (\d+), requests (\d+), mismatches (\d+),' \

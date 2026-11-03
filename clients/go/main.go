@@ -234,6 +234,10 @@ const maxInt = 9007199254740991
 // a hello reply of another version is a protocol violation.
 const protocolVersion = "3"
 
+// figramLib is the hash of the C library linked in: verify.sh sets it with -ldflags -X, so that
+// a changed ffi/out/libfigram.a relinks the binary (Go does not track the C libraries of cgo).
+var figramLib string
+
 func natOK(v any) bool {
 	n, ok := v.(json.Number)
 	if !ok {

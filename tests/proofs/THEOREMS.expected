@@ -87,3 +87,13 @@ STMT Figram.Format.check_outcome_events : ∀ (d : Figram.Format.Doc), d.check =
 STMT Figram.Format.check_step_waits_once : ∀ (d : Figram.Format.Doc), d.check = [] → ∀ (s : Figram.Snapshot) (ev : Figram.Event) (env : Figram.HostEnv), (Figram.waitNames (d.toChart.compile.step s ev env).snd).Nodup
 STMT Figram.Engine.decEvent_named_key : ∀ {kvs : Figram.Format.Obj} {n : String}, Figram.Engine.decEvent kvs = Except.ok (Figram.Event.named n) → ∀ (c o id : String), n ≠ Figram.outcomeEvent c o ∧ n ≠ Figram.timerEvent id
 STMT Figram.Engine.startAt_fresh : ∀ (m : Figram.Machine) (n : Nat), (Figram.Engine.startAt m n).fst.Fresh
+STMT Figram.Snapshot.accepts_named : ∀ (s : Figram.Snapshot) (e : Figram.EventId), s.accepts (Figram.Event.named e) = true
+STMT Figram.Snapshot.accepts_timer : ∀ (s : Figram.Snapshot) (id : String) (tok : Nat), s.accepts (Figram.Event.timer id tok) = decide (Option.map (fun x => x.snd) (List.find? (fun p => decide (p.fst = id)) s.timers) = some tok)
+STMT Figram.Snapshot.accepts_outcome : ∀ (s : Figram.Snapshot) (c o : String) (tok : Nat), s.accepts (Figram.Event.outcome c o tok) = decide ((c, tok) ∈ s.pending)
+STMT Figram.Snapshot.settle_outcome : ∀ (s : Figram.Snapshot) (c o : String) (tok : Nat), s.settle (Figram.Event.outcome c o tok) = { state := s.state, resume := s.resume, timers := s.timers, seq := s.seq, back := s.back, pending := List.filter (fun p => decide (p ≠ (c, tok))) s.pending }
+STMT Figram.Snapshot.consume_timer : ∀ (s : Figram.Snapshot) (id : String) (tok : Nat), s.consume (Figram.Event.timer id tok) = { state := s.state, resume := s.resume, timers := List.filter (fun p => decide (p.fst ≠ id)) s.timers, seq := s.seq, back := s.back, pending := s.pending }
+STMT Figram.Snapshot.consume_other : ∀ (s : Figram.Snapshot) (ev : Figram.Event), (∀ (id : String) (t : Nat), ev ≠ Figram.Event.timer id t) → s.consume ev = s
+STMT Figram.addWait_free : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), Figram.addWait pend n tok Figram.Wait.free = pend
+STMT Figram.addWait_latest : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), Figram.addWait pend n tok Figram.Wait.latest = (n, tok) :: List.filter (fun p => decide (p.fst ≠ n)) pend
+STMT Figram.addWait_every : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), Figram.addWait pend n tok Figram.Wait.every = (n, tok) :: List.filter (fun p => decide (p ≠ (n, tok))) pend
+STMT Figram.stay_eq : ∀ (s : Figram.Snapshot) (ev : Figram.Event) (acts : List Figram.Action), Figram.stay s ev acts = Figram.realize (s.consume ev) s.state acts

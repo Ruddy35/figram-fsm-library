@@ -41,7 +41,7 @@ command names and the exit statuses; the texts of messages are for humans and ma
   machine (`step_undetach`, `startWith_undetach`, `recover_undetach`); the arrow is looked up by
   exactly the event the host sent (`decEvent_key`, `decEvent_outcome`), `start` takes no outcome
   event (`decStartEvent_ok`), `restart` clears the waits (`handle_restart`, `restart_pending`).
-  `compile_correct` covers all three features; 89 theorem statements are pinned.
+  `compile_correct` covers all three features; 99 theorem statements are pinned.
 - `figram trace … --directed`: after the random scenarios, the shortest scenarios a search over
   the reachable places finds for the arrow variants they missed; the random scenarios are guided
   towards uncovered variants. `verify.sh` requires every arrow variant of the examples covered.

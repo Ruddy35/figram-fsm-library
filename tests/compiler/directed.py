@@ -221,6 +221,14 @@ D_OUT = doc3(sec("home", {
         "call:a:b:ok": [go("yes")], "call:a:b:failed": [go("err")],
         "call:bgo:done": [stay()], "call:bgo:failed": [stay()]}))
 
+# A guarded outcome arrow at the initial message: recovery matches an accepted outcome there and
+# asks for its condition; a stale outcome chooses nothing and needs no condition.
+D_OUT_INIT = doc3(sec("home", {
+    "home": msg(on={"btn:go": [go("wait", do=["chk"])], "call:chk:yes": [go("yes", "c1")]}),
+    "wait": msg(on={"call:chk:yes": [go("yes")], "call:chk:no": [go("home")],
+                    "call:chk:failed": [go("home")]}),
+    "yes": msg()}))
+
 # Arrows without a target: on a message (named and timer events), on a section, on the root;
 # section S is remembered (resume arrow from o) and o is outside S ("back").
 D_STAY = doc3(sec("S", {
@@ -537,6 +545,17 @@ case("outcome_recovery_stale", "conformance", D_OUT,
      snapshot={"at": "gone", "timers": {"tw": 4}, "pending": [W("ping", 4), W("chk", 3)], "seq": 6},
      spec="decision 12: an outcome that is not accepted chooses no variant and gives the plain start over "
           "(waits kept)")
+case("outcome_recovery_stale_needs_nothing", "conformance", D_OUT_INIT,
+     [("call:chk:yes", 9, None, {"recovered": True, "at": "home", "pending": [W("chk", 3)], "seq": 5})],
+     start=False, snapshot={"at": "gone", "pending": [W("chk", 3)], "seq": 4},
+     spec="decisions 8, 9, 12; format.md section 8 rule 1: in recovery an outcome that is not accepted chooses "
+          "nothing, so `need` asks for no condition of the initial message (the plain start over)")
+case("outcome_recovery_accepted_needs_guard", "conformance", D_OUT_INIT,
+     [("call:chk:yes", 3, None, {"need": {"c1"}}),
+      ("call:chk:yes", 3, {"c1": True}, {"recovered": True, "at": "yes", "seq": 5})],
+     start=False, snapshot={"at": "gone", "pending": [W("chk", 3)], "seq": 4},
+     spec="decisions 8, 9, 12: in recovery an accepted outcome is matched at the initial message and may ask "
+          "`need`")
 case("outcome_recovery_stay_leads_to_initial", "conformance", D_OUT,
      [("call:ping:pong", 4, {}, {"recovered": True,
                                  "snapshot": {"at": "home", "timers": {"idle": 7}, "pending": [W("chk", 3)], "seq": 7},

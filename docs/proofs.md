@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 89 theorems are pinned: `./verify.sh` elaborates
+The statements of these 99 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -88,7 +88,7 @@ Decisions 11–13 ([format.md](format.md), section 7): an action with outcomes r
 | `Figram.Machine.step_outcome_once` | After an outcome of a call with such a token, the next outcome of the same call (the same or another one) is ignored; `outcome_once_forever` extends it to any events in between. |
 | `Figram.Machine.startWith_outcome` | On the first entry an outcome event chooses nothing: a new user waits for nothing. |
 | `Figram.Machine.step_stay` | A variant without a target chosen on the message is its actions without a move, from the snapshot without the wait answered and without the timer that fired. |
-| `Figram.Machine.stay_keeps` | Such a variant (with actions that call the developer's code or send) keeps the message, the remembered places, the place to go back to and the other timers; the counter grows by one. |
+| `Figram.Machine.stay_keeps` | Such a variant (with actions that call the developer's code or send) keeps the message, the remembered places, the place to go back to and the timers of `s.consume ev` (all but the one that fired: `Snapshot.consume_timer`); the counter grows by one. |
 | `Figram.Machine.enterBot_stay` | On entering the bot (recovery, `start` with an event) such a variant leads to the initial message. |
 | `Figram.Machine.step_undetach` | **Background actions do not affect the machine**: the machine with every action in the foreground (`Machine.undetach`, all actions at once) takes the same step, with the same reply up to the flag `detached`. |
 | `Figram.Machine.startWith_undetach` | The same for the first entry. |
@@ -128,8 +128,22 @@ The properties that need the chart, the compiler or the document (`Figram/Outcom
 The reference semantics `Chart.step` uses the same helpers for waits, tokens and variants
 without a target as the machine (`Snapshot.accepts`, `settle`, `consume`, `addWait`, `stay`,
 `realize` in `Figram/Core.lean`), so `compile_correct` and the conformance tests cannot find an
-error in them. They are checked by the theorems above and by the independent oracle of
-`tests/compiler` (written from the prose, it does not read the Lean sources).
+error in them. What they compute is pinned in terms of lists, and they are checked by the
+theorems above and by the independent oracle of `tests/compiler` (written from the prose, it
+does not read the Lean sources):
+
+| Theorem | Meaning |
+|---|---|
+| `Figram.Snapshot.accepts_named` | A named event is always accepted. |
+| `Figram.Snapshot.accepts_timer` | A timer firing is accepted only with the token of the first entry of its timer. |
+| `Figram.Snapshot.accepts_outcome` | An outcome is accepted only if `pending` has the wait of its action with its token. |
+| `Figram.Snapshot.settle_outcome` | An outcome removes exactly its wait (every copy of it). |
+| `Figram.Snapshot.consume_timer` | A firing handled without a move removes exactly its timer. |
+| `Figram.Snapshot.consume_other` | Other events consume nothing. |
+| `Figram.addWait_free` | A call of an action without outcomes records no wait. |
+| `Figram.addWait_latest` | A call answered only at its latest call puts its wait first and removes the other waits of its action. |
+| `Figram.addWait_every` | A call with `every` puts its wait first and keeps the others. |
+| `Figram.stay_eq` | A variant without a target is `realize` of its actions on the current message from the snapshot without the consumed timer. |
 
 ### Linear-time execution
 

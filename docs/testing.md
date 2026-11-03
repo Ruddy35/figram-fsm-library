@@ -36,7 +36,7 @@ Steps, in order:
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
    the variable the step is skipped (not a waiver).
-4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 89 pinned theorems
+4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 99 pinned theorems
    must equal `tests/proofs/THEOREMS.expected` and depend only on `propext`, `Quot.sound` and
    `Classical.choice`; the Lean sources must not contain `axiom`, `sorry`, `admit`,
    `native_decide`, `implemented_by`, `@[extern`, `skipKernelTC`, `ofReduceBool`,
@@ -56,7 +56,9 @@ Steps, in order:
    replays the golden and the random scenarios against `figram-engine` and requires zero
    mismatches. The reference scenarios come from the proved chart semantics, not from the
    engine (the chart semantics shares the helpers of waits and variants without a target with
-   the machine, [proofs.md](proofs.md); the independent oracle of `tests/compiler` covers them).
+   the machine, [proofs.md](proofs.md), and the scenarios are written with the engine's JSON
+   encoder `encSnapshot`/`encActions`: the independent oracle of `tests/compiler`, the committed
+   golden files and the hand-written suites cover them).
 8. **Random documents** — `tests/engine/random_docs.py`: 100 random valid documents
    (`figram random`) with 12 messages each, every one checked on 20 reference scenarios of length 30.
 9. **Mutation testing** — `tests/engine/mutation.py` runs every mutant of the compiled machine

@@ -100,8 +100,14 @@ def gen (n : Nat) : M Doc := do
     let mut hs ← handlers nodes secs (events ++ outcomeEvents) 30
     if ← chance 30 then
       let t := s!"t{i}"
-      timers := timers ++ [(m, [(t, 1 + (← rnd 100000))])]
+      let mut ts := [(t, 1 + (← rnd 100000))]
       hs := hs ++ [(timerEvent t, ← variants nodes secs)]
+      -- sometimes a second timer: a firing handled without a move must keep it
+      if ← chance 40 then
+        let u := s!"u{i}"
+        ts := ts ++ [(u, 1 + (← rnd 100000))]
+        hs := hs ++ [(timerEvent u, ← variants nodes secs)]
+      timers := timers ++ [(m, ts)]
     on := on ++ [(m, hs)]
   for sc in secs do
     on := on ++ [(sc, ← handlers nodes secs (events ++ outcomeEvents) 15)]

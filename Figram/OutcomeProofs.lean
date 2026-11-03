@@ -33,6 +33,46 @@ import Figram.EngineProofs
 
 namespace Figram
 
+/-! ## What the helpers of waits and variants without a target compute
+
+The reference semantics `Chart.step` uses the helpers of `Figram/Core.lean` (`accepts`, `settle`,
+`consume`, `addWait`, `stay`), so `compile_correct` cannot find an error in them; these theorems
+state what they compute in terms of lists (a change of a helper changes a pinned statement). -/
+
+theorem Snapshot.accepts_named (s : Snapshot) (e : EventId) : s.accepts (.named e) = true := rfl
+
+theorem Snapshot.accepts_timer (s : Snapshot) (id : String) (tok : Nat) :
+    s.accepts (.timer id tok) = decide ((s.timers.find? (fun p => decide (p.1 = id))).map (·.2) = some tok) :=
+  rfl
+
+theorem Snapshot.accepts_outcome (s : Snapshot) (c o : String) (tok : Nat) :
+    s.accepts (.outcome c o tok) = decide ((c, tok) ∈ s.pending) := rfl
+
+theorem Snapshot.settle_outcome (s : Snapshot) (c o : String) (tok : Nat) :
+    s.settle (.outcome c o tok) = { s with pending := s.pending.filter (fun p => decide (p ≠ (c, tok))) } :=
+  rfl
+
+theorem Snapshot.consume_timer (s : Snapshot) (id : String) (tok : Nat) :
+    s.consume (.timer id tok) = { s with timers := s.timers.filter (fun p => decide (p.1 ≠ id)) } := rfl
+
+theorem Snapshot.consume_other (s : Snapshot) (ev : Event) (h : ∀ id t, ev ≠ .timer id t) :
+    s.consume ev = s := by
+  cases ev with
+  | timer id t => exact absurd rfl (h id t)
+  | _ => rfl
+
+theorem addWait_free (pend : List (String × Nat)) (n : String) (tok : Nat) :
+    addWait pend n tok .free = pend := rfl
+
+theorem addWait_latest (pend : List (String × Nat)) (n : String) (tok : Nat) :
+    addWait pend n tok .latest = (n, tok) :: pend.filter (fun p => decide (p.1 ≠ n)) := rfl
+
+theorem addWait_every (pend : List (String × Nat)) (n : String) (tok : Nat) :
+    addWait pend n tok .every = (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok))) := rfl
+
+theorem stay_eq (s : Snapshot) (ev : Event) (acts : List Action) :
+    stay s ev acts = realize (s.consume ev) s.state acts := rfl
+
 /-! ## Executing actions and the waits -/
 
 theorem realizeOne_pending_mem (tok : Nat) (acc : Snapshot × List Action) (a : Action)

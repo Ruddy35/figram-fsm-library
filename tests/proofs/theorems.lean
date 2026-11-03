@@ -102,7 +102,17 @@ open Lean Elab Command Meta in
       ``Figram.Format.check_outcome_events,
       ``Figram.Format.check_step_waits_once,
       ``Figram.Engine.decEvent_named_key,
-      ``Figram.Engine.startAt_fresh
+      ``Figram.Engine.startAt_fresh,
+      ``Figram.Snapshot.accepts_named,
+      ``Figram.Snapshot.accepts_timer,
+      ``Figram.Snapshot.accepts_outcome,
+      ``Figram.Snapshot.settle_outcome,
+      ``Figram.Snapshot.consume_timer,
+      ``Figram.Snapshot.consume_other,
+      ``Figram.addWait_free,
+      ``Figram.addWait_latest,
+      ``Figram.addWait_every,
+      ``Figram.stay_eq
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -197,3 +207,13 @@ open Lean Elab Command Meta in
 #print axioms Figram.Format.check_step_waits_once
 #print axioms Figram.Engine.decEvent_named_key
 #print axioms Figram.Engine.startAt_fresh
+#print axioms Figram.Snapshot.accepts_named
+#print axioms Figram.Snapshot.accepts_timer
+#print axioms Figram.Snapshot.accepts_outcome
+#print axioms Figram.Snapshot.settle_outcome
+#print axioms Figram.Snapshot.consume_timer
+#print axioms Figram.Snapshot.consume_other
+#print axioms Figram.addWait_free
+#print axioms Figram.addWait_latest
+#print axioms Figram.addWait_every
+#print axioms Figram.stay_eq
