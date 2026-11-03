@@ -523,7 +523,7 @@ $ printf '%s\n' \
 >   '{"id":4,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout"}' \
 >   '{"id":5,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}' \
 >   | figram-engine examples/pizza.bot.json
-{"id":1,"protocol":2,"states":11}
+{"id":1,"protocol":3,"states":13}
 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
 {"id":3,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 {"id":4,"need":["cart_not_empty"]}
@@ -556,11 +556,37 @@ Rules of a step:
    is empty, the values of conditions that were not given do not affect the step (theorem
    `missing_nil_step`); extra conditions in `guards` do not affect it either
    (`guards_irrelevant`).
-4. An event without a matching arrow is ignored.
+4. An event without a matching arrow is ignored (an accepted outcome still loses its wait,
+   rule 2). A variant without `to` performs its actions without a move (decision 13): no exit,
+   no entry, the timers and the places stay, except that a timer firing handled this way is
+   removed from `timers`; `seq` grows by 1.
 5. If the new `seq` would exceed 2^53 − 1, the reply is the error `seq_overflow`: the engine
    never produces a snapshot it could not read back (the same holds for `restart` and for
    `start` with `seq` 2^53 − 1). At one transition per millisecond the limit is about
    285 000 years away.
+
+An action with outcomes (decision 12) in [`examples/pizza.bot.json`](../examples/pizza.bot.json):
+`payment:success` on `pay` leads to `placing` and calls `create_order`, which has the outcomes
+`created` and `rejected` (and `failed`). The call carries the token of the step, and the snapshot
+waits for it (request 1). The outcome comes back with that token, and the arrows of `placing`
+handle it (requests 2 and 3: `rejected` with the condition `address_rejected` leads back to the
+address). After that the wait is gone, so a repeated delivery is ignored (request 4), and so is
+an outcome with a token of no wait (request 5):
+
+```sh doctest
+$ printf '%s\n' \
+>   '{"id":1,"op":"step","snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"event":"payment:success"}' \
+>   '{"id":2,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:rejected","token":6}' \
+>   '{"id":3,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:rejected","token":6,"guards":{"address_rejected":true}}' \
+>   '{"id":4,"op":"step","snapshot":{"at":"address","resume":{"order":"address"},"seq":7},"event":"call:create_order:rejected","token":6}' \
+>   '{"id":5,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created","token":5}' \
+>   | figram-engine examples/pizza.bot.json
+{"id":1,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[{"call":"create_order","token":6},{"send":"placing"}]}
+{"id":2,"need":["address_rejected"]}
+{"id":3,"snapshot":{"at":"address","resume":{"order":"address"},"seq":7},"actions":[{"send":"address"}]}
+{"id":4,"snapshot":{"at":"address","resume":{"order":"address"},"seq":7},"actions":[]}
+{"id":5,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[]}
+```
 
 Rules of `start` with an event (decision 9 of section 7):
 
@@ -582,7 +608,7 @@ $ printf '%s\n' \
 >   '{"id":3,"op":"start","event":"cmd:start"}' \
 >   | figram-engine examples/features.bot.json
 {"id":1,"need":["is_vip"]}
-{"id":2,"snapshot":{"at":"vip","seq":1},"actions":[{"send":"vip"}]}
+{"id":2,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"start_timer":"nudge","ms":30000,"token":1},{"send":"vip"}]}
 {"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
 ```
 

@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 46 theorems are pinned: `./verify.sh` elaborates
+The statements of these 70 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -42,10 +42,10 @@ through `Machine.enterBot`; the chart's reference semantics is `Chart.startWith`
 |---|---|
 | `Figram.Chart.startWith_correct` | If `c.compile.wf`, entering with an event on the compiled machine equals the chart's reference semantics, for every counter, event and assignment of condition values. |
 | `Figram.Chart.sessionWith_correct` | The same for a whole session that starts by entering with an event. |
-| `Figram.Machine.startWith_eq_step` | Entering with an event that chooses a variant is a step from the snapshot standing on the initial message (no timers, no places, no place to go back to): the same snapshot except that the step may remember the initial message as the place to go back to (it leaves the initial message, entering does not), and the step's actions are the initial message's exit actions (cancelling timers that were never started) followed by those of `startWith`. |
-| `Figram.Machine.startWith_initial` | If the chosen variant leads to the initial message, entering is exactly the first entry with the variant's actions in front: one entry, one `send` of the initial message. |
+| `Figram.Machine.startWith_eq_step` | Entering with an event that chooses a variant with a target is a step from the snapshot standing on the initial message (no timers, no places, no place to go back to): the same snapshot except that the step may remember the initial message as the place to go back to (it leaves the initial message, entering does not), and the step's actions are the initial message's exit actions (cancelling timers that were never started) followed by those of `startWith`. |
+| `Figram.Machine.startWith_initial` | If the variant chosen for a named event leads to the initial message, entering is exactly the first entry with the variant's actions in front: one entry, one `send` of the initial message. |
 | `Figram.Chart.compile_initActions` | In a compiled machine the first-entry actions are the entry actions of the initial message (the last hypothesis of `startWith_initial`). |
-| `Figram.Machine.startWith_unmatched` | Without a matching variant (or for a timer event), entering is the plain first entry. |
+| `Figram.Machine.startWith_unmatched` | Without a matching variant (or for a timer or an outcome event), entering is the plain first entry. |
 | `Figram.Machine.enterBot_state_valid` | For a well-formed machine, entering ends on a state of the machine. |
 | `Figram.Machine.enterBot_guard_local` | Entering depends only on the conditions in `requiredGuards` of the initial message and the event. |
 | `Figram.Machine.step_recover` | A step from a snapshot whose message no longer exists is entering the bot with the event, after cancelling the snapshot's timers and keeping its remembered places (decision 8). |
@@ -67,6 +67,40 @@ machine is `Machine.zoneOf`.
 
 Together with `compile_correct` these hold for the chart's reference semantics as well.
 
+### Actions with outcomes, background actions, variants without a target
+
+Decisions 11–13 ([format.md](format.md), section 7): an action with outcomes records a wait
+`(action, token)` in `Snapshot.pending` (`addWait` in `realizeOne`), an outcome event
+`Event.outcome` is accepted only with the token of a wait (`Snapshot.accepts`) and removes it
+(`Snapshot.settle`); a variant without a target is `Target.stay` (`Figram/OutcomeProofs.lean`).
+
+| Theorem | Meaning |
+|---|---|
+| `Figram.Machine.step_rejected` | On a message of the machine, an event the snapshot does not accept (a timer firing with a stale token, an outcome without the wait of its call) changes nothing and gives no actions. |
+| `Figram.Machine.step_no_arrow` | An accepted event without an arrow on the message only removes its wait: an outcome nobody handles is ignored, but its call is answered. |
+| `Figram.Machine.step_pending_new` | After a step every wait is a wait of the snapshot other than the one answered, or a wait of the step itself (its token is the new `seq`). |
+| `Figram.Machine.step_keeps_wait` | **A step keeps every other wait, whatever the move** (to another message, out of a section, into recovery): only a newer call of the same action answered only at its latest call removes it. |
+| `Figram.Machine.step_records_wait` | Every call of a reply has the token of the step (the new `seq`), and a call of an action with outcomes records its wait with that token. |
+| `Figram.Machine.step_latest_replaces` | After a call answered only at its latest call (`every` absent), the only wait of that action is the new one. |
+| `Figram.Machine.step_fresh` | No token of a wait or of a timer exceeds `seq` (`Snapshot.Fresh`): a step keeps it. |
+| `Figram.Machine.startWith_fresh` | The first entry (with or without an event) establishes it. |
+| `Figram.Snapshot.Fresh.accepts_le` | In such a snapshot an accepted outcome has a token given before the snapshot. |
+| `Figram.Machine.step_outcome_once` | **Each call is answered once**: after an outcome of a call with such a token, any outcome of the same call (the same or another one) is ignored. |
+| `Figram.Machine.startWith_outcome` | On the first entry an outcome event chooses nothing: a new user waits for nothing. |
+| `Figram.Machine.step_stay` | A variant without a target chosen on the message is its actions without a move, from the snapshot without the wait answered and without the timer that fired. |
+| `Figram.Machine.stay_keeps` | Such a variant (with actions that call the developer's code or send) keeps the message, the remembered places, the place to go back to and the other timers; the counter grows by one. |
+| `Figram.Machine.enterBot_stay` | On entering the bot (recovery, `start` with an event) such a variant leads to the initial message. |
+| `Figram.Machine.step_undetach` | **Background actions do not affect the machine**: the machine with every action in the foreground (`Machine.undetach`) takes the same step, with the same reply up to the flag `detached`. |
+| `Figram.Machine.startWith_undetach` | The same for the first entry. |
+| `Figram.Machine.recover_undetach` | The same for `restart`. |
+| `Figram.splitOutcome_outcomeEvent` | The event `call:<action>:<outcome>` splits back into the action and the outcome (the outcome name has no `:`). |
+| `Figram.Engine.decEvent_key` | The arrow is looked up by exactly the event the host sent: the key of a decoded event is the request's `event`. |
+| `Figram.Engine.decEvent_outcome` | An outcome event of an action (a non-empty name, an outcome without `:`, a token within the bounds) is decoded as that outcome. |
+| `Figram.Engine.decStartEvent_ok` | `start` never takes a timer or an outcome event. |
+| `Figram.Engine.handle_restart` | A `restart` request with a decodable snapshot and no `seq` overflow replies with `recover` from the snapshot without the remembered places, the place to go back to and the waits. |
+| `Figram.Engine.restart_pending` | After `restart` only the waits of the first-entry actions remain: late outcomes of earlier calls are ignored. |
+| `Figram.Engine.restart_fresh` | `restart` keeps the tokens fresh. |
+
 ### Linear-time execution
 
 `realize` is the specification of executing actions; it takes time quadratic in the number of
@@ -78,8 +112,8 @@ the snapshot. These theorems show that the machine still computes exactly `reali
 |---|---|
 | `Figram.Machine.realize_clear` | If `pre` only cancels timers and cancels every timer of the snapshot, `realize` of `pre` and then `acts` is `realizeClear`: the timers cleared at once, `pre` in front of the reply. |
 | `Figram.Machine.fire_eq_realize` | A move of the machine is `realize` of the exit actions, the cancels of the snapshot's other timers, the variant's actions and the entry actions. |
-| `Figram.Machine.enterBot_eq_realize_some` | Entering the bot with a chosen variant is `realize` of `pre`, the variant's actions and the entry of its target. |
-| `Figram.Machine.enterBot_eq_realize_none` | Entering the bot without a chosen variant is `realize` of `pre` and the first-entry actions. |
+| `Figram.Machine.enterBot_eq_realize_some` | Entering the bot with an accepted event and a chosen variant is `realize`, from the snapshot without the wait answered, of `pre`, the variant's actions and the entry of its target (resolved as if the user stood on the initial message). |
+| `Figram.Machine.enterBot_eq_realize_none` | Entering the bot without a chosen variant (or with an outcome it does not wait for) is `realize` of `pre` and the first-entry actions. |
 | `Figram.Machine.recover_eq_realize` | `restart` is `realize` of cancelling all the snapshot's timers and the first-entry actions. |
 
 ### Document format
@@ -90,7 +124,7 @@ the snapshot. These theorems show that the machine still computes exactly `reali
 | `Figram.Format.encode_injective` | Different documents satisfying `DocWF` are encoded differently (a corollary of `decode_encode`; false without `DocWF`). |
 | `Figram.Format.decode_requires` | A decoded document requires only known extensions (`knownFeatures`): a document with an unknown semantic extension is rejected as a whole. |
 | `Figram.Format.toChart_strip` | Removing all unknown keys and annotations (`strip`) does not change the chart, i.e. the bot's behaviour. |
-| `Figram.Format.toChart_decls` | The description maps (`conditions`, `calls`, `variables`) do not affect the chart (true by definition, `rfl`). |
+| `Figram.Format.toChart_decls` | The description maps (`conditions`, `variables`) and the descriptions of actions do not affect the chart: it depends on the declarations of actions only through their properties (`detached`, `outcomes`, `every`: `callOpts`). |
 | `Figram.Format.check_roundtrip` | A document that passes `check` is encoded into the model `J` and decoded back unchanged. |
 
 ### Engine protocol
@@ -123,10 +157,12 @@ The exact statements are in [`tests/proofs/THEOREMS.expected`](../tests/proofs/T
 * `DocWF` — checked by `check` in computable form (`Doc.wfOK`, `wfOK_sound`).
 * `SnapOK` — the engine's snapshot decoder `decSnapshot` accepts only admissible snapshots
   (proved as `Figram.Audit.decSnapshot_sound`, see below).
-* Decision 7 of the semantics (a timer firing needs the current token) is enforced by the request
-  decoder `Engine.decEvent`: in the core model the event `.named "timer:x"` is accepted without a
-  token, and the core theorems do not exclude it (`Figram.Audit.timer_key_needs_token` closes the
-  gap at the protocol level).
+* Decisions 7 and 12 of the semantics (a timer firing and an outcome need a token) are enforced
+  by the request decoder `Engine.decEvent`: in the core model the events `.named "timer:x"` and
+  `.named "call:a:o"` are accepted without a token, and the core theorems do not exclude them
+  (`Figram.Audit.timer_key_needs_token` and `Figram.Engine.decEvent_key` close the gap at the
+  protocol level: a decoded named event starts with neither `timer:` nor `call:`,
+  `Figram.Audit.decEvent_named`).
 
 ### Supplementary lemmas
 
@@ -165,7 +201,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (194 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (299 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from

@@ -36,14 +36,14 @@ Steps, in order:
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
    the variable the step is skipped (not a waiver).
-4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 46 pinned theorems
+4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 70 pinned theorems
    must equal `tests/proofs/THEOREMS.expected` and depend only on `propext`, `Quot.sound` and
    `Classical.choice`; the Lean sources must not contain `axiom`, `sorry`, `admit`,
    `native_decide`, `implemented_by`, `@[extern`, `skipKernelTC`, `ofReduceBool`,
    `ofReduceNat` ([proofs.md](proofs.md)).
-5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 194 source theorems and
+5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 299 source theorems and
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
-6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (26 scenarios) and
+6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (37 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
 7. **Conformance** — `figram trace … --directed` generates 200 random reference scenarios of
    length 40 for each example document (the choice of events and conditions is guided towards

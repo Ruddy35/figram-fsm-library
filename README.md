@@ -12,9 +12,10 @@ its compiler, document format and engine protocol.
 A bot is one JSON document (`examples/*.bot.json`, schema
 [`schemas/figram.schema.json`](schemas/figram.schema.json)), meant to be written by a visual
 editor (not part of this repository) or by hand; the engine executes the document. The document
-describes messages, events, arrows with ordered variants guarded by named conditions, actions,
-nested sections, "resume where the user left off" and "back to the previous section" arrows,
-and timers
+describes messages, events, arrows with ordered variants guarded by named conditions, actions
+(sequential or in the background, with outcomes the engine waits for, such as "order created" or
+"rejected"), arrows without a target that act without a move, nested sections, "resume where
+the user left off" and "back to the previous section" arrows, and timers
 ([docs/format.md](docs/format.md)).
 
 The engine is **stateless**. It loads and compiles a document once and then answers requests:
@@ -25,7 +26,7 @@ per user, evaluates conditions when the engine asks for them, executes the actio
 schedules timers ([docs/host-contract.md](docs/host-contract.md)).
 
 **What is proved.** The reference semantics of the designer's chart, the compiler to a flat
-machine and the document format are specified in Lean 4; 46 pinned theorems state, among other
+machine and the document format are specified in Lean 4; 70 pinned theorems state, among other
 things, that the compiled machine takes exactly the steps of the chart for every snapshot, event
 and condition values, that a checked document is encoded and decoded back unchanged, and that a
 `step` request runs exactly the proved step and returns a snapshot the engine can read back. All
@@ -130,7 +131,7 @@ the differential tests.
 $ figram check examples/pizza.bot.json
 ok
 $ figram stats examples/pizza.bot.json
-{"states":11,"rows":40,"branches":42,"resumes":1,"actions":31}
+{"states":13,"rows":50,"branches":53,"resumes":1,"actions":39}
 $ figram example | cmp - examples/pizza.bot.json && echo identical
 identical
 $ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram fmt /dev/stdin
@@ -144,7 +145,7 @@ $ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram
   }
 }
 $ figram trace examples/pizza.bot.json 1 3 7 2>/dev/null
-{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","back":"menu","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"cmd:help","guards":{},"snapshot":{"at":"help","back":"cart","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"help"}]}]}
+{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","back":"menu","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"btn:cancel","guards":{},"snapshot":{"at":"menu","back":"cart","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"call":"clear_cart"},{"send":"menu"}]}]}
 $ figram random 7 5 2>/dev/null | figram check /dev/stdin 2>/dev/null
 ok
 $ out=$(mktemp -d) && figram golden "$out" > /dev/null && ls "$out" && rm -r "$out"
