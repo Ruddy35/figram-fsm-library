@@ -85,6 +85,9 @@ check "NUL in a document" 0 "$B/contract" nul $D
 check "invalid UTF-8 in a document" 0 "$B/contract" utf8 $D
 check "init side effects report" 0 "$B/contract" side_effects
 check "64 threads on one handle" 0 "$B/contract" threads $D 64
+# Large requests do not make the resident memory grow (a mimalloc arena, ffi/figram_rt.c).
+check "1600 large requests: resident memory does not grow" 0 "$B/contract" large_rss $D
+check "control: without the arena (MIMALLOC_ARENA_RESERVE=0) it grows" 1 env MIMALLOC_ARENA_RESERVE=0 "$B/contract" large_rss $D
 # The thread stack docs/embedding.md recommends is enough at the nesting limit of the parser.
 KB=$(tr '\n' ' ' < docs/embedding.md | grep -o 'call the library at least [0-9]* KiB' | grep -o '[0-9]*')
 check "nesting limit on a thread with the documented stack (${KB:-?} KiB)" 0 "$B/contract" deep_stack "${KB:-0}"

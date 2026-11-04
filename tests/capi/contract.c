@@ -594,10 +594,10 @@ static int t_signals(const char* mode) {
 }
 
 /* The embedded runtime starts no threads and opens no file descriptors (neither in figram_init
-   nor in loads and requests), and figram_init reserves less than 8 MB of address space (the stock
-   start-up reserves about 75 MB for the libuv thread stack and its glibc malloc arena, and without
-   ffi/figram_rt.c another 1 GiB for the mimalloc arena). */
-#define MAX_INIT_VMSIZE_KB (8 * 1024)
+   nor in loads and requests), and figram_init reserves less than 8 MB of address space besides the
+   64 MiB mimalloc arena (the stock start-up reserves about 75 MB for the libuv thread stack and its
+   glibc malloc arena, and without ffi/figram_rt.c a 1 GiB mimalloc arena). */
+#define MAX_INIT_VMSIZE_KB (8 * 1024 + 64 * 1024)
 static int n_fds(void) {
   DIR* d = opendir("/proc/self/fd"); int n = 0; struct dirent* e;
   while (d && (e = readdir(d))) if (e->d_name[0] != '.') n++;
@@ -732,12 +732,43 @@ static int t_protocol3(const char* path) {
   return n_fail != 0;
 }
 
+/* ---------- memory of large requests ---------- */
+
+/* The same large step (the pizza waiting on `placing`, 4000 waits of other actions, the outcome of
+   create_order) many times: the resident memory must not grow with the number of requests. Without
+   a mimalloc arena (MIMALLOC_ARENA_RESERVE=0, the 0.3.0 audit) it grew by about 6 KB per request. */
+static int t_large_rss(const char* path) {
+  figram_init();
+  void* m = figram_load_doc(read_all(path));
+  size_t cap = 200000, len = 0;
+  char* req = malloc(cap);
+  len += (size_t)snprintf(req + len, cap - len,
+    "{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"seq\":6,\"pending\":["
+    "{\"call\":\"create_order\",\"token\":6}");
+  for (int i = 0; i < 4000; i++)
+    len += (size_t)snprintf(req + len, cap - len, ",{\"call\":\"w%d\",\"token\":1}", i);
+  snprintf(req + len, cap - len, "]},\"event\":\"call:create_order:created\",\"token\":6}");
+  long ok = 0, rss0 = 0;
+  for (int i = 0; i < 1600; i++) {
+    if (i == 100) rss0 = status_kb("VmRSS");
+    char* r = figram_request_json(m, req);
+    ok += r && strstr(r, "\"at\":\"done\"") != NULL;
+    figram_free(r);
+  }
+  long rss1 = status_kb("VmRSS");
+  printf("large requests: %zu bytes, ok %ld of 1600, RSS after 100 %ld KB, after 1600 %ld KB (+%ld)\n",
+         strlen(req), ok, rss0, rss1, rss1 - rss0);
+  free(req);
+  figram_unload(m);
+  return !(ok == 1600 && rss1 - rss0 <= 2048);
+}
+
 static int usage(void) {
   fprintf(stderr, "usage: contract init_twice | init_race DOC | before_init check|fmt|load DOC |\n"
                   "  null check|fmt|load|line|handle|unload|free|unload_failed_load DOC |\n"
                   "  unload_twice DOC | use_after_unload DOC [OTHER] | threads DOC N |\n"
                   "  side_effects | nul DOC | utf8 DOC | signals default|custom | host_state DOC |\n"
-                  "  deep_stack KB | protocol3 FEATURES_DOC\n");
+                  "  deep_stack KB | protocol3 FEATURES_DOC | large_rss PIZZA_DOC\n");
   return 2;
 }
 
@@ -767,5 +798,6 @@ int main(int argc, char** argv) {
   if (!strcmp(t, "host_state") && argc > 2) return t_host_state(argv[2]);
   if (!strcmp(t, "deep_stack") && argc > 2) return t_deep_stack(atoi(argv[2]));
   if (!strcmp(t, "protocol3") && argc > 2) return t_protocol3(argv[2]);
+  if (!strcmp(t, "large_rss") && argc > 2) return t_large_rss(argv[2]);
   return usage();
 }

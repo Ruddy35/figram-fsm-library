@@ -142,8 +142,10 @@ fi
 step "Engine memory, threads and stack overflow"
 logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
 expect "$LOGS/engine_memory.log" '^engine memory: address space (\d+) MiB, in use (\d+) MiB, threads (\d+)$' \
-  'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
+  'g[0] <= 96 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
 expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2$' 'True' "engine under ulimit -v 32 MiB"
+expect "$LOGS/engine_memory.log" '^ok   1500 large requests \((\d+) KiB\): resident memory ([+-]\d+) KB' \
+  'g[0] >= 100 and int(g[1]) <= 2048' "memory of large requests"
 
 step "Snapshots, protocol edges and the JSON text layer"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json

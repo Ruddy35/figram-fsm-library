@@ -79,8 +79,10 @@ Steps, in order:
 13. **Huge exponent** — a document with `1e1000000000` must be rejected with exit status 1 in
     under 5 seconds.
 14. **Engine memory** — `tests/engine/engine_memory.py`: the engine starts under `ulimit -v` 32,
-    64 and 256 MiB, reserves at most 64 MiB of address space, uses at most 16 MiB after 2000
-    requests, runs one thread, and aborts with Lean's stack overflow message on a tiny stack.
+    64 and 256 MiB, reserves at most 96 MiB of address space (64 MiB of them the mimalloc arena),
+    uses at most 16 MiB after 2000 requests, grows by at most 2 MiB over 1500 large requests
+    (4000 waits each; without the arena it grew by about 6 KB per request), runs one thread, and
+    aborts with Lean's stack overflow message on a tiny stack.
 15. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 49
     snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones,
     `pending` included, and an event without an arrow gives every accepted snapshot back; the
@@ -107,12 +109,14 @@ Steps, in order:
     and UBSan: invalid UTF-8, a 5 MB request, 16 threads calling one machine; then, in a plain
     build, 5000 loads and unloads must grow memory by less than 2 MiB, while a control run without
     unloading must grow it by more than 8 MiB.
-18. **C ABI** — `tests/capi/regress.sh`, at least 46 checks, each in its own process:
+18. **C ABI** — `tests/capi/regress.sh`, at least 49 checks, each in its own process:
     initialization under `RLIMIT_AS`, concurrent and lazy initialization (300 processes each),
     `NULL` arguments, foreign and unloaded handles, NUL bytes, strict UTF-8, the size limit,
     signal dispositions and `sigaltstack`, no threads or file descriptors from initialization,
     a malloc failure, edge cases that must not crash the host (init twice, calls before init,
-    double unload, a request after unload), 64 threads on one handle, protocol 3 (outcome events,
+    double unload, a request after unload), 64 threads on one handle, 1600 large requests (4000
+    waits each) without growth of the resident memory and its control without the mimalloc arena
+    (it must grow), protocol 3 (outcome events,
     `pending`, the fields of `call`), a 16-thread stress test whose reference replies of
     protocols 2 and 3 must equal those of `figram-engine`;
     `ffi/figram.h` must compile as C99 and as C++ without warnings.

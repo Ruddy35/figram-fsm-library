@@ -210,10 +210,22 @@ overflow aborts them with Lean's message `Stack overflow detected. Aborting.`
 
 By default the Lean runtime reserves 1 GiB of address space for the arena of its allocator
 (mimalloc) and 1 GiB for the stack of each runtime thread. Before the runtime starts,
-`figram_init` and the executables disable the arena reservation (memory is taken from the OS as
-needed) and set the runtime thread stack size to that of any thread of the process
-(`RLIMIT_STACK`, `ulimit -s`) — [`ffi/figram_rt.c`](../ffi/figram_rt.c). Explicitly set
-`MIMALLOC_ARENA_RESERVE` and `LEAN_STACK_SIZE_KB` take precedence.
+`figram_init` and the executables set the runtime thread stack size to that of any thread of the
+process (`RLIMIT_STACK`, `ulimit -s`) and give mimalloc a 64 MiB arena (its smallest
+reservation, further ones of 64 MiB as needed) if at least 128 MiB of address space is free —
+[`ffi/figram_rt.c`](../ffi/figram_rt.c). The arena is address space, not memory in use. Explicitly
+set `MIMALLOC_ARENA_RESERVE` and `LEAN_STACK_SIZE_KB` take precedence.
+
+Without an arena memory is taken from the OS as needed, and the memory freed after a large
+request is not reused: with snapshots of thousands of waits the resident memory grew by about
+1.5 bytes per wait with every request, without bound (6 KB per request at 4000 waits; a 10-minute
+soak of the embedded library went from 14 MB to 607 MB). With the arena it stays flat:
+`tests/engine/engine_memory.py` and `tests/capi/regress.sh` repeat a request with 4000 waits
+1500 times and require less than 2 MiB of growth, and the C ABI test checks that it grows without
+the arena. Under an `RLIMIT_AS` that leaves less than 128 MiB free the runtime starts without the
+arena (a fixed reservation would end it with `INTERNAL PANIC: out of memory` on the first large
+request), and the growth on large requests remains: give such a host the margin, or keep its
+snapshots small.
 
 The embedded runtime therefore starts under `ulimit -v` / systemd `LimitAS=` with little
 headroom: the C ABI tests initialize it with 2 MiB to 1 GiB of address space above the current
@@ -228,8 +240,7 @@ with `tests/engine/engine_memory.py` after 2000 requests on `examples/pizza.bot.
 
 | Build | Address space (`VmSize`) | Resident (`VmRSS`) | Threads |
 |---|---|---|---|
-| official Lean 4.35.0 release | 10 MiB | 4–5 MiB | 1 |
-| Lean 4.35.0 built from source (gcc) | 12 MiB | 6 MiB | 1 |
+| Lean 4.35.0 built from source (gcc) | 75 MiB (64 MiB of them the arena) | 6 MiB | 1 |
 
 ```sh
 python3 tests/engine/engine_memory.py .lake/build/bin/figram-engine examples/pizza.bot.json

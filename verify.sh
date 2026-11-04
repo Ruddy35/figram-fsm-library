@@ -246,11 +246,13 @@ if [ "$rc" -ne 1 ] || ! grep -q "exponent out of range" "$T/big.err" || [ $(( $(
 fi
 echo "ok (exit code 1, $(head -1 "$T/big.err"))"
 
-step "Engine memory: starts under ulimit -v 32, 64 and 256 MiB, address space ≤ 64 MiB, in use ≤ 16 MiB, one thread, stack overflow message"
+step "Engine memory: starts under ulimit -v 32, 64 and 256 MiB, address space ≤ 96 MiB, in use ≤ 16 MiB, one thread, no growth on large requests, stack overflow message"
 logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
 expect "$LOGS/engine_memory.log" '^engine memory: address space (\d+) MiB, in use (\d+) MiB, threads (\d+)$' \
-  'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
+  'g[0] <= 96 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
 expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2$' 'True' "engine under ulimit -v 32 MiB"
+expect "$LOGS/engine_memory.log" '^ok   1500 large requests \((\d+) KiB\): resident memory ([+-]\d+) KB' \
+  'g[0] >= 100 and int(g[1]) <= 2048' "memory of large requests"
 
 step "Snapshots and protocol edges: schema and engine agree, seq boundary; restart, conditions, tokens, hello; time linear in the snapshot size"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
@@ -317,7 +319,7 @@ done
 ccstep oom gcc -g -O1 -pthread -Wl,--wrap=malloc -o "$CA/oom" tests/capi/oom.c $(cat ffi/out/LDFLAGS)
 cp "$T/harness_plain" "$CA/harness_plain"
 logged c_contract bash tests/capi/regress.sh "$CA"
-expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 46 and g[1] == 0' "C ABI"
+expect "$LOGS/c_contract.log" '^C ABI regression checks: (\d+), failed: (\d+)$' 'g[0] >= 49 and g[1] == 0' "C ABI"
 # The header with the contract is self-contained for C and C++.
 ccstep header_c gcc -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -x c ffi/figram.h
 ccstep header_cxx g++ -Wall -Wextra -Werror -fsyntax-only -x c++ ffi/figram.h

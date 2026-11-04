@@ -5,14 +5,17 @@ reserved after start-up.
 
 By default the Lean runtime reserves 1 GiB for the stack of each of its threads and 1 GiB for
 the mimalloc arena (≈3.2 GB of address space with ≈10 MB in use), so under `ulimit -v` 3 GB the
-engine did not start. Now the arena is not reserved in advance (ffi/figram_rt.c), main runs on
-the main thread of the process (ffi/figram_exe.c), and there is no libuv event loop thread with
-an io_uring kernel thread (ffi/figram_init.cpp): the process is single-threaded. The runtime's
+engine did not start. Now the arena is 64 MiB, reserved only if the address space allows it
+(ffi/figram_rt.c), main runs on the main thread of the process (ffi/figram_exe.c), and there is
+no libuv event loop thread with an io_uring kernel thread (ffi/figram_init.cpp): the process is
+single-threaded. Large requests (a snapshot with 4000 waits) repeated 1500 times must not make
+the resident memory grow: without an arena it grew by about 6 KB per request. The runtime's
 stack overflow handler is kept in the engine: a deep document under a small `ulimit -s` ends
 the process with the message "Stack overflow detected", not with a silent SIGSEGV.
 Exit status 0: everything is within the limits.
 """
 
+import json
 import os
 import resource
 import subprocess
@@ -24,7 +27,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 from protocol import PROTOCOL  # noqa: E402
 
 ENGINE, DOC = sys.argv[1], sys.argv[2]
-MAX_VMSIZE_KB = 64 * 1024       # address space reserved after start-up
+MAX_VMSIZE_KB = 96 * 1024       # address space reserved after start-up (the arena is 64 MiB)
+MAX_LARGE_GROWTH_KB = 2048      # resident memory growth over 1500 large requests
 MAX_RSS_KB = 16 * 1024          # memory in use after start-up and 2000 requests
 MAX_THREADS = 1                 # only the main thread: the runtime starts no helper threads
 bad = 0
@@ -74,6 +78,26 @@ p.wait(timeout=30)
 report(st["VmSize"] <= MAX_VMSIZE_KB, f"address space reserved after start-up {st['VmSize'] >> 10} MiB (limit {MAX_VMSIZE_KB >> 10})")
 report(st["VmRSS"] <= MAX_RSS_KB, f"memory in use after 2000 requests {st['VmRSS'] >> 10} MiB (limit {MAX_RSS_KB >> 10})")
 report(st["Threads"] <= MAX_THREADS, f"threads {st['Threads']} (limit {MAX_THREADS})")
+# Large requests: the pizza waiting on `placing` with 4000 waits of other actions, its outcome.
+pend = [{"call": "create_order", "token": 6}] + [{"call": f"w{i}", "token": 1} for i in range(4000)]
+big = (json.dumps({"id": 1, "op": "step", "snapshot": {"at": "placing", "seq": 6, "pending": pend},
+                   "event": "call:create_order:created", "token": 6}, separators=(",", ":")) + "\n").encode()
+p = subprocess.Popen([ENGINE, DOC], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+rss = []
+for i in range(1600):
+    p.stdin.write(big)
+    p.stdin.flush()
+    if '"at":"done"' not in p.stdout.readline().decode():
+        report(False, f"large request {i}: no transition to `done`")
+        break
+    if i in (99, 1599):
+        rss.append(int([l for l in open(f"/proc/{p.pid}/status") if l.startswith("VmRSS")][0].split()[1]))
+p.stdin.close()
+p.wait(timeout=30)
+growth = rss[1] - rss[0] if len(rss) == 2 else None
+report(growth is not None and growth <= MAX_LARGE_GROWTH_KB,
+       f"1500 large requests ({len(big) >> 10} KiB): resident memory {growth:+d} KB "
+       f"(limit {MAX_LARGE_GROWTH_KB})" if growth is not None else "large requests: not all answered")
 print(f"engine memory: address space {st['VmSize'] >> 10} MiB, in use {st['VmRSS'] >> 10} MiB, threads {st['Threads']}"
       + ("" if bad == 0 else f"; failed {bad}"))
 sys.exit(1 if bad else 0)
