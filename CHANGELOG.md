@@ -5,7 +5,13 @@ All notable changes to this project are documented in this file. The format is b
 snapshot formats, the engine protocol (operations, JSON field names, error `code` values), the CLI
 command names and the exit statuses; the texts of messages are for humans and may change.
 
-## [Unreleased]
+## [0.3.0] - 2026-11-04
+
+This release follows two audit rounds (a final audit with formalization, and a second round with
+production-like Python and Go hosts built from the documents); the reports, logs and harnesses
+are not part of the tree and are preserved at commit
+[`71d5c6a`](https://github.com/Ruddy35/figram-fsm-library/tree/71d5c6a/audit-final) of the branch
+`audit/2026-11-03`.
 
 ### Added
 
