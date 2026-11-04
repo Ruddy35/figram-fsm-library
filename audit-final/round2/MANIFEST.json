@@ -975,7 +975,7 @@
   "EXECUTIVE.md": "be28b6b3e0c2bf2346dac66b236b4c2bcb137e2fec0a9f3fe934ba548a0f5e58",
   "FIXES.md": "6bf48ac5cefa2531a2bd9cd4a8199509b1353a26376c6820985b254f58ffef2f",
   "README.md": "e3511d990c60c35a052ef483fceb3f63dce4639af512c8592690c017fbaf065f",
-  "TEST_MATRIX.md": "f477c20e8e93a4f4a2246b92dc9fe5d7dd588e91cb8a41270b30515d263ccb48",
+  "TEST_MATRIX.md": "8421fca1582f646746ddedbe16de1e65883578c7e5e5e5a1aea1cf05027442ba",
   "LOGS/orchestrator/r2-fixes/capi-large-rss.log": "d84aef7757b5a63f024051d0646329f15b1957bd9046c299689d93193d00443b",
   "LOGS/orchestrator/r2-fixes/capi-large-rss.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "LOGS/orchestrator/r2-fixes/capi-large-rss.stdout": "0c3417abcf4c3b48cfb10141ae786d7d45ff2631a7d621c9a09d1993ec857d95",
@@ -1918,5 +1918,12 @@
   "tools/maps_probe.py": "8567e0362458954e73a1167f047b950d0d9c9324470360bd010953708ecc6ce8",
   "tools/pack2.py": "4b94b378a8e2f39d5afc5474a72faad341e3cc953a0f325e6a511d96b9913802",
   "tools/run.sh": "d813faadd37aa8dc72ab75ebdf0edd7fdb85cf4f910530fe2f90e3a274179869"
+ },
+ "ci_after": {
+  "run": 41778757207,
+  "run_number": 50,
+  "commit": "c079c13",
+  "conclusion": "success",
+  "note": "run 48 on e61c939 timed out in the mutants step on a slow runner; c079c13 raises the budget"
  }
 }
