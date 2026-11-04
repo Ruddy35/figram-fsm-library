@@ -1,0 +1,147 @@
+{
+ "opts": {
+  "Name": "",
+  "UsersPerBot": 20,
+  "Bots": [
+   "shop",
+   "points",
+   "booking"
+  ],
+  "Goals": 2,
+  "MaxActions": 40,
+  "Seed": 21,
+  "DB": "/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/controls.db",
+  "Sync": "NORMAL",
+  "ReloadEvery": 0,
+  "NotifyLatency": 300000000,
+  "ReplyWait": 5000000000,
+  "DrainTimeout": 30000000000,
+  "Out": "/home/user/figram-audit/agents6/hostgo/results/control-engine-pending-dropped.json"
+ },
+ "control": "pending-dropped",
+ "checks": [
+  {
+   "name": "I1 at most one irreversible effect per logical action / per cart",
+   "ok": false,
+   "cases": 1274,
+   "fails": 15,
+   "samples": [
+    "crm: cart shop-7#0 ordered 2 times",
+    "crm: cart shop-17#2 ordered 2 times",
+    "crm: cart shop-14#1 ordered 2 times",
+    "crm: cart shop-0#0 ordered 3 times",
+    "crm: cart shop-19#0 ordered 2 times",
+    "crm: cart shop-13#0 ordered 5 times",
+    "crm: cart shop-8#0 ordered 2 times",
+    "crm: cart shop-12#1 ordered 3 times"
+   ]
+  },
+  {
+   "name": "I2 one outcome per call; one accepted outcome unless replaced/cleared",
+   "ok": false,
+   "cases": 1015,
+   "fails": 1015,
+   "samples": [
+    "call {points-17 audit 43}: accepted 0 times, cleared=false",
+    "call {booking-14 reserve 22}: accepted 0 times, cleared=false",
+    "call {points-19 award 27}: accepted 0 times, cleared=false",
+    "call {points-1 award 40}: accepted 0 times, cleared=false",
+    "call {points-8 award 64}: accepted 0 times, cleared=false",
+    "call {points-12 award 14}: accepted 0 times, cleared=false",
+    "call {points-16 award 45}: accepted 0 times, cleared=false",
+    "call {points-16 award 46}: accepted 0 times, cleared=false"
+   ]
+  },
+  {
+   "name": "I3 no stuck users",
+   "ok": false,
+   "cases": 60,
+   "fails": 11,
+   "samples": [
+    "booking-19: on hold ('please wait') without a wait",
+    "shop-5: on placing ('please wait') without a wait",
+    "shop-8: on placing ('please wait') without a wait",
+    "booking-4: on hold ('please wait') without a wait",
+    "booking-0: on hold ('please wait') without a wait",
+    "booking-3: on hold ('please wait') without a wait",
+    "booking-6: on hold ('please wait') without a wait",
+    "booking-7: on hold ('please wait') without a wait",
+    "info: 296 times a simulated user on a waiting message waited longer than the reply wait"
+   ]
+  },
+  {
+   "name": "I4 sequential replay (conditions on sequentially applied data) = host",
+   "ok": true,
+   "cases": 60,
+   "fails": 0
+  },
+  {
+   "name": "I5 background actions never block users",
+   "ok": true,
+   "cases": 4491,
+   "fails": 0,
+   "samples": [
+    "barrier wait p50 0 µs, p99 39405 µs, max 100240 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 84 steps, others 0.00% of 235"
+   ]
+  },
+  {
+   "name": "I6 every reply validates (checkReply of clients/go)",
+   "ok": true,
+   "cases": 4504,
+   "fails": 0
+  },
+  {
+   "name": "I7 no acknowledged update lost",
+   "ok": true,
+   "cases": 3116,
+   "fails": 0
+  }
+ ],
+ "ok": false,
+ "crashes": {},
+ "instances": 1,
+ "reloads": 0,
+ "closed_retries": 0,
+ "counts": {
+  "bg_failq": 0,
+  "calls_with_token": 1015,
+  "crm_calls": 85,
+  "crm_effects": 61,
+  "detached_calls": 336,
+  "drops": 0,
+  "drops_no_snapshot": 0,
+  "drops_run_id": 0,
+  "dup_filtered": 446,
+  "failed_outcomes": 15,
+  "goroutines_at_end": 3,
+  "lost_snapshots": 13,
+  "max_pending": 0,
+  "no_target_steps": 1168,
+  "notify_calls": 358,
+  "order_outcomes_on_other_msg": 21,
+  "outbox": 5463,
+  "outcome_steps": 1015,
+  "outcomes_outside_waiting_msg": 858,
+  "reconciled_hits": 7,
+  "reconciliations": 22,
+  "recovered_steps": 0,
+  "reserve_outcomes_ignored": 105,
+  "restarts": 51,
+  "seq_failq": 0,
+  "starts_with_hwm": 13,
+  "step_latency_p50_us": 13443,
+  "step_latency_p99_us": 337393,
+  "steps": 4504,
+  "timer_steps": 373,
+  "updates": 3116,
+  "updates_delivered_twice": 314,
+  "user_actions": 3116,
+  "user_goals": 0,
+  "user_no_reply": 0,
+  "user_support_ops": 64,
+  "users": 60,
+  "users_phase_ms": 80381
+ },
+ "elapsed_s": 80.851839227,
+ "drained": true
+}

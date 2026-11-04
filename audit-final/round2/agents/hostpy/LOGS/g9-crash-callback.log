@@ -1,0 +1,108 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/g9-crash-callback --bot shop --users 60 --duration 25 --crash-p 0.5 --crash-points cb.after_inbound 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T02:19:24.805Z
+end: 2026-11-04T02:19:55.584Z
+exit_code: 0
+--- stdout (1809 bytes, last 200 lines)
+{
+ "ok": true,
+ "duration_load_s": 25.0,
+ "duration_total_s": 29.8,
+ "user_actions": 2033,
+ "updates_sent": 2093,
+ "duplicate_deliveries": 321,
+ "host_crashes_injected": 8,
+ "throughput_steps_per_s_load": 106.9,
+ "mem": {
+  "host_max_kb": 47216,
+  "engine_max_kb": 6448
+ },
+ "cpu_s": {
+  "host": 24.8,
+  "engines": 0.1
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2679,
+  "steps": 2679,
+  "calls_with_token": 468,
+  "outcomes": {
+   "accepted": 460,
+   "replaced_by_later_call": 8
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2679,
+  "steps_with_background_pending": 431,
+  "failq": 43,
+  "effects_positive": 274,
+  "applications": 549
+ },
+ "alerts": {
+  "failure_queue": 43
+ },
+ "log": [
+  [
+   25.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 3,
+    "timers": 5,
+    "steps": 2674,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 23,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 2093,
+   "p50": 25.2,
+   "p90": 165.4,
+   "p99": 1282.7,
+   "max": 2633.4
+  },
+  "outcome": {
+   "n": 468,
+   "p50": 13.9,
+   "p90": 209.9,
+   "p99": 1184.9,
+   "max": 2096.0
+  },
+  "timer": {
+   "n": 118,
+   "p50": 146.3,
+   "p90": 759.1,
+   "p99": 1496.3,
+   "max": 1680.4
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 326.0,
+  "callbacks.received": 12.0,
+  "crash.cb.after_inbound": 8.0,
+  "dup.skipped.outcome": 26.0,
+  "dup.skipped.tg": 323.0,
+  "steps": 2679.0,
+  "steps.outcome": 468.0,
+  "steps.tg": 2093.0,
+  "steps.timer": 118.0,
+  "tg.received": 2414.0,
+  "timers.fired": 118.0,
+  "x.reconcile": 52.0,
+  "x.reconciled_found": 23.0,
+  "x.retry": 161.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

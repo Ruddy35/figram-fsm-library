@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 600 python3 tests/engine/protocol_edges.py .lake/build/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T01:50:49.292Z
+end: 2026-11-04T01:50:49.769Z
+exit_code: 1
+--- stdout (143 bytes, last 200 lines)
+FAIL validator on {"id":5,"protocol":3,"states":8,"mutant":""}: accepted, expected rejected
+protocol edge cases 256, replies 256, mismatches 1
+--- stderr (0 bytes, last 100 lines)

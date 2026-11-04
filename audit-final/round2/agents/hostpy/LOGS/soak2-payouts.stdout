@@ -1,0 +1,302 @@
+{
+ "ok": true,
+ "duration_load_s": 400.0,
+ "duration_total_s": 404.3,
+ "user_actions": 48227,
+ "updates_sent": 62409,
+ "duplicate_deliveries": 9392,
+ "host_crashes_injected": 70,
+ "throughput_steps_per_s_load": 158.2,
+ "mem": {
+  "host_max_kb": 49524,
+  "engine_max_kb": 6420
+ },
+ "cpu_s": {
+  "host": 688.4,
+  "engines": 5.0
+ },
+ "notes": {
+  "users": 100,
+  "elog": 63269,
+  "steps": 63248,
+  "calls_with_token": 570,
+  "outcomes": {
+   "accepted": 570
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 63248,
+  "steps_with_background_pending": 93,
+  "failq": 0,
+  "effects_positive": 500,
+  "applications": 549
+ },
+ "alerts": {},
+ "log": [
+  [
+   67.96,
+   "lose",
+   "u0003"
+  ],
+  [
+   76.41,
+   "lose",
+   "u0015"
+  ],
+  [
+   94.94,
+   "lose",
+   "u0097"
+  ],
+  [
+   108.34,
+   "restart",
+   "u0092"
+  ],
+  [
+   109.36,
+   "restart",
+   "u0036"
+  ],
+  [
+   117.65,
+   "lose",
+   "u0056"
+  ],
+  [
+   120.61,
+   "lose",
+   "u0029"
+  ],
+  [
+   157.42,
+   "restart",
+   "u0056"
+  ],
+  [
+   162.29,
+   "restart",
+   "u0004"
+  ],
+  [
+   172.52,
+   "lose",
+   "u0097"
+  ],
+  [
+   175.81,
+   "lose",
+   "u0092"
+  ],
+  [
+   179.5,
+   "restart",
+   "u0037"
+  ],
+  [
+   182.78,
+   "lose",
+   "u0048"
+  ],
+  [
+   184.86,
+   "restart",
+   "u0095"
+  ],
+  [
+   186.85,
+   "lose",
+   "u0049"
+  ],
+  [
+   188.82,
+   "lose",
+   "u0057"
+  ],
+  [
+   192.02,
+   "restart",
+   "u0085"
+  ],
+  [
+   202.7,
+   "restart",
+   "u0089"
+  ],
+  [
+   212.77,
+   "restart",
+   "u0063"
+  ],
+  [
+   228.89,
+   "lose",
+   "u0001"
+  ],
+  [
+   232.84,
+   "restart",
+   "u0046"
+  ],
+  [
+   235.98,
+   "lose",
+   "u0097"
+  ],
+  [
+   238.49,
+   "lose",
+   "u0054"
+  ],
+  [
+   248.72,
+   "lose",
+   "u0067"
+  ],
+  [
+   253.23,
+   "restart",
+   "u0092"
+  ],
+  [
+   259.47,
+   "lose",
+   "u0089"
+  ],
+  [
+   261.73,
+   "restart",
+   "u0094"
+  ],
+  [
+   265.08,
+   "lose",
+   "u0012"
+  ],
+  [
+   267.33,
+   "restart",
+   "u0053"
+  ],
+  [
+   268.49,
+   "lose",
+   "u0075"
+  ],
+  [
+   277.77,
+   "restart",
+   "u0071"
+  ],
+  [
+   280.03,
+   "restart",
+   "u0064"
+  ],
+  [
+   283.59,
+   "restart",
+   "u0015"
+  ],
+  [
+   299.77,
+   "restart",
+   "u0012"
+  ],
+  [
+   300.9,
+   "restart",
+   "u0053"
+  ],
+  [
+   303.48,
+   "restart",
+   "u0054"
+  ],
+  [
+   304.19,
+   "lose",
+   "u0048"
+  ],
+  [
+   304.19,
+   "lose",
+   "u0070"
+  ],
+  [
+   305.78,
+   "lose",
+   "u0040"
+  ],
+  [
+   313.05,
+   "restart",
+   "u0064"
+  ],
+  [
+   400.01,
+   "load end",
+   {
+    "inbound": 2,
+    "outbox_new": 6,
+    "timers": 4,
+    "steps": 63264,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 35,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 62409,
+   "p50": 31.2,
+   "p90": 118.0,
+   "p99": 1210.5,
+   "max": 4605.5
+  },
+  "outcome": {
+   "n": 570,
+   "p50": 733.7,
+   "p90": 2897.0,
+   "p99": 3934.7,
+   "max": 4407.2
+  },
+  "timer": {
+   "n": 249,
+   "p50": 62.0,
+   "p90": 2721.7,
+   "p99": 3781.0,
+   "max": 4276.3
+  }
+ },
+ "user_visible_divergence": {
+  "users": 100,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "callbacks.received": 35.0,
+  "crash.poll.after_inbound": 5.0,
+  "crash.w.after_commit": 25.0,
+  "crash.w.before_commit": 19.0,
+  "crash.x.after_effect": 21.0,
+  "drop.no_snapshot": 1.0,
+  "dup.skipped.outcome": 35.0,
+  "dup.skipped.tg": 9499.0,
+  "steps": 63234.0,
+  "steps.admin": 20.0,
+  "steps.outcome": 570.0,
+  "steps.tg": 62395.0,
+  "steps.timer": 249.0,
+  "tg.received": 71779.0,
+  "timers.fired": 250.0,
+  "x.reconcile": 56.0,
+  "x.reconciled_found": 35.0,
+  "x.retry": 249.0
+ }
+}

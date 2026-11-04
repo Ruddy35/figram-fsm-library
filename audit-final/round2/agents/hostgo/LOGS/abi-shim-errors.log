@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 300 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo abi shim-errors 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:13.793Z
+end: 2026-11-04T02:20:13.803Z
+exit_code: 0
+--- stdout (771 bytes, last 200 lines)
+empty request          {"id":null,"error":"machine handle is NULL","code":"bad_request"} → reference checkReply: variant="" err=reply id <nil> instead of 1
+empty request (live)   {"id":null,"error":"empty request","code":"parse_error"} → reference checkReply: variant="error" err=<nil>
+NUL byte               {"id":null,"error":"request contains a NUL byte (offset 8)","code":"parse_error"} → reference checkReply: variant="error" err=<nil>
+invalid UTF-8          {"id":null,"error":"request is not valid UTF-8","code":"parse_error"} → reference checkReply: variant="error" err=<nil>
+unloaded handle        {"id":null,"error":"machine is already unloaded (figram_unload)","code":"bad_request"} → reference checkReply: variant="" err=reply id <nil> instead of 1
+--- stderr (0 bytes, last 100 lines)

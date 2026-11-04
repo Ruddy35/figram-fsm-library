@@ -1,0 +1,8 @@
+command: tests/capi/out/contract large_rss examples/pizza.bot.json 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T03:40:11.720Z
+end: 2026-11-04T03:40:19.897Z
+exit_code: 0
+--- stdout (94 bytes, last 200 lines)
+large requests: 107038 bytes, ok 1600 of 1600, RSS after 100 8984 KB, after 1600 8988 KB (+4)
+--- stderr (0 bytes, last 100 lines)

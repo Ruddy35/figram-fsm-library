@@ -1,0 +1,139 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/g7-sched-out-pair-rearm-purge --bot shop --users 120 --duration 50 --restore 15\,30 --sched-outside --flag sched-pair --flag rearm --flag purge-other-runs --crash-p 0.002 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:37:11.105Z
+end: 2026-11-04T01:38:04.132Z
+exit_code: 0
+--- stdout (2358 bytes, last 200 lines)
+{
+ "ok": true,
+ "duration_load_s": 50.0,
+ "duration_total_s": 51.8,
+ "user_actions": 8073,
+ "updates_sent": 8193,
+ "duplicate_deliveries": 1279,
+ "host_crashes_injected": 55,
+ "throughput_steps_per_s_load": 112.0,
+ "mem": {
+  "host_max_kb": 51188,
+  "engine_max_kb": 6512
+ },
+ "cpu_s": {
+  "host": 26.3,
+  "engines": 0.3
+ },
+ "notes": {
+  "users": 120,
+  "elog": 5602,
+  "steps": 5599,
+  "calls_with_token": 284,
+  "outcomes": {
+   "accepted": 281,
+   "replaced_by_later_call": 3
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 5599,
+  "steps_with_background_pending": 454,
+  "failq": 58,
+  "effects_positive": 419,
+  "applications": 488
+ },
+ "alerts": {
+  "start_refused": 123,
+  "failure_queue": 70
+ },
+ "log": [
+  [
+   15.0,
+   "backup"
+  ],
+  [
+   30.01,
+   "restore"
+  ],
+  [
+   50.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 5602,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 17,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 4929,
+   "p50": 1309.7,
+   "p90": 17541.9,
+   "p99": 19568.4,
+   "max": 21360.2
+  },
+  "outcome": {
+   "n": 284,
+   "p50": 997.6,
+   "p90": 16023.8,
+   "p99": 19542.5,
+   "max": 19756.7
+  },
+  "timer": {
+   "n": 386,
+   "p50": 1406.8,
+   "p90": 4962.3,
+   "p99": 19505.3,
+   "max": 19757.7
+  }
+ },
+ "user_visible_divergence": {
+  "users": 120,
+  "chat_differs_from_snapshot": 2,
+  "chat_shows_waiting_message": 0,
+  "examples": [
+   [
+    "u0005",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0088",
+    "done",
+    "catalog"
+   ]
+  ]
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 356.0,
+  "callbacks.received": 18.0,
+  "crash.poll.after_inbound": 3.0,
+  "crash.s.after_fire": 1.0,
+  "crash.w.after_commit": 15.0,
+  "crash.w.before_commit": 23.0,
+  "crash.w.before_commit.call": 2.0,
+  "crash.w.before_commit.timer": 1.0,
+  "crash.x.after_effect": 10.0,
+  "drop.stale_run": 3.0,
+  "dup.skipped.outcome": 22.0,
+  "dup.skipped.tg": 1456.0,
+  "dup.skipped.timer": 60.0,
+  "repair.dropped": 15.0,
+  "repair.rearmed": 154.0,
+  "sched.start_refused": 116.0,
+  "steps": 9174.0,
+  "steps.outcome": 363.0,
+  "steps.tg": 8285.0,
+  "steps.timer": 526.0,
+  "tg.received": 9331.0,
+  "timers.fired": 575.0,
+  "x.reconcile": 52.0,
+  "x.reconciled_found": 16.0,
+  "x.retry": 135.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,10 @@
+command: bash ffi/build.sh
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T04:02:11Z
+end: 2026-11-04T04:02:12Z
+exit_code: 0
+--- stdout (136 bytes, last 200 lines)
+✔ [44/47] Built Figram:static (44ms)
+Build completed successfully (47 jobs).
+done: ffi/out/libfigram.a, linker flags: ffi/out/LDFLAGS
+--- stderr (0 bytes, last 100 lines)

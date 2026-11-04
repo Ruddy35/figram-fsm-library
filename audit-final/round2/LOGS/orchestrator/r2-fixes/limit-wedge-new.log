@@ -1,0 +1,12 @@
+command: timeout 300 python3 /home/user/figram-audit/agents6/hostgo/repro/limit_wedge.py .lake/build/bin/figram-engine /home/user/figram-audit/agents6/hostgo/bots/points.bot.json 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T03:49:15.452Z
+end: 2026-11-04T03:49:15.876Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (197 bytes, last 100 lines)
+Traceback (most recent call last):
+  File "/home/user/figram-audit/agents6/hostgo/repro/limit_wedge.py", line 27, in <module>
+    s2 = rep["snapshot"]
+         ~~~^^^^^^^^^^^^
+KeyError: 'snapshot'

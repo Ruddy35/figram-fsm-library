@@ -1,0 +1,8 @@
+command: env FIGRAM_ALLOW_MUTANTS=1 nice -n 10 timeout 1200 python3 tests/engine/mutation.py .lake/build/bin/figram-engine --unreachable examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza_fake.cov --golden examples/golden.jsonl examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza.jsonl 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T02:33:14.090Z
+end: 2026-11-04T02:33:17.282Z
+exit_code: 1
+--- stdout (142 bytes, last 200 lines)
+examples/pizza.bot.json: the mutation redirect:0 of an unreachable variant is detected: the variant was reached, the coverage report is wrong
+--- stderr (0 bytes, last 100 lines)

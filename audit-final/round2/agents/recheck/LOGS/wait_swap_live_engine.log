@@ -1,0 +1,8 @@
+command: python3 -I /home/user/figram-audit/agents6/recheck/repro/wait_swap_live.py .lake/build/bin/figram-engine 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:06:45.494Z
+end: 2026-11-04T01:06:45.538Z
+exit_code: 0
+--- stdout (138 bytes, last 200 lines)
+at placing: pending after the first call [{'call': 'create_order', 'token': 8}], after the second [{'call': 'create_order', 'token': 16}]
+--- stderr (0 bytes, last 100 lines)

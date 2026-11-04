@@ -1,0 +1,8 @@
+command: ./run.sh 
+cwd: /home/user/figram-audit/agents6/hostgo/repro/import_gofig
+start: 2026-11-04T01:27:26.231Z
+end: 2026-11-04T01:27:26.273Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (68 bytes, last 100 lines)
+main.go:6:8: import "gofig" is a program, not an importable package

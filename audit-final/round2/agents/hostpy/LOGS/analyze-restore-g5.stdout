@@ -1,0 +1,8 @@
+{
+ "updates_processed_after_backup_in_lost_history": 261,
+ "of_them_processed_again_after_restore": 0,
+ "of_them_never_processed_again": 261,
+ "calls_with_token_issued_in_lost_history": 0,
+ "positive_external_effects_whose_call_is_not_in_the_restored_history": 0,
+ "users_affected": 14
+}

@@ -1,0 +1,226 @@
+{
+ "args": {
+  "bot": "shop",
+  "out": "runs/n11-no-dedupe",
+  "users": 60,
+  "duration": 15.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [
+   "no-dedupe"
+  ],
+  "sched_outside": false,
+  "restore": "",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/shop.bot.json"
+ },
+ "log": [
+  [
+   15.0,
+   "load end",
+   {
+    "inbound": 2,
+    "outbox_new": 7,
+    "timers": 14,
+    "steps": 2407,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 14,
+    "cb_pending": 2
+   }
+  ]
+ ],
+ "duration_load_s": 15.0,
+ "duration_total_s": 21.4,
+ "user_actions": 1564,
+ "frustrated_starts": 14,
+ "updates_sent": 1624,
+ "duplicate_deliveries": 246,
+ "steps_at_load_end": 2407,
+ "host_restarts": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 160.4,
+ "mem": {
+  "host_max_kb": 50308,
+  "engine_max_kb": 6412
+ },
+ "cpu_s": {
+  "host": 17.5,
+  "engines": 0.2
+ },
+ "mem_samples_tail": [
+  [
+   1793756797.4,
+   50300,
+   [
+    6412,
+    6376
+   ]
+  ],
+  [
+   1793756798.4,
+   50300,
+   [
+    6412,
+    6376
+   ]
+  ],
+  [
+   1793756799.3,
+   50300,
+   [
+    6412,
+    6376
+   ]
+  ]
+ ],
+ "ok": false,
+ "violations": {
+  "I2.outcome_processed_twice": {
+   "count": 14,
+   "examples": [
+    {
+     "user": "u0041",
+     "call": "call:create_order:7:01df9b36-dfdc-4e2d-84f6-c2965f5dd083",
+     "n": 2
+    },
+    {
+     "user": "u0058",
+     "call": "call:create_order:7:30333541-20f6-40f5-a998-f5459378df9e",
+     "n": 2
+    },
+    {
+     "user": "u0009",
+     "call": "call:create_order:9:be77fd86-b65b-41ec-8e8e-713c524356fe",
+     "n": 2
+    },
+    {
+     "user": "u0033",
+     "call": "call:create_order:13:e884a0b5-89af-41f4-a88f-2ae4b641014f",
+     "n": 2
+    },
+    {
+     "user": "u0013",
+     "call": "call:create_order:18:8efd8196-1c9c-4afe-b637-b1e44d5eba13",
+     "n": 2
+    }
+   ]
+  },
+  "I4.delivery_processed_twice": {
+   "count": 248,
+   "examples": [
+    {
+     "user": "u0006",
+     "uid": "tg:1001",
+     "n": 2
+    },
+    {
+     "user": "u0051",
+     "uid": "tg:1010",
+     "n": 2
+    },
+    {
+     "user": "u0057",
+     "uid": "tg:1022",
+     "n": 2
+    },
+    {
+     "user": "u0054",
+     "uid": "tg:1031",
+     "n": 2
+    },
+    {
+     "user": "u0024",
+     "uid": "tg:1034",
+     "n": 2
+    }
+   ]
+  }
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2432,
+  "steps": 2328,
+  "calls_with_token": 346,
+  "outcomes": {
+   "accepted": 328,
+   "replaced_by_later_call": 18
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2328,
+  "steps_with_background_pending": 514,
+  "failq": 40,
+  "effects_positive": 282,
+  "applications": 432
+ },
+ "alerts": {
+  "failure_queue": 40
+ },
+ "metrics": {
+  "tg.received": 1870.0,
+  "steps": 2328.0,
+  "steps.tg": 1870.0,
+  "outbox.duplicate_key": 104.0,
+  "x.retry": 108.0,
+  "steps.outcome": 360.0,
+  "bg.retry": 396.0,
+  "x.reconcile": 40.0,
+  "timers.fired": 98.0,
+  "steps.timer": 98.0,
+  "x.reconciled_found": 14.0,
+  "callbacks.received": 14.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 1870,
+   "p50": 21.4,
+   "p90": 163.2,
+   "p99": 597.5,
+   "max": 1871.4
+  },
+  "outcome": {
+   "n": 360,
+   "p50": 14.9,
+   "p90": 178.6,
+   "p99": 629.0,
+   "max": 1054.1
+  },
+  "timer": {
+   "n": 98,
+   "p50": 56.2,
+   "p90": 389.8,
+   "p99": 1138.7,
+   "max": 1138.7
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 1,
+  "chat_shows_waiting_message": 0,
+  "examples": [
+   [
+    "u0011",
+    "catalog",
+    "confirm"
+   ]
+  ]
+ }
+}

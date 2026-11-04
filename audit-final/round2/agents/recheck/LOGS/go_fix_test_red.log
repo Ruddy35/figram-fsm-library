@@ -1,0 +1,12 @@
+command: nice -n 10 timeout 600 go test -count=1 -run TestFixCheckReplyProtocolChanges ./... 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gorelink/clients/go
+start: 2026-11-04T01:21:56.355Z
+end: 2026-11-04T01:21:59.093Z
+exit_code: 1
+--- stdout (186 bytes, last 200 lines)
+--- FAIL: TestFixCheckReplyProtocolChanges (0.00s)
+    fix_test.go:276: checkReply({"id":5,"need":["is_vip","is_vip"]}, op=step) = "need" (<nil>), want "ERR"
+FAIL
+FAIL	gofig	0.008s
+FAIL
+--- stderr (0 bytes, last 100 lines)

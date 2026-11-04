@@ -1,0 +1,9 @@
+command: python3 -I /home/user/figram-audit/agents6/recheck/repro/wait_swap_live.py /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/.lake/build/bin/figram-engine wait-swap:create_order 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:06:45.562Z
+end: 2026-11-04T01:06:45.609Z
+exit_code: 1
+--- stdout (176 bytes, last 200 lines)
+at placing: pending after the first call [{'call': 'create_order', 'token': 8}], after the second [{'call': 'create_order', 'token': 16}, {'call': 'create_order', 'token': 8}]
+--- stderr (115 bytes, last 100 lines)
+figram-engine: WARNING: deliberately broken engine (mutation `wait-swap:create_order`), for testing the tests only

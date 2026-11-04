@@ -1,0 +1,46 @@
+{
+  "figram": 1,
+  "x-note": "hostpy audit bot 2: an irreversible action with every-outcomes behind an arrow without a target, a funds condition that needs the barrier, outcome arrows on the root and on the waiting message",
+  "conditions": {
+    "has_funds": "The balance after all executed transfers covers one more transfer",
+    "all_settled": "No other transfer of the user waits for its outcome (snapshot pending without this event's token)"
+  },
+  "calls": {
+    "transfer": {"text": "Send a fixed amount through the bank", "outcomes": ["sent", "declined"], "every": true},
+    "record_sent": "Count a sent transfer",
+    "record_declined": "Count a declined transfer",
+    "record_failed": "Count a failed transfer",
+    "close_account": "Close the payout account",
+    "audit_log": {"text": "Write an audit entry", "detached": true}
+  },
+  "bot": {
+    "initial": "home",
+    "on": {
+      "cmd:start": [{"to": "home"}],
+      "call:transfer:sent": [{"do": ["record_sent"]}],
+      "call:transfer:declined": [{"do": ["record_declined"]}],
+      "call:transfer:failed": [{"do": ["record_failed", "audit_log"]}]
+    },
+    "children": {
+      "home": {
+        "on": {
+          "btn:send": [{"if": "has_funds", "do": ["transfer", "audit_log"]}, {"to": "no_funds"}],
+          "btn:close": [{"if": "all_settled", "to": "closed", "do": ["close_account"]}, {"to": "settling"}],
+          "timer:idle": [{"to": "idle"}]
+        },
+        "timers": {"idle": 2500}
+      },
+      "idle": {"on": {"btn:back": [{"to": "home"}]}},
+      "no_funds": {"on": {"btn:back": [{"to": "home"}], "btn:close": [{"if": "all_settled", "to": "closed", "do": ["close_account"]}, {"to": "settling"}]}},
+      "settling": {
+        "x-waiting": "transfer",
+        "on": {
+          "call:transfer:sent": [{"if": "all_settled", "to": "closed", "do": ["record_sent", "close_account"]}, {"do": ["record_sent"]}],
+          "call:transfer:declined": [{"if": "all_settled", "to": "closed", "do": ["record_declined", "close_account"]}, {"do": ["record_declined"]}],
+          "call:transfer:failed": [{"if": "all_settled", "to": "closed", "do": ["record_failed", "close_account"]}, {"do": ["record_failed"]}]
+        }
+      },
+      "closed": {}
+    }
+  }
+}

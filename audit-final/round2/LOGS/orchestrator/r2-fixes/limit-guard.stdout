@@ -1,0 +1,5 @@
+after 405 steps: snapshot_too_large (the new snapshot (983058 bytes) would not fit into a request under the limit of 1048576 bytes; the snapshot is not changed)
+last stored snapshot: 27305 waits, 983022 bytes, limit 1048576
+outcome: snapshot with 27304 waits
+restart: snapshot with 0 waits
+not wedged: a growing step is refused, the outcome and restart work

@@ -1,0 +1,8 @@
+command: timeout 900 python3 /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/r2/limit_guard.py /home/user/figram-audit-worktrees/a6-recheck/.lake/build/bin/figram-engine /home/user/figram-audit/agents6/hostgo/bots/points.bot.json 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T03:50:32.901Z
+end: 2026-11-04T03:55:57.732Z
+exit_code: 1
+--- stdout (87 bytes, last 200 lines)
+WEDGED: the engine wrote a snapshot (29125 waits) whose next request is over the limit
+--- stderr (0 bytes, last 100 lines)

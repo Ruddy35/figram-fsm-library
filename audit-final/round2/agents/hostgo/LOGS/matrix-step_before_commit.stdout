@@ -1,0 +1,13 @@
+control="" users=60 crashes=map[step_before_commit:181] instances=182 reloads=0 closed-retries=0 drained=true elapsed=47.8s
+counts: map[bg_failq:9 calls_with_token:731 crm_calls:126 crm_effects:39 detached_calls:136 drops:0 drops_no_snapshot:0 drops_run_id:0 dup_filtered:616 failed_outcomes:13 goroutines_at_end:3 lost_snapshots:11 max_pending:17 no_target_steps:1006 notify_calls:1234 order_outcomes_on_other_msg:12 outbox:3890 outcome_steps:731 outcomes_outside_waiting_msg:559 reconciled_hits:6 reconciliations:19 recovered_steps:0 reserve_outcomes_ignored:35 restarts:39 seq_failq:0 starts_with_hwm:11 step_latency_p50_us:903473 step_latency_p99_us:19832625 steps:2657 timer_steps:209 updates:1717 updates_delivered_twice:162 user_actions:1717 user_goals:117 user_no_reply:3 user_support_ops:50 users:60 users_phase_ms:45785]
+store: tx 8977: mean wait 15.76746ms, begin 42.091µs (max 21.317737ms), body 166.366µs, commit 137.873µs
+PASS I1 at most one irreversible effect per logical action / per cart (cases 708, fails 0)
+PASS I2 one outcome per call; one accepted outcome unless replaced/cleared (cases 731, fails 0)
+PASS I3 no stuck users (cases 60, fails 0)
+    info: 1 times a simulated user on a waiting message waited longer than the reply wait
+PASS I4 sequential replay (conditions on sequentially applied data) = host (cases 60, fails 0)
+PASS I5 background actions never block users (cases 2646, fails 0)
+    barrier wait p50 0 µs, p99 31390 µs, max 60548 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 37 steps, others 0.00% of 98
+PASS I6 every reply validates (checkReply of clients/go) (cases 2657, fails 0)
+PASS I7 no acknowledged update lost (cases 1717, fails 0)
+RESULT: PASS

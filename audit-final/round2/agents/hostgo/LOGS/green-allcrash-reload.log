@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo run -users 50 -goals 2 -max-actions 50 -seed 31 -db /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/green.db -crash 0.004 -reload 50ms -notify-latency 300ms -drain 120s -out /home/user/figram-audit/agents6/hostgo/results/green-allcrash-reload.json 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:14:46.722Z
+end: 2026-11-04T02:15:53.750Z
+exit_code: 0
+--- stdout (1979 bytes, last 200 lines)
+control="" users=150 crashes=map[bg_after_external:1 bg_before_external:7 exec_after_external:17 exec_after_record:9 exec_before_external:12 ingest_after_commit:19 ingest_before_commit:39 reload_after_load:1 sched_after_enqueue:1 step_after_commit:29 step_before_commit:43] instances=179 reloads=519 closed-retries=0 drained=true elapsed=67.0s
+counts: map[bg_failq:32 calls_with_token:2163 crm_calls:285 crm_effects:102 detached_calls:322 drops:0 drops_no_snapshot:0 drops_run_id:0 dup_filtered:1733 failed_outcomes:56 goroutines_at_end:3 lost_snapshots:22 max_pending:32 no_target_steps:3060 notify_calls:2288 order_outcomes_on_other_msg:27 outbox:10729 outcome_steps:2163 outcomes_outside_waiting_msg:1720 reconciled_hits:20 reconciliations:76 recovered_steps:140 reserve_outcomes_ignored:89 restarts:101 seq_failq:0 starts_with_hwm:22 step_latency_p50_us:988080 step_latency_p99_us:21933156 steps:7150 timer_steps:238 updates:4749 updates_delivered_twice:523 user_actions:4749 user_goals:296 user_no_reply:8 user_support_ops:123 users:150 users_phase_ms:66188]
+store: tx 24812: mean wait 44.429218ms, begin 33.912µs (max 19.946537ms), body 180.453µs, commit 163.081µs
+PASS I1 at most one irreversible effect per logical action / per cart (cases 2082, fails 0)
+PASS I2 one outcome per call; one accepted outcome unless replaced/cleared (cases 2163, fails 0)
+PASS I3 no stuck users (cases 150, fails 0)
+    info: 5 times a simulated user on a waiting message waited longer than the reply wait
+PASS I4 sequential replay (conditions on sequentially applied data) = host (cases 150, fails 0)
+PASS I5 background actions never block users (cases 7128, fails 0)
+    barrier wait p50 0 µs, p99 81389 µs, max 177635 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 46 steps, others 0.00% of 270
+PASS I6 every reply validates (checkReply of clients/go) (cases 7150, fails 0)
+PASS I7 no acknowledged update lost (cases 4749, fails 0)
+RESULT: PASS
+--- stderr (0 bytes, last 100 lines)

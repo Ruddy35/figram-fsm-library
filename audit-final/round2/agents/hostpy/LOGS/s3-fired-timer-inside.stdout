@@ -1,0 +1,101 @@
+{
+ "ok": true,
+ "duration_load_s": 10.0,
+ "duration_total_s": 11.7,
+ "user_actions": 0,
+ "updates_sent": 2,
+ "duplicate_deliveries": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 0.3,
+ "mem": {
+  "host_max_kb": 32392,
+  "engine_max_kb": 6364
+ },
+ "cpu_s": {
+  "host": 2.7,
+  "engines": 0.0
+ },
+ "notes": {
+  "users": 1,
+  "elog": 3,
+  "steps": 3,
+  "calls_with_token": 0,
+  "outcomes": {},
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 3,
+  "steps_with_background_pending": 0,
+  "failq": 0,
+  "effects_positive": 1,
+  "applications": 1
+ },
+ "alerts": {},
+ "log": [
+  [
+   0.3,
+   "send",
+   "q1",
+   "/start"
+  ],
+  [
+   1.01,
+   "send",
+   "q1",
+   "shop"
+  ],
+  [
+   1.3,
+   "backup"
+  ],
+  [
+   4.01,
+   "restore"
+  ],
+  [
+   10.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 3,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 0,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 2,
+   "p50": 16.2,
+   "p90": 16.2,
+   "p99": 16.2,
+   "max": 16.2
+  },
+  "timer": {
+   "n": 1,
+   "p50": 6.4,
+   "p90": 6.4,
+   "p99": 6.4,
+   "max": 6.4
+  }
+ },
+ "user_visible_divergence": {
+  "users": 1,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 3.0,
+  "steps": 4.0,
+  "steps.tg": 2.0,
+  "steps.timer": 2.0,
+  "tg.received": 2.0,
+  "timers.fired": 2.0
+ }
+}

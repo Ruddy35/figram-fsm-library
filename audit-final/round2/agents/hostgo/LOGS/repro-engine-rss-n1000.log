@@ -1,0 +1,13 @@
+command: nice -n 10 timeout 300 python3 /home/user/figram-audit/agents6/hostgo/repro/engine_rss.py /home/user/figram-audit-worktrees/a6-hostgo/.lake/build/bin/figram-engine /home/user/figram-audit/agents6/hostgo/bots/points.bot.json 1000 4000 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T02:56:16.995Z
+end: 2026-11-04T02:56:29.056Z
+exit_code: 0
+--- stdout (300 bytes, last 200 lines)
+requests=10 request_bytes=33112 VmRSS=6748 KB
+requests=1000 request_bytes=33112 VmRSS=8732 KB
+requests=2000 request_bytes=33112 VmRSS=10732 KB
+requests=3000 request_bytes=33112 VmRSS=12736 KB
+requests=4000 request_bytes=33112 VmRSS=14736 KB
+growth after the 10th request: 7988 KB, 2050 bytes/request
+--- stderr (0 bytes, last 100 lines)

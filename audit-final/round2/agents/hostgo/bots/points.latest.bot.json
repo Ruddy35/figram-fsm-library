@@ -1,0 +1,157 @@
+{
+ "figram": 1,
+ "conditions": {
+  "enough_points": "The balance is at least 10 (host data, written by credit/debit)"
+ },
+ "calls": {
+  "award": {
+   "text": "Ask the loyalty service to award points",
+   "outcomes": [
+    "ok"
+   ]
+  },
+  "credit": "Credit the awarded points (amount from the outcome details)",
+  "debit": "Debit 10 points",
+  "note_fail": "Record a failed award",
+  "audit": {
+   "text": "Write an audit event",
+   "detached": true,
+   "outcomes": [
+    "logged"
+   ]
+  },
+  "count_audit": "Count an acknowledged audit event"
+ },
+ "bot": {
+  "initial": "home",
+  "on": {
+   "cmd:start": [
+    {
+     "to": "home"
+    }
+   ],
+   "call:award:ok": [
+    {
+     "do": [
+      "credit"
+     ]
+    }
+   ],
+   "call:award:failed": [
+    {
+     "do": [
+      "note_fail"
+     ]
+    }
+   ],
+   "call:audit:logged": [
+    {
+     "do": [
+      "count_audit"
+     ]
+    }
+   ],
+   "call:audit:failed": [
+    {}
+   ]
+  },
+  "children": {
+   "home": {
+    "on": {
+     "btn:earn": [
+      {
+       "do": [
+        "award"
+       ]
+      }
+     ],
+     "btn:shop": [
+      {
+       "to": "shop"
+      }
+     ],
+     "btn:wallet": [
+      {
+       "to": "wallet"
+      }
+     ]
+    }
+   },
+   "wallet": {
+    "timers": {
+     "refresh": 500
+    },
+    "on": {
+     "timer:refresh": [
+      {
+       "do": [
+        "audit"
+       ]
+      }
+     ],
+     "btn:earn": [
+      {
+       "do": [
+        "award"
+       ]
+      }
+     ],
+     "btn:back": [
+      {
+       "to": "home"
+      }
+     ]
+    }
+   },
+   "shop": {
+    "on": {
+     "btn:buy": [
+      {
+       "if": "enough_points",
+       "to": "bought",
+       "do": [
+        "debit",
+        "audit"
+       ]
+      },
+      {
+       "to": "poor"
+      }
+     ],
+     "btn:back": [
+      {
+       "to": "home"
+      }
+     ]
+    }
+   },
+   "bought": {
+    "on": {
+     "btn:back": [
+      {
+       "to": "home"
+      }
+     ]
+    }
+   },
+   "poor": {
+    "on": {
+     "btn:back": [
+      {
+       "to": "home"
+      }
+     ],
+     "btn:earn": [
+      {
+       "to": "home",
+       "do": [
+        "award"
+       ]
+      }
+     ]
+    }
+   }
+  }
+ },
+ "x-note": "award without every (latest), for the reload reproduction"
+}

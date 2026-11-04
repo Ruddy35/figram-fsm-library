@@ -1,0 +1,5 @@
+request 1: earn with 29124 waits, 1048557 bytes (limit 1048576) -> snapshot with 29125 waits
+request 2 (call:award:ok): 1048617 bytes -> {"id":2,"error":"request is longer than the limit of 1048576 bytes","code":"too_large"}
+request 3 (call:award:failed): 1048621 bytes -> {"id":3,"error":"request is longer than the limit of 1048576 bytes","code":"too_large"}
+request 4 (restart): 1048577 bytes -> {"id":4,"error":"request is longer than the limit of 1048576 bytes","code":"too_large"}
+WEDGED: every request with the snapshot the engine wrote is too_large

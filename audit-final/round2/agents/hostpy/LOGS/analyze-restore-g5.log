@@ -1,0 +1,15 @@
+command: python3 analyze_restore.py runs/g5-restore-booking 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:42:49.908Z
+end: 2026-11-04T01:42:50.409Z
+exit_code: 0
+--- stdout (288 bytes, last 200 lines)
+{
+ "updates_processed_after_backup_in_lost_history": 261,
+ "of_them_processed_again_after_restore": 0,
+ "of_them_never_processed_again": 261,
+ "calls_with_token_issued_in_lost_history": 0,
+ "positive_external_effects_whose_call_is_not_in_the_restored_history": 0,
+ "users_affected": 14
+}
+--- stderr (0 bytes, last 100 lines)

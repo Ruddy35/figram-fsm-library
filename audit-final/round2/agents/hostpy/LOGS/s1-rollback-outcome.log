@@ -1,0 +1,179 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/s1-rollback-outcome --bot shop --users 0 --duration 22 --dup-p 0 --script scripts/rollback_outcome.json 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:32:51.191Z
+end: 2026-11-04T01:33:15.033Z
+exit_code: 0
+--- stdout (2210 bytes, last 200 lines)
+{
+ "ok": true,
+ "duration_load_s": 22.0,
+ "duration_total_s": 23.7,
+ "user_actions": 0,
+ "updates_sent": 12,
+ "duplicate_deliveries": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 0.5,
+ "mem": {
+  "host_max_kb": 33248,
+  "engine_max_kb": 6480
+ },
+ "notes": {
+  "users": 1,
+  "elog": 12,
+  "steps": 11,
+  "calls_with_token": 2,
+  "outcomes": {
+   "accepted": 2
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 11,
+  "steps_with_background_pending": 1,
+  "failq": 0,
+  "effects_positive": 3,
+  "applications": 4
+ },
+ "alerts": {},
+ "log": [
+  [
+   0.3,
+   "send",
+   "r1",
+   "/start"
+  ],
+  [
+   1.01,
+   "send",
+   "r1",
+   "shop"
+  ],
+  [
+   1.51,
+   "send",
+   "r1",
+   "add"
+  ],
+  [
+   2.0,
+   "send",
+   "r1",
+   "checkout"
+  ],
+  [
+   3.01,
+   "backup"
+  ],
+  [
+   3.5,
+   "send",
+   "r1",
+   "back"
+  ],
+  [
+   4.01,
+   "send",
+   "r1",
+   "add"
+  ],
+  [
+   4.51,
+   "send",
+   "r1",
+   "checkout"
+  ],
+  [
+   5.0,
+   "send",
+   "r1",
+   "pay"
+  ],
+  [
+   7.0,
+   "restore"
+  ],
+  [
+   8.5,
+   "send",
+   "r1",
+   "back"
+  ],
+  [
+   9.01,
+   "send",
+   "r1",
+   "add"
+  ],
+  [
+   9.51,
+   "send",
+   "r1",
+   "checkout"
+  ],
+  [
+   10.0,
+   "send",
+   "r1",
+   "pay"
+  ],
+  [
+   22.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 12,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 2,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 8,
+   "p50": 4.3,
+   "p90": 18.0,
+   "p99": 18.0,
+   "max": 18.0
+  },
+  "outcome": {
+   "n": 2,
+   "p50": 6.1,
+   "p90": 6.1,
+   "p99": 6.1,
+   "max": 6.1
+  },
+  "timer": {
+   "n": 1,
+   "p50": 10.9,
+   "p90": 10.9,
+   "p99": 10.9,
+   "max": 10.9
+  }
+ },
+ "user_visible_divergence": {
+  "users": 1,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "callbacks.received": 2.0,
+  "drop.stale_run": 1.0,
+  "dup.skipped.outcome": 1.0,
+  "steps": 15.0,
+  "steps.outcome": 2.0,
+  "steps.tg": 12.0,
+  "steps.timer": 1.0,
+  "tg.received": 12.0,
+  "timers.fired": 1.0,
+  "x.reconcile": 1.0,
+  "x.reconciled_found": 1.0,
+  "x.retry": 4.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

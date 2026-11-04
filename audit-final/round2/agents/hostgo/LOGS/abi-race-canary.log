@@ -1,0 +1,53 @@
+command: nice -n 10 timeout 120 bin/hostgo-race-probe abi race-canary 
+cwd: /home/user/figram-audit/agents6/hostgo/host
+start: 2026-11-04T03:23:59.694Z
+end: 2026-11-04T03:24:00.715Z
+exit_code: 66
+--- stdout (19 bytes, last 200 lines)
+racy counter: 4000
+--- stderr (1479 bytes, last 100 lines)
+==================
+WARNING: DATA RACE
+Read at 0x00c00011c3f8 by goroutine 9:
+  main.abiMain.func1()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0x99
+
+Previous write at 0x00c00011c3f8 by goroutine 11:
+  main.abiMain.func1()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0xab
+
+Goroutine 9 (running) created at:
+  main.abiMain()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0x3de
+  main.main()
+      /home/user/figram-audit/agents6/hostgo/host/main.go:97 +0x7f2
+
+Goroutine 11 (finished) created at:
+  main.abiMain()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0x3de
+  main.main()
+      /home/user/figram-audit/agents6/hostgo/host/main.go:97 +0x7f2
+==================
+==================
+WARNING: DATA RACE
+Write at 0x00c00011c3f8 by goroutine 10:
+  main.abiMain.func1()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0xab
+
+Previous write at 0x00c00011c3f8 by goroutine 9:
+  main.abiMain.func1()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0xab
+
+Goroutine 10 (running) created at:
+  main.abiMain()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0x3de
+  main.main()
+      /home/user/figram-audit/agents6/hostgo/host/main.go:97 +0x7f2
+
+Goroutine 9 (running) created at:
+  main.abiMain()
+      /home/user/figram-audit/agents6/hostgo/host/abi.go:64 +0x3de
+  main.main()
+      /home/user/figram-audit/agents6/hostgo/host/main.go:97 +0x7f2
+==================
+Found 2 data race(s)

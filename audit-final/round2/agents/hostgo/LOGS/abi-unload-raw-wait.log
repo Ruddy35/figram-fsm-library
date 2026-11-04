@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo abi unload-raw-wait 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:29.360Z
+end: 2026-11-04T02:20:39.586Z
+exit_code: 0
+--- stdout (113 bytes, last 200 lines)
+raw C ABI, wait-for-readers=true: reloads 70, correct replies 605, 'already unloaded' errors 0, WRONG replies 0 
+--- stderr (0 bytes, last 100 lines)

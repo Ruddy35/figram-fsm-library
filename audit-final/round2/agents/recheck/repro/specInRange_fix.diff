@@ -1,0 +1,4 @@
+82a83,85
+>   | ["detach-flip", n] => (Mutate.callNames m).contains n
+>   | ["wait-free", n] => (Mutate.waitNames m).contains n
+>   | ["wait-swap", n] => (Mutate.waitNames m).contains n

@@ -1,0 +1,20 @@
+command: bash tests/capi/mutants.sh 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T03:45:26.759Z
+end: 2026-11-04T03:45:26.984Z
+exit_code: 1
+--- stdout (697 bytes, last 200 lines)
+FAIL no runtime size defaults (1 GiB mimalloc arena): the mutant does not build
+FAIL stock runtime start-up (libuv thread, io_uring, descriptors): the mutant does not build
+FAIL SIGSEGV/SIGBUS handler in the embedded library: the mutant does not build
+FAIL no lazy initialization: the mutant does not build
+FAIL no NULL check of the request: the mutant does not build
+FAIL no double-unload detection: the mutant does not build
+FAIL _n variants without the NUL check: the mutant does not build
+FAIL no UTF-8 check of the request: the mutant does not build
+FAIL no request size limit: the mutant does not build
+FAIL SIGPIPE not restored: the mutant does not build
+FAIL: some mutants were not caught
+--- stderr (112 bytes, last 100 lines)
+tests/capi/mutants.sh: line 9: lean: command not found
+tests/capi/mutants.sh: line 43: leanc: command not found

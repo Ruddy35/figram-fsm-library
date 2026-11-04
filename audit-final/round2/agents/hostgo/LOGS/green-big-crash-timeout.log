@@ -1,0 +1,7 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo run -users 1000 -goals 1 -max-actions 25 -seed 41 -db /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/big.db -crash 0.0003 -reload 500ms -notify-latency 1s -reply-wait 120s -drain 300s -out /home/user/figram-audit/agents6/hostgo/results/green-big.json 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:24:45.241Z
+end: 2026-11-04T02:39:45.271Z
+exit_code: 124
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

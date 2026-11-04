@@ -1,0 +1,26 @@
+command: bash -c grep\ -rn\ \"_check_hello\\\|\\\"states\\\":\ \*-1\\\|states\\\\\\\\\\\":-1\\\|states.:-1\\\|18446744073709551616\"\ tests/\ clients/\ \|\ grep\ -v\ \"\^clients/python/figram_client.py:1\[45\]\[0-9\]:\"\;\ echo\ \"---\ imports\ of\ figram_client\ in\ tests:\"\;\ grep\ -ln\ \"figram_client\"\ tests/engine/\*.py 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:22:16.951Z
+end: 2026-11-04T01:22:17.152Z
+exit_code: 0
+--- stdout (462 bytes, last 200 lines)
+tests/engine/protocol_edges.py:596:    ('{"id":5,"protocol":3,"states":-1}', "hello", False),
+tests/engine/protocol_edges.py:597:    ('{"id":5,"protocol":3,"states":18446744073709551616}', "hello", False),
+clients/python/figram_client.py:590:                _check_hello(resp)
+--- imports of figram_client in tests:
+tests/engine/client_contract.py
+tests/engine/client_faults.py
+tests/engine/client_robustness.py
+tests/engine/host_sim.py
+tests/engine/loadtest.py
+--- stderr (561 bytes, last 100 lines)
+grep: tests/capi/out/stress_tsan: binary file matches
+grep: tests/capi/out/harness_plain: binary file matches
+grep: tests/capi/out/contract: binary file matches
+grep: tests/capi/out/contract_asan: binary file matches
+grep: tests/capi/out/harness_asan: binary file matches
+grep: tests/capi/out/oom: binary file matches
+grep: tests/capi/out/contract_tsan: binary file matches
+grep: tests/capi/out/stress_asan: binary file matches
+grep: tests/capi/out/stress: binary file matches
+grep: clients/python/__pycache__/figram_client.cpython-313.pyc: binary file matches

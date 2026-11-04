@@ -1,0 +1,8 @@
+FAIL the engine wrote a snapshot (2295 waits) whose next request is over the limit of 65536 bytes
+FAIL step 2295 refused: None with id 2294
+FAIL the last snapshot written: 2295 waits, 65499 bytes, within 15/16 of the limit by less than one wait
+FAIL its outcome is accepted: 0 waits left
+ok   restart with it clears the waits
+FAIL the growing step is refused again (deterministic)
+ok   with --max-request 0 (no limit) the step is answered
+snapshot limit: steps 2295, waits 2295, failed 5

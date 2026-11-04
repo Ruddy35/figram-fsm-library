@@ -1,0 +1,7 @@
+waits=0 request=112 bytes stack_used=7 KiB reply={"id":1,"snapshot":{"at":"home","seq":5000000},"actions":[]}
+waits=100 request=3411 bytes stack_used=7 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=1000 request=33111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=4000 request=132111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=16000 request=528111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=29000 request=957111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=60000 request=1980111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","

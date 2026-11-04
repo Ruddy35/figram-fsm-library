@@ -1,0 +1,231 @@
+{
+ "ok": true,
+ "duration_load_s": 60.0,
+ "duration_total_s": 86.1,
+ "user_actions": 11518,
+ "updates_sent": 11668,
+ "duplicate_deliveries": 1726,
+ "host_crashes_injected": 106,
+ "throughput_steps_per_s_load": 151.7,
+ "mem": {
+  "host_max_kb": 45768,
+  "engine_max_kb": 6516
+ },
+ "notes": {
+  "users": 150,
+  "elog": 12272,
+  "steps": 12259,
+  "calls_with_token": 235,
+  "outcomes": {
+   "accepted": 230,
+   "cleared_by_lose": 3,
+   "dropped:no_snapshot": 1,
+   "cleared_by_restart": 1
+  },
+  "users_on_waiting_message_without_wait": 44,
+  "stuck_classes": {
+   "doc_trap:entered_without_the_call(resume_or_back)": 44
+  },
+  "stuck_examples": {
+   "doc_trap:entered_without_the_call(resume_or_back)": [
+    {
+     "user": "u0065",
+     "at": "confirming",
+     "entry": 11725,
+     "event": "btn:book"
+    },
+    {
+     "user": "u0103",
+     "at": "confirming",
+     "entry": 12033,
+     "event": "btn:book"
+    },
+    {
+     "user": "u0107",
+     "at": "confirming",
+     "entry": 4427,
+     "event": "btn:book"
+    }
+   ]
+  },
+  "replayed_entries": 12259,
+  "steps_with_background_pending": 78,
+  "failq": 23,
+  "effects_positive": 187,
+  "applications": 207
+ },
+ "alerts": {
+  "failure_queue": 23
+ },
+ "log": [
+  [
+   9.36,
+   "restart",
+   "u0097"
+  ],
+  [
+   9.87,
+   "restart",
+   "u0138"
+  ],
+  [
+   12.67,
+   "lose",
+   "u0007"
+  ],
+  [
+   14.25,
+   "lose",
+   "u0016"
+  ],
+  [
+   17.65,
+   "restart",
+   "u0112"
+  ],
+  [
+   18.1,
+   "restart",
+   "u0059"
+  ],
+  [
+   18.95,
+   "lose",
+   "u0126"
+  ],
+  [
+   25.89,
+   "lose",
+   "u0000"
+  ],
+  [
+   32.06,
+   "lose",
+   "u0026"
+  ],
+  [
+   34.42,
+   "lose",
+   "u0053"
+  ],
+  [
+   35.41,
+   "restart",
+   "u0117"
+  ],
+  [
+   35.78,
+   "restart",
+   "u0108"
+  ],
+  [
+   36.14,
+   "lose",
+   "u0068"
+  ],
+  [
+   37.14,
+   "lose",
+   "u0058"
+  ],
+  [
+   37.31,
+   "restart",
+   "u0135"
+  ],
+  [
+   38.68,
+   "lose",
+   "u0120"
+  ],
+  [
+   43.84,
+   "lose",
+   "u0099"
+  ],
+  [
+   44.16,
+   "restart",
+   "u0007"
+  ],
+  [
+   45.63,
+   "restart",
+   "u0141"
+  ],
+  [
+   46.15,
+   "restart",
+   "u0005"
+  ],
+  [
+   60.0,
+   "load end",
+   {
+    "inbound": 3564,
+    "outbox_new": 0,
+    "timers": 1,
+    "steps": 9105,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 14,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 11668,
+   "p50": 25420.6,
+   "p90": 38232.4,
+   "p99": 42177.6,
+   "max": 44221.9
+  },
+  "outcome": {
+   "n": 234,
+   "p50": 17818.5,
+   "p90": 34604.0,
+   "p99": 41446.5,
+   "max": 42047.9
+  },
+  "timer": {
+   "n": 347,
+   "p50": 13039.5,
+   "p90": 38091.8,
+   "p99": 42435.8,
+   "max": 42787.7
+  }
+ },
+ "user_visible_divergence": {
+  "users": 146,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 115.0,
+  "callbacks.received": 16.0,
+  "crash.bg.after_effect": 2.0,
+  "crash.poll.after_inbound": 6.0,
+  "crash.w.after_commit": 38.0,
+  "crash.w.before_commit": 46.0,
+  "crash.w.before_commit.call": 1.0,
+  "crash.w.before_commit.timer": 3.0,
+  "crash.x.after_effect": 10.0,
+  "drop.no_snapshot": 3.0,
+  "dup.skipped.outcome": 19.0,
+  "dup.skipped.tg": 2036.0,
+  "dup.skipped.timer": 9.0,
+  "steps": 12219.0,
+  "steps.admin": 10.0,
+  "steps.outcome": 233.0,
+  "steps.tg": 11629.0,
+  "steps.timer": 347.0,
+  "tg.received": 13338.0,
+  "timers.fired": 349.0,
+  "x.reconcile": 50.0,
+  "x.reconciled_found": 19.0,
+  "x.retry": 120.0
+ }
+}

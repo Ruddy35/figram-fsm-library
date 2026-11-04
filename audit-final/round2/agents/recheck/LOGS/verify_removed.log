@@ -1,0 +1,8 @@
+command: python3 -I /home/user/figram-audit/agents6/recheck/diffcheck/verify_removed.py /home/user/figram-audit/agents6/recheck/LOGS/oldnew_check.stdout 
+cwd: /home/user/figram-audit-worktrees/a6-hostgo
+start: 2026-11-04T01:02:04.761Z
+end: 2026-11-04T01:02:04.828Z
+exit_code: 0
+--- stdout (58 bytes, last 200 lines)
+removed warnings 2156, on a message that owns the timer 0
+--- stderr (0 bytes, last 100 lines)

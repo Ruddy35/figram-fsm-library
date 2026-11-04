@@ -1,0 +1,5 @@
+empty request          {"id":null,"error":"machine handle is NULL","code":"bad_request"} → reference checkReply: variant="" err=reply id <nil> instead of 1
+empty request (live)   {"id":null,"error":"empty request","code":"parse_error"} → reference checkReply: variant="error" err=<nil>
+NUL byte               {"id":null,"error":"request contains a NUL byte (offset 8)","code":"parse_error"} → reference checkReply: variant="error" err=<nil>
+invalid UTF-8          {"id":null,"error":"request is not valid UTF-8","code":"parse_error"} → reference checkReply: variant="error" err=<nil>
+unloaded handle        {"id":null,"error":"machine is already unloaded (figram_unload)","code":"bad_request"} → reference checkReply: variant="" err=reply id <nil> instead of 1

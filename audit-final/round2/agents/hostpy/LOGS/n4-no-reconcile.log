@@ -1,0 +1,126 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/n4-no-reconcile --bot shop --users 60 --duration 15 --flag no-reconcile 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:42:32.566Z
+end: 2026-11-04T01:42:57.896Z
+exit_code: 1
+--- stdout (2181 bytes, last 200 lines)
+{
+ "ok": false,
+ "duration_load_s": 15.0,
+ "duration_total_s": 23.2,
+ "user_actions": 1671,
+ "updates_sent": 1731,
+ "duplicate_deliveries": 260,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 148.6,
+ "mem": {
+  "host_max_kb": 51076,
+  "engine_max_kb": 6436
+ },
+ "cpu_s": {
+  "host": 19.3,
+  "engines": 0.2
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2251,
+  "steps": 2251,
+  "calls_with_token": 388,
+  "outcomes": {
+   "accepted": 376,
+   "replaced_by_later_call": 12
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2251,
+  "steps_with_background_pending": 481,
+  "failq": 45,
+  "effects_positive": 297,
+  "applications": 484
+ },
+ "alerts": {
+  "failure_queue": 45
+ },
+ "log": [
+  [
+   15.01,
+   "load end",
+   {
+    "inbound": 2,
+    "outbox_new": 11,
+    "timers": 11,
+    "steps": 2230,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 20,
+    "cb_pending": 4
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 1731,
+   "p50": 29.0,
+   "p90": 196.5,
+   "p99": 903.2,
+   "max": 2211.4
+  },
+  "outcome": {
+   "n": 388,
+   "p50": 20.4,
+   "p90": 267.2,
+   "p99": 1101.3,
+   "max": 1297.0
+  },
+  "timer": {
+   "n": 132,
+   "p50": 107.1,
+   "p90": 545.4,
+   "p99": 1642.1,
+   "max": 1726.0
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I1.told_failed_but_acted": {
+   "count": 6,
+   "examples": [
+    {
+     "user": "u0046",
+     "call": "call:create_order:5:265291e8-fb2c-47b7-be0e-cc702dd72ce6",
+     "effect_keys": [
+      "u0046:tg:1318:call:create_order:0"
+     ]
+    },
+    {
+     "user": "u0021",
+     "call": "call:create_order:6:7b054686-c538-4a7f-b5fa-dff5b34fa461",
+     "effect_keys": [
+      "u0021:tg:1374:call:create_order:0"
+     ]
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 338.0,
+  "callbacks.received": 20.0,
+  "dup.skipped.outcome": 20.0,
+  "dup.skipped.tg": 260.0,
+  "steps": 2251.0,
+  "steps.outcome": 388.0,
+  "steps.tg": 1731.0,
+  "steps.timer": 132.0,
+  "tg.received": 1991.0,
+  "timers.fired": 132.0,
+  "x.reconcile": 45.0,
+  "x.retry": 127.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

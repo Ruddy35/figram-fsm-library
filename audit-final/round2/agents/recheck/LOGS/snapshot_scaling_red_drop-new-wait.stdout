@@ -1,0 +1,10 @@
+ok   leave a message: cancel all timers: 20000 entries 0.063 s, 80000 entries 0.299 s, ratio 4.7 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, enter with the event: 20000 entries 0.064 s, 80000 entries 0.314 s, ratio 4.9 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, no variant at the initial message: 20000 entries 0.065 s, 80000 entries 0.304 s, ratio 4.7 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, a late timer event of the removed message: 20000 entries 0.066 s, 80000 entries 0.349 s, ratio 5.3 (at most 8.0, at most 3.0 s)
+ok   restart: cancel all timers: 20000 entries 0.064 s, 80000 entries 0.344 s, ratio 5.4 (at most 8.0, at most 3.0 s)
+ok   an outcome: remove its wait among all waits: 20000 entries 0.107 s, 80000 entries 0.467 s, ratio 4.4 (at most 8.0, at most 3.0 s)
+ok   a call answered at its latest call: replace its wait among all waits: 20000 entries 0.110 s, 80000 entries 0.467 s, ratio 4.2 (at most 8.0, at most 3.0 s)
+ok   a call with every: add a wait among all waits: 20000 entries 0.113 s, 80000 entries 0.449 s, ratio 4.0 (at most 8.0, at most 3.0 s)
+ok   enter a message: remember the place among all places: 20000 entries 0.044 s, 80000 entries 0.219 s, ratio 5.0 (at most 8.0, at most 3.0 s)
+snapshot scaling: cases 9, failed 0

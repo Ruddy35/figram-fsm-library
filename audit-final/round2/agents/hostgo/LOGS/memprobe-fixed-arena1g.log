@@ -1,0 +1,19 @@
+command: nice -n 10 timeout 300 bin/hostgo-probe memprobe fixed 60s 4000 16 
+cwd: /home/user/figram-audit/agents6/hostgo/host
+start: 2026-11-04T02:58:06.819Z
+end: 2026-11-04T02:59:07.050Z
+exit_code: 0
+--- stdout (1332 bytes, last 200 lines)
+t=   5s rss= 175820 KB threads= 23 goheap=  1960 KB malloc=   536 KB requests=     2753 reloads=0 waits=132111
+t=  10s rss= 166264 KB threads= 23 goheap=  2504 KB malloc=  1181 KB requests=     5625 reloads=0 waits=132111
+t=  15s rss= 161524 KB threads= 23 goheap=  3872 KB malloc=  1310 KB requests=     8530 reloads=0 waits=132111
+t=  20s rss= 216388 KB threads= 23 goheap=  3184 KB malloc=   278 KB requests=    11461 reloads=0 waits=132111
+t=  25s rss= 159232 KB threads= 23 goheap=  2232 KB malloc=   149 KB requests=    14254 reloads=0 waits=132111
+t=  30s rss= 155448 KB threads= 24 goheap=  3320 KB malloc=   153 KB requests=    17145 reloads=0 waits=132111
+t=  35s rss= 166056 KB threads= 24 goheap=  3728 KB malloc=  1572 KB requests=    20068 reloads=0 waits=132111
+t=  40s rss= 163620 KB threads= 24 goheap=  2640 KB malloc=  1443 KB requests=    23063 reloads=0 waits=132111
+t=  45s rss= 175080 KB threads= 24 goheap=  4272 KB malloc=  1314 KB requests=    26029 reloads=0 waits=132111
+t=  50s rss= 178576 KB threads= 24 goheap=  4544 KB malloc=  1700 KB requests=    29031 reloads=0 waits=132111
+t=  55s rss= 166756 KB threads= 24 goheap=  4000 KB malloc=  1185 KB requests=    32117 reloads=0 waits=132111
+t=  60s rss= 182084 KB threads= 24 goheap=  3184 KB malloc=  1572 KB requests=    35062 reloads=0 waits=132111
+--- stderr (0 bytes, last 100 lines)

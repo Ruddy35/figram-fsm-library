@@ -1,0 +1,7 @@
+ok   step 2155 refused: snapshot_too_large with id 2155
+ok   the last snapshot written: 2155 waits, 61439 bytes, within 15/16 of the limit by less than one wait
+ok   its outcome is accepted: 2154 waits left
+ok   restart with it clears the waits
+ok   the growing step is refused again (deterministic)
+ok   with --max-request 0 (no limit) the step is answered
+snapshot limit: steps 2155, waits 2155, failed 0

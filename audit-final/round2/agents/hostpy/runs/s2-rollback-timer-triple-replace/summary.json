@@ -1,0 +1,179 @@
+{
+ "args": {
+  "bot": "shop",
+  "out": "runs/s2-rollback-timer-triple-replace",
+  "users": 0,
+  "duration": 10.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.0,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [
+   "sched-replace-other-run"
+  ],
+  "sched_outside": true,
+  "restore": "",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "scripts/rollback_timer.json",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/shop.bot.json"
+ },
+ "log": [
+  [
+   0.31,
+   "send",
+   "p1",
+   "/start"
+  ],
+  [
+   1.0,
+   "send",
+   "p1",
+   "shop"
+  ],
+  [
+   1.5,
+   "send",
+   "p1",
+   "info"
+  ],
+  [
+   2.01,
+   "backup"
+  ],
+  [
+   2.28,
+   "send",
+   "p1",
+   "back"
+  ],
+  [
+   2.51,
+   "restore"
+  ],
+  [
+   3.51,
+   "send",
+   "p1",
+   "back"
+  ],
+  [
+   10.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 6,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 0,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "duration_load_s": 10.0,
+ "duration_total_s": 12.7,
+ "user_actions": 0,
+ "frustrated_starts": 0,
+ "updates_sent": 5,
+ "duplicate_deliveries": 0,
+ "steps_at_load_end": 6,
+ "host_restarts": 1,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 0.6,
+ "mem": {
+  "host_max_kb": 32716,
+  "engine_max_kb": 6408
+ },
+ "cpu_s": {
+  "host": 3.1,
+  "engines": 0.0
+ },
+ "mem_samples_tail": [
+  [
+   1793756756.1,
+   32416,
+   [
+    6348,
+    6372
+   ]
+  ],
+  [
+   1793756757.1,
+   32536,
+   [
+    6348,
+    6372
+   ]
+  ],
+  [
+   1793756757.5,
+   32716,
+   [
+    6348,
+    6372
+   ]
+  ]
+ ],
+ "ok": true,
+ "violations": {},
+ "notes": {
+  "users": 1,
+  "elog": 6,
+  "steps": 5,
+  "calls_with_token": 0,
+  "outcomes": {},
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 5,
+  "steps_with_background_pending": 0,
+  "failq": 0,
+  "effects_positive": 1,
+  "applications": 1
+ },
+ "alerts": {},
+ "metrics": {
+  "tg.received": 4.0,
+  "steps": 5.0,
+  "steps.tg": 4.0,
+  "timers.fired": 2.0,
+  "drop.stale_run": 1.0,
+  "steps.timer": 1.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 4,
+   "p50": 20.7,
+   "p90": 232.2,
+   "p99": 232.2,
+   "max": 232.2
+  },
+  "timer": {
+   "n": 1,
+   "p50": 3.7,
+   "p90": 3.7,
+   "p99": 3.7,
+   "max": 3.7
+  }
+ },
+ "user_visible_divergence": {
+  "users": 1,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ }
+}

@@ -1,0 +1,11 @@
+exit_code=0 log=LOGS/soak2-shop.log
+soak2-shop ok= True {} crashes 115 tput 310.4 outcomes {'accepted': 14063, 'replaced_by_later_call': 191, 'cleared_by_lose': 2} stuck {} {'drop.no_snapshot': 1.0}
+exit_code=0 log=LOGS/soak2-payouts.log
+soak2-payouts ok= True {} crashes 70 tput 158.2 outcomes {'accepted': 570} stuck {} {'drop.no_snapshot': 1.0}
+exit_code=1 log=LOGS/soak2-booking.log
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+    import json,sys; d=json.load(open('runs/soak2-booking/summary.json')); print('soak2-booking', 'ok=',d['ok'], {k:v['count'] for k,v in d['violations'].items()}, 'crashes',d['host_crashes_injected'], 'tput',d['throughput_steps_per_s_load'], 'outcomes', d['notes'].get('outcomes'), 'stuck', d['notes'].get('stuck_classes'), {k:v for k,v in d['metrics'].items() if k.startswith(('drop','sched','repair','deadlock'))})
+                                 ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'runs/soak2-booking/summary.json'
+SOAK DONE

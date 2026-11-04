@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/user/figram-audit/agents6/hostgo/repro/limit_wedge.py", line 27, in <module>
+    s2 = rep["snapshot"]
+         ~~~^^^^^^^^^^^^
+KeyError: 'snapshot'

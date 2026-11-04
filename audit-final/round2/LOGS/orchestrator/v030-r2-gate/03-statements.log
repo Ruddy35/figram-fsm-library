@@ -1,0 +1,19 @@
+command: lake env lean tests/proofs/Statements.lean
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T04:02:12Z
+end: 2026-11-04T04:02:13Z
+exit_code: 0
+--- stdout (599 bytes, last 200 lines)
+def Figram.Format.parse : String → P J :=
+fun s => do
+  let __x ← parseValue s 0 0
+  match __x with
+    | (v, i) => if skipWs s i < s.utf8ByteSize then throw "extra text after the JSON value" else pure v
+opaque Figram.Format.parseValue : String → Nat → Nat → P (J × Nat)
+opaque Figram.Format.render : String → J → String
+opaque Figram.Format.renderCompact : J → String
+opaque Figram.Format.nodeErrors : NodeId → NodeDoc → List String
+opaque Figram.Format.J.keysUnique : J → Bool
+def Figram.Engine.handle : Machine → String → String :=
+fun m line => handleWith none m line
+--- stderr (0 bytes, last 100 lines)

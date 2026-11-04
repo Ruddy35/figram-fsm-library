@@ -1,0 +1,193 @@
+{
+ "args": {
+  "bot": "booking",
+  "out": "runs/g5-restore-booking",
+  "users": 120,
+  "duration": 50.0,
+  "seed": 1,
+  "crash_p": 0.002,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [],
+  "sched_outside": false,
+  "restore": "15,30",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/booking.bot.json"
+ },
+ "log": [
+  [
+   15.01,
+   "backup"
+  ],
+  [
+   30.01,
+   "restore"
+  ],
+  [
+   50.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 2833,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 21,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "duration_load_s": 50.0,
+ "duration_total_s": 51.7,
+ "user_actions": 2318,
+ "frustrated_starts": 6,
+ "updates_sent": 2438,
+ "duplicate_deliveries": 372,
+ "steps_at_load_end": 2833,
+ "host_restarts": 18,
+ "host_crashes_injected": 17,
+ "throughput_steps_per_s_load": 56.7,
+ "mem": {
+  "host_max_kb": 44216,
+  "engine_max_kb": 6512
+ },
+ "cpu_s": {
+  "host": 22.5,
+  "engines": 0.1
+ },
+ "mem_samples_tail": [
+  [
+   1793756176.1,
+   41168,
+   [
+    6388,
+    6348
+   ]
+  ],
+  [
+   1793756177.1,
+   41164,
+   [
+    6388,
+    6348
+   ]
+  ],
+  [
+   1793756177.2,
+   41164,
+   [
+    6388,
+    6348
+   ]
+  ]
+ ],
+ "ok": true,
+ "violations": {},
+ "notes": {
+  "users": 120,
+  "elog": 2833,
+  "steps": 2833,
+  "calls_with_token": 509,
+  "outcomes": {
+   "accepted": 509
+  },
+  "users_on_waiting_message_without_wait": 12,
+  "stuck_classes": {
+   "doc_trap:entered_without_the_call(resume_or_back)": 12
+  },
+  "stuck_examples": {
+   "doc_trap:entered_without_the_call(resume_or_back)": [
+    {
+     "user": "u0009",
+     "at": "confirming",
+     "entry": 2806,
+     "event": "btn:back"
+    },
+    {
+     "user": "u0040",
+     "at": "confirming",
+     "entry": 2831,
+     "event": "btn:back"
+    },
+    {
+     "user": "u0095",
+     "at": "confirming",
+     "entry": 2817,
+     "event": "btn:back"
+    }
+   ]
+  },
+  "replayed_entries": 2833,
+  "steps_with_background_pending": 561,
+  "failq": 47,
+  "effects_positive": 402,
+  "applications": 452
+ },
+ "alerts": {
+  "failure_queue": 47
+ },
+ "metrics": {
+  "tg.received": 2810.0,
+  "steps": 3090.0,
+  "steps.tg": 2435.0,
+  "dup.skipped.tg": 391.0,
+  "crash.x.after_effect": 2.0,
+  "crash.w.before_commit": 12.0,
+  "x.retry": 129.0,
+  "steps.outcome": 509.0,
+  "bg.retry": 346.0,
+  "timers.fired": 147.0,
+  "x.reconcile": 78.0,
+  "x.reconciled_found": 21.0,
+  "steps.timer": 146.0,
+  "callbacks.received": 21.0,
+  "dup.skipped.outcome": 35.0,
+  "crash.w.after_commit": 1.0,
+  "crash.w.before_commit.call": 2.0,
+  "dup.skipped.timer": 1.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 2177,
+   "p50": 175.3,
+   "p90": 891.9,
+   "p99": 1811.4,
+   "max": 2842.7
+  },
+  "outcome": {
+   "n": 509,
+   "p50": 219.2,
+   "p90": 934.4,
+   "p99": 1911.8,
+   "max": 2340.7
+  },
+  "timer": {
+   "n": 147,
+   "p50": 240.7,
+   "p90": 963.7,
+   "p99": 2365.9,
+   "max": 3059.8
+  }
+ },
+ "user_visible_divergence": {
+  "users": 120,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ }
+}

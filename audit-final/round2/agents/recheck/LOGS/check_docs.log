@@ -1,0 +1,28 @@
+command: nice -n 10 timeout 900 python3 ci/check_docs.py 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:19:48.479Z
+end: 2026-11-04T01:19:49.910Z
+exit_code: 0
+--- stdout (1003 bytes, last 200 lines)
+ok   paths
+ok   theorems
+ok   codes
+ok   protocol
+ok   cli
+ok   capi
+ok   numbers
+ok   cyrillic
+ok   refs
+ok   gates
+ok   build
+ok   licenses
+ok   examples
+note: pinned theorems: 99 in tests/proofs/THEOREMS.expected, 99 listed in docs/proofs.md
+note: error codes: ['bad_request', 'bad_snapshot', 'parse_error', 'seq_overflow', 'too_large']; shim: ['bad_request', 'parse_error', 'too_large']; operations: ['hello', 'restart', 'start', 'step']
+note: protocol version: 3
+note: CLI commands: ['check', 'example', 'fmt', 'golden', 'random', 'stats', 'trace']; hidden: ['json']
+note: C ABI functions: 15
+note: numbers: pinned=99, source theorems=365, golden=37, mutants=211, selftest=72, snapshots=49, edges=250, capi=46, random docs=100, random messages=12, random traces=20, random length=30, trace count=200, trace length=40, fuzz=30000, request faults=13, start faults=5, fault threads=8, blocked requests=300, robustness=20, users=30, host threads=16
+note: runnable examples: 11
+check_docs: 0 problem(s)
+--- stderr (0 bytes, last 100 lines)

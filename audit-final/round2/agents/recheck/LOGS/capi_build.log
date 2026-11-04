@@ -1,0 +1,24 @@
+command: nice -n 10 timeout 900 bash tests/capi/build.sh 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:20:57.222Z
+end: 2026-11-04T01:21:24.258Z
+exit_code: 0
+--- stdout (21 bytes, last 200 lines)
+done: tests/capi/out
+--- stderr (1504 bytes, last 100 lines)
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done
+tests/capi/contract.c: In function 'main':
+tests/capi/contract.c:241:58: warning: '%s' directive argument is null [-Wformat-overflow=]
+  241 |   printf("check(dup key \"a\\u0000b\") → strlen=%zu text=%s\n", strlen(r), r);
+      |                                                          ^~

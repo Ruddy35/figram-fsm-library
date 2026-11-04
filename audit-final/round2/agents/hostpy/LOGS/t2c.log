@@ -1,0 +1,111 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/t2c --bot shop --users 150 --duration 60 --restore 15\,30 --sched-outside --flag sched-pair --flag rearm 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:25:32.808Z
+end: 2026-11-04T01:26:36.131Z
+exit_code: 1
+--- stdout (1905 bytes, last 200 lines)
+{
+ "ok": false,
+ "duration_load_s": 60.0,
+ "duration_total_s": 61.9,
+ "user_actions": 11303,
+ "updates_sent": 11453,
+ "duplicate_deliveries": 1786,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 128.4,
+ "mem": {
+  "host_max_kb": 55892,
+  "engine_max_kb": 6536
+ },
+ "notes": {
+  "users": 150,
+  "elog": 7702,
+  "steps": 7693,
+  "calls_with_token": 319,
+  "outcomes": {
+   "accepted": 316,
+   "replaced_by_later_call": 3
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 7693,
+  "steps_with_background_pending": 803,
+  "failq": 72,
+  "effects_positive": 397,
+  "applications": 470
+ },
+ "alerts": {
+  "failure_queue": 81,
+  "start_refused": 4
+ },
+ "log": [
+  [
+   15.01,
+   "backup"
+  ],
+  [
+   30.0,
+   "restore"
+  ],
+  [
+   60.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 7702,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 18,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "violations": {
+  "I3.timer_never_fired:start_refused_by_pair_rule": {
+   "count": 1,
+   "examples": [
+    {
+     "user": "u0029",
+     "timer": "nudge",
+     "token": 15
+    }
+   ]
+  },
+  "I3.timer_never_fired": {
+   "count": 1,
+   "examples": [
+    {
+     "user": "u0029",
+     "timer": "nudge",
+     "token": 15,
+     "due": 1793755565.22,
+     "held_until": 1793755568.4085279,
+     "run": "49b97fb0-4845-409e-9b7a-bebb420aa616"
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 563.0,
+  "callbacks.received": 18.0,
+  "drop.stale_run": 9.0,
+  "dup.skipped.outcome": 20.0,
+  "dup.skipped.tg": 1550.0,
+  "repair.dropped": 0.0,
+  "repair.rearmed": 17.0,
+  "sched.start_refused": 4.0,
+  "steps": 10619.0,
+  "steps.outcome": 353.0,
+  "steps.tg": 9681.0,
+  "steps.timer": 585.0,
+  "tg.received": 13239.0,
+  "timers.fired": 570.0,
+  "x.reconcile": 52.0,
+  "x.reconciled_found": 18.0,
+  "x.retry": 127.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

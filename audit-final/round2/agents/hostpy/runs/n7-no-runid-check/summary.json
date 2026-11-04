@@ -1,0 +1,216 @@
+{
+ "args": {
+  "bot": "shop",
+  "out": "runs/n7-no-runid-check",
+  "users": 100,
+  "duration": 40.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [
+   "rearm",
+   "no-runid-check"
+  ],
+  "sched_outside": true,
+  "restore": "10,20",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/shop.bot.json"
+ },
+ "log": [
+  [
+   10.0,
+   "backup"
+  ],
+  [
+   20.01,
+   "restore"
+  ],
+  [
+   40.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 3226,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 46,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "duration_load_s": 40.0,
+ "duration_total_s": 41.7,
+ "user_actions": 3793,
+ "frustrated_starts": 3,
+ "updates_sent": 3893,
+ "duplicate_deliveries": 610,
+ "steps_at_load_end": 3226,
+ "host_restarts": 1,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 80.6,
+ "mem": {
+  "host_max_kb": 56360,
+  "engine_max_kb": 6392
+ },
+ "cpu_s": {
+  "host": 37.6,
+  "engines": 0.5
+ },
+ "mem_samples_tail": [
+  [
+   1793756684.4,
+   53796,
+   [
+    6392,
+    6308
+   ]
+  ],
+  [
+   1793756685.4,
+   53736,
+   [
+    6392,
+    6308
+   ]
+  ],
+  [
+   1793756685.5,
+   53736,
+   [
+    6392,
+    6308
+   ]
+  ]
+ ],
+ "ok": false,
+ "violations": {
+  "I2.timer_of_another_history_processed": {
+   "count": 3,
+   "examples": [
+    {
+     "user": "u0056",
+     "uid": "timer:nudge:42:1326675f-2450-4307-a08f-06716fda1900"
+    },
+    {
+     "user": "u0054",
+     "uid": "timer:nudge:34:0cc7f069-a2ee-4482-85d9-f5862db46fbe"
+    },
+    {
+     "user": "u0045",
+     "uid": "timer:nudge:36:bcf0fc81-9bd5-45f3-9f03-c8ff04539968"
+    }
+   ]
+  }
+ },
+ "notes": {
+  "users": 100,
+  "elog": 3226,
+  "steps": 3226,
+  "calls_with_token": 434,
+  "outcomes": {
+   "accepted": 432,
+   "replaced_by_later_call": 2
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 3226,
+  "steps_with_background_pending": 354,
+  "failq": 52,
+  "effects_positive": 588,
+  "applications": 927
+ },
+ "alerts": {
+  "failure_queue": 94
+ },
+ "metrics": {
+  "repair.dropped": 0.0,
+  "repair.rearmed": 49.0,
+  "tg.received": 4500.0,
+  "steps": 5145.0,
+  "steps.tg": 3915.0,
+  "dup.skipped.tg": 613.0,
+  "timers.fired": 504.0,
+  "x.retry": 278.0,
+  "steps.timer": 474.0,
+  "steps.outcome": 756.0,
+  "bg.retry": 453.0,
+  "x.reconcile": 95.0,
+  "x.reconciled_found": 47.0,
+  "callbacks.received": 60.0,
+  "dup.skipped.outcome": 49.0,
+  "dup.skipped.timer": 30.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 2460,
+   "p50": 72.3,
+   "p90": 578.6,
+   "p99": 11840.7,
+   "max": 12887.3
+  },
+  "outcome": {
+   "n": 448,
+   "p50": 69.6,
+   "p90": 630.4,
+   "p99": 11619.5,
+   "max": 12079.2
+  },
+  "timer": {
+   "n": 318,
+   "p50": 324.4,
+   "p90": 1053.6,
+   "p99": 2152.9,
+   "max": 13030.2
+  }
+ },
+ "user_visible_divergence": {
+  "users": 100,
+  "chat_differs_from_snapshot": 12,
+  "chat_shows_waiting_message": 0,
+  "examples": [
+   [
+    "u0074",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0000",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0073",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0017",
+    "help",
+    "catalog"
+   ],
+   [
+    "u0019",
+    "done",
+    "catalog"
+   ]
+  ]
+ }
+}

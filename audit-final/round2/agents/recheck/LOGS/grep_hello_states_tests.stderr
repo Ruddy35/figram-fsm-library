@@ -1,0 +1,10 @@
+grep: tests/capi/out/stress_tsan: binary file matches
+grep: tests/capi/out/harness_plain: binary file matches
+grep: tests/capi/out/contract: binary file matches
+grep: tests/capi/out/contract_asan: binary file matches
+grep: tests/capi/out/harness_asan: binary file matches
+grep: tests/capi/out/oom: binary file matches
+grep: tests/capi/out/contract_tsan: binary file matches
+grep: tests/capi/out/stress_asan: binary file matches
+grep: tests/capi/out/stress: binary file matches
+grep: clients/python/__pycache__/figram_client.cpython-313.pyc: binary file matches

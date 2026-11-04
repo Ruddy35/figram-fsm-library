@@ -1,0 +1,260 @@
+{
+ "args": {
+  "bot": "payouts",
+  "out": "runs/g2-payouts",
+  "users": 150,
+  "duration": 60.0,
+  "seed": 1,
+  "crash_p": 0.003,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [],
+  "sched_outside": false,
+  "restore": "",
+  "lose": 10,
+  "restarts": 10,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/payouts.bot.json"
+ },
+ "log": [
+  [
+   9.4,
+   "restart",
+   "u0097"
+  ],
+  [
+   9.88,
+   "restart",
+   "u0138"
+  ],
+  [
+   12.67,
+   "lose",
+   "u0007"
+  ],
+  [
+   14.24,
+   "lose",
+   "u0016"
+  ],
+  [
+   17.66,
+   "restart",
+   "u0112"
+  ],
+  [
+   18.09,
+   "restart",
+   "u0059"
+  ],
+  [
+   18.96,
+   "lose",
+   "u0126"
+  ],
+  [
+   25.89,
+   "lose",
+   "u0000"
+  ],
+  [
+   32.06,
+   "lose",
+   "u0026"
+  ],
+  [
+   34.42,
+   "lose",
+   "u0053"
+  ],
+  [
+   35.4,
+   "restart",
+   "u0117"
+  ],
+  [
+   35.78,
+   "restart",
+   "u0108"
+  ],
+  [
+   36.33,
+   "lose",
+   "u0068"
+  ],
+  [
+   37.15,
+   "lose",
+   "u0058"
+  ],
+  [
+   37.31,
+   "restart",
+   "u0135"
+  ],
+  [
+   38.68,
+   "lose",
+   "u0120"
+  ],
+  [
+   43.85,
+   "lose",
+   "u0099"
+  ],
+  [
+   44.16,
+   "restart",
+   "u0007"
+  ],
+  [
+   45.63,
+   "restart",
+   "u0141"
+  ],
+  [
+   46.14,
+   "restart",
+   "u0005"
+  ],
+  [
+   60.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 8417,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 65,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "duration_load_s": 60.0,
+ "duration_total_s": 61.8,
+ "user_actions": 7020,
+ "frustrated_starts": 602,
+ "updates_sent": 7170,
+ "duplicate_deliveries": 1044,
+ "steps_at_load_end": 8417,
+ "host_restarts": 64,
+ "host_crashes_injected": 64,
+ "throughput_steps_per_s_load": 140.3,
+ "mem": {
+  "host_max_kb": 47008,
+  "engine_max_kb": 6512
+ },
+ "mem_samples_tail": [
+  [
+   1793755979.2,
+   44612,
+   [
+    6376,
+    6336
+   ]
+  ],
+  [
+   1793755980.2,
+   44624,
+   [
+    6376,
+    6336
+   ]
+  ],
+  [
+   1793755981.1,
+   44628,
+   [
+    6376,
+    6336
+   ]
+  ]
+ ],
+ "ok": true,
+ "violations": {},
+ "notes": {
+  "users": 150,
+  "elog": 8417,
+  "steps": 8404,
+  "calls_with_token": 757,
+  "outcomes": {
+   "accepted": 751,
+   "replaced_by_later_call": 3,
+   "cleared_by_restart": 2,
+   "dropped:no_snapshot": 1
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 8404,
+  "steps_with_background_pending": 5,
+  "failq": 0,
+  "effects_positive": 637,
+  "applications": 716
+ },
+ "alerts": {},
+ "metrics": {
+  "tg.received": 8206.0,
+  "steps": 8376.0,
+  "steps.tg": 7149.0,
+  "crash.w.after_commit": 30.0,
+  "dup.skipped.tg": 1189.0,
+  "x.retry": 528.0,
+  "x.reconcile": 113.0,
+  "x.reconciled_found": 68.0,
+  "callbacks.received": 64.0,
+  "steps.outcome": 751.0,
+  "crash.x.after_effect": 7.0,
+  "timers.fired": 470.0,
+  "steps.timer": 466.0,
+  "dup.skipped.outcome": 84.0,
+  "crash.w.before_commit.call": 3.0,
+  "crash.w.before_commit.timer": 2.0,
+  "crash.w.before_commit": 22.0,
+  "dup.skipped.timer": 11.0,
+  "steps.admin": 10.0,
+  "drop.no_snapshot": 3.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 7170,
+   "p50": 16151.3,
+   "p90": 23114.9,
+   "p99": 26843.3,
+   "max": 29923.2
+  },
+  "outcome": {
+   "n": 756,
+   "p50": 11777.0,
+   "p90": 19227.2,
+   "p99": 25630.1,
+   "max": 28869.5
+  },
+  "timer": {
+   "n": 468,
+   "p50": 11560.3,
+   "p90": 21687.6,
+   "p99": 25116.1,
+   "max": 27321.6
+  }
+ },
+ "user_visible_divergence": {
+  "users": 143,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ }
+}

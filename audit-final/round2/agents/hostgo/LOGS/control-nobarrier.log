@@ -1,0 +1,23 @@
+command: nice -n 10 timeout 600 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo run -users 20 -goals 2 -max-actions 40 -seed 21 -db /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/controls.db -notify-latency 300ms -drain 30s -reply-wait 5s -out /home/user/figram-audit/agents6/hostgo/results/control-nobarrier.json -control nobarrier -exec-delay 3ms 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T01:55:02.698Z
+end: 2026-11-04T01:55:19.524Z
+exit_code: 1
+--- stdout (2697 bytes, last 200 lines)
+control="nobarrier" users=60 crashes=map[] instances=1 reloads=0 closed-retries=0 drained=true elapsed=16.8s
+counts: map[bg_failq:0 calls_with_token:781 crm_calls:57 crm_effects:39 detached_calls:124 drops:0 drops_no_snapshot:0 drops_run_id:0 dup_filtered:246 failed_outcomes:17 goroutines_at_end:3 lost_snapshots:9 max_pending:14 no_target_steps:1073 notify_calls:92 order_outcomes_on_other_msg:10 outbox:4149 outcome_steps:781 outcomes_outside_waiting_msg:601 reconciled_hits:7 reconciliations:24 recovered_steps:0 reserve_outcomes_ignored:39 restarts:41 seq_failq:0 starts_with_hwm:9 step_latency_p50_us:24013 step_latency_p99_us:315197 steps:2748 timer_steps:143 updates:1824 updates_delivered_twice:162 user_actions:1824 user_goals:109 user_no_reply:0 user_support_ops:50 users:60 users_phase_ms:16460]
+store: tx 9356: mean wait 16.24489ms, begin 26.715µs (max 21.297033ms), body 128.132µs, commit 103.764µs
+PASS I1 at most one irreversible effect per logical action / per cart (cases 755, fails 0)
+PASS I2 one outcome per call; one accepted outcome unless replaced/cleared (cases 781, fails 0)
+PASS I3 no stuck users (cases 60, fails 0)
+    info: 6 times a simulated user on a waiting message waited longer than the reply wait
+FAIL I4 sequential replay (conditions on sequentially applied data) = host (cases 60, fails 3)
+    points-13 step 792 (step btn:buy, docv points@1): host {"at":"poor","seq":20} [{"send":"poor"}], replay {"at":"bought","pending":[{"call":"audit","token":20}],"seq":20} [{"call":"debit"},{"call":"audit","detached":true,"token":20},{"send":"bought"}] (host guards {"enough_points":false}, replay guards {"enough_points":true})
+    points-16 step 706 (step btn:buy, docv points@1): host {"at":"poor","seq":18} [{"send":"poor"}], replay {"at":"bought","pending":[{"call":"audit","token":18}],"seq":18} [{"call":"debit"},{"call":"audit","detached":true,"token":18},{"send":"bought"}] (host guards {"enough_points":false}, replay guards {"enough_points":true})
+    points-9 step 655 (step btn:buy, docv points@1): host {"at":"poor","seq":16} [{"send":"poor"}], replay {"at":"bought","pending":[{"call":"audit","token":16}],"seq":16} [{"call":"debit"},{"call":"audit","detached":true,"token":16},{"send":"bought"}] (host guards {"enough_points":false}, replay guards {"enough_points":true})
+PASS I5 background actions never block users (cases 2739, fails 0)
+    barrier wait p50 0 µs, p99 0 µs, max 22 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 30 steps, others 0.00% of 94
+PASS I6 every reply validates (checkReply of clients/go) (cases 2748, fails 0)
+PASS I7 no acknowledged update lost (cases 1824, fails 0)
+RESULT: FAIL
+--- stderr (0 bytes, last 100 lines)

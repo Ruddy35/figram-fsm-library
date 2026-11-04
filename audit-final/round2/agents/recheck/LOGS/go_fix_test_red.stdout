@@ -1,0 +1,5 @@
+--- FAIL: TestFixCheckReplyProtocolChanges (0.00s)
+    fix_test.go:276: checkReply({"id":5,"need":["is_vip","is_vip"]}, op=step) = "need" (<nil>), want "ERR"
+FAIL
+FAIL	gofig	0.008s
+FAIL

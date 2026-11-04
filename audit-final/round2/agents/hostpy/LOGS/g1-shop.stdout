@@ -1,0 +1,207 @@
+{
+ "ok": true,
+ "duration_load_s": 60.0,
+ "duration_total_s": 61.8,
+ "user_actions": 12098,
+ "updates_sent": 12248,
+ "duplicate_deliveries": 1816,
+ "host_crashes_injected": 95,
+ "throughput_steps_per_s_load": 215.0,
+ "mem": {
+  "host_max_kb": 45760,
+  "engine_max_kb": 6544
+ },
+ "notes": {
+  "users": 150,
+  "elog": 12902,
+  "steps": 12888,
+  "calls_with_token": 111,
+  "outcomes": {
+   "accepted": 91,
+   "cleared_by_restart": 2,
+   "replaced_by_later_call": 17,
+   "cleared_by_lose": 1
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 12888,
+  "steps_with_background_pending": 106,
+  "failq": 22,
+  "effects_positive": 159,
+  "applications": 177
+ },
+ "alerts": {
+  "failure_queue": 22
+ },
+ "log": [
+  [
+   9.37,
+   "restart",
+   "u0097"
+  ],
+  [
+   9.88,
+   "restart",
+   "u0138"
+  ],
+  [
+   12.66,
+   "lose",
+   "u0007"
+  ],
+  [
+   14.24,
+   "lose",
+   "u0016"
+  ],
+  [
+   17.65,
+   "restart",
+   "u0112"
+  ],
+  [
+   18.09,
+   "restart",
+   "u0059"
+  ],
+  [
+   18.95,
+   "lose",
+   "u0126"
+  ],
+  [
+   25.88,
+   "lose",
+   "u0000"
+  ],
+  [
+   32.06,
+   "lose",
+   "u0026"
+  ],
+  [
+   34.42,
+   "lose",
+   "u0053"
+  ],
+  [
+   35.4,
+   "restart",
+   "u0117"
+  ],
+  [
+   35.78,
+   "restart",
+   "u0108"
+  ],
+  [
+   36.15,
+   "lose",
+   "u0068"
+  ],
+  [
+   37.15,
+   "lose",
+   "u0058"
+  ],
+  [
+   37.31,
+   "restart",
+   "u0135"
+  ],
+  [
+   38.68,
+   "lose",
+   "u0120"
+  ],
+  [
+   43.84,
+   "lose",
+   "u0099"
+  ],
+  [
+   44.17,
+   "restart",
+   "u0007"
+  ],
+  [
+   45.63,
+   "restart",
+   "u0141"
+  ],
+  [
+   46.14,
+   "restart",
+   "u0005"
+  ],
+  [
+   60.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 12902,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 6,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 12248,
+   "p50": 11472.9,
+   "p90": 18052.6,
+   "p99": 19593.6,
+   "max": 20712.2
+  },
+  "outcome": {
+   "n": 111,
+   "p50": 8467.3,
+   "p90": 18150.0,
+   "p99": 19370.2,
+   "max": 19385.1
+  },
+  "timer": {
+   "n": 519,
+   "p50": 6928.0,
+   "p90": 17637.5,
+   "p99": 19734.3,
+   "max": 20614.0
+  }
+ },
+ "user_visible_divergence": {
+  "users": 146,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 110.0,
+  "callbacks.received": 6.0,
+  "crash.bg.after_effect": 1.0,
+  "crash.poll.after_inbound": 2.0,
+  "crash.w.after_commit": 34.0,
+  "crash.w.before_commit": 43.0,
+  "crash.w.before_commit.timer": 3.0,
+  "crash.x.after_effect": 12.0,
+  "drop.no_snapshot": 4.0,
+  "dup.skipped.outcome": 8.0,
+  "dup.skipped.tg": 2078.0,
+  "dup.skipped.timer": 7.0,
+  "steps": 12854.0,
+  "steps.admin": 10.0,
+  "steps.outcome": 111.0,
+  "steps.tg": 12214.0,
+  "steps.timer": 519.0,
+  "tg.received": 13826.0,
+  "timers.fired": 523.0,
+  "x.reconcile": 17.0,
+  "x.reconciled_found": 6.0,
+  "x.retry": 52.0
+ }
+}

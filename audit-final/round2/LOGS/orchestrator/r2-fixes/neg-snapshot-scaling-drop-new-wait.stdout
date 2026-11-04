@@ -1,0 +1,10 @@
+ok   leave a message: cancel all timers: 20000 entries 0.051 s, 80000 entries 0.240 s, ratio 4.7 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, enter with the event: 20000 entries 0.062 s, 80000 entries 0.243 s, ratio 3.9 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, no variant at the initial message: 20000 entries 0.047 s, 80000 entries 0.244 s, ratio 5.1 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, a late timer event of the removed message: 20000 entries 0.063 s, 80000 entries 0.237 s, ratio 3.8 (at most 8.0, at most 3.0 s)
+ok   restart: cancel all timers: 20000 entries 0.045 s, 80000 entries 0.232 s, ratio 5.1 (at most 8.0, at most 3.0 s)
+ok   an outcome: remove its wait among all waits: 20000 entries 0.076 s, 80000 entries 0.341 s, ratio 4.5 (at most 8.0, at most 3.0 s)
+FAIL a call answered at its latest call: replace its wait among all waits, 80000 entries: wrong result: the new wait (check_stock, 2) is not recorded
+FAIL a call with every: add a wait among all waits, 80000 entries: wrong result: the new wait (ping, 2) is not recorded
+ok   enter a message: remember the place among all places: 20000 entries 0.033 s, 80000 entries 0.148 s, ratio 4.5 (at most 8.0, at most 3.0 s)
+snapshot scaling: cases 9, failed 2

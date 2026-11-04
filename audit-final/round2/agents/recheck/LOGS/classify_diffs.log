@@ -1,0 +1,8 @@
+command: python3 -I /home/user/figram-audit/agents6/recheck/diffcheck/classify_diffs.py /home/user/figram-audit/agents6/recheck/LOGS/oldnew_check.stdout 
+cwd: /home/user/figram-audit-worktrees/a6-hostgo
+start: 2026-11-04T01:01:54.872Z
+end: 2026-11-04T01:01:54.908Z
+exit_code: 0
+--- stdout (99 bytes, last 200 lines)
+{'warnings: removed only, all on timer: arrows': 358, 'check: empty-key node shown as `bot`': 195}
+--- stderr (0 bytes, last 100 lines)

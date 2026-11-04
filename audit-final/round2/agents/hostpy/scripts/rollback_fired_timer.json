@@ -1,0 +1,28 @@
+{
+ "steps": [
+  [
+   0.3,
+   "q1",
+   {
+    "type": "command",
+    "text": "/start"
+   }
+  ],
+  [
+   1.0,
+   "q1",
+   {
+    "type": "button",
+    "data": "shop"
+   }
+  ],
+  [
+   1.3,
+   "backup"
+  ],
+  [
+   4.0,
+   "restore"
+  ]
+ ]
+}

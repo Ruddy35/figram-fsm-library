@@ -1,0 +1,207 @@
+command: nice -n 10 timeout 900 lake env lean --run /home/user/figram-audit/agents6/recheck/diffcheck/OldNewCheck_control.lean /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/list_ctl.txt 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:02:29.092Z
+end: 2026-11-04T01:02:52.151Z
+exit_code: 0
+--- stdout (1485343 bytes, last 200 lines)
+  old: [`bot` → `btn:a`: action `k1` with outcomes occurs twice in `do`, `s0` → `msg:text`: action `k2` with outcomes occurs twice in `do`, `m1` → `btn:a`: action `d1` with outcomes occurs twice in `do`, `m0` → `btn:a`: action `d1` with outcomes occurs twice in `do`, `m4` → `cmd:start`: action `d1` with outcomes occurs twice in `do`, `m5` → `msg:text`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_empty_on.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t3`: no such timer (the prefix `timer:` is reserved), `s0` → `call:o3:x:s`: action `k1` with outcomes occurs twice in `do`, `m0` → `call:o1:failed`: action `k2` with outcomes occurs twice in `do`, `m3` → `timer:t2`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_root_call_declared.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t0`: no such timer (the prefix `timer:` is reserved)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_section_call_undeclared_outcome.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:o3:x:nosuch`: `o3:x` is not an action with the outcome `nosuch` (the prefix `call:` is reserved)]
+  old: [event `timer:t3`: no such timer (the prefix `timer:` is reserved), event `call:o3:x:nosuch`: `o3:x` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), `bot` → `timer:t3`: action `k2` with outcomes occurs twice in `do`, `m0` → `call:o1:no`: action `d1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_call_bad_form.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:x`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)]
+  old: [event `timer:t3`: no such timer (the prefix `timer:` is reserved), event `call:x`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `m0` → `btn:c`: action `k1` with outcomes occurs twice in `do`, `m2` → `cmd:start`: action `k1` with outcomes occurs twice in `do`, `m3` → `call:o3:x:failed`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_call_plain_action.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+  old: [event `timer:t5`: no such timer (the prefix `timer:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `m0` → `cmd:start`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_latest.bot.json: DIFF check (accept new=false old=false)
+  new: [`m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t2`: no such timer (the prefix `timer:` is reserved), `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_every.bot.json: DIFF check (accept new=false old=false)
+  new: [`m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [`bot` → `btn:a`: action `k2` with outcomes occurs twice in `do`, `s1` → `btn:d`: action `k1` with outcomes occurs twice in `do`, `m3` → `btn:b`: action `k3` with outcomes occurs twice in `do`, `m3` → `btn:c`: action `k2` with outcomes occurs twice in `do`, `m3` → `btn:d`: action `k1` with outcomes occurs twice in `do`, `m3` → `btn:d`: action `k1` with outcomes occurs twice in `do`, `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m1` → `btn:a`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_empty_outcomes.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [`bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m0` → `btn:a`: action `d1` with outcomes occurs twice in `do`, `m3` → `call:o1:ok`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_every_empty.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`]
+  old: [action `tw`: `every` needs `outcomes`, event `timer:t4`: no such timer (the prefix `timer:` is reserved), `bot` → `call:o1:ok`: action `k2` with outcomes occurs twice in `do`, `s0` → `btn:b`: action `k2` with outcomes occurs twice in `do`, `s0` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `s0` → `timer:t4`: action `k1` with outcomes occurs twice in `do`, `s0` → `call:o1:failed`: action `k2` with outcomes occurs twice in `do`, `s2` → `call:o1:ok`: action `k2` with outcomes occurs twice in `do`, `s2` → `call:o1:ok`: action `k1` with outcomes occurs twice in `do`, `m0` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m0` → `btn:b`: action `k2` with outcomes occurs twice in `do`, `m0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m1` → `call:o1:ok`: action `k3` with outcomes occurs twice in `do`, `m3` → `btn:b`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_undeclared.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw` is not described in `calls`]
+  old: [action `tw` is not described in `calls`, event `timer:t2`: no such timer (the prefix `timer:` is reserved), `m7` → `btn:a`: action `k2` with outcomes occurs twice in `do`, `s1` → `call:o3:x:s`: action `k2` with outcomes occurs twice in `do`, `m0` → `timer:t5`: action `d1` with outcomes occurs twice in `do`, `m6` → `btn:a`: action `d1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_root.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t0`: no such timer (the prefix `timer:` is reserved), event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `bot` → `btn:a`: action `d1` with outcomes occurs twice in `do`, `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_twice_detached.bot.json: DIFF check (accept new=false old=false)
+  new: [`m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t3`: no such timer (the prefix `timer:` is reserved), `m1` → `call:o1:failed`: action `k1` with outcomes occurs twice in `do`, `m2` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m3` → `call:o1:failed`: action `k3` with outcomes occurs twice in `do`, `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_colon_names.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`, event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved)]
+  old: [action `tw`: `every` needs `outcomes`, event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `s2` → `msg:text`: action `k1` with outcomes occurs twice in `do`, `s2` → `timer:t5`: action `k3` with outcomes occurs twice in `do`, `m2` → `call:o4:b`: action `d1` with outcomes occurs twice in `do`, `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m3` → `btn:c`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_nested_timers.bot.json: DIFF check (accept new=false old=false)
+  new: [event `timer:nosuch`: no such timer (the prefix `timer:` is reserved), event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved)]
+  old: [event `timer:nosuch`: no such timer (the prefix `timer:` is reserved), event `timer:t0`: no such timer (the prefix `timer:` is reserved), event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `s2` → `timer:t1`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s1`: empty name, event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s1`: empty name, event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `bot` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `s0` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `m1` → `timer:t4`: action `k3` with outcomes occurs twice in `do`, `s2` → `msg:text`: action `k2` with outcomes occurs twice in `do`, `m4` → `btn:b`: action `k3` with outcomes occurs twice in `do`, `m4` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m4` → `msg:text`: action `k1` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, `m2` → `timer:t2`: action `k3` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_empty_variants.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t1`: no such timer (the prefix `timer:` is reserved), `bot` → `call:o2:failed`: action `d1` with outcomes occurs twice in `do`, `m6` → `msg:text`: action `k2` with outcomes occurs twice in `do`, `m7` → `btn:d`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_empty_on.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t4`: no such timer (the prefix `timer:` is reserved), `m3` → `call:o4:b`: action `k1` with outcomes occurs twice in `do`, `m7` → `cmd:start`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_root_call_declared.bot.json: DIFF check (accept new=false old=false)
+  new: [`bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t1`: no such timer (the prefix `timer:` is reserved), `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `s1` → `btn:c`: action `k1` with outcomes occurs twice in `do`, `m0` → `btn:c`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_section_call_undeclared_outcome.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:o2:nosuch`: `o2` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+  old: [event `timer:t4`: no such timer (the prefix `timer:` is reserved), event `call:o2:nosuch`: `o2` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `bot` → `timer:t2`: action `k1` with outcomes occurs twice in `do`, `s0` → `timer:t1`: action `k2` with outcomes occurs twice in `do`, `s1` → `timer:t2`: action `k3` with outcomes occurs twice in `do`, `m7` → `call:o1:ok`: action `k3` with outcomes occurs twice in `do`, `m7` → `call:o3:x:s`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_call_bad_form.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:a:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)]
+  old: [event `timer:t0`: no such timer (the prefix `timer:` is reserved), event `call:a:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `m7` → `btn:c`: action `k3` with outcomes occurs twice in `do`, `m6` → `btn:d`: action `d1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_call_plain_action.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+  old: [event `timer:t4`: no such timer (the prefix `timer:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `bot` → `call:o4:failed`: action `k1` with outcomes occurs twice in `do`, `s0` → `call:o4:b`: action `k2` with outcomes occurs twice in `do`, `m1` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m7` → `btn:d`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_latest.bot.json: DIFF check (accept new=false old=false)
+  new: [`m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t2`: no such timer (the prefix `timer:` is reserved), `s0` → `call:o1:ok`: action `k1` with outcomes occurs twice in `do`, `m6` → `btn:a`: action `k3` with outcomes occurs twice in `do`, `m2` → `btn:d`: action `k2` with outcomes occurs twice in `do`, `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m3` → `btn:c`: action `d1` with outcomes occurs twice in `do`, `m3` → `call:o4:a`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_every.bot.json: DIFF check (accept new=false old=false)
+  new: [`m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t4`: no such timer (the prefix `timer:` is reserved), `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_empty_outcomes.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [`m0` → `call:o4:a`: action `k3` with outcomes occurs twice in `do`, `m5` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m2` → `msg:text`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_every_empty.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`]
+  old: [action `tw`: `every` needs `outcomes`, event `timer:t5`: no such timer (the prefix `timer:` is reserved), `bot` → `btn:a`: action `d1` with outcomes occurs twice in `do`, `s0` → `btn:c`: action `k1` with outcomes occurs twice in `do`, `s1` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m0` → `timer:t5`: action `k2` with outcomes occurs twice in `do`, `m0` → `call:o4:b`: action `d1` with outcomes occurs twice in `do`, `m1` → `btn:d`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_undeclared.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw` is not described in `calls`]
+  old: [action `tw` is not described in `calls`, `s0` → `btn:c`: action `k3` with outcomes occurs twice in `do`, `s0` → `call:o1:ok`: action `k1` with outcomes occurs twice in `do`, `s1` → `call:o1:no`: action `k2` with outcomes occurs twice in `do`, `s1` → `call:o4:b`: action `k2` with outcomes occurs twice in `do`, `m0` → `btn:b`: action `k2` with outcomes occurs twice in `do`, `m5` → `btn:b`: action `d1` with outcomes occurs twice in `do`, `m3` → `call:o1:ok`: action `k3` with outcomes occurs twice in `do`, `m7` → `btn:d`: action `d1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_root.bot.json: DIFF check (accept new=false old=false)
+  new: [`bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [`bot` → `call:o1:ok`: action `k1` with outcomes occurs twice in `do`, `bot` → `call:o2:done`: action `k3` with outcomes occurs twice in `do`, `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m3` → `btn:d`: action `k1` with outcomes occurs twice in `do`, `m5` → `btn:a`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_twice_detached.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `m4` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `bot` → `btn:b`: action `k2` with outcomes occurs twice in `do`, `m5` → `btn:a`: action `d1` with outcomes occurs twice in `do`, `m7` → `call:o4:a`: action `k3` with outcomes occurs twice in `do`, `m1` → `msg:text`: action `k2` with outcomes occurs twice in `do`, `m2` → `btn:a`: action `k3` with outcomes occurs twice in `do`, `m2` → `btn:d`: action `d1` with outcomes occurs twice in `do`, `m4` → `btn:b`: action `k2` with outcomes occurs twice in `do`, `m4` → `call:o1:failed`: action `k3` with outcomes occurs twice in `do`, `m4` → `call:o4:a`: action `d1` with outcomes occurs twice in `do`, `m4` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_colon_names.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved)]
+  old: [event `timer:t5`: no such timer (the prefix `timer:` is reserved), event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `s2` → `btn:b`: action `k3` with outcomes occurs twice in `do`, `m1` → `btn:c`: action `k1` with outcomes occurs twice in `do`, `m2` → `btn:b`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_nested_timers.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t5`: no such timer (the prefix `timer:` is reserved), `bot` → `call:o1:failed`: action `k2` with outcomes occurs twice in `do`, `s1` → `call:o1:ok`: action `k1` with outcomes occurs twice in `do`, `s1` → `call:o1:no`: action `k1` with outcomes occurs twice in `do`, `m0` → `call:o1:ok`: action `k3` with outcomes occurs twice in `do`, `m3` → `cmd:start`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `m6` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, event `timer:t0`: no such timer (the prefix `timer:` is reserved), `m0` → `btn:a`: action `k2` with outcomes occurs twice in `do`, `m3` → `cmd:start`: action `k2` with outcomes occurs twice in `do`, `m5` → `call:o1:ok`: action `k1` with outcomes occurs twice in `do`, `m6` → `btn:c`: action `k2` with outcomes occurs twice in `do`, `m6` → `btn:d`: action `k1` with outcomes occurs twice in `do`, `m6` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `m6` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m7` → `btn:c`: action `k2` with outcomes occurs twice in `do`, `m1` → `btn:c`: action `k2` with outcomes occurs twice in `do`, `m1` → `timer:t0`: action `d1` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_empty_variants.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [`s1` → `btn:c`: action `d1` with outcomes occurs twice in `do`, `m0` → `btn:d`: action `k3` with outcomes occurs twice in `do`, `m0` → `call:o3:x:failed`: action `d1` with outcomes occurs twice in `do`, `m6` → `btn:d`: action `d1` with outcomes occurs twice in `do`, `m5` → `btn:c`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_empty_on.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t1`: no such timer (the prefix `timer:` is reserved), `m1` → `call:o3:x:s`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_root_call_declared.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t5`: no such timer (the prefix `timer:` is reserved), `bot` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `s0` → `call:o1:failed`: action `k3` with outcomes occurs twice in `do`, `s0` → `call:o1:failed`: action `k3` with outcomes occurs twice in `do`, `m2` → `timer:t5`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_section_call_undeclared_outcome.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:o3:x:nosuch`: `o3:x` is not an action with the outcome `nosuch` (the prefix `call:` is reserved)]
+  old: [event `call:o3:x:nosuch`: `o3:x` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), `m1` → `btn:d`: action `k2` with outcomes occurs twice in `do`, `m3` → `btn:a`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_call_bad_form.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:a:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)]
+  old: [event `timer:t1`: no such timer (the prefix `timer:` is reserved), event `call:a:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `m7` → `call:o2:failed`: action `k3` with outcomes occurs twice in `do`, `m1` → `timer:t0`: action `k1` with outcomes occurs twice in `do`, `m3` → `btn:a`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_call_plain_action.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+  old: [event `timer:t0`: no such timer (the prefix `timer:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `m3` → `btn:b`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_latest.bot.json: DIFF check (accept new=false old=false)
+  new: [`m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t1`: no such timer (the prefix `timer:` is reserved), `bot` → `call:o2:failed`: action `k2` with outcomes occurs twice in `do`, `s1` → `timer:t1`: action `k3` with outcomes occurs twice in `do`, `s1` → `call:o1:ok`: action `k2` with outcomes occurs twice in `do`, `m1` → `btn:c`: action `k2` with outcomes occurs twice in `do`, `m1` → `call:o1:ok`: action `k3` with outcomes occurs twice in `do`, `m0` → `msg:text`: action `d1` with outcomes occurs twice in `do`, `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m3` → `btn:d`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_every.bot.json: DIFF check (accept new=false old=false)
+  new: [`m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [`m0` → `timer:t0`: action `k3` with outcomes occurs twice in `do`, `m1` → `call:o4:a`: action `k2` with outcomes occurs twice in `do`, `m3` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m3` → `cmd:start`: action `d1` with outcomes occurs twice in `do`, `m4` → `timer:t5`: action `k2` with outcomes occurs twice in `do`, `m7` → `btn:d`: action `k3` with outcomes occurs twice in `do`, `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_empty_outcomes.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [`bot` → `btn:d`: action `k3` with outcomes occurs twice in `do`, `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m2` → `btn:b`: action `d1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_every_empty.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`]
+  old: [action `tw`: `every` needs `outcomes`, `s1` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_undeclared.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw` is not described in `calls`]
+  old: [action `tw` is not described in `calls`, `m1` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `s1` → `msg:text`: action `k1` with outcomes occurs twice in `do`, `m5` → `timer:t2`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_root.bot.json: DIFF check (accept new=false old=false)
+  new: [`bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [`bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m1` → `msg:text`: action `d1` with outcomes occurs twice in `do`, `s1` → `msg:text`: action `k1` with outcomes occurs twice in `do`, `m2` → `timer:t4`: action `k1` with outcomes occurs twice in `do`, `m3` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m5` → `call:o4:a`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_twice_detached.bot.json: DIFF check (accept new=false old=false)
+  new: [`m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [`bot` → `btn:a`: action `k3` with outcomes occurs twice in `do`, `bot` → `call:o1:no`: action `k2` with outcomes occurs twice in `do`, `m1` → `btn:b`: action `k2` with outcomes occurs twice in `do`, `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_colon_names.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `bot` → `timer:t1`: action `k3` with outcomes occurs twice in `do`, `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m1` → `call:o1:no`: action `k1` with outcomes occurs twice in `do`, `m0` → `timer:t4`: action `d1` with outcomes occurs twice in `do`, `m0` → `timer:t4`: action `k1` with outcomes occurs twice in `do`, `m0` → `timer:t5`: action `k1` with outcomes occurs twice in `do`, `m3` → `cmd:start`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_nested_timers.bot.json: DIFF check (accept new=false old=false)
+  new: [event `timer:nosuch`: no such timer (the prefix `timer:` is reserved)]
+  old: [event `timer:nosuch`: no such timer (the prefix `timer:` is reserved), event `timer:t3`: no such timer (the prefix `timer:` is reserved), `bot` → `call:o1:ok`: action `d1` with outcomes occurs twice in `do`, `m0` → `cmd:start`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s0`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s0`: empty name, `s1` → `cmd:start`: action `k2` with outcomes occurs twice in `do`, `m7` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, `m2` → `call:o2:done`: action `k3` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_empty_variants.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t4`: no such timer (the prefix `timer:` is reserved), `m0` → `btn:d`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_empty_on.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+  old: [event `timer:t1`: no such timer (the prefix `timer:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `m2` → `btn:d`: action `d1` with outcomes occurs twice in `do`, `s2` → `btn:b`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_root_call_declared.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [`m2` → `call:o2:failed`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_section_call_undeclared_outcome.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:o4:nosuch`: `o4` is not an action with the outcome `nosuch` (the prefix `call:` is reserved)]
+  old: [event `call:o4:nosuch`: `o4` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), `bot` → `call:o4:b`: action `d1` with outcomes occurs twice in `do`, `m0` → `btn:b`: action `k1` with outcomes occurs twice in `do`, `m0` → `call:o1:ok`: action `k2` with outcomes occurs twice in `do`, `m4` → `call:o4:b`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_call_bad_form.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)]
+  old: [event `call:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `s0` → `call:o1:failed`: action `k1` with outcomes occurs twice in `do`, `m2` → `cmd:start`: action `k1` with outcomes occurs twice in `do`, `m2` → `call:o1:no`: action `k1` with outcomes occurs twice in `do`, `m5` → `cmd:start`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_call_plain_action.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved)]
+  old: [event `timer:t2`: no such timer (the prefix `timer:` is reserved), event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `s0` → `call:o1:no`: action `k1` with outcomes occurs twice in `do`, `m0` → `btn:a`: action `k2` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_latest.bot.json: DIFF check (accept new=false old=false)
+  new: [`m4` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m7` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:t3`: no such timer (the prefix `timer:` is reserved), `s2` → `btn:b`: action `k3` with outcomes occurs twice in `do`, `m4` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m5` → `cmd:start`: action `k2` with outcomes occurs twice in `do`, `m7` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_every.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, event `timer:t1`: no such timer (the prefix `timer:` is reserved), `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m3` → `call:o4:failed`: action `k3` with outcomes occurs twice in `do`, `m5` → `btn:c`: action `k1` with outcomes occurs twice in `do`, `m5` → `call:o1:no`: action `k3` with outcomes occurs twice in `do`, `m6` → `btn:d`: action `d1` with outcomes occurs twice in `do`, `m6` → `call:o3:x:failed`: action `k3` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_empty_outcomes.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [`bot` → `call:o3:x:failed`: action `k2` with outcomes occurs twice in `do`, `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `s1` → `msg:text`: action `k3` with outcomes occurs twice in `do`, `m5` → `cmd:start`: action `k1` with outcomes occurs twice in `do`, `m5` → `call:o1:failed`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_every_empty.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`]
+  old: [action `tw`: `every` needs `outcomes`, event `timer:t3`: no such timer (the prefix `timer:` is reserved), `m1` → `call:o1:failed`: action `k1` with outcomes occurs twice in `do`, `m0` → `btn:b`: action `k3` with outcomes occurs twice in `do`, `m2` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_undeclared.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw` is not described in `calls`]
+  old: [action `tw` is not described in `calls`, `s0` → `call:o4:a`: action `k2` with outcomes occurs twice in `do`, `s2` → `call:o4:a`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_root.bot.json: DIFF check (accept new=false old=false)
+  new: [`bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [`bot` → `call:o3:x:s`: action `k3` with outcomes occurs twice in `do`, `bot` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `s2` → `call:o4:b`: action `k1` with outcomes occurs twice in `do`, `m2` → `call:o4:failed`: action `k2` with outcomes occurs twice in `do`, `m3` → `timer:t1`: action `k3` with outcomes occurs twice in `do`, `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_detached.bot.json: DIFF check (accept new=false old=false)
+  new: [event `call::ok`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `call::ok`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `m2` → `btn:d`: action `k2` with outcomes occurs twice in `do`, `m1` → `btn:c`: action `k1` with outcomes occurs twice in `do`, `m1` → `timer:t5`: action `k3` with outcomes occurs twice in `do`, `m3` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `m6` → `timer:t0`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_colon_names.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t2`: no such timer (the prefix `timer:` is reserved), `s0` → `cmd:start`: action `d1` with outcomes occurs twice in `do`, `s0` → `call:o2:done`: action `k1` with outcomes occurs twice in `do`, `m2` → `btn:b`: action `d1` with outcomes occurs twice in `do`, `m5` → `call:o4:a`: action `k3` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_nested_timers.bot.json: DIFF check (accept new=false old=false)
+  new: [event `timer:nosuch`: no such timer (the prefix `timer:` is reserved), `m4` → `btn:tw`: action `tw` with outcomes occurs twice in `do`]
+  old: [event `timer:nosuch`: no such timer (the prefix `timer:` is reserved), event `timer:t1`: no such timer (the prefix `timer:` is reserved), `bot` → `call:o1:failed`: action `k1` with outcomes occurs twice in `do`, `m2` → `timer:t4`: action `k3` with outcomes occurs twice in `do`, `m4` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `s2` → `timer:t4`: action `k1` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s0`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s0`: empty name, event `timer:t5`: no such timer (the prefix `timer:` is reserved), `s0` → `call:o4:a`: action `d1` with outcomes occurs twice in `do`, `s1` → `cmd:start`: action `k2` with outcomes occurs twice in `do`, `m1` → `cmd:start`: action `k1` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/D_nested_timer_section_event.bot.json: DIFF check (accept new=true old=false)
+  new: []
+  old: [event `timer:t`: no such timer (the prefix `timer:` is reserved)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/D_every_empty_twice.bot.json: DIFF check (accept new=false old=false)
+  new: [action `c`: `every` needs `outcomes`]
+  old: [action `c`: `every` needs `outcomes`, `a` → `btn:x`: action `c` with outcomes occurs twice in `do`]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/D_empty_key_twice.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `bot` → `btn:x`: action `c` with outcomes occurs twice in `do`, node `bot` is declared more than once, initial node `bot` of section `bot` must be a child of it]
+  old: [children of section `bot`: empty name, `` → `btn:x`: action `c` with outcomes occurs twice in `do`, node `bot` is declared more than once, initial node `bot` of section `bot` must be a child of it]
+documents 2438: same 42, check differs 2395, warnings differ 1, decode errors 0; accepted 608, rejected 1830
+--- stderr (0 bytes, last 100 lines)

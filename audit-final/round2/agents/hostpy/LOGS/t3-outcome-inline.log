@@ -1,0 +1,131 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/t3-outcome-inline --bot shop --users 30 --duration 10 --flag outcome-inline --quiesce-timeout 60 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:47:33.589Z
+end: 2026-11-04T01:47:53.425Z
+exit_code: 1
+--- stdout (2187 bytes, last 200 lines)
+{
+ "ok": false,
+ "duration_load_s": 10.0,
+ "duration_total_s": 19.4,
+ "user_actions": 675,
+ "updates_sent": 705,
+ "duplicate_deliveries": 96,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 81.5,
+ "mem": {
+  "host_max_kb": 48904,
+  "engine_max_kb": 6300
+ },
+ "cpu_s": {
+  "host": 7.7,
+  "engines": 0.1
+ },
+ "notes": {
+  "users": 30,
+  "elog": 875,
+  "steps": 875,
+  "calls_with_token": 135,
+  "outcomes": {
+   "accepted": 130,
+   "replaced_by_later_call": 5
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 875,
+  "steps_with_background_pending": 217,
+  "failq": 21,
+  "effects_positive": 131,
+  "applications": 167
+ },
+ "alerts": {
+  "failure_queue": 21,
+  "deadlock": 19
+ },
+ "log": [
+  [
+   10.01,
+   "load end",
+   {
+    "inbound": 56,
+    "outbox_new": 21,
+    "timers": 2,
+    "steps": 816,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 8,
+    "cb_pending": 1
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 705,
+   "p50": 5.9,
+   "p90": 2124.1,
+   "p99": 4490.3,
+   "max": 5795.5
+  },
+  "outcome": {
+   "n": 135,
+   "p50": 3.6,
+   "p90": 376.6,
+   "p99": 3237.2,
+   "max": 3267.2
+  },
+  "timer": {
+   "n": 35,
+   "p50": 72.1,
+   "p90": 2844.3,
+   "p99": 3243.3,
+   "max": 3243.3
+  }
+ },
+ "user_visible_divergence": {
+  "users": 30,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I3.timer_never_fired": {
+   "count": 1,
+   "examples": [
+    {
+     "user": "u0025",
+     "timer": "slow",
+     "token": 15,
+     "due": 1793756859.12,
+     "held_until": 1793756864.7792053,
+     "run": "1ea34f11-6171-4c5a-9d91-4f0807e4af21"
+    }
+   ]
+  },
+  "I8.executor_deadlocked_on_user_lock": {
+   "count": 1,
+   "examples": [
+    {
+     "times": 19.0
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 231.0,
+  "callbacks.received": 8.0,
+  "deadlock.outcome_inline": 19.0,
+  "dup.skipped.outcome": 8.0,
+  "dup.skipped.tg": 96.0,
+  "steps": 875.0,
+  "steps.outcome": 135.0,
+  "steps.tg": 705.0,
+  "steps.timer": 35.0,
+  "tg.received": 801.0,
+  "timers.fired": 35.0,
+  "x.reconcile": 26.0,
+  "x.reconciled_found": 8.0,
+  "x.retry": 42.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

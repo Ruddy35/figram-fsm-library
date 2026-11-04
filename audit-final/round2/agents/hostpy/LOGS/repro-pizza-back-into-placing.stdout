@@ -1,0 +1,8 @@
+== figram check
+ok
+check rc=0
+{"id":1,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[{"call":"create_order","token":6},{"send":"placing"}]}
+{"id":2,"snapshot":{"at":"help","back":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"send":"help"}]}
+{"id":3,"snapshot":{"at":"help","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[]}
+{"id":4,"snapshot":{"at":"placing","back":"help","resume":{"order":"placing"},"seq":8},"actions":[{"send":"placing"}]}
+RESULT: user on placing pending None -> STUCK (no wait, nobody will answer)

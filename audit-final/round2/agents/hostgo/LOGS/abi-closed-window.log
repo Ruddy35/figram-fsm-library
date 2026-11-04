@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo abi closed-window 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:13.979Z
+end: 2026-11-04T02:20:18.994Z
+exit_code: 0
+--- stdout (104 bytes, last 200 lines)
+need/guards round trips under reload: reloads 3007, steps 24085, 'bot is closed' retries 23794, wrong 0
+--- stderr (0 bytes, last 100 lines)

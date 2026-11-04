@@ -1,0 +1,1 @@
+main.go:6:8: import "gofig" is a program, not an importable package

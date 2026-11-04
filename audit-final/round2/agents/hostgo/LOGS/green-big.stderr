@@ -1,0 +1,4 @@
+progress t=30s updates=25906 steps=28517 inbound=3589 outbox_pending=690 user_actions=23646 no_reply=0 goroutines=2184 tx 101923: mean wait 705.013639ms, begin 19.26µs (max 19.923697ms), body 140.662µs, commit 128.644µs
+progress t=60s updates=28843 steps=37537 inbound=0 outbox_pending=0 user_actions=26219 no_reply=0 goroutines=266 tx 127628: mean wait 590.47688ms, begin 19.027µs (max 19.923697ms), body 147.17µs, commit 136.278µs
+progress t=90s updates=28850 steps=37545 inbound=0 outbox_pending=0 user_actions=26225 no_reply=0 goroutines=265 tx 127719: mean wait 590.056168ms, begin 19.046µs (max 19.923697ms), body 147.126µs, commit 136.213µs
+progress t=120s updates=28853 steps=37549 inbound=0 outbox_pending=0 user_actions=26228 no_reply=0 goroutines=264 tx 127794: mean wait 589.709875ms, begin 19.066µs (max 19.923697ms), body 147.088µs, commit 136.161µs

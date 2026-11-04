@@ -1,0 +1,52 @@
+{
+ "steps": [
+  [
+   0.3,
+   "p1",
+   {
+    "type": "command",
+    "text": "/start"
+   }
+  ],
+  [
+   1.0,
+   "p1",
+   {
+    "type": "button",
+    "data": "shop"
+   }
+  ],
+  [
+   1.5,
+   "p1",
+   {
+    "type": "button",
+    "data": "info"
+   }
+  ],
+  [
+   2.0,
+   "backup"
+  ],
+  [
+   2.2,
+   "p1",
+   {
+    "type": "button",
+    "data": "back"
+   }
+  ],
+  [
+   2.5,
+   "restore"
+  ],
+  [
+   3.5,
+   "p1",
+   {
+    "type": "button",
+    "data": "back"
+   }
+  ]
+ ]
+}

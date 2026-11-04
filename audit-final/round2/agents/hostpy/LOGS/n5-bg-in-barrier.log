@@ -1,0 +1,178 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/n5-bg-in-barrier --bot shop --users 60 --duration 15 --flag bg-in-barrier --quiesce-timeout 30 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:42:57.950Z
+end: 2026-11-04T01:43:45.345Z
+exit_code: 1
+--- stdout (2915 bytes, last 200 lines)
+{
+ "ok": false,
+ "duration_load_s": 15.0,
+ "duration_total_s": 46.3,
+ "user_actions": 1601,
+ "updates_sent": 1661,
+ "duplicate_deliveries": 249,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 99.5,
+ "mem": {
+  "host_max_kb": 49164,
+  "engine_max_kb": 6412
+ },
+ "cpu_s": {
+  "host": 28.9,
+  "engines": 0.2
+ },
+ "notes": {
+  "users": 60,
+  "elog": 1509,
+  "steps": 1509,
+  "calls_with_token": 276,
+  "outcomes": {
+   "accepted": 256
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 1509,
+  "steps_with_background_pending": 0,
+  "failq": 21,
+  "effects_positive": 262,
+  "applications": 371
+ },
+ "alerts": {
+  "failure_queue": 21
+ },
+ "log": [
+  [
+   15.01,
+   "load end",
+   {
+    "inbound": 562,
+    "outbox_new": 13,
+    "timers": 7,
+    "steps": 1494,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 14,
+    "cb_pending": 4
+   }
+  ],
+  [
+   45.01,
+   "quiescence timeout",
+   {
+    "inbound": 567,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 1509,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 14,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 1194,
+   "p50": 24.6,
+   "p90": 194.8,
+   "p99": 1629.7,
+   "max": 3045.4
+  },
+  "outcome": {
+   "n": 256,
+   "p50": 11.5,
+   "p90": 146.2,
+   "p99": 532.3,
+   "max": 1629.1
+  },
+  "timer": {
+   "n": 59,
+   "p50": 14.4,
+   "p90": 206.2,
+   "p99": 492.6,
+   "max": 492.6
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I2.outcome_never_processed": {
+   "count": 20,
+   "examples": [
+    {
+     "user": "u0058",
+     "call": "call:send_receipt:6:4f614aa9-5c00-487f-a6bf-b1661db330d0",
+     "state": "done"
+    },
+    {
+     "user": "u0042",
+     "call": "call:send_receipt:6:fb9f7868-c4ee-41ce-84e3-e47530c3d409",
+     "state": "done"
+    }
+   ]
+  },
+  "I3.wait_left_in_snapshot": {
+   "count": 20,
+   "examples": [
+    {
+     "user": "u0025",
+     "pending": [
+      {
+       "call": "send_receipt",
+       "token": 10
+      }
+     ],
+     "at": "done"
+    },
+    {
+     "user": "u0010",
+     "pending": [
+      {
+       "call": "send_receipt",
+       "token": 34
+      }
+     ],
+     "at": "done"
+    }
+   ]
+  },
+  "I5.event_waited_for_background_action": {
+   "count": 1,
+   "examples": [
+    {
+     "times": 216636.0
+    }
+   ]
+  },
+  "I8.inbound_not_drained": {
+   "count": 1,
+   "examples": [
+    {
+     "rows": 567
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "barrier.blocked_by_background": 216636.0,
+  "bg.retry": 270.0,
+  "callbacks.received": 14.0,
+  "dup.skipped.outcome": 11.0,
+  "dup.skipped.tg": 176.0,
+  "steps": 1509.0,
+  "steps.outcome": 256.0,
+  "steps.tg": 1194.0,
+  "steps.timer": 59.0,
+  "tg.received": 1910.0,
+  "timers.fired": 63.0,
+  "x.reconcile": 29.0,
+  "x.reconciled_found": 14.0,
+  "x.retry": 86.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,6 @@
+== figram check v2
+ok
+check rc=0
+{"id":1,"snapshot":{"at":"placing","back":"confirm","resume":{"shop":"confirm"},"timers":{"slow":6},"seq":6},"actions":[]}
+{"id":2,"snapshot":{"at":"placing","back":"confirm","resume":{"shop":"confirm"},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"call":"log_slow","detached":true}]}
+RESULT after the outcome: {'at': 'placing', 'back': 'confirm', 'resume': {'shop': 'confirm'}, 'timers': {'slow': 6}, 'seq': 6}

@@ -1,0 +1,2 @@
+warning: message `placing` is unreachable: no arrow leads to it from the start of the bot
+warning: message `order_failed` is unreachable: no arrow leads to it from the start of the bot

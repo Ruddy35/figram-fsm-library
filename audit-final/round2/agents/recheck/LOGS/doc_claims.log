@@ -1,0 +1,31 @@
+command: python3 -I /home/user/figram-audit/agents6/recheck/repro/doc_claims.py .lake/build/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:04:27.575Z
+end: 2026-11-04T01:04:27.615Z
+exit_code: 0
+--- stdout (2554 bytes, last 200 lines)
+ok   step 'timer:' token=None — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'timer:' token=3 — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call:x' token=None — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call:x' token=3 — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call::ok' token=None — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call::ok' token=3 — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call:a:' token=None — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call:a:' token=3 — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call:' token=None — format.md §8: reserved prefix not of the form → bad_request
+ok   step 'call:' token=3 — format.md §8: reserved prefix not of the form → bad_request
+ok   start call:check_stock:yes — host-contract §1 step 2 / format.md §8: start rejects outcome events
+ok   start call:check_stock:yes token — format.md §8: start takes no token
+ok   recovery outcome accepted removes wait — format.md §8 rule 1: recovery keeps waits, an accepted outcome is processed (root arrow call:ping:pong → log)
+ok   recovery outcome stale chooses nothing, waits kept — format.md §8 rule 1: an outcome without a wait chooses nothing in recovery
+ok   undeclared outcome removes the wait only — format.md §8 rule 2, host-contract §2: an undeclared outcome only removes the wait (seq unchanged)
+ok   accepted outcome without arrow: seq same, pending changed — host-contract §1 step 4: an accepted outcome without an arrow removes its wait without a transition
+ok   wait token > seq accepted — format.md (snapshot): a snapshot with a token greater than seq is accepted
+ok   snapshot duplicate key — format.md (snapshot): no duplicate keys → parse_error
+ok   snapshot lone surrogate — format.md (snapshot): no lone surrogates → parse_error
+ok   snapshot exponent out of range — format.md (snapshot): exponents in range → parse_error
+ok   consumed timer still cancelled on leave — host-contract §3: leaving a message emits cancel_timer for a timer already consumed by a stay
+ok   stay timer firing consumes timer — host-contract §3: a firing handled by an arrow without a target removes the timer
+ok   duplicate wait removed by one outcome — format.md (snapshot): the same wait listed twice is one wait
+claims 23, replies 23, failed 0
+--- stderr (0 bytes, last 100 lines)

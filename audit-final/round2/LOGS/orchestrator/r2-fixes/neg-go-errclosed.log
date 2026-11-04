@@ -1,0 +1,12 @@
+command: timeout 900 go test -count=1 -run TestFixClosedAndVariants ./... 
+cwd: /home/user/figram-audit-worktrees/cleanup-int/clients/go
+start: 2026-11-04T04:00:09.955Z
+end: 2026-11-04T04:00:11.704Z
+exit_code: 1
+--- stdout (130 bytes, last 200 lines)
+--- FAIL: TestFixClosedAndVariants (0.00s)
+    fix_test.go:176: closed: bot is closed, want ErrClosed
+FAIL
+FAIL	gofig	0.007s
+FAIL
+--- stderr (0 bytes, last 100 lines)

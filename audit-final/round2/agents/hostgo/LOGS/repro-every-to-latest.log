@@ -1,0 +1,10 @@
+command: ../repro/every_to_latest.sh 
+cwd: /home/user/figram-audit/agents6/hostgo/bots
+start: 2026-11-04T01:26:58.300Z
+end: 2026-11-04T01:26:58.313Z
+exit_code: 0
+--- stdout (352 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"home","pending":[{"call":"award","token":4}],"seq":4},"actions":[{"call":"award","token":4}]}
+{"id":2,"snapshot":{"at":"home","pending":[{"call":"award","token":4}],"seq":4},"actions":[]}
+{"id":3,"snapshot":{"at":"home","pending":[{"call":"award","token":3},{"call":"award","token":1}],"seq":4},"actions":[{"call":"credit"}]}
+--- stderr (0 bytes, last 100 lines)

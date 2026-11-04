@@ -1,0 +1,2 @@
+exit_code=0 log=LOGS/soak2-booking.log
+soak2-booking ok= True {} crashes 46 tput 117.3 outcomes {'accepted': 638} stuck {'doc_trap:entered_without_the_call(resume_or_back)': 92} {}

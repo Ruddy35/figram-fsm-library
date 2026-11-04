@@ -1,0 +1,11 @@
+FAIL no runtime size defaults (1 GiB mimalloc arena): the mutant does not build
+FAIL stock runtime start-up (libuv thread, io_uring, descriptors): the mutant does not build
+FAIL SIGSEGV/SIGBUS handler in the embedded library: the mutant does not build
+FAIL no lazy initialization: the mutant does not build
+FAIL no NULL check of the request: the mutant does not build
+FAIL no double-unload detection: the mutant does not build
+FAIL _n variants without the NUL check: the mutant does not build
+FAIL no UTF-8 check of the request: the mutant does not build
+FAIL no request size limit: the mutant does not build
+FAIL SIGPIPE not restored: the mutant does not build
+FAIL: some mutants were not caught

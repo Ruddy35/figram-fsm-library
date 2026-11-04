@@ -1,0 +1,8 @@
+figram check booking: ok 
+figram check pizza:   ok 
+{"id":1,"snapshot":{"at":"lobby","back":"hold","resume":{"booking":"hold"},"pending":[{"call":"reserve","token":4}],"seq":5},"actions":[{"cancel_timer":"patience"},{"send":"lobby"}]}
+{"id":2,"snapshot":{"at":"lobby","back":"hold","resume":{"booking":"hold"},"seq":6},"actions":[{"call":"release"}]}
+{"id":3,"snapshot":{"at":"hold","back":"lobby","resume":{"booking":"hold"},"timers":{"patience":7},"seq":7},"actions":[{"start_timer":"patience","ms":300,"token":7},{"send":"hold"}]}
+{"id":4,"snapshot":{"at":"help","back":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"send":"help"}]}
+{"id":5,"snapshot":{"at":"help","back":"placing","resume":{"order":"placing"},"seq":7},"actions":[]}
+{"id":6,"snapshot":{"at":"placing","back":"help","resume":{"order":"placing"},"seq":8},"actions":[{"send":"placing"}]}

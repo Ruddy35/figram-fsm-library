@@ -1,0 +1,2 @@
+right after unload: {"id":null,"error":"machine is already unloaded (figram_unload)","code":"bad_request"}
+after 1100 more unloads and 200 loads: the stale pizza handle answers {"id":null,"error":"machine is already unloaded (figram_unload)","code":"bad_request"} (points has 6 messages, pizza 13)

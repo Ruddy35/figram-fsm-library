@@ -1,0 +1,8 @@
+command: env FIGRAM_ALLOW_MUTANTS=1 timeout 60 python3 tests/engine/mutation.py .lake/build/bin/figram-engine --unreachable examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza_nounreach.cov --golden examples/golden.jsonl examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza.jsonl 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T02:33:17.304Z
+end: 2026-11-04T02:33:17.341Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (166 bytes, last 100 lines)
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza_nounreach.cov: no line 'arrow variants unreachable: N' (the search did not finish)

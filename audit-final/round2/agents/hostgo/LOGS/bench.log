@@ -1,0 +1,49 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo bench 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:40.031Z
+end: 2026-11-04T02:24:26.760Z
+exit_code: 0
+--- stdout (3425 bytes, last 200 lines)
+# step latency with N every-waits (points.bot.json), single goroutine
+N	req_bytes	case	engine_p50	engine_p99	wrapper_p50	wrapper_p99	host_p50	host_p99	ns_per_byte_engine
+0	78	earn(adds wait)	5.714µs	20.16µs	12.648µs	40.979µs	323.935µs	704.392µs	73.26
+0	99	outcome(oldest)	4.911µs	25.981µs	9.454µs	71.833µs	310.127µs	634.351µs	49.61
+0	99	outcome(newest)	5.055µs	16.161µs	9.404µs	27.272µs	297.029µs	795.49µs	51.06
+0	81	ignored event	4.122µs	13.715µs	8.18µs	24.822µs	323.99µs	732.748µs	50.89
+1000	32091	earn(adds wait)	2.058857ms	3.105425ms	3.251497ms	6.410368ms	4.220176ms	6.347166ms	64.16
+1000	32111	outcome(oldest)	2.002671ms	2.889612ms	3.227165ms	5.520042ms	4.161898ms	6.085742ms	62.37
+1000	32112	outcome(newest)	2.050827ms	3.147235ms	3.397322ms	6.880282ms	4.425836ms	6.60165ms	63.86
+1000	32094	ignored event	1.910222ms	3.209309ms	3.073386ms	5.452106ms	4.192306ms	6.219963ms	59.52
+4000	128091	earn(adds wait)	8.063725ms	14.693822ms	13.721916ms	24.005952ms	15.609504ms	24.595621ms	62.95
+4000	128111	outcome(oldest)	8.008999ms	13.070354ms	13.717267ms	22.283065ms	14.87368ms	21.818461ms	62.52
+4000	128112	outcome(newest)	8.229693ms	13.368789ms	13.601495ms	20.944715ms	14.665033ms	22.407791ms	64.24
+4000	128094	ignored event	7.70283ms	11.952447ms	12.862176ms	19.452667ms	14.483188ms	26.962044ms	60.13
+8000	256091	earn(adds wait)	15.919371ms	22.48203ms	25.58665ms	35.583642ms	28.021067ms	46.910504ms	62.16
+8000	256111	outcome(oldest)	16.024449ms	25.17751ms	26.203983ms	39.111279ms	27.452715ms	59.557407ms	62.57
+8000	256112	outcome(newest)	15.709256ms	22.69825ms	25.695283ms	37.200778ms	27.880608ms	38.727914ms	61.34
+8000	256094	ignored event	14.929582ms	29.825648ms	24.776454ms	37.437285ms	27.758749ms	37.375774ms	58.30
+16000	512091	earn(adds wait)	32.79325ms	45.920932ms	52.197215ms	70.154568ms	56.081001ms	74.892972ms	64.04
+16000	512111	outcome(oldest)	32.44403ms	49.173324ms	52.238462ms	75.751118ms	56.748109ms	81.770677ms	63.35
+16000	512112	outcome(newest)	32.305452ms	46.636651ms	52.255677ms	74.864624ms	58.649254ms	85.48992ms	63.08
+16000	512094	ignored event	30.087624ms	49.621766ms	51.854006ms	76.419276ms	56.995292ms	87.553327ms	58.75
+24000	768091	earn(adds wait)	48.829807ms	84.654826ms	81.577431ms	113.085708ms	90.793575ms	121.805976ms	63.57
+24000	768111	outcome(oldest)	49.908061ms	70.9428ms	83.784004ms	119.41064ms	85.828792ms	122.441181ms	64.98
+24000	768112	outcome(newest)	49.737243ms	74.846267ms	83.363224ms	119.87816ms	90.205066ms	118.341051ms	64.75
+24000	768094	ignored event	49.187392ms	71.990325ms	79.011515ms	108.157933ms	85.431354ms	124.329567ms	64.04
+# throughput, outcome(newest) with N waits, engine only (rawfg)
+N	goroutines	shared_machine_req_per_s	machine_per_goroutine_req_per_s
+0	1	167116	177526
+0	4	482880	536754
+0	16	545646	598934
+4000	1	112	113
+4000	4	222	242
+4000	16	183	178
+16000	1	30	29
+16000	4	59	64
+16000	16	45	45
+# near the request limit (1048576 bytes)
+N=29124 waits: request 1048557 bytes (limit 1048576) accepted; the reply snapshot has 29125 waits, 1048542 bytes
+outcome request with that snapshot: 1048617 bytes → {"id":null,"error":"request is longer than the limit of 1048576 bytes","code":"too_large"}
+reference wrapper: variant="error" err=<nil> reply=map[code:too_large error:request is longer than the limit of 1048576 bytes id:<nil>]
+restart with that snapshot: {"id":null,"error":"request is longer than the limit of 1048576 bytes","code":"too_large"}
+--- stderr (0 bytes, last 100 lines)

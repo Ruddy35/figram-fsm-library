@@ -1,0 +1,20 @@
+command: python3 analyze_wait_message.py runs/g3-booking 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:42:47.770Z
+end: 2026-11-04T01:42:48.359Z
+exit_code: 0
+--- stdout (315 bytes, last 200 lines)
+{
+ "steps_with_call_and_wait_message": 125,
+ "wait_message_sent_after_the_call_finished": 125,
+ "commit_to_call_finished_ms": {
+  "p50": 388.094425201416,
+  "p90": 1248.6438751220703,
+  "max": 2042.8993701934814
+ },
+ "wait_message_to_next_message_ms": {
+  "p50": 2587.9456996917725,
+  "p90": 6565.469264984131
+ }
+}
+--- stderr (0 bytes, last 100 lines)

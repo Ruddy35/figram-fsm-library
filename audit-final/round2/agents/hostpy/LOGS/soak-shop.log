@@ -1,0 +1,207 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/soak-shop --bot shop --users 150 --duration 400 --crash-p 0.0003 --lose 20 --restarts 20 --quiesce-timeout 180 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:48:09.117Z
+end: 2026-11-04T01:54:52.758Z
+exit_code: 0
+--- stdout (3773 bytes, last 200 lines)
+  ],
+  [
+   162.27,
+   "restart",
+   "u0008"
+  ],
+  [
+   162.34,
+   "restart",
+   "u0043"
+  ],
+  [
+   167.73,
+   "restart",
+   "u0044"
+  ],
+  [
+   168.21,
+   "restart",
+   "u0142"
+  ],
+  [
+   172.53,
+   "lose",
+   "u0000"
+  ],
+  [
+   182.02,
+   "restart",
+   "u0078"
+  ],
+  [
+   184.87,
+   "restart",
+   "u0103"
+  ],
+  [
+   192.01,
+   "restart",
+   "u0048"
+  ],
+  [
+   195.45,
+   "restart",
+   "u0100"
+  ],
+  [
+   213.71,
+   "lose",
+   "u0026"
+  ],
+  [
+   229.42,
+   "lose",
+   "u0053"
+  ],
+  [
+   235.99,
+   "lose",
+   "u0117"
+  ],
+  [
+   238.49,
+   "lose",
+   "u0108"
+  ],
+  [
+   240.92,
+   "lose",
+   "u0068"
+  ],
+  [
+   242.89,
+   "restart",
+   "u0148"
+  ],
+  [
+   247.61,
+   "lose",
+   "u0058"
+  ],
+  [
+   248.72,
+   "lose",
+   "u0135"
+  ],
+  [
+   257.86,
+   "lose",
+   "u0120"
+  ],
+  [
+   280.01,
+   "restart",
+   "u0129"
+  ],
+  [
+   292.27,
+   "lose",
+   "u0099"
+  ],
+  [
+   292.85,
+   "restart",
+   "u0128"
+  ],
+  [
+   294.37,
+   "lose",
+   "u0007"
+  ],
+  [
+   299.77,
+   "restart",
+   "u0025"
+  ],
+  [
+   303.48,
+   "restart",
+   "u0108"
+  ],
+  [
+   304.19,
+   "lose",
+   "u0141"
+  ],
+  [
+   307.59,
+   "lose",
+   "u0005"
+  ],
+  [
+   400.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 7148,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 77,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 5501,
+   "p50": 30.3,
+   "p90": 274.8,
+   "p99": 851.6,
+   "max": 1571.8
+  },
+  "outcome": {
+   "n": 1126,
+   "p50": 38.5,
+   "p90": 411.7,
+   "p99": 907.8,
+   "max": 1428.7
+  },
+  "timer": {
+   "n": 481,
+   "p50": 157.1,
+   "p90": 640.1,
+   "p99": 1121.6,
+   "max": 1658.4
+  }
+ },
+ "user_visible_divergence": {
+  "users": 131,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 902.0,
+  "callbacks.received": 77.0,
+  "crash.bg.after_effect": 1.0,
+  "crash.poll.after_inbound": 1.0,
+  "crash.w.after_commit": 1.0,
+  "crash.w.before_commit": 4.0,
+  "crash.x.after_effect": 1.0,
+  "drop.restart_without_snapshot": 2.0,
+  "dup.skipped.outcome": 77.0,
+  "dup.skipped.tg": 815.0,
+  "dup.skipped.timer": 1.0,
+  "steps": 7124.0,
+  "steps.admin": 18.0,
+  "steps.outcome": 1126.0,
+  "steps.tg": 5499.0,
+  "steps.timer": 481.0,
+  "tg.received": 6297.0,
+  "timers.fired": 481.0,
+  "x.reconcile": 156.0,
+  "x.reconciled_found": 79.0,
+  "x.retry": 460.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

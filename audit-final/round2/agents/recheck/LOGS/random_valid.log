@@ -1,0 +1,8 @@
+command: nice -n 10 /home/user/figram-audit/agents6/recheck/repro/random_valid.sh /home/user/figram-audit-worktrees/a6-recheck/.lake/build/bin/figram 300 
+cwd: /home/user/figram-audit-worktrees/a6-hostgo
+start: 2026-11-04T01:18:43.670Z
+end: 2026-11-04T01:19:35.518Z
+exit_code: 0
+--- stdout (57 bytes, last 200 lines)
+documents 1200, invalid 0, messages with two timers 1751
+--- stderr (0 bytes, last 100 lines)

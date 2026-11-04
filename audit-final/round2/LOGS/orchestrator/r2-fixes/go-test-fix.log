@@ -1,0 +1,8 @@
+command: timeout 900 go test -count=1 -run TestFix ./... 
+cwd: /home/user/figram-audit-worktrees/cleanup-int/clients/go
+start: 2026-11-04T03:59:02.439Z
+end: 2026-11-04T03:59:04.544Z
+exit_code: 0
+--- stdout (18 bytes, last 200 lines)
+ok  	gofig	0.077s
+--- stderr (0 bytes, last 100 lines)

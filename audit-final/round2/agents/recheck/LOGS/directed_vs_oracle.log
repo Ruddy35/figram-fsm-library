@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 -I directed_vs_oracle.py /home/user/figram-audit-worktrees/a6-recheck /home/user/figram-audit-worktrees/a6-recheck/.lake/build/bin/figram --docs 40 
+cwd: /home/user/figram-audit/agents6/recheck/repro
+start: 2026-11-04T01:17:07.118Z
+end: 2026-11-04T01:18:24.577Z
+exit_code: 0
+--- stdout (141 bytes, last 200 lines)
+documents 42, directed scenarios 3808, steps 14240 (directed 12980, stale outcomes in directed 368), scenarios that differ from the oracle 0
+--- stderr (0 bytes, last 100 lines)

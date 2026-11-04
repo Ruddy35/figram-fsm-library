@@ -1,0 +1,136 @@
+{
+ "ok": false,
+ "duration_load_s": 15.0,
+ "duration_total_s": 21.4,
+ "user_actions": 1564,
+ "updates_sent": 1624,
+ "duplicate_deliveries": 246,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 160.4,
+ "mem": {
+  "host_max_kb": 50308,
+  "engine_max_kb": 6412
+ },
+ "cpu_s": {
+  "host": 17.5,
+  "engines": 0.2
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2432,
+  "steps": 2328,
+  "calls_with_token": 346,
+  "outcomes": {
+   "accepted": 328,
+   "replaced_by_later_call": 18
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2328,
+  "steps_with_background_pending": 514,
+  "failq": 40,
+  "effects_positive": 282,
+  "applications": 432
+ },
+ "alerts": {
+  "failure_queue": 40
+ },
+ "log": [
+  [
+   15.0,
+   "load end",
+   {
+    "inbound": 2,
+    "outbox_new": 7,
+    "timers": 14,
+    "steps": 2407,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 14,
+    "cb_pending": 2
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 1870,
+   "p50": 21.4,
+   "p90": 163.2,
+   "p99": 597.5,
+   "max": 1871.4
+  },
+  "outcome": {
+   "n": 360,
+   "p50": 14.9,
+   "p90": 178.6,
+   "p99": 629.0,
+   "max": 1054.1
+  },
+  "timer": {
+   "n": 98,
+   "p50": 56.2,
+   "p90": 389.8,
+   "p99": 1138.7,
+   "max": 1138.7
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 1,
+  "chat_shows_waiting_message": 0,
+  "examples": [
+   [
+    "u0011",
+    "catalog",
+    "confirm"
+   ]
+  ]
+ },
+ "violations": {
+  "I2.outcome_processed_twice": {
+   "count": 14,
+   "examples": [
+    {
+     "user": "u0041",
+     "call": "call:create_order:7:01df9b36-dfdc-4e2d-84f6-c2965f5dd083",
+     "n": 2
+    },
+    {
+     "user": "u0058",
+     "call": "call:create_order:7:30333541-20f6-40f5-a998-f5459378df9e",
+     "n": 2
+    }
+   ]
+  },
+  "I4.delivery_processed_twice": {
+   "count": 248,
+   "examples": [
+    {
+     "user": "u0006",
+     "uid": "tg:1001",
+     "n": 2
+    },
+    {
+     "user": "u0051",
+     "uid": "tg:1010",
+     "n": 2
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 396.0,
+  "callbacks.received": 14.0,
+  "outbox.duplicate_key": 104.0,
+  "steps": 2328.0,
+  "steps.outcome": 360.0,
+  "steps.tg": 1870.0,
+  "steps.timer": 98.0,
+  "tg.received": 1870.0,
+  "timers.fired": 98.0,
+  "x.reconcile": 40.0,
+  "x.reconciled_found": 14.0,
+  "x.retry": 108.0
+ }
+}

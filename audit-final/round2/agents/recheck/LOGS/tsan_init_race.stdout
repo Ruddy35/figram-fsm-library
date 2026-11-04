@@ -1,0 +1,1 @@
+tsan init_race runs 40, failed 0

@@ -1,0 +1,6 @@
+pre-fix:  built with A, contains LIB-B: no
+pre-fix:  library replaced by B, rebuilt, contains LIB-B: no
+post-fix: built with A, contains LIB-B: no
+post-fix: library replaced by B, rebuilt, contains LIB-B: yes
+the pre-fix command keeps the stale binary (the defect RT-P1-2 reproduces)
+the post-fix command relinks with the new library

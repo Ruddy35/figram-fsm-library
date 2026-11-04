@@ -1,0 +1,217 @@
+{
+  "figram": 1,
+  "x-note": "hostpy audit bot 3: a latest outcome handled on the root and the waiting message, a background action with every-outcomes, a conditional timer arrow without a target on a section, resume and back",
+  "conditions": {
+    "hold_extendable": "The hold was not extended yet",
+    "seat_chosen": "A seat is reserved for the user"
+  },
+  "calls": {
+    "reserve_seat": "Remember the chosen seat",
+    "extend_hold": "Extend the hold once",
+    "release_seat": "Forget the chosen seat",
+    "book_seat": {
+      "text": "Book the seat at the venue",
+      "outcomes": [
+        "booked",
+        "full"
+      ]
+    },
+    "send_confirmation": {
+      "text": "Email the booking confirmation",
+      "detached": true,
+      "outcomes": [
+        "delivered",
+        "bounced"
+      ],
+      "every": true
+    },
+    "log_email_failure": "Record an undelivered confirmation"
+  },
+  "bot": {
+    "initial": "start",
+    "on": {
+      "cmd:start": [
+        {
+          "to": "start"
+        }
+      ],
+      "cmd:help": [
+        {
+          "to": "help"
+        }
+      ],
+      "call:book_seat:booked": [
+        {
+          "to": "booked",
+          "do": [
+            "send_confirmation"
+          ]
+        }
+      ],
+      "call:book_seat:failed": [
+        {
+          "to": "book_failed"
+        }
+      ],
+      "call:send_confirmation:bounced": [
+        {
+          "do": [
+            "log_email_failure"
+          ]
+        }
+      ],
+      "call:send_confirmation:failed": [
+        {
+          "do": [
+            "log_email_failure"
+          ]
+        }
+      ],
+      "call:send_confirmation:delivered": [
+        {}
+      ]
+    },
+    "children": {
+      "start": {
+        "on": {
+          "btn:book": [
+            {
+              "to": "booking",
+              "resume": true
+            }
+          ]
+        }
+      },
+      "help_s": {
+        "initial": "help",
+        "children": {
+          "help": {
+            "on": {
+              "btn:back": [
+                {
+                  "to": "start",
+                  "back": true
+                }
+              ]
+            }
+          }
+        }
+      },
+      "booked": {
+        "on": {
+          "btn:resend": [
+            {
+              "do": [
+                "send_confirmation"
+              ]
+            }
+          ],
+          "btn:again": [
+            {
+              "to": "booking"
+            }
+          ]
+        }
+      },
+      "book_failed": {
+        "on": {
+          "btn:retry": [
+            {
+              "to": "confirming",
+              "do": [
+                "book_seat"
+              ]
+            }
+          ],
+          "btn:back": [
+            {
+              "to": "start"
+            }
+          ]
+        }
+      },
+      "booking": {
+        "initial": "pick",
+        "on": {
+          "btn:cancel": [
+            {
+              "to": "start",
+              "do": [
+                "release_seat"
+              ]
+            }
+          ],
+          "timer:hold": [
+            {
+              "if": "hold_extendable",
+              "do": [
+                "extend_hold"
+              ]
+            },
+            {
+              "to": "expired",
+              "do": [
+                "release_seat"
+              ]
+            }
+          ]
+        },
+        "children": {
+          "pick": {
+            "on": {
+              "btn:seat": [
+                {
+                  "to": "holding",
+                  "do": [
+                    "reserve_seat"
+                  ]
+                }
+              ]
+            }
+          },
+          "holding": {
+            "on": {
+              "btn:confirm": [
+                {
+                  "if": "seat_chosen",
+                  "to": "confirming",
+                  "do": [
+                    "book_seat"
+                  ]
+                },
+                {
+                  "to": "pick"
+                }
+              ]
+            },
+            "timers": {
+              "hold": 700
+            }
+          },
+          "expired": {
+            "on": {
+              "btn:again": [
+                {
+                  "to": "pick"
+                }
+              ]
+            }
+          },
+          "confirming": {
+            "x-waiting": "book_seat",
+            "on": {
+              "call:book_seat:full": [
+                {
+                  "to": "pick",
+                  "do": [
+                    "release_seat"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

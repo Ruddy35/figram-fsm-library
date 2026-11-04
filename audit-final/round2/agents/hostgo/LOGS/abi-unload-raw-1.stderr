@@ -1,0 +1,295 @@
+SIGSEGV: segmentation violation
+PC=0x8ef66d m=9 sigcode=128 addr=0x0
+signal arrived during cgo execution
+
+goroutine 1 gp=0xc000002380 m=9 mp=0xc00008a808 [syscall]:
+runtime.cgocall(0x77eab0, 0xc00049b768)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc00049b740 sp=0xc00049b708 pc=0x47764b
+hostgo/rawfg._Cfunc_fg_load(0xc0000de000, 0x638, 0xc00017c130, 0x7fc678000b70, 0x1000)
+	_cgo_gotypes.go:123 +0x46 fp=0xc00049b768 sp=0xc00049b740 pc=0x4fa026
+hostgo/rawfg.Load.func2(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:41
+hostgo/rawfg.Load({0xc0000de000, 0x638, 0x639})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:41 +0x125 fp=0xc00049b818 sp=0xc00049b768 pc=0x4fa645
+main.unloadRaw(0x0, 0x2540be400)
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:139 +0x3c5 fp=0xc00049b9a0 sp=0xc00049b818 pc=0x740e05
+main.abiMain({0xc000014120?, 0xc000014120?, 0xa?})
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:46 +0x11f fp=0xc00049b9f8 sp=0xc00049b9a0 pc=0x7405ff
+main.main()
+	/home/user/figram-audit/agents6/hostgo/host/main.go:97 +0x678 fp=0xc00049bf50 sp=0xc00049b9f8 pc=0x75a4f8
+runtime.main()
+	/usr/local/go1.24.7/src/runtime/proc.go:283 +0x28b fp=0xc00049bfe0 sp=0xc00049bf50 pc=0x447d2b
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00049bfe8 sp=0xc00049bfe0 pc=0x481541
+
+goroutine 2 gp=0xc000002e00 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000054fa8 sp=0xc000054f88 pc=0x479ece
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.forcegchelper()
+	/usr/local/go1.24.7/src/runtime/proc.go:348 +0xb3 fp=0xc000054fe0 sp=0xc000054fa8 pc=0x448073
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000054fe8 sp=0xc000054fe0 pc=0x481541
+created by runtime.init.7 in goroutine 1
+	/usr/local/go1.24.7/src/runtime/proc.go:336 +0x1a
+
+goroutine 3 gp=0xc000003340 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000055780 sp=0xc000055760 pc=0x479ece
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.bgsweep(0xc00007e000)
+	/usr/local/go1.24.7/src/runtime/mgcsweep.go:316 +0xdf fp=0xc0000557c8 sp=0xc000055780 pc=0x4327bf
+runtime.gcenable.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:204 +0x25 fp=0xc0000557e0 sp=0xc0000557c8 pc=0x426c45
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000557e8 sp=0xc0000557e0 pc=0x481541
+created by runtime.gcenable in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:204 +0x66
+
+goroutine 4 gp=0xc000003500 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0xa131d0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000055f78 sp=0xc000055f58 pc=0x479ece
+runtime.goparkunlock(...)
+	/usr/local/go1.24.7/src/runtime/proc.go:441
+runtime.(*scavengerState).park(0xcf9700)
+	/usr/local/go1.24.7/src/runtime/mgcscavenge.go:425 +0x49 fp=0xc000055fa8 sp=0xc000055f78 pc=0x430229
+runtime.bgscavenge(0xc00007e000)
+	/usr/local/go1.24.7/src/runtime/mgcscavenge.go:658 +0x59 fp=0xc000055fc8 sp=0xc000055fa8 pc=0x4307b9
+runtime.gcenable.gowrap2()
+	/usr/local/go1.24.7/src/runtime/mgc.go:205 +0x25 fp=0xc000055fe0 sp=0xc000055fc8 pc=0x426be5
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000055fe8 sp=0xc000055fe0 pc=0x481541
+created by runtime.gcenable in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:205 +0xa5
+
+goroutine 5 gp=0xc000003dc0 m=nil [finalizer wait]:
+runtime.gopark(0x1b8?, 0x44a37e?, 0x1?, 0x23?, 0xc000054688?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000054630 sp=0xc000054610 pc=0x479ece
+runtime.runfinq()
+	/usr/local/go1.24.7/src/runtime/mfinal.go:196 +0x107 fp=0xc0000547e0 sp=0xc000054630 pc=0x425c07
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000547e8 sp=0xc0000547e0 pc=0x481541
+created by runtime.createfing in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mfinal.go:166 +0x3d
+
+goroutine 6 gp=0xc0000c2000 m=nil [chan receive]:
+runtime.gopark(0xc000094320?, 0xc000500048?, 0x60?, 0x67?, 0x547068?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000056718 sp=0xc0000566f8 pc=0x479ece
+runtime.chanrecv(0xc0000281c0, 0x0, 0x1)
+	/usr/local/go1.24.7/src/runtime/chan.go:664 +0x445 fp=0xc000056790 sp=0xc000056718 pc=0x418485
+runtime.chanrecv1(0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/chan.go:506 +0x12 fp=0xc0000567b8 sp=0xc000056790 pc=0x418032
+runtime.unique_runtime_registerUniqueMapCleanup.func2(...)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1797
+runtime.unique_runtime_registerUniqueMapCleanup.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1800 +0x2f fp=0xc0000567e0 sp=0xc0000567b8 pc=0x429d8f
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000567e8 sp=0xc0000567e0 pc=0x481541
+created by unique.runtime_registerUniqueMapCleanup in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:1795 +0x79
+
+goroutine 7 gp=0xc0000c21c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000056f38 sp=0xc000056f18 pc=0x479ece
+runtime.gcBgMarkWorker(0xc000028230)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc000056fc8 sp=0xc000056f38 pc=0x4290a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc000056fe0 sp=0xc000056fc8 pc=0x428f85
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000056fe8 sp=0xc000056fe0 pc=0x481541
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 8 gp=0xc0000c2380 m=nil [GC worker (idle)]:
+runtime.gopark(0x2402fecfa8d?, 0x3?, 0x62?, 0x7e?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000057738 sp=0xc000057718 pc=0x479ece
+runtime.gcBgMarkWorker(0xc000028230)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc0000577c8 sp=0xc000057738 pc=0x4290a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc0000577e0 sp=0xc0000577c8 pc=0x428f85
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000577e8 sp=0xc0000577e0 pc=0x481541
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 9 gp=0xc0000c2540 m=nil [GC worker (idle)]:
+runtime.gopark(0x2402fed7ac9?, 0x3?, 0xb8?, 0x6d?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000057f38 sp=0xc000057f18 pc=0x479ece
+runtime.gcBgMarkWorker(0xc000028230)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc000057fc8 sp=0xc000057f38 pc=0x4290a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc000057fe0 sp=0xc000057fc8 pc=0x428f85
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000057fe8 sp=0xc000057fe0 pc=0x481541
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 10 gp=0xc0000c2700 m=nil [GC worker (idle)]:
+runtime.gopark(0x2402fecf8d6?, 0x3?, 0x29?, 0x1f?, 0x0?)
+	/usr/local/go1.24.7/src/runtime/proc.go:435 +0xce fp=0xc000050738 sp=0xc000050718 pc=0x479ece
+runtime.gcBgMarkWorker(0xc000028230)
+	/usr/local/go1.24.7/src/runtime/mgc.go:1423 +0xe9 fp=0xc0000507c8 sp=0xc000050738 pc=0x4290a9
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x25 fp=0xc0000507e0 sp=0xc0000507c8 pc=0x428f85
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000507e8 sp=0xc0000507e0 pc=0x481541
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/usr/local/go1.24.7/src/runtime/mgc.go:1339 +0x105
+
+goroutine 11 gp=0xc000102700 m=3 mp=0xc00005b008 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000829e48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000829e20 sp=0xc000829de8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fc664001ee0, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000829e48 sp=0xc000829e20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc000829ee8 sp=0xc000829e48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc000829fe0 sp=0xc000829ee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000829fe8 sp=0xc000829fe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 12 gp=0xc0001028c0 m=7 mp=0xc000100808 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000050e48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000050e20 sp=0xc000050de8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x389837c8, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000050e48 sp=0xc000050e20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc000050ee8 sp=0xc000050e48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc000050fe0 sp=0xc000050ee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000050fe8 sp=0xc000050fe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 13 gp=0xc000102a80 m=nil [runnable]:
+runtime.gcTrigger.test({0x0?, 0x0?, 0x0?})
+	/usr/local/go1.24.7/src/runtime/mgc.go:602 +0xdc fp=0xc000051578 sp=0xc000051570 pc=0x426ffc
+runtime.mallocgcLarge(0x48119a?, 0x0, 0x0)
+	/usr/local/go1.24.7/src/runtime/malloc.go:1591 +0x170 fp=0xc0000515d0 sp=0xc000051578 pc=0x41fe90
+runtime.mallocgc(0x60b18, 0x0, 0x0)
+	/usr/local/go1.24.7/src/runtime/malloc.go:1063 +0xc5 fp=0xc000051600 sp=0xc0000515d0 pc=0x478145
+runtime.gobytes(0x7fc67c000bc0, 0x60b18)
+	/usr/local/go1.24.7/src/runtime/string.go:352 +0x51 fp=0xc000051648 sp=0xc000051600 pc=0x47c491
+hostgo/rawfg._Cfunc_GoBytes(...)
+	_cgo_gotypes.go:78
+hostgo/rawfg.Request.func2(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:61
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:61 +0x14d fp=0xc0000516e8 sp=0xc000051648 pc=0x4fa9ad
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc0000517e0 sp=0xc0000516e8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000517e8 sp=0xc0000517e0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 14 gp=0xc000102c40 m=4 mp=0xc00005b808 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000051e48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000051e20 sp=0xc000051de8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fc664001ee0, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000051e48 sp=0xc000051e20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0xc000816000?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc000051ee8 sp=0xc000051e48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc000051fe0 sp=0xc000051ee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000051fe8 sp=0xc000051fe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 15 gp=0xc000102e00 m=8 mp=0xc000101008 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000052648)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000052620 sp=0xc0000525e8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x389837e0, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000052648 sp=0xc000052620 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc0000526e8 sp=0xc000052648 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc0000527e0 sp=0xc0000526e8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000527e8 sp=0xc0000527e0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 16 gp=0xc000102fc0 m=5 mp=0xc000100008 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000052e48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000052e20 sp=0xc000052de8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x389837e0, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000052e48 sp=0xc000052e20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc000052ee8 sp=0xc000052e48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc000052fe0 sp=0xc000052ee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000052fe8 sp=0xc000052fe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 18 gp=0xc000103180 m=11 mp=0xc00008b008 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000053648)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000053620 sp=0xc0000535e8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fc664001e68, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000053648 sp=0xc000053620 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc0000536e8 sp=0xc000053648 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc0000537e0 sp=0xc0000536e8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc0000537e8 sp=0xc0000537e0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 19 gp=0xc000103340 m=0 mp=0xcfad40 [syscall]:
+runtime.cgocall(0x77ec20, 0xc000053e48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc000053e20 sp=0xc000053de8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x389837e0, 0xc000980000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc000053e48 sp=0xc000053e20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x0?}, {0xc000980000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc000053ee8 sp=0xc000053e48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc000053fe0 sp=0xc000053ee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc000053fe8 sp=0xc000053fe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+rax    0x7fc6973e0000
+rbx    0x7fc697f41540
+rcx    0x0
+rdx    0x7fc6973e05200000
+rdi    0x7fc69c0e2380
+rsi    0x48
+rbp    0x6
+rsp    0x7fc696c3e558
+r8     0x7fc696de0960
+r9     0x0
+r10    0x7fc69c0e2900
+r11    0x2c
+r12    0x7fc697f41018
+r13    0xa2bc70
+r14    0x7fc696f80570
+r15    0x2
+rip    0x8ef66d
+rflags 0x10246
+cs     0x33
+fs     0x0
+gs     0x0

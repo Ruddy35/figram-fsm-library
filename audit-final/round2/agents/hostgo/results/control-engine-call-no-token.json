@@ -1,0 +1,156 @@
+{
+ "opts": {
+  "Name": "",
+  "UsersPerBot": 20,
+  "Bots": [
+   "shop",
+   "points",
+   "booking"
+  ],
+  "Goals": 2,
+  "MaxActions": 40,
+  "Seed": 21,
+  "DB": "/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/controls.db",
+  "Sync": "NORMAL",
+  "ReloadEvery": 0,
+  "NotifyLatency": 300000000,
+  "ReplyWait": 5000000000,
+  "DrainTimeout": 30000000000,
+  "Out": "/home/user/figram-audit/agents6/hostgo/results/control-engine-call-no-token.json"
+ },
+ "control": "call-no-token",
+ "checks": [
+  {
+   "name": "I1 at most one irreversible effect per logical action / per cart",
+   "ok": false,
+   "cases": 1182,
+   "fails": 13,
+   "samples": [
+    "crm: cart shop-1#2 ordered 2 times",
+    "crm: cart shop-10#0 ordered 3 times",
+    "crm: cart shop-5#0 ordered 2 times",
+    "crm: cart shop-14#2 ordered 2 times",
+    "crm: cart shop-8#2 ordered 3 times",
+    "crm: cart shop-17#2 ordered 3 times",
+    "crm: cart shop-8#0 ordered 2 times",
+    "crm: cart shop-14#1 ordered 2 times"
+   ]
+  },
+  {
+   "name": "I2 one outcome per call; one accepted outcome unless replaced/cleared",
+   "ok": true,
+   "cases": 0,
+   "fails": 0
+  },
+  {
+   "name": "I3 no stuck users",
+   "ok": false,
+   "cases": 60,
+   "fails": 62,
+   "samples": [
+    "423 events left in the inbound queue",
+    "9 actions left unexecuted in the outbox",
+    "8 sequential actions in the failure queue (their users wait for a decision)",
+    "shop-6: waits left in the snapshot: [map[call:create_order token:18]]",
+    "points-3: waits left in the snapshot: [map[call:audit token:92] map[call:award token:90] map[call:award token:89] map[call:award token:88] map[call:award token:87] map[call:award token:86] map[call:award token:81] map[call:award token:79] map[call:award token:78] map[call:award token:77] map[call:award token:76] map[call:award token:75] map[call:award token:74] map[call:award token:73] map[call:award token:72] map[call:award token:71] map[call:award token:68] map[call:award token:66] map[call:award token:65] map[call:award token:64] map[call:award token:63] map[call:award token:62] map[call:award token:61] map[call:award token:60] map[call:award token:59] map[call:award token:58] map[call:award token:57] map[call:award token:56] map[call:award token:55] map[call:award token:54] map[call:award token:50] map[call:award token:48] map[call:award token:47] map[call:award token:46] map[call:award token:45] map[call:award token:41] map[call:award token:40] map[call:award token:39] map[call:award token:38] map[call:award token:37] map[call:award token:36] map[call:award token:35] map[call:award token:34] map[call:award token:33] map[call:award token:32] map[call:award token:31] map[call:award token:30] map[call:award token:29] map[call:award token:26] map[call:award token:24] map[call:award token:23] map[call:award token:22] map[call:award token:21] map[call:award token:20] map[call:award token:19] map[call:award token:18] map[call:award token:17] map[call:award token:16] map[call:award token:15] map[call:award token:13] map[call:award token:11] map[call:award token:10] map[call:award token:9] map[call:award token:7] map[call:award token:3]]",
+    "shop-0: waits left in the snapshot: [map[call:create_order token:39]]",
+    "booking-19: waits left in the snapshot: [map[call:reserve token:61]]",
+    "booking-5: waits left in the snapshot: [map[call:reserve token:58]]",
+    "info: 258 times a simulated user on a waiting message waited longer than the reply wait"
+   ]
+  },
+  {
+   "name": "I4 sequential replay (conditions on sequentially applied data) = host",
+   "ok": true,
+   "cases": 60,
+   "fails": 0
+  },
+  {
+   "name": "I5 background actions never block users",
+   "ok": true,
+   "cases": 3153,
+   "fails": 0,
+   "samples": [
+    "barrier wait p50 0 µs, p99 29079 µs, max 75493 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 84 steps, others 0.00% of 201"
+   ]
+  },
+  {
+   "name": "I6 every reply validates (checkReply of clients/go)",
+   "ok": true,
+   "cases": 3165,
+   "fails": 0
+  },
+  {
+   "name": "I7 no acknowledged update lost",
+   "ok": false,
+   "cases": 3187,
+   "fails": 390,
+   "samples": [
+    "points-9: update tg:130 acknowledged but never processed",
+    "points-9: update tg:149 acknowledged but never processed",
+    "shop-18: update tg:395 acknowledged but never processed",
+    "points-12: update tg:1009 acknowledged but never processed",
+    "points-12: update tg:1010 acknowledged but never processed",
+    "points-12: update tg:1011 acknowledged but never processed",
+    "points-12: update tg:1012 acknowledged but never processed",
+    "points-12: update tg:1014 acknowledged but never processed"
+   ]
+  },
+  {
+   "name": "drain",
+   "ok": false,
+   "cases": 0,
+   "fails": 1,
+   "samples": [
+    "the host did not drain within 30s"
+   ]
+  }
+ ],
+ "ok": false,
+ "crashes": {},
+ "instances": 1,
+ "reloads": 0,
+ "closed_retries": 0,
+ "counts": {
+  "bg_failq": 13,
+  "calls_with_token": 0,
+  "crm_calls": 72,
+  "crm_effects": 53,
+  "detached_calls": 304,
+  "drops": 1,
+  "drops_no_snapshot": 1,
+  "drops_run_id": 0,
+  "dup_filtered": 311,
+  "failed_outcomes": 0,
+  "goroutines_at_end": 3,
+  "lost_snapshots": 12,
+  "max_pending": 65,
+  "no_target_steps": 1088,
+  "notify_calls": 328,
+  "order_outcomes_on_other_msg": 0,
+  "outbox": 4887,
+  "outcome_steps": 0,
+  "outcomes_outside_waiting_msg": 0,
+  "reconciled_hits": 0,
+  "reconciliations": 0,
+  "recovered_steps": 0,
+  "reserve_outcomes_ignored": 0,
+  "restarts": 38,
+  "seq_failq": 8,
+  "starts_with_hwm": 12,
+  "step_latency_p50_us": 8308,
+  "step_latency_p99_us": 198938,
+  "steps": 3165,
+  "timer_steps": 368,
+  "updates": 3187,
+  "updates_delivered_twice": 308,
+  "user_actions": 3187,
+  "user_goals": 0,
+  "user_no_reply": 233,
+  "user_support_ops": 65,
+  "users": 60,
+  "users_phase_ms": 180565
+ },
+ "elapsed_s": 211.081045412,
+ "drained": false
+}

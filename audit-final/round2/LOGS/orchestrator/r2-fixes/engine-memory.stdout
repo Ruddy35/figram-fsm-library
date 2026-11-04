@@ -1,0 +1,10 @@
+ok   ulimit -v 32 MiB: exit code 0, replies 2
+ok   ulimit -v 64 MiB: exit code 0, replies 2
+ok   ulimit -v 256 MiB: exit code 0, replies 2
+ok   ulimit -s 24 KiB, nesting 250: exit code -6, stderr 'Stack overflow detected. Aborting.'
+ok   ulimit -s 32 KiB, nesting 250: exit code -6, stderr 'Stack overflow detected. Aborting.'
+ok   address space reserved after start-up 75 MiB (limit 96)
+ok   memory in use after 2000 requests 6 MiB (limit 16)
+ok   threads 1 (limit 1)
+ok   1500 large requests (104 KiB): resident memory +4 KB (limit 2048)
+engine memory: address space 75 MiB, in use 6 MiB, threads 1

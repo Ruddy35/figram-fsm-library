@@ -1,0 +1,8 @@
+{"figram": 1,
+ "calls": {"p": {"text": "ping", "outcomes": ["pong"], "every": true}},
+ "bot": {"initial": "a",
+   "on": {"btn:p": [{"do": ["p"]}]},
+   "children": {
+     "a": {"on": {"btn:b": [{"to": "b"}]}},
+     "b": {"on": {"btn:a": [{"to": "a"}], "call:p:pong": [{"to": "a"}], "call:p:failed": [{"to": "a"}]}},
+     "never": {"on": {"btn:z": [{"to": "a"}]}}}}}

@@ -1,0 +1,14 @@
+command: nice -n 10 timeout 300 ./stackuse /home/user/figram-audit/agents6/hostgo/bots/points.bot.json 0 100 1000 4000 16000 29000 60000 
+cwd: /home/user/figram-audit/agents6/hostgo/repro/stack
+start: 2026-11-04T02:50:43.890Z
+end: 2026-11-04T02:50:44.686Z
+exit_code: 0
+--- stdout (806 bytes, last 200 lines)
+waits=0 request=112 bytes stack_used=7 KiB reply={"id":1,"snapshot":{"at":"home","seq":5000000},"actions":[]}
+waits=100 request=3411 bytes stack_used=7 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=1000 request=33111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=4000 request=132111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=16000 request=528111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=29000 request=957111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+waits=60000 request=1980111 bytes stack_used=8 KiB reply={"id":1,"snapshot":{"at":"home","pending":[{"call":"award","
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,8 @@
+command: /home/user/figram-audit-worktrees/a6-hostgo/.lake/build/bin/figram check shop.bot.json 
+cwd: /home/user/figram-audit/agents6/hostgo/bots
+start: 2026-11-04T00:55:48.555Z
+end: 2026-11-04T00:55:48.565Z
+exit_code: 0
+--- stdout (3 bytes, last 200 lines)
+ok
+--- stderr (0 bytes, last 100 lines)

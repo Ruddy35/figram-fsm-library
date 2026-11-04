@@ -1,0 +1,121 @@
+{
+ "opts": {
+  "Name": "",
+  "UsersPerBot": 20,
+  "Bots": [
+   "shop",
+   "points",
+   "booking"
+  ],
+  "Goals": 2,
+  "MaxActions": 40,
+  "Seed": 11,
+  "DB": "/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/matrix.db",
+  "Sync": "NORMAL",
+  "ReloadEvery": 0,
+  "NotifyLatency": 300000000,
+  "ReplyWait": 20000000000,
+  "DrainTimeout": 60000000000,
+  "Out": "/home/user/figram-audit/agents6/hostgo/results/matrix-ingest_after_commit.json"
+ },
+ "control": "",
+ "checks": [
+  {
+   "name": "I1 at most one irreversible effect per logical action / per cart",
+   "ok": true,
+   "cases": 712,
+   "fails": 0
+  },
+  {
+   "name": "I2 one outcome per call; one accepted outcome unless replaced/cleared",
+   "ok": true,
+   "cases": 732,
+   "fails": 0
+  },
+  {
+   "name": "I3 no stuck users",
+   "ok": true,
+   "cases": 60,
+   "fails": 0,
+   "samples": [
+    "info: 1 times a simulated user on a waiting message waited longer than the reply wait"
+   ]
+  },
+  {
+   "name": "I4 sequential replay (conditions on sequentially applied data) = host",
+   "ok": true,
+   "cases": 60,
+   "fails": 0
+  },
+  {
+   "name": "I5 background actions never block users",
+   "ok": true,
+   "cases": 2621,
+   "fails": 0,
+   "samples": [
+    "barrier wait p50 0 µs, p99 43177 µs, max 111686 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 33 steps, others 0.00% of 96"
+   ]
+  },
+  {
+   "name": "I6 every reply validates (checkReply of clients/go)",
+   "ok": true,
+   "cases": 2634,
+   "fails": 0
+  },
+  {
+   "name": "I7 no acknowledged update lost",
+   "ok": true,
+   "cases": 1739,
+   "fails": 0
+  }
+ ],
+ "ok": true,
+ "crashes": {
+  "ingest_after_commit": 94
+ },
+ "instances": 95,
+ "reloads": 0,
+ "closed_retries": 0,
+ "counts": {
+  "bg_failq": 4,
+  "calls_with_token": 732,
+  "crm_calls": 83,
+  "crm_effects": 39,
+  "detached_calls": 130,
+  "drops": 0,
+  "drops_no_snapshot": 0,
+  "drops_run_id": 0,
+  "dup_filtered": 695,
+  "failed_outcomes": 17,
+  "goroutines_at_end": 3,
+  "lost_snapshots": 13,
+  "max_pending": 16,
+  "no_target_steps": 1032,
+  "notify_calls": 512,
+  "order_outcomes_on_other_msg": 12,
+  "outbox": 3892,
+  "outcome_steps": 732,
+  "outcomes_outside_waiting_msg": 569,
+  "reconciled_hits": 7,
+  "reconciliations": 24,
+  "recovered_steps": 0,
+  "reserve_outcomes_ignored": 29,
+  "restarts": 38,
+  "seq_failq": 0,
+  "starts_with_hwm": 13,
+  "step_latency_p50_us": 325151,
+  "step_latency_p99_us": 8993152,
+  "steps": 2634,
+  "timer_steps": 163,
+  "updates": 1739,
+  "updates_delivered_twice": 163,
+  "user_actions": 1739,
+  "user_goals": 117,
+  "user_no_reply": 0,
+  "user_support_ops": 51,
+  "users": 60,
+  "users_phase_ms": 40963
+ },
+ "elapsed_s": 41.374505614,
+ "drained": true
+}

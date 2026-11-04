@@ -1,0 +1,7 @@
+ok   Counterexamples.lean: exit 0
+ok   TextRoundTrip.lean: exit 0
+ok   OpaqueDeps.lean: exit 0
+ok   GlueAxioms.lean: 22 glue theorems, only ['Classical.choice', 'Quot.sound', 'propext']
+ok   CounterexamplesNegative.lean: rejected with 4 errors, as expected
+ok   StatementsNegative.lean: rejected with 2 errors, as expected
+proof controls: 0 failure(s)

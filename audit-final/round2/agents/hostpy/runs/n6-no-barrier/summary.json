@@ -1,0 +1,191 @@
+{
+ "args": {
+  "bot": "payouts",
+  "out": "runs/n6-no-barrier",
+  "users": 60,
+  "duration": 15.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [
+   "no-barrier"
+  ],
+  "sched_outside": false,
+  "restore": "",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/payouts.bot.json"
+ },
+ "log": [
+  [
+   15.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 721,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 20,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "duration_load_s": 15.0,
+ "duration_total_s": 18.1,
+ "user_actions": 377,
+ "frustrated_starts": 0,
+ "updates_sent": 437,
+ "duplicate_deliveries": 62,
+ "steps_at_load_end": 721,
+ "host_restarts": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 48.1,
+ "mem": {
+  "host_max_kb": 44784,
+  "engine_max_kb": 6400
+ },
+ "cpu_s": {
+  "host": 7.4,
+  "engines": 0.1
+ },
+ "mem_samples_tail": [
+  [
+   1793756640.2,
+   44648,
+   [
+    6400,
+    6300
+   ]
+  ],
+  [
+   1793756641.2,
+   44784,
+   [
+    6400,
+    6300
+   ]
+  ],
+  [
+   1793756642.0,
+   44784,
+   [
+    6400,
+    6300
+   ]
+  ]
+ ],
+ "ok": false,
+ "violations": {
+  "I7.overdraft": {
+   "count": 6,
+   "examples": [
+    {
+     "user": "u0045",
+     "sent": 60
+    },
+    {
+     "user": "u0042",
+     "sent": 60
+    },
+    {
+     "user": "u0005",
+     "sent": 60
+    },
+    {
+     "user": "u0053",
+     "sent": 60
+    },
+    {
+     "user": "u0057",
+     "sent": 60
+    }
+   ]
+  },
+  "I7.condition_with_pending_sequential_actions": {
+   "count": 1,
+   "examples": [
+    {
+     "times": 240.0
+    }
+   ]
+  }
+ },
+ "notes": {
+  "users": 60,
+  "elog": 721,
+  "steps": 721,
+  "calls_with_token": 269,
+  "outcomes": {
+   "accepted": 269
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 721,
+  "steps_with_background_pending": 105,
+  "failq": 0,
+  "effects_positive": 238,
+  "applications": 257
+ },
+ "alerts": {},
+ "metrics": {
+  "tg.received": 499.0,
+  "steps": 721.0,
+  "steps.tg": 437.0,
+  "dup.skipped.tg": 62.0,
+  "cond.with_pending_sequential": 240.0,
+  "x.retry": 135.0,
+  "steps.outcome": 269.0,
+  "x.reconcile": 32.0,
+  "x.reconciled_found": 20.0,
+  "callbacks.received": 20.0,
+  "dup.skipped.outcome": 20.0,
+  "timers.fired": 15.0,
+  "steps.timer": 15.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 437,
+   "p50": 43.5,
+   "p90": 403.1,
+   "p99": 545.8,
+   "max": 551.4
+  },
+  "outcome": {
+   "n": 269,
+   "p50": 5.4,
+   "p90": 52.8,
+   "p99": 316.4,
+   "max": 557.1
+  },
+  "timer": {
+   "n": 15,
+   "p50": 4.8,
+   "p90": 17.3,
+   "p99": 17.8,
+   "max": 17.8
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ }
+}

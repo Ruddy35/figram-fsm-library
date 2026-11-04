@@ -1,0 +1,119 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/n10-bad-engine --bot shop --users 60 --duration 15 --engine /home/user/figram-audit/agents6/hostpy/badengine.py 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:45:53.954Z
+end: 2026-11-04T01:46:17.738Z
+exit_code: 1
+--- stdout (1969 bytes, last 200 lines)
+{
+ "ok": false,
+ "duration_load_s": 15.0,
+ "duration_total_s": 21.4,
+ "user_actions": 1500,
+ "updates_sent": 1560,
+ "duplicate_deliveries": 240,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 133.7,
+ "mem": {
+  "host_max_kb": 52652,
+  "engine_max_kb": 11484
+ },
+ "cpu_s": {
+  "host": 19.0,
+  "engines": 0.3
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2040,
+  "steps": 2040,
+  "calls_with_token": 358,
+  "outcomes": {
+   "accepted": 355,
+   "replaced_by_later_call": 3
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2040,
+  "steps_with_background_pending": 265,
+  "failq": 40,
+  "effects_positive": 269,
+  "applications": 446
+ },
+ "alerts": {
+  "protocol_violation": 25,
+  "failure_queue": 40
+ },
+ "log": [
+  [
+   15.01,
+   "load end",
+   {
+    "inbound": 4,
+    "outbox_new": 7,
+    "timers": 14,
+    "steps": 2006,
+    "deliveries": 10,
+    "delayed": 0,
+    "callbacks": 20,
+    "cb_pending": 7
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 1560,
+   "p50": 33.6,
+   "p90": 175.0,
+   "p99": 650.2,
+   "max": 1121.3
+  },
+  "outcome": {
+   "n": 358,
+   "p50": 23.2,
+   "p90": 217.4,
+   "p99": 634.7,
+   "max": 1150.8
+  },
+  "timer": {
+   "n": 122,
+   "p50": 64.0,
+   "p90": 343.3,
+   "p99": 1079.8,
+   "max": 1152.5
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I6.protocol_violation": {
+   "count": 1,
+   "examples": [
+    {
+     "times": 25.0
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 240.0,
+  "callbacks.received": 21.0,
+  "dup.skipped.outcome": 21.0,
+  "dup.skipped.tg": 240.0,
+  "engine.protocol_violation": 25.0,
+  "engine.retry": 25.0,
+  "steps": 2040.0,
+  "steps.outcome": 358.0,
+  "steps.tg": 1560.0,
+  "steps.timer": 122.0,
+  "tg.received": 1800.0,
+  "timers.fired": 122.0,
+  "x.reconcile": 44.0,
+  "x.reconciled_found": 21.0,
+  "x.retry": 113.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

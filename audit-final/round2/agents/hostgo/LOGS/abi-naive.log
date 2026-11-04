@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 300 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo abi naive 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:13.769Z
+end: 2026-11-04T02:20:13.779Z
+exit_code: 0
+--- stdout (789 bytes, last 200 lines)
+Request(btn:checkout map[at:cart seq:3]) → variant="need" err=<nil>; reply=map[id:1 need:[cart_not_empty]]; a host that checks only err stores snapshot=null
+Request(btn:checkout map[at:cart seq:-1]) → variant="error" err=<nil>; reply=map[code:bad_snapshot error:snapshot: `seq` must be a non-negative integer id:2]; a host that checks only err stores snapshot=null
+Request(call:create_order map[at:cart seq:3]) → variant="error" err=<nil>; reply=map[code:bad_request error:an outcome event is `call:<action>:<outcome>`, both parts non-empty id:3]; a host that checks only err stores snapshot=null
+Request(btn:more map[at:cart seq:9007199254740991]) → variant="error" err=<nil>; reply=map[code:seq_overflow error:seq_overflow id:4]; a host that checks only err stores snapshot=null
+--- stderr (0 bytes, last 100 lines)

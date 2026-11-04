@@ -1,0 +1,200 @@
+{
+ "args": {
+  "bot": "shop",
+  "out": "runs/n4-no-reconcile",
+  "users": 60,
+  "duration": 15.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [
+   "no-reconcile"
+  ],
+  "sched_outside": false,
+  "restore": "",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/shop.bot.json"
+ },
+ "log": [
+  [
+   15.01,
+   "load end",
+   {
+    "inbound": 2,
+    "outbox_new": 11,
+    "timers": 11,
+    "steps": 2230,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 20,
+    "cb_pending": 4
+   }
+  ]
+ ],
+ "duration_load_s": 15.0,
+ "duration_total_s": 23.2,
+ "user_actions": 1671,
+ "frustrated_starts": 1,
+ "updates_sent": 1731,
+ "duplicate_deliveries": 260,
+ "steps_at_load_end": 2230,
+ "host_restarts": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 148.6,
+ "mem": {
+  "host_max_kb": 51076,
+  "engine_max_kb": 6436
+ },
+ "cpu_s": {
+  "host": 19.3,
+  "engines": 0.2
+ },
+ "mem_samples_tail": [
+  [
+   1793756571.4,
+   50984,
+   [
+    6436,
+    6280
+   ]
+  ],
+  [
+   1793756574.4,
+   51048,
+   [
+    6436,
+    6280
+   ]
+  ],
+  [
+   1793756575.3,
+   51076,
+   [
+    6436,
+    6280
+   ]
+  ]
+ ],
+ "ok": false,
+ "violations": {
+  "I1.told_failed_but_acted": {
+   "count": 6,
+   "examples": [
+    {
+     "user": "u0046",
+     "call": "call:create_order:5:265291e8-fb2c-47b7-be0e-cc702dd72ce6",
+     "effect_keys": [
+      "u0046:tg:1318:call:create_order:0"
+     ]
+    },
+    {
+     "user": "u0021",
+     "call": "call:create_order:6:7b054686-c538-4a7f-b5fa-dff5b34fa461",
+     "effect_keys": [
+      "u0021:tg:1374:call:create_order:0"
+     ]
+    },
+    {
+     "user": "u0041",
+     "call": "call:create_order:7:4eced332-e779-455a-bb68-13a932c77f22",
+     "effect_keys": [
+      "u0041:tg:1371:call:create_order:0"
+     ]
+    },
+    {
+     "user": "u0021",
+     "call": "call:create_order:9:67567cca-29a8-4212-8c0f-b639aec1d92a",
+     "effect_keys": [
+      "u0021:tg:1450:call:create_order:0"
+     ]
+    },
+    {
+     "user": "u0050",
+     "call": "call:create_order:15:44469102-85b2-4366-9c0c-81d7b8232952",
+     "effect_keys": [
+      "u0050:tg:1778:call:create_order:0"
+     ]
+    }
+   ]
+  }
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2251,
+  "steps": 2251,
+  "calls_with_token": 388,
+  "outcomes": {
+   "accepted": 376,
+   "replaced_by_later_call": 12
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2251,
+  "steps_with_background_pending": 481,
+  "failq": 45,
+  "effects_positive": 297,
+  "applications": 484
+ },
+ "alerts": {
+  "failure_queue": 45
+ },
+ "metrics": {
+  "tg.received": 1991.0,
+  "steps": 2251.0,
+  "steps.tg": 1731.0,
+  "dup.skipped.tg": 260.0,
+  "x.retry": 127.0,
+  "steps.outcome": 388.0,
+  "bg.retry": 338.0,
+  "timers.fired": 132.0,
+  "x.reconcile": 45.0,
+  "steps.timer": 132.0,
+  "callbacks.received": 20.0,
+  "dup.skipped.outcome": 20.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 1731,
+   "p50": 29.0,
+   "p90": 196.5,
+   "p99": 903.2,
+   "max": 2211.4
+  },
+  "outcome": {
+   "n": 388,
+   "p50": 20.4,
+   "p90": 267.2,
+   "p99": 1101.3,
+   "max": 1297.0
+  },
+  "timer": {
+   "n": 132,
+   "p50": 107.1,
+   "p90": 545.4,
+   "p99": 1642.1,
+   "max": 1726.0
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ }
+}

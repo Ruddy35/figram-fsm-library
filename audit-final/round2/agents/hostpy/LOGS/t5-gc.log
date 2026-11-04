@@ -1,0 +1,127 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/t5-gc --bot shop --users 60 --duration 15 --flag gc-outbox 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:30:09.148Z
+end: 2026-11-04T01:30:28.882Z
+exit_code: 1
+--- stdout (2058 bytes, last 200 lines)
+{
+ "ok": false,
+ "duration_load_s": 15.0,
+ "duration_total_s": 18.9,
+ "user_actions": 2148,
+ "updates_sent": 2208,
+ "duplicate_deliveries": 340,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 182.0,
+ "mem": {
+  "host_max_kb": 44932,
+  "engine_max_kb": 6512
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2800,
+  "steps": 2208,
+  "calls_with_token": 0,
+  "outcomes": {},
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2208,
+  "steps_with_background_pending": 0,
+  "failq": 0,
+  "effects_positive": 206,
+  "applications": 272
+ },
+ "alerts": {},
+ "log": [
+  [
+   15.0,
+   "load end",
+   {
+    "inbound": 2,
+    "outbox_new": 0,
+    "timers": 17,
+    "steps": 2731,
+    "deliveries": 42,
+    "delayed": 0,
+    "callbacks": 29,
+    "cb_pending": 2
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 2208,
+   "p50": 23.1,
+   "p90": 103.5,
+   "p99": 334.3,
+   "max": 780.5
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I3.wait_left_in_snapshot": {
+   "count": 60,
+   "examples": [
+    {
+     "user": "u0042",
+     "pending": [
+      {
+       "call": "create_order",
+       "token": 35
+      }
+     ],
+     "at": "placing"
+    },
+    {
+     "user": "u0000",
+     "pending": [
+      {
+       "call": "create_order",
+       "token": 27
+      }
+     ],
+     "at": "help"
+    }
+   ]
+  },
+  "I3.timer_lost": {
+   "count": 43,
+   "examples": [
+    {
+     "user": "u0042",
+     "timer": "slow",
+     "token": 35,
+     "at": "placing",
+     "run": null
+    },
+    {
+     "user": "u0010",
+     "timer": "slow",
+     "token": 23,
+     "at": "placing",
+     "run": null
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "callbacks.received": 30.0,
+  "drop.stale_run": 592.0,
+  "dup.skipped.outcome": 30.0,
+  "dup.skipped.tg": 340.0,
+  "steps": 2208.0,
+  "steps.tg": 2208.0,
+  "tg.received": 2548.0,
+  "timers.fired": 307.0,
+  "x.reconcile": 43.0,
+  "x.reconciled_found": 30.0,
+  "x.retry": 172.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

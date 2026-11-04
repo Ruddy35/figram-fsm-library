@@ -1,0 +1,13 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/recheck/repro/go_relink.sh /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gorelink /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/libA.a /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/libB.a 
+cwd: /home/user/figram-audit-worktrees/a6-hostgo
+start: 2026-11-04T01:20:29.950Z
+end: 2026-11-04T01:20:37.415Z
+exit_code: 0
+--- stdout (334 bytes, last 200 lines)
+pre-fix:  built with A, contains LIB-B: no
+pre-fix:  library replaced by B, rebuilt, contains LIB-B: no
+post-fix: built with A, contains LIB-B: no
+post-fix: library replaced by B, rebuilt, contains LIB-B: yes
+the pre-fix command keeps the stale binary (the defect RT-P1-2 reproduces)
+the post-fix command relinks with the new library
+--- stderr (0 bytes, last 100 lines)

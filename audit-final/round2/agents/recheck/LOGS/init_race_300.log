@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 bash tests/capi/init_race.sh tests/capi/out/contract 300 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:21:30.875Z
+end: 2026-11-04T01:21:33.917Z
+exit_code: 0
+--- stdout (50 bytes, last 200 lines)
+init_race: 300 runs, failed 0; exit codes: 0×300
+--- stderr (0 bytes, last 100 lines)

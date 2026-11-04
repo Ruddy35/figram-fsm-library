@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 120 bin/hostgo-probe abi stale 
+cwd: /home/user/figram-audit/agents6/hostgo/host
+start: 2026-11-04T03:24:00.733Z
+end: 2026-11-04T03:24:00.842Z
+exit_code: 0
+--- stdout (298 bytes, last 200 lines)
+right after unload: {"id":null,"error":"machine is already unloaded (figram_unload)","code":"bad_request"}
+after 1100 more unloads and 200 loads: the stale pizza handle answers {"id":null,"error":"machine is already unloaded (figram_unload)","code":"bad_request"} (points has 6 messages, pizza 13)
+--- stderr (0 bytes, last 100 lines)

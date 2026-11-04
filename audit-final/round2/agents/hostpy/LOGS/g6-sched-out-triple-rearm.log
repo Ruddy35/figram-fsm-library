@@ -1,0 +1,123 @@
+command: nice -n 10 timeout 900 python3 run.py --out runs/g6-sched-out-triple-rearm --bot shop --users 120 --duration 50 --restore 15\,30 --sched-outside --flag rearm --crash-p 0.002 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:36:18.131Z
+end: 2026-11-04T01:37:11.053Z
+exit_code: 0
+--- stdout (2102 bytes, last 200 lines)
+{
+ "ok": true,
+ "duration_load_s": 50.0,
+ "duration_total_s": 51.8,
+ "user_actions": 9313,
+ "updates_sent": 9433,
+ "duplicate_deliveries": 1451,
+ "host_crashes_injected": 49,
+ "throughput_steps_per_s_load": 117.2,
+ "mem": {
+  "host_max_kb": 50508,
+  "engine_max_kb": 6492
+ },
+ "cpu_s": {
+  "host": 40.7,
+  "engines": 0.4
+ },
+ "notes": {
+  "users": 120,
+  "elog": 5861,
+  "steps": 5843,
+  "calls_with_token": 190,
+  "outcomes": {
+   "accepted": 190
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 5843,
+  "steps_with_background_pending": 350,
+  "failq": 46,
+  "effects_positive": 290,
+  "applications": 320
+ },
+ "alerts": {
+  "failure_queue": 54
+ },
+ "log": [
+  [
+   15.0,
+   "backup"
+  ],
+  [
+   30.01,
+   "restore"
+  ],
+  [
+   50.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 5861,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 10,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 5306,
+   "p50": 4114.0,
+   "p90": 21990.3,
+   "p99": 23934.4,
+   "max": 25647.1
+  },
+  "outcome": {
+   "n": 190,
+   "p50": 2083.4,
+   "p90": 20665.6,
+   "p99": 24638.0,
+   "max": 25203.7
+  },
+  "timer": {
+   "n": 347,
+   "p50": 2200.1,
+   "p90": 20787.7,
+   "p99": 24206.2,
+   "max": 25923.4
+  }
+ },
+ "user_visible_divergence": {
+  "users": 120,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {},
+ "metrics": {
+  "bg.retry": 330.0,
+  "callbacks.received": 11.0,
+  "crash.poll.after_inbound": 1.0,
+  "crash.w.after_commit": 19.0,
+  "crash.w.before_commit": 27.0,
+  "crash.w.before_commit.timer": 1.0,
+  "crash.x.after_effect": 1.0,
+  "drop.stale_run": 18.0,
+  "dup.skipped.outcome": 12.0,
+  "dup.skipped.tg": 1578.0,
+  "dup.skipped.timer": 55.0,
+  "repair.dropped": 0.0,
+  "repair.rearmed": 104.0,
+  "steps": 9829.0,
+  "steps.outcome": 232.0,
+  "steps.tg": 9156.0,
+  "steps.timer": 441.0,
+  "tg.received": 10880.0,
+  "timers.fired": 528.0,
+  "x.reconcile": 25.0,
+  "x.reconciled_found": 9.0,
+  "x.retry": 79.0
+ }
+}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,24 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo-big run -users 667 -goals 1 -max-actions 12 -seed 41 -db /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/big.db -crash 0 -reload 500ms -notify-latency 200ms -reply-wait 30s -drain 300s -out /home/user/figram-audit/agents6/hostgo/results/green-big.json 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T03:20:19.450Z
+end: 2026-11-04T03:22:38.951Z
+exit_code: 0
+--- stdout (1779 bytes, last 200 lines)
+control="" users=2001 crashes=map[] instances=1 reloads=258 closed-retries=0 drained=true elapsed=139.5s
+counts: map[bg_failq:73 calls_with_token:10918 crm_calls:874 crm_effects:519 detached_calls:1428 drops:3 drops_no_snapshot:3 drops_run_id:0 dup_filtered:3789 failed_outcomes:140 goroutines_at_end:4 lost_snapshots:101 max_pending:27 no_target_steps:16010 notify_calls:1304 order_outcomes_on_other_msg:123 outbox:56891 outcome_steps:10915 outcomes_outside_waiting_msg:8869 reconciled_hits:230 reconciliations:370 recovered_steps:958 reserve_outcomes_ignored:407 restarts:467 seq_failq:0 starts_with_hwm:101 step_latency_p50_us:1521370 step_latency_p99_us:15742719 steps:37550 timer_steps:406 updates:26229 updates_delivered_twice:2625 user_actions:26229 user_goals:1198 user_no_reply:0 user_support_ops:568 users:2001 users_phase_ms:136960]
+store: tx 127832: mean wait 589.534575ms, begin 19.077µs (max 19.923697ms), body 147.068µs, commit 136.203µs
+PASS I1 at most one irreversible effect per logical action / per cart (cases 10735, fails 0)
+PASS I2 one outcome per call; one accepted outcome unless replaced/cleared (cases 10918, fails 0)
+PASS I3 no stuck users (cases 2001, fails 0)
+    info: 9 times a simulated user on a waiting message waited longer than the reply wait
+PASS I4 sequential replay (conditions on sequentially applied data) = host (cases 2001, fails 0)
+PASS I5 background actions never block users (cases 37449, fails 0)
+    barrier wait p50 35702 µs, p99 2336305 µs, max 3979174 µs; after a background action, waits ≥ 200000 µs: slow-background users 41.56% of 243 steps, others 56.45% of 1109
+PASS I6 every reply validates (checkReply of clients/go) (cases 37550, fails 0)
+PASS I7 no acknowledged update lost (cases 26229, fails 0)
+RESULT: PASS
+--- stderr (876 bytes, last 100 lines)
+progress t=30s updates=25906 steps=28517 inbound=3589 outbox_pending=690 user_actions=23646 no_reply=0 goroutines=2184 tx 101923: mean wait 705.013639ms, begin 19.26µs (max 19.923697ms), body 140.662µs, commit 128.644µs
+progress t=60s updates=28843 steps=37537 inbound=0 outbox_pending=0 user_actions=26219 no_reply=0 goroutines=266 tx 127628: mean wait 590.47688ms, begin 19.027µs (max 19.923697ms), body 147.17µs, commit 136.278µs
+progress t=90s updates=28850 steps=37545 inbound=0 outbox_pending=0 user_actions=26225 no_reply=0 goroutines=265 tx 127719: mean wait 590.056168ms, begin 19.046µs (max 19.923697ms), body 147.126µs, commit 136.213µs
+progress t=120s updates=28853 steps=37549 inbound=0 outbox_pending=0 user_actions=26228 no_reply=0 goroutines=264 tx 127794: mean wait 589.709875ms, begin 19.066µs (max 19.923697ms), body 147.088µs, commit 136.161µs

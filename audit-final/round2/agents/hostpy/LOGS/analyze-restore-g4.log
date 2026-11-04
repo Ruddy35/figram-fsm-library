@@ -1,0 +1,15 @@
+command: python3 analyze_restore.py runs/g4-restore 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:42:48.386Z
+end: 2026-11-04T01:42:49.891Z
+exit_code: 0
+--- stdout (296 bytes, last 200 lines)
+{
+ "updates_processed_after_backup_in_lost_history": 4491,
+ "of_them_processed_again_after_restore": 1489,
+ "of_them_never_processed_again": 3002,
+ "calls_with_token_issued_in_lost_history": 60,
+ "positive_external_effects_whose_call_is_not_in_the_restored_history": 10,
+ "users_affected": 119
+}
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 python3 mutants_red.py --engine /home/user/figram-audit-worktrees/a6-recheck/.lake/build/bin/figram-engine --docs 1 --steps 100 --out /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/neg_surv.json --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot 
+cwd: /home/user/figram-audit-worktrees/cleanup-int/tests/compiler
+start: 2026-11-04T01:59:28.764Z
+end: 2026-11-04T01:59:44.533Z
+exit_code: 1
+--- stdout (90 bytes, last 200 lines)
+the engine refuses the mutation detach-flip:k1 (seed 700021): a harness error, not a kill
+--- stderr (0 bytes, last 100 lines)

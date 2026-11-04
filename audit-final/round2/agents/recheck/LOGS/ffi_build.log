@@ -1,0 +1,9 @@
+command: nice -n 10 timeout 1500 bash ffi/build.sh 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:19:41.937Z
+end: 2026-11-04T01:19:43.562Z
+exit_code: 0
+--- stdout (97 bytes, last 200 lines)
+Build completed successfully (47 jobs).
+done: ffi/out/libfigram.a, linker flags: ffi/out/LDFLAGS
+--- stderr (0 bytes, last 100 lines)

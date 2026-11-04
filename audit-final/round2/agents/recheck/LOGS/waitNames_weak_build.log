@@ -1,0 +1,55 @@
+command: nice -n 10 timeout 1500 lake build 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng
+start: 2026-11-04T01:23:46.796Z
+end: 2026-11-04T01:24:06.515Z
+exit_code: 1
+--- stdout (3175 bytes, last 200 lines)
+✔ [8/56] Built Figram.Core (1.8s)
+✔ [9/56] Built Figram.CoreProofs (1.8s)
+✔ [10/56] Built Figram.Chart (1.8s)
+✔ [13/56] Built Figram.Mutate (1.0s)
+✔ [14/56] Built Figram.Compile (1.6s)
+✔ [15/56] Built Figram.Core:c.o (3.4s)
+✔ [17/56] Built Figram.Lint (1.4s)
+✔ [19/56] Built Figram.Mutate:c.o (2.1s)
+✔ [20/56] Built Figram.Correct (1.9s)
+✔ [22/56] Built Figram.LintProofs (347ms)
+✔ [24/56] Built Figram.Run (562ms)
+✔ [26/56] Built Figram.Format (1.7s)
+✔ [28/56] Built Figram.Warnings (573ms)
+✔ [30/56] Built Figram.RandomDoc (1.2s)
+✔ [32/56] Built Figram.FormatIO (1.3s)
+✔ [34/56] Built Figram.Engine (947ms)
+✔ [35/56] Built EngineMain (808ms)
+✔ [37/56] Built Figram.Trace (1.3s)
+✔ [38/56] Built Figram.FormatProofs (4.5s)
+✔ [40/56] Built Figram.Engine:c.o (2.4s)
+✔ [41/56] Built «figram-engine»:exe (521ms)
+✔ [42/56] Built Figram.Trace:c.o (3.1s)
+✖ [43/56] Building Figram.Examples (2.3s)
+trace: .> LEAN_PATH=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/.lake/build/lib/lean /home/user/leanprover/lean4/build/release/stage1/bin/lean /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/Figram/Examples.lean -o /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/.lake/build/lib/lean/Figram/Examples.olean -i /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/.lake/build/lib/lean/Figram/Examples.ilean -c /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/.lake/build/ir/Figram/Examples.c --setup /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng/.lake/build/ir/Figram/Examples.setup.json --json
+error: Figram/Examples.lean:423:0: Expression
+  match
+    parse
+        "{\"figram\": 1, \"calls\": {\"a\": {\"text\": \"A\", \"outcomes\": [\"ok\"]}, \"p\": \"P\"}, \"bot\": {\"initial\": \"m\", \"children\": {\"m\": {\"on\": {\"call:a:ok\": [{}], \"call:a:failed\": [{}], \"call:a:no\": [{}], \"call:p:ok\": [{}], \"call:zz\": [{}], \"btn:x\": [{\"do\": [\"a\", \"a\"]}], \"btn:y\": [{\"resume\": true}]}}}}}" >>=
+      decode with
+  | Except.ok d =>
+    (d.check.contains
+                  "event `call:a:no`: `a` is not an action with the outcome `no` (the prefix `call:` is reserved)" &&
+                d.check.contains
+                  "event `call:p:ok`: `p` is not an action with the outcome `ok` (the prefix `call:` is reserved)" &&
+              d.check.contains
+                "event `call:zz`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)" &&
+            d.check.contains "`m` → `btn:x`: action `a` with outcomes occurs twice in `do`" &&
+          d.check.contains "`m` → `btn:y`: `resume` and `back` need `to`" &&
+        !d.check.any fun x => x.startsWith "event `call:a:ok`") &&
+      !d.check.any fun x => x.startsWith "event `call:a:failed`"
+  | Except.error a => false
+did not evaluate to `true`
+✔ [45/56] Built Figram.EngineProofs (3.3s)
+✔ [47/56] Built Figram.OutcomeProofs (1.4s)
+✔ [49/56] Built Figram.OutcomeDocProofs (1.3s)
+Some required targets logged failures:
+- Figram.Examples
+--- stderr (20 bytes, last 100 lines)
+error: build failed

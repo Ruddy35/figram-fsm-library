@@ -1,0 +1,119 @@
+{
+ "ok": false,
+ "duration_load_s": 10.0,
+ "duration_total_s": 11.7,
+ "user_actions": 0,
+ "updates_sent": 2,
+ "duplicate_deliveries": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 0.2,
+ "mem": {
+  "host_max_kb": 31552,
+  "engine_max_kb": 6404
+ },
+ "cpu_s": {
+  "host": 2.4,
+  "engines": 0.0
+ },
+ "notes": {
+  "users": 1,
+  "elog": 2,
+  "steps": 2,
+  "calls_with_token": 0,
+  "outcomes": {},
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2,
+  "steps_with_background_pending": 0,
+  "failq": 0,
+  "effects_positive": 1,
+  "applications": 1
+ },
+ "alerts": {},
+ "log": [
+  [
+   0.31,
+   "send",
+   "q1",
+   "/start"
+  ],
+  [
+   1.0,
+   "send",
+   "q1",
+   "shop"
+  ],
+  [
+   1.31,
+   "backup"
+  ],
+  [
+   4.0,
+   "restore"
+  ],
+  [
+   10.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 2,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 0,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 2,
+   "p50": 81.2,
+   "p90": 81.2,
+   "p99": 81.2,
+   "max": 81.2
+  }
+ },
+ "user_visible_divergence": {
+  "users": 1,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I3.timer_lost": {
+   "count": 1,
+   "examples": [
+    {
+     "user": "q1",
+     "timer": "nudge",
+     "token": 2,
+     "at": "catalog",
+     "run": "058c9647-d5c8-4ea7-8a48-2fe803a92d76"
+    }
+   ]
+  },
+  "I3.timer_never_fired": {
+   "count": 1,
+   "examples": [
+    {
+     "user": "q1",
+     "timer": "nudge",
+     "token": 2,
+     "due": 1793756777.18,
+     "held_until": "end",
+     "run": "058c9647-d5c8-4ea7-8a48-2fe803a92d76"
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "steps": 3.0,
+  "steps.tg": 2.0,
+  "steps.timer": 1.0,
+  "tg.received": 2.0,
+  "timers.fired": 1.0
+ }
+}

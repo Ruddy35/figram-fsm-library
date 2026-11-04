@@ -1,0 +1,8 @@
+command: nice -n 10 python3 /home/user/figram-audit/agents6/recheck/repro/count_refused_mutants_red.py /home/user/figram-audit-worktrees/a6-recheck/.lake/build/bin/figram-engine 
+cwd: /home/user/figram-audit-worktrees/a6-recheck/tests/compiler
+start: 2026-11-04T01:07:04.943Z
+end: 2026-11-04T01:07:20.704Z
+exit_code: 0
+--- stdout (112 bytes, last 200 lines)
+mutants run 2659, refused by --mutate 90: {'detach-flip': 48, 'drop-call': 4, 'wait-free': 19, 'wait-swap': 19}
+--- stderr (0 bytes, last 100 lines)

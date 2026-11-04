@@ -1,0 +1,107 @@
+command: nice -n 10 timeout 120 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo abi unload-raw 10s 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:39.795Z
+end: 2026-11-04T02:20:39.902Z
+exit_code: 2
+--- stdout (0 bytes, last 200 lines)
+--- stderr (15835 bytes, last 100 lines)
+runtime.cgocall(0x77ec20, 0xc00051ce48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc00051ce20 sp=0xc00051cde8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fbaa40026c0, 0xc000600000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc00051ce48 sp=0xc00051ce20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x2c22647261776122?}, {0xc000600000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc00051cee8 sp=0xc00051ce48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc00051cfe0 sp=0xc00051cee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00051cfe8 sp=0xc00051cfe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 14 gp=0xc0001028c0 m=3 mp=0xc00005b008 [syscall]:
+runtime.cgocall(0x77ec20, 0xc00051d648)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc00051d620 sp=0xc00051d5e8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fbaa40026a8, 0xc000600000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc00051d648 sp=0xc00051d620 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x74222c2264726177?}, {0xc000600000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc00051d6e8 sp=0xc00051d648 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc00051d7e0 sp=0xc00051d6e8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00051d7e8 sp=0xc00051d7e0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 15 gp=0xc000102a80 m=7 mp=0xc00008a808 [syscall]:
+runtime.cgocall(0x77ec20, 0xc00051de48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc00051de20 sp=0xc00051dde8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fbaa40026c0, 0xc000600000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc00051de48 sp=0xc00051de20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x6b6f74222c226472?}, {0xc000600000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc00051dee8 sp=0xc00051de48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc00051dfe0 sp=0xc00051dee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00051dfe8 sp=0xc00051dfe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 16 gp=0xc000102c40 m=9 mp=0xc0006c4008 [syscall]:
+runtime.cgocall(0x77ec20, 0xc00051e648)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc00051e620 sp=0xc00051e5e8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fbaa40026c0, 0xc000600000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc00051e648 sp=0xc00051e620 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x6e656b6f74222c22?}, {0xc000600000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc00051e6e8 sp=0xc00051e648 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc00051e7e0 sp=0xc00051e6e8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00051e7e8 sp=0xc00051e7e0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+goroutine 34 gp=0xc000102e00 m=0 mp=0xcfad40 [syscall]:
+runtime.cgocall(0x77ec20, 0xc00051ee48)
+	/usr/local/go1.24.7/src/runtime/cgocall.go:167 +0x4b fp=0xc00051ee20 sp=0xc00051ede8 pc=0x47764b
+hostgo/rawfg._Cfunc_figram_request_json_n(0x7fbaa40026c0, 0xc000600000, 0x60b4f)
+	_cgo_gotypes.go:179 +0x47 fp=0xc00051ee48 sp=0xc00051ee20 pc=0x4fa1e7
+hostgo/rawfg.Request.func1(...)
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55
+hostgo/rawfg.Request({0x3a226e656b6f7422?}, {0xc000600000, 0x60b4f, 0x62000})
+	/home/user/figram-audit/agents6/hostgo/host/rawfg/rawfg.go:55 +0x9a fp=0xc00051eee8 sp=0xc00051ee48 pc=0x4fa8fa
+main.unloadRaw.func1()
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:121 +0x167 fp=0xc00051efe0 sp=0xc00051eee8 pc=0x741287
+runtime.goexit({})
+	/usr/local/go1.24.7/src/runtime/asm_amd64.s:1700 +0x1 fp=0xc00051efe8 sp=0xc00051efe0 pc=0x481541
+created by main.unloadRaw in goroutine 1
+	/home/user/figram-audit/agents6/hostgo/host/abi.go:105 +0x1ea
+
+rax    0x5
+rbx    0x1
+rcx    0x7fba8aac00e0
+rdx    0x7fbabad800e0
+rdi    0x6019080807976e68
+rsi    0x7fbac06c8140
+rbp    0x7fbac05cf040
+rsp    0x7fbab3ffe660
+r8     0x1
+r9     0x7
+r10    0x3cfc3e00
+r11    0xee41281dc62921b8
+r12    0x989329
+r13    0x7fbac05cf040
+r14    0x7fbabae40130
+r15    0x7fbac06c7528
+rip    0x7aefd3
+rflags 0x10297
+cs     0x33
+fs     0x0
+gs     0x0

@@ -1,0 +1,87 @@
+{
+ "ok": false,
+ "duration_load_s": 30.0,
+ "duration_total_s": 31.9,
+ "user_actions": 3042,
+ "updates_sent": 3122,
+ "duplicate_deliveries": 484,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 132.7,
+ "mem": {
+  "host_max_kb": 54368,
+  "engine_max_kb": 6444
+ },
+ "notes": {
+  "users": 80,
+  "elog": 3981,
+  "steps": 3981,
+  "calls_with_token": 664,
+  "outcomes": {
+   "accepted": 652,
+   "replaced_by_later_call": 12
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 3981,
+  "steps_with_background_pending": 657,
+  "failq": 56,
+  "effects_positive": 397,
+  "applications": 776
+ },
+ "alerts": {
+  "failure_queue": 56
+ },
+ "log": [
+  [
+   30.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 3981,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 65,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "violations": {
+  "I1.told_failed_but_acted": {
+   "count": 6,
+   "examples": [
+    {
+     "user": "u0022",
+     "call": "call:create_order:5:1c0b408d-5adc-4a3c-986c-8ac4ac43f63d",
+     "effect_keys": [
+      "u0022:tg:1349:call:create_order:0"
+     ]
+    },
+    {
+     "user": "u0003",
+     "call": "call:create_order:5:e72498c6-b41d-4890-861b-4ea460376cae",
+     "effect_keys": [
+      "u0003:tg:1370:call:create_order:0"
+     ]
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 395.0,
+  "callbacks.received": 62.0,
+  "dup.skipped.outcome": 62.0,
+  "dup.skipped.tg": 484.0,
+  "steps": 3981.0,
+  "steps.outcome": 664.0,
+  "steps.tg": 3122.0,
+  "steps.timer": 195.0,
+  "tg.received": 3606.0,
+  "timers.fired": 195.0,
+  "x.reconcile": 114.0,
+  "x.reconciled_found": 37.0,
+  "x.retry": 353.0
+ }
+}

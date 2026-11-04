@@ -1,0 +1,125 @@
+{
+ "ext": {
+  "force_mode": {
+   "r1": "timeout_after"
+  },
+  "user_latency_ms": {
+   "r1": [
+    1000,
+    1000
+   ]
+  },
+  "user_callback_s": {
+   "r1": 6.0
+  }
+ },
+ "steps": [
+  [
+   0.3,
+   "r1",
+   {
+    "type": "command",
+    "text": "/start"
+   }
+  ],
+  [
+   1.0,
+   "r1",
+   {
+    "type": "button",
+    "data": "shop"
+   }
+  ],
+  [
+   1.5,
+   "r1",
+   {
+    "type": "button",
+    "data": "add",
+    "item": "margherita"
+   }
+  ],
+  [
+   2.0,
+   "r1",
+   {
+    "type": "button",
+    "data": "checkout"
+   }
+  ],
+  [
+   3.0,
+   "backup"
+  ],
+  [
+   3.5,
+   "r1",
+   {
+    "type": "button",
+    "data": "back"
+   }
+  ],
+  [
+   4.0,
+   "r1",
+   {
+    "type": "button",
+    "data": "add",
+    "item": "pizza!"
+   }
+  ],
+  [
+   4.5,
+   "r1",
+   {
+    "type": "button",
+    "data": "checkout"
+   }
+  ],
+  [
+   5.0,
+   "r1",
+   {
+    "type": "button",
+    "data": "pay"
+   }
+  ],
+  [
+   7.0,
+   "restore"
+  ],
+  [
+   8.5,
+   "r1",
+   {
+    "type": "button",
+    "data": "back"
+   }
+  ],
+  [
+   9.0,
+   "r1",
+   {
+    "type": "button",
+    "data": "add",
+    "item": "salami"
+   }
+  ],
+  [
+   9.5,
+   "r1",
+   {
+    "type": "button",
+    "data": "checkout"
+   }
+  ],
+  [
+   10.0,
+   "r1",
+   {
+    "type": "button",
+    "data": "pay"
+   }
+  ]
+ ]
+}

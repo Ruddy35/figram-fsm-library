@@ -1,0 +1,23 @@
+command: python3 -I /home/user/figram-audit/agents6/recheck/repro/wait_swap_live.py .lake/build/bin/figram-engine wait-swap:create_order 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:06:45.629Z
+end: 2026-11-04T01:06:45.693Z
+exit_code: 1
+--- stdout (0 bytes, last 200 lines)
+--- stderr (951 bytes, last 100 lines)
+mutation `wait-swap:create_order` does not apply to this machine (see --mutants for the list)
+Traceback (most recent call last):
+  File "/home/user/figram-audit/agents6/recheck/repro/wait_swap_live.py", line 37, in <module>
+    s = req({"op": "start"})["snapshot"]
+        ~~~^^^^^^^^^^^^^^^^^
+  File "/home/user/figram-audit/agents6/recheck/repro/wait_swap_live.py", line 31, in req
+    r = json.loads(p.stdout.readline())
+  File "/usr/lib/python3.13/json/__init__.py", line 352, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/usr/lib/python3.13/json/decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)

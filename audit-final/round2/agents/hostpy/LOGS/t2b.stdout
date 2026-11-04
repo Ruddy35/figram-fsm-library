@@ -1,0 +1,80 @@
+{
+ "ok": true,
+ "duration_load_s": 40.0,
+ "duration_total_s": 41.8,
+ "user_actions": 6036,
+ "updates_sent": 6136,
+ "duplicate_deliveries": 967,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 120.5,
+ "mem": {
+  "host_max_kb": 56336,
+  "engine_max_kb": 6464
+ },
+ "notes": {
+  "users": 100,
+  "elog": 4819,
+  "steps": 4792,
+  "calls_with_token": 488,
+  "outcomes": {
+   "accepted": 485,
+   "replaced_by_later_call": 3
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 4792,
+  "steps_with_background_pending": 561,
+  "failq": 60,
+  "effects_positive": 452,
+  "applications": 691
+ },
+ "alerts": {
+  "failure_queue": 76
+ },
+ "log": [
+  [
+   10.01,
+   "backup"
+  ],
+  [
+   20.0,
+   "restore"
+  ],
+  [
+   40.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 4819,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 37,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "violations": {},
+ "metrics": {
+  "bg.retry": 420.0,
+  "callbacks.received": 40.0,
+  "drop.stale_run": 27.0,
+  "dup.skipped.outcome": 38.0,
+  "dup.skipped.tg": 963.0,
+  "dup.skipped.timer": 7.0,
+  "repair.dropped": 0.0,
+  "repair.rearmed": 39.0,
+  "sched.start_refused": 3.0,
+  "steps": 7097.0,
+  "steps.outcome": 565.0,
+  "steps.tg": 6089.0,
+  "steps.timer": 443.0,
+  "tg.received": 7072.0,
+  "timers.fired": 479.0,
+  "x.reconcile": 82.0,
+  "x.reconciled_found": 36.0,
+  "x.retry": 208.0
+ }
+}

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 go test -count=1 -run TestFixCheckReplyProtocolChanges ./... 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/gorelink/clients/go
+start: 2026-11-04T01:21:53.084Z
+end: 2026-11-04T01:21:56.301Z
+exit_code: 0
+--- stdout (18 bytes, last 200 lines)
+ok  	gofig	0.005s
+--- stderr (0 bytes, last 100 lines)

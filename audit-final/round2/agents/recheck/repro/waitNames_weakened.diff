@@ -1,0 +1,4 @@
+174c174
+<     | .call n _ w _ => if w = .free then none else some n
+---
+>     | .call n _ w _ => if w = .latest then some n else none

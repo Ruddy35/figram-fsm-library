@@ -1,0 +1,6 @@
+requests=10 request_bytes=3412 VmRSS=6404 KB
+requests=5000 request_bytes=3412 VmRSS=6396 KB
+requests=10000 request_bytes=3412 VmRSS=6396 KB
+requests=15000 request_bytes=3412 VmRSS=6396 KB
+requests=20000 request_bytes=3412 VmRSS=6396 KB
+growth after the 10th request: -8 KB, -0 bytes/request

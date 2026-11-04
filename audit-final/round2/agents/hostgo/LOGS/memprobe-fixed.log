@@ -1,0 +1,31 @@
+command: nice -n 10 timeout 300 bin/hostgo-probe memprobe fixed 120s 4000 16 
+cwd: /home/user/figram-audit/agents6/hostgo/host
+start: 2026-11-04T02:51:24.862Z
+end: 2026-11-04T02:53:25.291Z
+exit_code: 0
+--- stdout (2664 bytes, last 200 lines)
+t=   5s rss=  56356 KB threads= 23 goheap=  2792 KB malloc=   149 KB requests=      843 reloads=0 waits=132111
+t=  10s rss=  60492 KB threads= 23 goheap=  3880 KB malloc=   149 KB requests=     1712 reloads=0 waits=132111
+t=  15s rss=  69800 KB threads= 23 goheap=  4560 KB malloc=   149 KB requests=     2518 reloads=0 waits=132111
+t=  20s rss=  71580 KB threads= 23 goheap=  2112 KB malloc=   149 KB requests=     3358 reloads=0 waits=132111
+t=  25s rss=  77424 KB threads= 24 goheap=  4016 KB malloc=   153 KB requests=     4191 reloads=0 waits=132111
+t=  30s rss=  86196 KB threads= 24 goheap=  3744 KB malloc=   153 KB requests=     5048 reloads=0 waits=132111
+t=  35s rss=  88580 KB threads= 24 goheap=  2792 KB malloc=   153 KB requests=     5898 reloads=0 waits=132111
+t=  40s rss=  96340 KB threads= 24 goheap=  1976 KB malloc=   153 KB requests=     6723 reloads=0 waits=132111
+t=  45s rss=  98560 KB threads= 24 goheap=  3200 KB malloc=   153 KB requests=     7588 reloads=0 waits=132111
+t=  50s rss= 104432 KB threads= 24 goheap=  1840 KB malloc=   153 KB requests=     8434 reloads=0 waits=132111
+t=  55s rss= 106916 KB threads= 24 goheap=  4424 KB malloc=   153 KB requests=     9258 reloads=0 waits=132111
+t=  60s rss= 113732 KB threads= 24 goheap=  4016 KB malloc=   153 KB requests=    10113 reloads=0 waits=132111
+t=  65s rss= 117556 KB threads= 24 goheap=  4288 KB malloc=   153 KB requests=    10969 reloads=0 waits=132111
+t=  70s rss= 126796 KB threads= 24 goheap=  3744 KB malloc=   153 KB requests=    11794 reloads=0 waits=132111
+t=  75s rss= 128676 KB threads= 24 goheap=  3064 KB malloc=   282 KB requests=    12643 reloads=0 waits=132111
+t=  80s rss= 133312 KB threads= 24 goheap=  2928 KB malloc=   153 KB requests=    13471 reloads=0 waits=132111
+t=  85s rss= 137568 KB threads= 24 goheap=  3336 KB malloc=   153 KB requests=    14299 reloads=0 waits=132111
+t=  90s rss= 143424 KB threads= 24 goheap=  3336 KB malloc=   153 KB requests=    15128 reloads=0 waits=132111
+t=  95s rss= 145472 KB threads= 24 goheap=  4288 KB malloc=   153 KB requests=    15961 reloads=0 waits=132111
+t= 100s rss= 154428 KB threads= 24 goheap=  3336 KB malloc=   153 KB requests=    16781 reloads=0 waits=132111
+t= 105s rss= 157416 KB threads= 24 goheap=  2792 KB malloc=   153 KB requests=    17604 reloads=0 waits=132111
+t= 110s rss= 161084 KB threads= 24 goheap=  3472 KB malloc=   153 KB requests=    18435 reloads=0 waits=132111
+t= 115s rss= 170288 KB threads= 24 goheap=  3200 KB malloc=   282 KB requests=    19262 reloads=0 waits=132111
+t= 120s rss= 174744 KB threads= 24 goheap=  3200 KB malloc=   153 KB requests=    20090 reloads=0 waits=132111
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,19 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo-race run -users 15 -goals 1 -max-actions 30 -seed 51 -db /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/race.db -crash 0.01 -reload 20ms -notify-latency 200ms -reply-wait 60s -drain 120s -out /home/user/figram-audit/agents6/hostgo/results/green-race.json 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:24:26.778Z
+end: 2026-11-04T02:24:45.223Z
+exit_code: 0
+--- stdout (1808 bytes, last 200 lines)
+control="" users=45 crashes=map[exec_after_external:1 exec_after_record:1 exec_before_external:4 ingest_after_commit:13 ingest_before_commit:11 reload_after_load:1 sched_before_enqueue:1 step_after_commit:7 step_before_commit:9] instances=49 reloads=202 closed-retries=0 drained=true elapsed=17.4s
+counts: map[bg_failq:2 calls_with_token:242 crm_calls:32 crm_effects:15 detached_calls:44 drops:0 drops_no_snapshot:0 drops_run_id:0 dup_filtered:167 failed_outcomes:4 goroutines_at_end:3 lost_snapshots:3 max_pending:11 no_target_steps:333 notify_calls:76 order_outcomes_on_other_msg:2 outbox:1331 outcome_steps:242 outcomes_outside_waiting_msg:189 reconciled_hits:6 reconciliations:10 recovered_steps:24 reserve_outcomes_ignored:6 restarts:10 seq_failq:0 starts_with_hwm:3 step_latency_p50_us:623170 step_latency_p99_us:6151234 steps:931 timer_steps:64 updates:625 updates_delivered_twice:53 user_actions:625 user_goals:44 user_no_reply:0 user_support_ops:13 users:45 users_phase_ms:16362]
+store: tx 3295: mean wait 127.281845ms, begin 259.357µs (max 19.875366ms), body 2.047719ms, commit 642.155µs
+PASS I1 at most one irreversible effect per logical action / per cart (cases 241, fails 0)
+PASS I2 one outcome per call; one accepted outcome unless replaced/cleared (cases 242, fails 0)
+PASS I3 no stuck users (cases 45, fails 0)
+PASS I4 sequential replay (conditions on sequentially applied data) = host (cases 45, fails 0)
+PASS I5 background actions never block users (cases 928, fails 0)
+    barrier wait p50 4 µs, p99 227251 µs, max 553966 µs; after a background action, waits ≥ 200000 µs: slow-background users 0.00% of 13 steps, others 3.33% of 30
+PASS I6 every reply validates (checkReply of clients/go) (cases 931, fails 0)
+PASS I7 no acknowledged update lost (cases 625, fails 0)
+RESULT: PASS
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,8 @@
+command: lake build
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T04:02:10Z
+end: 2026-11-04T04:02:11Z
+exit_code: 0
+--- stdout (40 bytes, last 200 lines)
+Build completed successfully (56 jobs).
+--- stderr (0 bytes, last 100 lines)

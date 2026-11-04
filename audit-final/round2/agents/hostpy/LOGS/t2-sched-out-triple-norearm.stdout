@@ -1,0 +1,137 @@
+{
+ "ok": false,
+ "duration_load_s": 50.0,
+ "duration_total_s": 52.1,
+ "user_actions": 9566,
+ "updates_sent": 9686,
+ "duplicate_deliveries": 1494,
+ "host_crashes_injected": 49,
+ "throughput_steps_per_s_load": 118.2,
+ "mem": {
+  "host_max_kb": 47908,
+  "engine_max_kb": 6440
+ },
+ "cpu_s": {
+  "host": 31.8,
+  "engines": 0.2
+ },
+ "notes": {
+  "users": 120,
+  "elog": 5908,
+  "steps": 5897,
+  "calls_with_token": 155,
+  "outcomes": {
+   "accepted": 152,
+   "replaced_by_later_call": 3
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 5897,
+  "steps_with_background_pending": 289,
+  "failq": 42,
+  "effects_positive": 260,
+  "applications": 281
+ },
+ "alerts": {
+  "failure_queue": 51
+ },
+ "log": [
+  [
+   15.01,
+   "backup"
+  ],
+  [
+   30.0,
+   "restore"
+  ],
+  [
+   50.0,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 5908,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 6,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 5422,
+   "p50": 3679.8,
+   "p90": 20782.4,
+   "p99": 22799.7,
+   "max": 25290.3
+  },
+  "outcome": {
+   "n": 155,
+   "p50": 3066.7,
+   "p90": 21014.6,
+   "p99": 24757.8,
+   "max": 25374.8
+  },
+  "timer": {
+   "n": 320,
+   "p50": 3095.5,
+   "p90": 19984.2,
+   "p99": 22963.3,
+   "max": 24916.4
+  }
+ },
+ "user_visible_divergence": {
+  "users": 120,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I3.timer_never_fired": {
+   "count": 13,
+   "examples": [
+    {
+     "user": "u0009",
+     "timer": "nudge",
+     "token": 10,
+     "due": 1793756815.72,
+     "held_until": 1793756837.612485,
+     "run": "0f5b04a1-4e27-4469-8d37-168ad85f3e0e"
+    },
+    {
+     "user": "u0073",
+     "timer": "nudge",
+     "token": 10,
+     "due": 1793756815.73,
+     "held_until": 1793756837.147167,
+     "run": "55b12813-f444-4055-8501-75b470fb7270"
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 252.0,
+  "callbacks.received": 8.0,
+  "crash.bg.after_effect": 1.0,
+  "crash.poll.after_inbound": 1.0,
+  "crash.w.after_commit": 23.0,
+  "crash.w.before_commit": 16.0,
+  "crash.x.after_effect": 8.0,
+  "drop.stale_run": 11.0,
+  "dup.skipped.outcome": 9.0,
+  "dup.skipped.tg": 1603.0,
+  "dup.skipped.timer": 8.0,
+  "steps": 10079.0,
+  "steps.outcome": 216.0,
+  "steps.tg": 9403.0,
+  "steps.timer": 460.0,
+  "tg.received": 11103.0,
+  "timers.fired": 484.0,
+  "x.reconcile": 26.0,
+  "x.reconciled_found": 6.0,
+  "x.retry": 69.0
+ }
+}

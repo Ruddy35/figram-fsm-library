@@ -1,0 +1,277 @@
+{
+  "figram": 1,
+  "x-note": "hostpy audit bot 1: latest outcomes on the waiting message, the section and the root; background actions with and without outcomes; arrows without a target on buttons, timers, sections and outcomes; resume and back",
+  "conditions": {
+    "cart_not_empty": "The cart holds at least one item (executed add_item/clear_cart)",
+    "out_of_stock": "The CRM rejected the order because an item is out of stock (outcome details)"
+  },
+  "calls": {
+    "add_item": "Add the chosen item to the cart",
+    "clear_cart": "Empty the cart",
+    "log_status": "Record that the user asked for the order status",
+    "log_slow": {
+      "text": "Log that the CRM is slow",
+      "detached": true
+    },
+    "nudge_user": {
+      "text": "Push a reminder about the cart",
+      "detached": true
+    },
+    "create_order": {
+      "text": "Create the order in the CRM",
+      "outcomes": [
+        "created",
+        "rejected"
+      ]
+    },
+    "send_receipt": {
+      "text": "Email the receipt",
+      "detached": true,
+      "outcomes": [
+        "delivered",
+        "bounced"
+      ]
+    },
+    "flag_email": "Mark the user's email as unreachable",
+    "notify_staff": {
+      "text": "Tell the staff about the new order",
+      "detached": true
+    }
+  },
+  "bot": {
+    "initial": "menu",
+    "on": {
+      "cmd:start": [
+        {
+          "to": "menu"
+        }
+      ],
+      "cmd:help": [
+        {
+          "to": "help"
+        }
+      ],
+      "call:create_order:created": [
+        {
+          "to": "done",
+          "do": [
+            "clear_cart",
+            "send_receipt",
+            "notify_staff"
+          ]
+        }
+      ],
+      "call:send_receipt:bounced": [
+        {
+          "do": [
+            "flag_email"
+          ]
+        }
+      ],
+      "call:send_receipt:failed": [
+        {
+          "do": [
+            "flag_email"
+          ]
+        }
+      ],
+      "call:send_receipt:delivered": [
+        {}
+      ]
+    },
+    "children": {
+      "menu": {
+        "on": {
+          "btn:shop": [
+            {
+              "to": "shop",
+              "resume": true
+            }
+          ]
+        }
+      },
+      "help_s": {
+        "initial": "help",
+        "children": {
+          "help": {
+            "on": {
+              "btn:back": [
+                {
+                  "to": "shop",
+                  "resume": true
+                }
+              ]
+            }
+          }
+        }
+      },
+      "done": {
+        "on": {
+          "btn:again": [
+            {
+              "to": "shop"
+            }
+          ]
+        }
+      },
+      "shop": {
+        "initial": "catalog",
+        "on": {
+          "btn:cancel": [
+            {
+              "to": "menu",
+              "do": [
+                "clear_cart"
+              ]
+            }
+          ],
+          "timer:nudge": [
+            {
+              "do": [
+                "nudge_user"
+              ]
+            }
+          ]
+        },
+        "children": {
+          "catalog": {
+            "on": {
+              "btn:add": [
+                {
+                  "do": [
+                    "add_item"
+                  ]
+                }
+              ],
+              "btn:checkout": [
+                {
+                  "if": "cart_not_empty",
+                  "to": "confirm"
+                },
+                {
+                  "to": "empty_cart"
+                }
+              ],
+              "btn:info": [
+                {
+                  "to": "info"
+                }
+              ]
+            },
+            "timers": {
+              "nudge": 1500
+            }
+          },
+          "empty_cart": {
+            "on": {
+              "btn:back": [
+                {
+                  "to": "catalog"
+                }
+              ]
+            }
+          },
+          "confirm": {
+            "on": {
+              "btn:pay": [
+                {
+                  "if": "cart_not_empty",
+                  "to": "placing",
+                  "do": [
+                    "create_order"
+                  ]
+                },
+                {
+                  "to": "empty_cart"
+                }
+              ],
+              "btn:back": [
+                {
+                  "to": "catalog"
+                }
+              ]
+            }
+          },
+          "info_s": {
+            "initial": "info",
+            "children": {
+              "info": {
+                "on": {
+                  "btn:back": [
+                    {
+                      "to": "catalog",
+                      "back": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "checkout": {
+        "initial": "placing",
+        "on": {
+          "call:create_order:failed": [
+            {
+              "to": "order_failed"
+            }
+          ],
+          "btn:cancel": [
+            {
+              "to": "menu",
+              "do": [
+                "clear_cart"
+              ]
+            }
+          ],
+          "btn:status": [
+            {
+              "do": [
+                "log_status"
+              ]
+            }
+          ]
+        },
+        "children": {
+          "placing": {
+            "x-waiting": "create_order",
+            "on": {
+              "call:create_order:rejected": [
+                {
+                  "if": "out_of_stock",
+                  "to": "shop"
+                },
+                {
+                  "to": "order_failed"
+                }
+              ],
+              "timer:slow": [
+                {
+                  "do": [
+                    "log_slow"
+                  ]
+                }
+              ]
+            },
+            "timers": {
+              "slow": 400
+            }
+          },
+          "order_failed": {
+            "on": {
+              "btn:retry": [
+                {
+                  "to": "placing",
+                  "do": [
+                    "create_order"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

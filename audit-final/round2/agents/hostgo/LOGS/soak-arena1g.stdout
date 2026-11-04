@@ -1,0 +1,24 @@
+t=    0s rss=  17316 KB goheap=    736 KB gosys=   6743 KB malloc=     95 KB steps=        0 reloads=    0 pending(sum)=      0 max=0
+t=   15s rss=  77648 KB goheap=  18952 KB gosys=  37527 KB malloc=    514 KB steps=   905855 reloads=   33 pending(sum)=  12490 max=629
+t=   30s rss=  78956 KB goheap=  24680 KB gosys=  41623 KB malloc=    689 KB steps=  1970132 reloads=   57 pending(sum)=  17975 max=849
+t=   45s rss=  92612 KB goheap=  28200 KB gosys=  49943 KB malloc=    804 KB steps=  2961509 reloads=   81 pending(sum)=  22019 max=1090
+t=   60s rss=  97260 KB goheap=  35784 KB gosys=  83738 KB malloc=    866 KB steps=  3982939 reloads=  103 pending(sum)=  25229 max=1253
+t=   75s rss= 112056 KB goheap=  43248 KB gosys=  83738 KB malloc=   1010 KB steps=  5045305 reloads=  126 pending(sum)=  28771 max=1426
+t=   90s rss= 123596 KB goheap=  51952 KB gosys=  83738 KB malloc=    765 KB steps=  6129806 reloads=  148 pending(sum)=  31259 max=1587
+t=  105s rss= 121680 KB goheap=  46888 KB gosys=  83738 KB malloc=   1063 KB steps=  7144762 reloads=  168 pending(sum)=  33082 max=1747
+t=  120s rss= 119096 KB goheap=  51488 KB gosys=  96442 KB malloc=   1036 KB steps=  8215695 reloads=  189 pending(sum)=  34481 max=1862
+t=  135s rss= 125048 KB goheap=  41312 KB gosys=  96442 KB malloc=   1198 KB steps=  9253627 reloads=  213 pending(sum)=  36432 max=1962
+t=  150s rss= 124972 KB goheap=  34992 KB gosys=  96442 KB malloc=    967 KB steps= 10319387 reloads=  234 pending(sum)=  38221 max=2071
+t=  165s rss= 129696 KB goheap=  56872 KB gosys=  96442 KB malloc=   1134 KB steps= 11321582 reloads=  255 pending(sum)=  40058 max=2125
+t=  180s rss= 139768 KB goheap=  47528 KB gosys=  96506 KB malloc=   1154 KB steps= 12312083 reloads=  279 pending(sum)=  42040 max=2224
+t=  195s rss= 136976 KB goheap=  54016 KB gosys=  96634 KB malloc=   1044 KB steps= 13264652 reloads=  299 pending(sum)=  43665 max=2344
+t=  210s rss= 142596 KB goheap=  47864 KB gosys= 108986 KB malloc=   1097 KB steps= 14251163 reloads=  324 pending(sum)=  44829 max=2436
+t=  225s rss= 163832 KB goheap=  57256 KB gosys= 108986 KB malloc=   1246 KB steps= 15223374 reloads=  346 pending(sum)=  45507 max=2539
+t=  240s rss= 153928 KB goheap=  62032 KB gosys= 113594 KB malloc=   1489 KB steps= 16232027 reloads=  368 pending(sum)=  45713 max=2618
+t=  255s rss= 143956 KB goheap=  65440 KB gosys= 134442 KB malloc=   1282 KB steps= 17171486 reloads=  392 pending(sum)=  45111 max=2691
+t=  270s rss= 158840 KB goheap=  69424 KB gosys= 134442 KB malloc=   1242 KB steps= 18174908 reloads=  417 pending(sum)=  45039 max=2771
+t=  285s rss= 154416 KB goheap=  50256 KB gosys= 134442 KB malloc=   1017 KB steps= 19190299 reloads=  441 pending(sum)=  44479 max=2868
+t=  300s rss= 144252 KB goheap=  62680 KB gosys= 134442 KB malloc=   1368 KB steps= 20175718 reloads=  467 pending(sum)=  44648 max=2959
+t=  300s rss=  68012 KB goheap=    928 KB gosys= 134442 KB malloc=    639 KB steps= 20175757 reloads=  468 pending(sum)=  44654 max=2960
+steps 20175757, reloads 468, closed-retries 51, violations 0; RSS median 125048 KB (middle third) → 153928 KB (last third); malloc 1063 → 1246 KB
+SOAK: PASS

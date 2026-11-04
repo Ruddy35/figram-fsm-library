@@ -1,0 +1,207 @@
+command: nice -n 10 timeout 900 lake env lean --run /home/user/figram-audit/agents6/recheck/diffcheck/OldNewCheck.lean /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/list.txt 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T00:59:58.741Z
+end: 2026-11-04T01:01:41.292Z
+exit_code: 0
+--- stdout (674444 bytes, last 200 lines)
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_141_section_call_undeclared_outcome.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, event `call:o3:x:nosuch`: `o3:x` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, event `call:o3:x:nosuch`: `o3:x` is not an action with the outcome `nosuch` (the prefix `call:` is reserved), `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_141_twice_latest.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s2`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, `m5` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s2`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, `m5` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_141_twice_every_empty.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`, children of section `s0`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [action `tw`: `every` needs `outcomes`, children of section `s0`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_141_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s0`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s0`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_142_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_142_empty_on.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `failed` of action `o3:x` has no arrow on `m0`: the variant of `s1` on `timer:tz` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m3`: the variant of `s1` on `timer:tz` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m5`: the variant of `s1` on `timer:tz` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_142_call_bad_form.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s1`: empty name, event `call:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s1`: empty name, event `call:`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved), `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_142_twice_every_empty.bot.json: DIFF check (accept new=false old=false)
+  new: [action `tw`: `every` needs `outcomes`, children of section `s1`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [action `tw`: `every` needs `outcomes`, children of section `s1`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_142_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_node_named_bot.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `failed` of action `o3:x` has no arrow on `m1`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m2`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `bot`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_143_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_143_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s0`: empty name, event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s0`: empty name, event `call:a:b:c:ok`: `a:b:c` is not an action with the outcome `ok` (the prefix `call:` is reserved), `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_dup_plain_action_in_do.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `failed` of action `o2` has no arrow on `m0`: the variant of `m0` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_144_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_144_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_none.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `ok` of action `o1` has no arrow on `m7`: the variant of `m7` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o2` has no arrow on `m7`: the variant of `m7` on `timer:t1` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_145_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_145_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s1`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s1`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_max_delay.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `done` of action `o2` has no arrow on `m0`: the variant of `s1` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m2`: the variant of `s1` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_outcome_arrow_colon_action_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `no` of action `o1` has no arrow on `m0`: the variant of `bot` on `timer:t2` waits for it there (an outcome without an arrow is ignored), outcome `no` of action `o1` has no arrow on `m2`: the variant of `bot` on `timer:t2` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_146_call_text_object_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `b` of action `o4` has no arrow on `m2`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m2`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `b` of action `o4` has no arrow on `m0`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `b` of action `o4` has no arrow on `m3`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `s` of action `o3:x` has no arrow on `m2`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m2`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `s` of action `o3:x` has no arrow on `m0`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m3`: the variant of `m3` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_empty_variants.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `ok` of action `o1` has no arrow on `m3`: the variant of `m3` on `timer:t1` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_146_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s1`: empty name, event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s1`: empty name, event `call:plainz:failed`: `plainz` is not an action with the outcome `failed` (the prefix `call:` is reserved), `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_outcome_arrow_colon_action_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `no` of action `o1` has no arrow on `m0`: the variant of `s0` on `timer:t2` waits for it there (an outcome without an arrow is ignored), outcome `no` of action `o1` has no arrow on `m1`: the variant of `s0` on `timer:t2` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m0`: the variant of `s0` on `timer:t2` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m1`: the variant of `s0` on `timer:t2` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_outcomes_empty_list.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `s` of action `o3:x` has no arrow on `m2`: the variant of `bot` on `timer:t3` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m2`: the variant of `bot` on `timer:t3` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o2` has no arrow on `m1`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o2` has no arrow on `m2`: the variant of `bot` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_147_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_nested_timers.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `no` of action `o1` has no arrow on `m1`: the variant of `s0` on `timer:tz` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_147_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `m6` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, `m6` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_none.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `b` of action `o4` has no arrow on `m5`: the variant of `m5` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m2`: the variant of `s1` on `timer:t0` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m4`: the variant of `s1` on `timer:t0` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m7`: the variant of `s1` on `timer:t0` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m0`: the variant of `s1` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m2`: the variant of `s1` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m4`: the variant of `s1` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `done` of action `o2` has no arrow on `m7`: the variant of `s1` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_requires_empty.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `ok` of action `o1` has no arrow on `m0`: the variant of `s2` on `timer:t3` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o1` has no arrow on `m0`: the variant of `s2` on `timer:t3` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_outcome_arrow_failed_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `b` of action `o4` has no arrow on `m1`: the variant of `s0` on `timer:t4` waits for it there (an outcome without an arrow is ignored), outcome `b` of action `o4` has no arrow on `m2`: the variant of `s0` on `timer:t4` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_outcome_arrow_declared_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `failed` of action `o4` has no arrow on `m0`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m5`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m6`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m2`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m4`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m1`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_dup_plain_action_in_do.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `s` of action `o3:x` has no arrow on `m2`: the variant of `s0` on `timer:t3` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m2`: the variant of `s0` on `timer:t3` waits for it there (an outcome without an arrow is ignored), outcome `s` of action `o3:x` has no arrow on `m3`: the variant of `s0` on `timer:t3` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o3:x` has no arrow on `m3`: the variant of `s0` on `timer:t3` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_call_x_key_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `a` of action `o4` has no arrow on `m2`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `b` of action `o4` has no arrow on `m2`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored), outcome `no` of action `o1` has no arrow on `m2`: the variant of `s0` on `timer:t1` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_148_call_text_object_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `a` of action `o4` has no arrow on `m3`: the variant of `m3` on `timer:t2` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m3`: the variant of `m3` on `timer:t2` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_empty_on.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `done` of action `o2` has no arrow on `m1`: the variant of `s1` on `timer:t1` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_root_call_declared.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `s` of action `o3:x` has no arrow on `m0`: the variant of `s0` on `timer:t5` waits for it there (an outcome without an arrow is ignored), outcome `s` of action `o3:x` has no arrow on `m3`: the variant of `s0` on `timer:t5` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_148_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s0`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s0`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_section_timers.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_message_initial.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_requires.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_frac_delay.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_resume_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_to_null.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_detached_not_bool.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_outcomes_not_list.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_call_no_text.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_call_text_not_string.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_call_number.bot.json: decode-error
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/B_149_call_text_object_ok.bot.json: DIFF warnings
+  new-only: []
+  old-only: [outcome `b` of action `o4` has no arrow on `m0`: the variant of `bot` on `timer:t0` waits for it there (an outcome without an arrow is ignored), outcome `failed` of action `o4` has no arrow on `m0`: the variant of `bot` on `timer:t0` waits for it there (an outcome without an arrow is ignored), outcome `b` of action `o4` has no arrow on `m3`: the variant of `bot` on `timer:t0` waits for it there (an outcome without an arrow is ignored)]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_twice_every.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `bot`: empty name, `s0` → `btn:tw`: action `tw` with outcomes occurs twice in `do`, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/C_149_empty_key.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `s0`: empty name, `bot` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+  old: [children of section `s0`: empty name, `` → `btn:q`: action `tw2` with outcomes occurs twice in `do`, node `bot` is declared more than once]
+/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/corpus/D_empty_key_twice.bot.json: DIFF check (accept new=false old=false)
+  new: [children of section `bot`: empty name, `bot` → `btn:x`: action `c` with outcomes occurs twice in `do`, node `bot` is declared more than once, initial node `bot` of section `bot` must be a child of it]
+  old: [children of section `bot`: empty name, `` → `btn:x`: action `c` with outcomes occurs twice in `do`, node `bot` is declared more than once, initial node `bot` of section `bot` must be a child of it]
+documents 11318: same 9115, check differs 195, warnings differ 358, decode errors 1650; accepted 3523, rejected 6145
+--- stderr (0 bytes, last 100 lines)

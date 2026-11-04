@@ -1,0 +1,281 @@
+{
+ "figram": 1,
+ "conditions": {
+  "cart_not_empty": "The cart has at least one item (host data, written by add_to_cart/clear_cart)",
+  "in_zone": "The address text is in the delivery zone (data of the event)",
+  "address_rejected": "The CRM rejected the address (details of the outcome)"
+ },
+ "calls": {
+  "add_to_cart": "Add the item to the cart",
+  "clear_cart": "Empty the cart and open a new cart",
+  "save_address": "Save the address from the message",
+  "create_order": {
+   "text": "Create the order in the CRM",
+   "outcomes": [
+    "created",
+    "rejected"
+   ]
+  },
+  "notify": {
+   "text": "Push a notification to the phone",
+   "detached": true,
+   "outcomes": [
+    "sent"
+   ],
+   "every": true
+  },
+  "nudge": {
+   "text": "Push a cart reminder",
+   "detached": true
+  },
+  "log_idle": {
+   "text": "Log an idle user",
+   "detached": true
+  },
+  "alert_ops": {
+   "text": "Alert ops about a failed notification",
+   "detached": true
+  },
+  "count_sent": "Count a delivered notification",
+  "note_late": "Record an order outcome that arrived after the user left"
+ },
+ "bot": {
+  "initial": "menu",
+  "on": {
+   "cmd:start": [
+    {
+     "to": "menu"
+    }
+   ],
+   "cmd:help": [
+    {
+     "to": "help"
+    }
+   ],
+   "call:notify:sent": [
+    {
+     "do": [
+      "count_sent"
+     ]
+    }
+   ],
+   "call:notify:failed": [
+    {
+     "do": [
+      "alert_ops"
+     ]
+    }
+   ],
+   "call:create_order:created": [
+    {
+     "to": "done",
+     "do": [
+      "clear_cart",
+      "notify"
+     ]
+    }
+   ],
+   "call:create_order:rejected": [
+    {
+     "do": [
+      "note_late"
+     ]
+    }
+   ],
+   "call:create_order:failed": [
+    {
+     "do": [
+      "note_late"
+     ]
+    }
+   ]
+  },
+  "children": {
+   "menu": {
+    "on": {
+     "btn:order": [
+      {
+       "to": "order"
+      }
+     ],
+     "btn:resume": [
+      {
+       "to": "order",
+       "resume": true
+      }
+     ]
+    }
+   },
+   "help_section": {
+    "initial": "help",
+    "children": {
+     "help": {
+      "on": {
+       "btn:back": [
+        {
+         "to": "menu",
+         "back": true
+        }
+       ]
+      }
+     }
+    }
+   },
+   "done": {
+    "on": {
+     "btn:ping": [
+      {
+       "do": [
+        "notify"
+       ]
+      }
+     ],
+     "btn:again": [
+      {
+       "to": "order"
+      }
+     ]
+    }
+   },
+   "order": {
+    "initial": "catalog",
+    "on": {
+     "btn:cancel": [
+      {
+       "to": "menu",
+       "do": [
+        "clear_cart"
+       ]
+      }
+     ],
+     "timer:idle": [
+      {
+       "do": [
+        "log_idle"
+       ]
+      }
+     ]
+    },
+    "children": {
+     "catalog": {
+      "timers": {
+       "idle": 3000
+      },
+      "on": {
+       "btn:add": [
+        {
+         "to": "cart",
+         "do": [
+          "add_to_cart"
+         ]
+        }
+       ],
+       "btn:cart": [
+        {
+         "to": "cart"
+        }
+       ]
+      }
+     },
+     "cart": {
+      "timers": {
+       "cart_nudge": 2000
+      },
+      "on": {
+       "btn:checkout": [
+        {
+         "if": "cart_not_empty",
+         "to": "address"
+        },
+        {
+         "to": "catalog"
+        }
+       ],
+       "btn:more": [
+        {
+         "to": "catalog"
+        }
+       ],
+       "timer:cart_nudge": [
+        {
+         "do": [
+          "nudge"
+         ]
+        }
+       ]
+      }
+     },
+     "address": {
+      "on": {
+       "msg:text": [
+        {
+         "if": "in_zone",
+         "to": "pay",
+         "do": [
+          "save_address"
+         ]
+        },
+        {
+         "to": "pickup"
+        }
+       ]
+      }
+     },
+     "pay": {
+      "on": {
+       "payment:success": [
+        {
+         "to": "placing2",
+         "do": [
+          "create_order"
+         ]
+        }
+       ]
+      }
+     },
+     "order_failed": {
+      "on": {
+       "btn:retry": [
+        {
+         "to": "placing2",
+         "do": [
+          "create_order"
+         ]
+        }
+       ]
+      }
+     },
+     "pickup": {},
+     "placing2": {
+      "on": {
+       "call:create_order:created": [
+        {
+         "to": "done",
+         "do": [
+          "clear_cart",
+          "notify"
+         ]
+        }
+       ],
+       "call:create_order:rejected": [
+        {
+         "if": "address_rejected",
+         "to": "address"
+        },
+        {
+         "to": "order_failed"
+        }
+       ],
+       "call:create_order:failed": [
+        {
+         "to": "order_failed"
+        }
+       ]
+      }
+     }
+    }
+   }
+  }
+ },
+ "x-version": 2
+}

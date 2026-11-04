@@ -1,0 +1,147 @@
+{
+ "opts": {
+  "Name": "",
+  "UsersPerBot": 20,
+  "Bots": [
+   "shop",
+   "points",
+   "booking"
+  ],
+  "Goals": 2,
+  "MaxActions": 40,
+  "Seed": 21,
+  "DB": "/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/controls.db",
+  "Sync": "NORMAL",
+  "ReloadEvery": 0,
+  "NotifyLatency": 300000000,
+  "ReplyWait": 5000000000,
+  "DrainTimeout": 30000000000,
+  "Out": "/home/user/figram-audit/agents6/hostgo/results/control-nolock.json"
+ },
+ "control": "nolock",
+ "checks": [
+  {
+   "name": "I1 at most one irreversible effect per logical action / per cart",
+   "ok": true,
+   "cases": 789,
+   "fails": 0
+  },
+  {
+   "name": "I2 one outcome per call; one accepted outcome unless replaced/cleared",
+   "ok": false,
+   "cases": 592,
+   "fails": 709,
+   "samples": [
+    "two calls with the same token: {points-4 award 3}",
+    "two calls with the same token: {points-1 award 4}",
+    "two calls with the same token: {points-4 award 5}",
+    "two calls with the same token: {points-1 award 4}",
+    "two calls with the same token: {points-1 award 4}",
+    "two calls with the same token: {points-1 award 4}",
+    "two calls with the same token: {points-4 award 5}",
+    "two calls with the same token: {points-1 award 4}"
+   ]
+  },
+  {
+   "name": "I3 no stuck users",
+   "ok": false,
+   "cases": 60,
+   "fails": 22,
+   "samples": [
+    "shop-9: waits left in the snapshot: [map[call:notify token:7]]",
+    "points-16: waits left in the snapshot: [map[call:award token:64] map[call:award token:60] map[call:award token:42] map[call:award token:41] map[call:award token:39] map[call:award token:37] map[call:award token:35] map[call:award token:19] map[call:award token:17] map[call:award token:10] map[call:award token:9]]",
+    "shop-18: waits left in the snapshot: [map[call:create_order token:6]]",
+    "points-0: waits left in the snapshot: [map[call:award token:69] map[call:award token:66] map[call:award token:64] map[call:award token:62] map[call:award token:60] map[call:award token:59] map[call:award token:35] map[call:award token:34] map[call:award token:32] map[call:award token:24] map[call:award token:17] map[call:award token:15] map[call:award token:14] map[call:award token:8]]",
+    "points-1: waits left in the snapshot: [map[call:award token:4]]",
+    "points-2: waits left in the snapshot: [map[call:award token:17] map[call:award token:16] map[call:award token:15] map[call:award token:14] map[call:award token:13]]",
+    "points-3: waits left in the snapshot: [map[call:award token:36] map[call:award token:35] map[call:award token:33] map[call:award token:28] map[call:award token:27] map[call:award token:26] map[call:award token:25] map[call:award token:24] map[call:award token:23]]",
+    "points-4: waits left in the snapshot: [map[call:award token:5] map[call:award token:4] map[call:award token:3] map[call:award token:2]]",
+    "info: 12 times a simulated user on a waiting message waited longer than the reply wait"
+   ]
+  },
+  {
+   "name": "I4 sequential replay (conditions on sequentially applied data) = host",
+   "ok": false,
+   "cases": 60,
+   "fails": 50,
+   "samples": [
+    "booking-0 step 702 (step btn:again): stored snapshot before the step {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":6}],\"resume\":{\"booking\":\"hold\"},\"seq\":6,\"timers\":{\"patience\":6}}, replay {\"at\":\"confirm\",\"back\":\"lobby\",\"resume\":{\"booking\":\"confirm\"},\"seq\":7,\"timers\":{\"expire\":7}}",
+    "booking-1 step 1414 (step timer:patience): stored snapshot before the step {\"at\":\"pick\",\"back\":\"lobby\",\"resume\":{\"booking\":\"pick\"},\"seq\":17}, replay {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":18}],\"resume\":{\"booking\":\"hold\"},\"seq\":18,\"timers\":{\"patience\":18}}",
+    "booking-10 step 369 (step btn:again): stored snapshot before the step {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":5}],\"resume\":{\"booking\":\"hold\"},\"seq\":5,\"timers\":{\"patience\":5}}, replay {\"at\":\"confirm\",\"back\":\"lobby\",\"resume\":{\"booking\":\"confirm\"},\"seq\":6,\"timers\":{\"expire\":6}}",
+    "booking-11 step 240 (step call:reserve:held): stored snapshot before the step {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":3}],\"resume\":{\"booking\":\"hold\"},\"seq\":3,\"timers\":{\"patience\":3}}, replay {\"at\":\"lobby\",\"seq\":4}",
+    "booking-13 step 598 (step btn:slot): stored snapshot before the step {\"at\":\"pick\",\"back\":\"lobby\",\"resume\":{\"booking\":\"pick\"},\"seq\":9}, replay {\"at\":\"pick\",\"back\":\"lobby\",\"pending\":[{\"call\":\"log_ping\",\"token\":10}],\"resume\":{\"booking\":\"pick\"},\"seq\":10}",
+    "booking-15 step 995 (step call:log_ping:logged): stored snapshot before the step {\"at\":\"hold\",\"pending\":[{\"call\":\"reserve\",\"token\":15},{\"call\":\"log_ping\",\"token\":14}],\"resume\":{\"booking\":\"hold\"},\"seq\":15,\"timers\":{\"patience\":15}}, replay {\"at\":\"confirm\",\"pending\":[{\"call\":\"log_ping\",\"token\":14}],\"resume\":{\"booking\":\"confirm\"},\"seq\":16,\"timers\":{\"expire\":16}}",
+    "booking-16 step 1524 (step call:reserve:held): stored snapshot before the step {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":24}],\"resume\":{\"booking\":\"hold\"},\"seq\":24,\"timers\":{\"patience\":24}}, replay {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":25}],\"resume\":{\"booking\":\"hold\"},\"seq\":25,\"timers\":{\"patience\":25}}",
+    "booking-17 step 869 (step call:reserve:taken): stored snapshot before the step {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":13}],\"resume\":{\"booking\":\"hold\"},\"seq\":13,\"timers\":{\"patience\":13}}, replay {\"at\":\"hold\",\"back\":\"lobby\",\"pending\":[{\"call\":\"reserve\",\"token\":14}],\"resume\":{\"booking\":\"hold\"},\"seq\":14,\"timers\":{\"patience\":14}}"
+   ]
+  },
+  {
+   "name": "I5 background actions never block users",
+   "ok": true,
+   "cases": 2962,
+   "fails": 0,
+   "samples": [
+    "barrier wait p50 0 µs, p99 157915 µs, max 271141 µs; after a background action, waits ≥ 300000 µs: slow-background users 0.00% of 22 steps, others 0.00% of 72"
+   ]
+  },
+  {
+   "name": "I6 every reply validates (checkReply of clients/go)",
+   "ok": true,
+   "cases": 2975,
+   "fails": 0
+  },
+  {
+   "name": "I7 no acknowledged update lost",
+   "ok": true,
+   "cases": 2354,
+   "fails": 0
+  }
+ ],
+ "ok": false,
+ "crashes": {},
+ "instances": 1,
+ "reloads": 0,
+ "closed_retries": 0,
+ "counts": {
+  "bg_failq": 0,
+  "calls_with_token": 800,
+  "crm_calls": 47,
+  "crm_effects": 33,
+  "detached_calls": 94,
+  "drops": 1038,
+  "drops_no_snapshot": 1,
+  "drops_run_id": 1037,
+  "dup_filtered": 10167,
+  "failed_outcomes": 6,
+  "goroutines_at_end": 3,
+  "lost_snapshots": 13,
+  "max_pending": 15,
+  "no_target_steps": 850,
+  "notify_calls": 74,
+  "order_outcomes_on_other_msg": 4,
+  "outbox": 3598,
+  "outcome_steps": 500,
+  "outcomes_outside_waiting_msg": 334,
+  "reconciled_hits": 7,
+  "reconciliations": 13,
+  "recovered_steps": 0,
+  "reserve_outcomes_ignored": 23,
+  "restarts": 47,
+  "seq_failq": 0,
+  "starts_with_hwm": 11,
+  "step_latency_p50_us": 13286,
+  "step_latency_p99_us": 295287,
+  "steps": 2975,
+  "timer_steps": 121,
+  "updates": 2354,
+  "updates_delivered_twice": 222,
+  "user_actions": 2354,
+  "user_goals": 81,
+  "user_no_reply": 591,
+  "user_support_ops": 60,
+  "users": 60,
+  "users_phase_ms": 190280
+ },
+ "elapsed_s": 190.599000688,
+ "drained": true
+}

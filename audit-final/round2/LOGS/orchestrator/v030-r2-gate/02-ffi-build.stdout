@@ -1,0 +1,3 @@
+✔ [44/47] Built Figram:static (44ms)
+Build completed successfully (47 jobs).
+done: ffi/out/libfigram.a, linker flags: ffi/out/LDFLAGS

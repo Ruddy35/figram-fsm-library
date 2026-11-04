@@ -1,0 +1,149 @@
+{
+ "ok": false,
+ "duration_load_s": 40.0,
+ "duration_total_s": 42.3,
+ "user_actions": 4283,
+ "updates_sent": 4383,
+ "duplicate_deliveries": 693,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 100.5,
+ "mem": {
+  "host_max_kb": 53172,
+  "engine_max_kb": 6368
+ },
+ "cpu_s": {
+  "host": 38.2,
+  "engines": 0.5
+ },
+ "notes": {
+  "users": 100,
+  "elog": 4019,
+  "steps": 4003,
+  "calls_with_token": 503,
+  "outcomes": {
+   "accepted": 498,
+   "replaced_by_later_call": 5
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 4003,
+  "steps_with_background_pending": 662,
+  "failq": 59,
+  "effects_positive": 497,
+  "applications": 899
+ },
+ "alerts": {
+  "failure_queue": 98
+ },
+ "log": [
+  [
+   10.0,
+   "backup"
+  ],
+  [
+   20.01,
+   "restore"
+  ],
+  [
+   40.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 4019,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 34,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 3199,
+   "p50": 125.2,
+   "p90": 681.3,
+   "p99": 1671.9,
+   "max": 13100.3
+  },
+  "outcome": {
+   "n": 503,
+   "p50": 132.1,
+   "p90": 697.7,
+   "p99": 11633.5,
+   "max": 12870.2
+  },
+  "timer": {
+   "n": 301,
+   "p50": 361.0,
+   "p90": 1103.5,
+   "p99": 12854.2,
+   "max": 13058.3
+  }
+ },
+ "user_visible_divergence": {
+  "users": 100,
+  "chat_differs_from_snapshot": 12,
+  "chat_shows_waiting_message": 0,
+  "examples": [
+   [
+    "u0095",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0042",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0057",
+    "done",
+    "catalog"
+   ],
+   [
+    "u0049",
+    "done",
+    "empty_cart"
+   ],
+   [
+    "u0073",
+    "done",
+    "confirm"
+   ]
+  ]
+ },
+ "violations": {
+  "I1.duplicate_effect": {
+   "count": 1,
+   "examples": [
+    {
+     "service": "notify",
+     "logical": "u0020|timer:nudge:22:2d57f0ed-d3a9-47f2-b884-672dee7786b5|call:nudge_user|0",
+     "keys": [
+      "u0020:26:0",
+      "u0020:25:0"
+     ]
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 540.0,
+  "callbacks.received": 47.0,
+  "drop.stale_run": 16.0,
+  "dup.skipped.outcome": 31.0,
+  "dup.skipped.tg": 693.0,
+  "steps": 5517.0,
+  "steps.outcome": 768.0,
+  "steps.tg": 4369.0,
+  "steps.timer": 380.0,
+  "tg.received": 5050.0,
+  "timers.fired": 373.0,
+  "x.reconcile": 90.0,
+  "x.reconciled_found": 36.0,
+  "x.retry": 247.0
+ }
+}

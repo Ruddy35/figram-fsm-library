@@ -1,0 +1,2 @@
+tests/capi/mutants.sh: line 9: lean: command not found
+tests/capi/mutants.sh: line 43: leanc: command not found

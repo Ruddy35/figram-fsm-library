@@ -1,0 +1,4 @@
+examples/pizza.bot.json: mutations 151
+examples/features.bot.json: mutations 132
+detected 271 of 271 mutations (100%)
+mutations of unreachable variants (not counted, all survived): 12

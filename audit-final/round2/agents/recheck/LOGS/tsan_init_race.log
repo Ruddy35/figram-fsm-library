@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 /home/user/figram-audit/agents6/recheck/repro/tsan_init_race.sh tests/capi/out/contract_tsan examples/pizza.bot.json 40 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:21:33.945Z
+end: 2026-11-04T01:21:42.706Z
+exit_code: 0
+--- stdout (33 bytes, last 200 lines)
+tsan init_race runs 40, failed 0
+--- stderr (0 bytes, last 100 lines)

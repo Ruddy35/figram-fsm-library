@@ -1,0 +1,11 @@
+command: env FIGRAM_ALLOW_MUTANTS=1 nice -n 10 timeout 1200 python3 tests/engine/mutation.py .lake/build/bin/figram-engine --unreachable examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza.cov --unreachable examples/features.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/features.cov --golden examples/golden.jsonl examples/pizza.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/pizza.jsonl examples/features.bot.json=/tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/tr3/features.jsonl 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T02:31:10.244Z
+end: 2026-11-04T02:33:01.520Z
+exit_code: 0
+--- stdout (184 bytes, last 200 lines)
+examples/pizza.bot.json: mutations 151
+examples/features.bot.json: mutations 132
+detected 271 of 271 mutations (100%)
+mutations of unreachable variants (not counted, all survived): 12
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,4 @@
+examples/pizza.bot.json: mutations 79
+examples/features.bot.json: mutations 132
+detected 210 of 211 mutations (99%)
+   survived: examples/pizza.bot.json: wait-swap:create_order

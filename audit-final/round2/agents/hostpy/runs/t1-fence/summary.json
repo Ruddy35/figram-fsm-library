@@ -1,0 +1,124 @@
+{
+ "args": {
+  "bot": "shop",
+  "out": "runs/t1-fence",
+  "users": 80,
+  "duration": 30.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [],
+  "sched_outside": false,
+  "restore": "",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 6,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/shop.bot.json"
+ },
+ "log": [
+  [
+   30.01,
+   "load end",
+   {
+    "inbound": 0,
+    "outbox_new": 0,
+    "timers": 0,
+    "steps": 3484,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 38,
+    "cb_pending": 0
+   }
+  ]
+ ],
+ "duration_load_s": 30.0,
+ "duration_total_s": 31.7,
+ "user_actions": 2596,
+ "frustrated_starts": 0,
+ "updates_sent": 2676,
+ "duplicate_deliveries": 401,
+ "steps_at_load_end": 3484,
+ "host_restarts": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 116.1,
+ "mem": {
+  "host_max_kb": 53100,
+  "engine_max_kb": 6468
+ },
+ "mem_samples_tail": [
+  [
+   1793755670.7,
+   53044,
+   [
+    6468,
+    6452
+   ]
+  ],
+  [
+   1793755671.7,
+   53100,
+   [
+    6468,
+    6452
+   ]
+  ],
+  [
+   1793755672.0,
+   53056,
+   [
+    6468,
+    6452
+   ]
+  ]
+ ],
+ "ok": true,
+ "violations": {},
+ "notes": {
+  "users": 80,
+  "elog": 3484,
+  "steps": 3484,
+  "calls_with_token": 623,
+  "outcomes": {
+   "accepted": 604,
+   "replaced_by_later_call": 19
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 3484,
+  "steps_with_background_pending": 615,
+  "failq": 59,
+  "effects_positive": 412,
+  "applications": 715
+ },
+ "alerts": {
+  "failure_queue": 59
+ },
+ "metrics": {
+  "tg.received": 3077.0,
+  "steps": 3484.0,
+  "steps.tg": 2676.0,
+  "dup.skipped.tg": 401.0,
+  "x.retry": 340.0,
+  "steps.outcome": 623.0,
+  "bg.retry": 428.0,
+  "x.reconcile": 116.0,
+  "timers.fired": 185.0,
+  "steps.timer": 185.0,
+  "x.reconciled_found": 38.0,
+  "callbacks.received": 38.0,
+  "dup.skipped.outcome": 38.0
+ }
+}

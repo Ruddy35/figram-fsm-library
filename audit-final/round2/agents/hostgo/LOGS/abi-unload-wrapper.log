@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 300 /home/user/figram-audit/agents6/hostgo/host/bin/hostgo abi unload-wrapper 
+cwd: /home/user/figram-audit/agents6/hostgo
+start: 2026-11-04T02:20:19.009Z
+end: 2026-11-04T02:20:29.346Z
+exit_code: 0
+--- stdout (125 bytes, last 200 lines)
+reference wrapper: reloads 66, correct replies 440, 'bot is closed' 0 (retried by a host), wrong 0, longest Close 249723 µs
+--- stderr (0 bytes, last 100 lines)

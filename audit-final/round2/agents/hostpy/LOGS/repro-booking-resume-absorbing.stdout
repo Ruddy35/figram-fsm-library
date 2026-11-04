@@ -1,0 +1,14 @@
+== figram check
+ok
+check rc=0
+{"op": "step", "snapshot": {"at": "holding", "resume": {"booking": "holding"}, "back": "start", "seq": 3, "tim -> {"id": 1, "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "pending": [{"call": "book_seat", "token": 4}], "seq": 4}, "actions": [{"cancel_timer": "hold"}, {"call
+{"op": "step", "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "pending -> {"id": 2, "snapshot": {"at": "help", "back": "confirming", "resume": {"booking": "confirming"}, "pending": [{"call": "book_seat", "token": 4}], "seq": 5}, "actions": [{"send": "help"}]}
+{"op": "step", "snapshot": {"at": "help", "back": "confirming", "resume": {"booking": "confirming"}, "pending" -> {"id": 3, "snapshot": {"at": "help", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 5}, "actions": []}
+{"op": "step", "snapshot": {"at": "help", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 5} -> {"id": 4, "snapshot": {"at": "confirming", "back": "help", "resume": {"booking": "confirming"}, "seq": 6}, "actions": [{"send": "confirming"}]}
+{"op": "step", "snapshot": {"at": "confirming", "back": "help", "resume": {"booking": "confirming"}, "seq": 6} -> {"id": 5, "snapshot": {"at": "start", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 7}, "actions": [{"call": "release_seat"}, {"send": "start"}]}
+{"op": "step", "snapshot": {"at": "start", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 7 -> {"id": 6, "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "seq": 8}, "actions": [{"send": "confirming"}]}
+{"op": "step", "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "seq": 8 -> {"id": 7, "snapshot": {"at": "start", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 9}, "actions": [{"call": "release_seat"}, {"send": "start"}]}
+{"op": "step", "snapshot": {"at": "start", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 9 -> {"id": 8, "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "seq": 10}, "actions": [{"send": "confirming"}]}
+{"op": "step", "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "seq": 1 -> {"id": 9, "snapshot": {"at": "start", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 11}, "actions": [{"call": "release_seat"}, {"send": "start"}]}
+{"op": "step", "snapshot": {"at": "start", "back": "confirming", "resume": {"booking": "confirming"}, "seq": 1 -> {"id": 10, "snapshot": {"at": "confirming", "back": "start", "resume": {"booking": "confirming"}, "seq": 12}, "actions": [{"send": "confirming"}]}
+RESULT: after 3 x (cancel, book) the user is on confirming pending None stuck times 3

@@ -1,0 +1,462 @@
+{
+ "args": {
+  "bot": "shop",
+  "out": "runs/n1-no-user-lock",
+  "users": 60,
+  "duration": 15.0,
+  "seed": 1,
+  "crash_p": 0.0,
+  "crash_points": "",
+  "dup_p": 0.1,
+  "workers": 12,
+  "executors": 16,
+  "engine": "/home/user/figram-audit-worktrees/a6-hostpy/.lake/build/bin/figram-engine",
+  "flag": [
+   "no-user-lock"
+  ],
+  "sched_outside": false,
+  "restore": "",
+  "lose": 0,
+  "restarts": 0,
+  "doc_update_at": 0,
+  "doc_v2": "",
+  "delayed_pct": 0,
+  "callback_max_s": 4.0,
+  "email_dead_pct": 15,
+  "notify_dead_pct": 20,
+  "stuck_ok": false,
+  "no_replay": false,
+  "quiesce_timeout": 120,
+  "script": "",
+  "doc_v1": "/home/user/figram-audit/agents6/hostpy/bots/shop.bot.json"
+ },
+ "log": [
+  [
+   15.0,
+   "load end",
+   {
+    "inbound": 3,
+    "outbox_new": 8,
+    "timers": 17,
+    "steps": 2447,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 12,
+    "cb_pending": 2
+   }
+  ]
+ ],
+ "duration_load_s": 15.0,
+ "duration_total_s": 21.3,
+ "user_actions": 1940,
+ "frustrated_starts": 20,
+ "updates_sent": 2000,
+ "duplicate_deliveries": 302,
+ "steps_at_load_end": 2447,
+ "host_restarts": 0,
+ "host_crashes_injected": 0,
+ "throughput_steps_per_s_load": 163.1,
+ "mem": {
+  "host_max_kb": 50616,
+  "engine_max_kb": 6464
+ },
+ "cpu_s": {
+  "host": 22.6,
+  "engines": 0.3
+ },
+ "mem_samples_tail": [
+  [
+   1793756303.5,
+   50604,
+   [
+    6464,
+    6452
+   ]
+  ],
+  [
+   1793756304.5,
+   50584,
+   [
+    6464,
+    6452
+   ]
+  ],
+  [
+   1793756305.4,
+   50592,
+   [
+    6464,
+    6452
+   ]
+  ]
+ ],
+ "ok": false,
+ "violations": {
+  "I2.outcome_not_accepted_without_reason": {
+   "count": 16,
+   "examples": [
+    {
+     "user": "u0042",
+     "call": "call:send_receipt:6:7e38a5cc-3f99-49d1-bf3d-05489eb8a8d0",
+     "entry": 575
+    },
+    {
+     "user": "u0016",
+     "call": "call:send_receipt:6:d0421e64-2c27-4975-884c-cf409b6e5e84",
+     "entry": 757
+    },
+    {
+     "user": "u0035",
+     "call": "call:create_order:7:1303160d-8287-4e19-b27f-341dbd1a448e",
+     "entry": 526
+    },
+    {
+     "user": "u0027",
+     "call": "call:send_receipt:8:47a00cac-ab80-4144-9f39-345577c2b741",
+     "entry": 1396
+    },
+    {
+     "user": "u0048",
+     "call": "call:send_receipt:6:0b715ca2-9f82-4438-8f84-3fc92ea87fff",
+     "entry": 1033
+    }
+   ]
+  },
+  "I2.outcome_of_current_call_dropped": {
+   "count": 4,
+   "examples": [
+    {
+     "user": "u0035",
+     "call": "call:create_order:13:0eb90572-96ea-46c6-b6fa-7e4c40b60fe7",
+     "note": "stale_run"
+    },
+    {
+     "user": "u0029",
+     "call": "call:create_order:16:50d05b02-7d5e-44c0-ab9d-0c3149c70743",
+     "note": "stale_run"
+    },
+    {
+     "user": "u0029",
+     "call": "call:create_order:16:388c8667-3b80-4b9c-9dd8-a07b25e81193",
+     "note": "stale_run"
+    },
+    {
+     "user": "u0051",
+     "call": "call:create_order:14:976d88df-f02c-41bf-9eaa-3bafcd89fef7",
+     "note": "stale_run"
+    }
+   ]
+  },
+  "I2.timer_of_another_history_processed": {
+   "count": 2,
+   "examples": [
+    {
+     "user": "u0035",
+     "uid": "timer:slow:13:cab33ded-685c-41c4-ad30-9eb0d96697ec"
+    },
+    {
+     "user": "u0051",
+     "uid": "timer:slow:14:5dbf87bf-3c4d-4701-98bf-849ed902f3fd"
+    }
+   ]
+  },
+  "I3.wait_left_in_snapshot": {
+   "count": 9,
+   "examples": [
+    {
+     "user": "u0044",
+     "pending": [
+      {
+       "call": "create_order",
+       "token": 19
+      }
+     ],
+     "at": "placing"
+    },
+    {
+     "user": "u0032",
+     "pending": [
+      {
+       "call": "send_receipt",
+       "token": 6
+      }
+     ],
+     "at": "order_failed"
+    },
+    {
+     "user": "u0023",
+     "pending": [
+      {
+       "call": "send_receipt",
+       "token": 11
+      }
+     ],
+     "at": "done"
+    },
+    {
+     "user": "u0033",
+     "pending": [
+      {
+       "call": "create_order",
+       "token": 29
+      }
+     ],
+     "at": "placing"
+    },
+    {
+     "user": "u0046",
+     "pending": [
+      {
+       "call": "send_receipt",
+       "token": 6
+      }
+     ],
+     "at": "catalog"
+    }
+   ]
+  },
+  "I4.step_read_a_stale_snapshot": {
+   "count": 136,
+   "examples": [
+    {
+     "user": "u0001",
+     "entry": 555,
+     "op": "step"
+    },
+    {
+     "user": "u0001",
+     "entry": 558,
+     "op": "step"
+    },
+    {
+     "user": "u0001",
+     "entry": 560,
+     "op": "step"
+    },
+    {
+     "user": "u0001",
+     "entry": 1528,
+     "op": "step"
+    },
+    {
+     "user": "u0002",
+     "entry": 1001,
+     "op": "step"
+    }
+   ]
+  },
+  "I4.replay_differs": {
+   "count": 136,
+   "examples": [
+    {
+     "user": "u0001",
+     "entry": 555,
+     "logged": {
+      "at": "confirm",
+      "back": "menu",
+      "resume": {
+       "shop": "confirm"
+      },
+      "seq": 6
+     },
+     "replayed": {
+      "at": "confirm",
+      "back": "menu",
+      "resume": {
+       "shop": "confirm"
+      },
+      "seq": 6
+     }
+    },
+    {
+     "user": "u0001",
+     "entry": 558,
+     "logged": {
+      "at": "confirm",
+      "back": "menu",
+      "resume": {
+       "shop": "confirm"
+      },
+      "seq": 6
+     },
+     "replayed": {
+      "at": "confirm",
+      "back": "menu",
+      "resume": {
+       "shop": "confirm"
+      },
+      "seq": 6
+     }
+    },
+    {
+     "user": "u0001",
+     "entry": 560,
+     "logged": {
+      "at": "catalog",
+      "back": "menu",
+      "resume": {
+       "shop": "catalog"
+      },
+      "seq": 6
+     },
+     "replayed": {
+      "at": "confirm",
+      "back": "menu",
+      "resume": {
+       "shop": "confirm"
+      },
+      "seq": 6
+     }
+    },
+    {
+     "user": "u0001",
+     "entry": 1528,
+     "logged": {
+      "at": "catalog",
+      "back": "info",
+      "resume": {
+       "shop": "catalog"
+      },
+      "timers": {
+       "nudge": 12
+      },
+      "seq": 13
+     },
+     "replayed": {
+      "at": "info",
+      "back": "catalog",
+      "resume": {
+       "shop": "info"
+      },
+      "seq": 13
+     }
+    },
+    {
+     "user": "u0002",
+     "entry": 1001,
+     "logged": {
+      "at": "help",
+      "back": "placing",
+      "resume": {
+       "shop": "confirm"
+      },
+      "pending": [
+       {
+        "call": "create_order",
+        "token": 11
+       }
+      ],
+      "seq": 12
+     },
+     "replayed": {
+      "at": "done",
+      "back": "help",
+      "resume": {
+       "shop": "confirm"
+      },
+      "pending": [
+       {
+        "call": "send_receipt",
+        "token": 14
+       }
+      ],
+      "seq": 14
+     }
+    }
+   ]
+  },
+  "I7.condition_with_pending_sequential_actions": {
+   "count": 1,
+   "examples": [
+    {
+     "times": 4.0
+    }
+   ]
+  }
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2473,
+  "steps": 2465,
+  "calls_with_token": 301,
+  "outcomes": {
+   "accepted": 276,
+   "replaced_by_later_call": 5,
+   "dropped:stale_run": 4
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2465,
+  "steps_with_background_pending": 467,
+  "failq": 51,
+  "effects_positive": 284,
+  "applications": 386
+ },
+ "alerts": {
+  "failure_queue": 51
+ },
+ "metrics": {
+  "tg.received": 2302.0,
+  "steps": 2465.0,
+  "steps.tg": 2000.0,
+  "dup.race": 157.0,
+  "dup.skipped.tg": 302.0,
+  "x.retry": 97.0,
+  "steps.outcome": 297.0,
+  "bg.retry": 320.0,
+  "timers.fired": 172.0,
+  "x.reconcile": 44.0,
+  "x.reconciled_found": 12.0,
+  "steps.timer": 168.0,
+  "cond.with_pending_sequential": 4.0,
+  "callbacks.received": 12.0,
+  "dup.skipped.outcome": 12.0,
+  "drop.stale_run": 8.0
+ },
+ "latency_ms": {
+  "tg": {
+   "n": 2000,
+   "p50": 67.1,
+   "p90": 432.5,
+   "p99": 1207.3,
+   "max": 2292.2
+  },
+  "outcome": {
+   "n": 297,
+   "p50": 41.5,
+   "p90": 343.1,
+   "p99": 1568.9,
+   "max": 2498.4
+  },
+  "timer": {
+   "n": 168,
+   "p50": 99.8,
+   "p90": 587.7,
+   "p99": 1925.6,
+   "max": 2551.8
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 3,
+  "chat_shows_waiting_message": 0,
+  "examples": [
+   [
+    "u0044",
+    "done",
+    "placing"
+   ],
+   [
+    "u0050",
+    "help",
+    "done"
+   ],
+   [
+    "u0033",
+    "done",
+    "placing"
+   ]
+  ]
+ }
+}

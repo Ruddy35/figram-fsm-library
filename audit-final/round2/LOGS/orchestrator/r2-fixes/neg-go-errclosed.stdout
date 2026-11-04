@@ -1,0 +1,5 @@
+--- FAIL: TestFixClosedAndVariants (0.00s)
+    fix_test.go:176: closed: bot is closed, want ErrClosed
+FAIL
+FAIL	gofig	0.007s
+FAIL

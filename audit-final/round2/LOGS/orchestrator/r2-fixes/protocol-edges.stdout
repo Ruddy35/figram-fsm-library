@@ -1,0 +1,2 @@
+FAIL validator on {"id":5,"protocol":3,"states":8,"mutant":""}: accepted, expected rejected
+protocol edge cases 256, replies 256, mismatches 1

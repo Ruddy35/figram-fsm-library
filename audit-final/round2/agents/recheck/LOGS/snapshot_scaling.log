@@ -1,0 +1,17 @@
+command: nice -n 10 python3 tests/engine/snapshot_scaling.py .lake/build/bin/figram-engine examples/features.bot.json 
+cwd: /home/user/figram-audit-worktrees/a6-recheck
+start: 2026-11-04T01:05:16.666Z
+end: 2026-11-04T01:05:22.171Z
+exit_code: 0
+--- stdout (1313 bytes, last 200 lines)
+ok   leave a message: cancel all timers: 20000 entries 0.040 s, 80000 entries 0.187 s, ratio 4.7 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, enter with the event: 20000 entries 0.041 s, 80000 entries 0.188 s, ratio 4.6 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, no variant at the initial message: 20000 entries 0.041 s, 80000 entries 0.193 s, ratio 4.8 (at most 8.0, at most 3.0 s)
+ok   recovery: cancel all timers, a late timer event of the removed message: 20000 entries 0.041 s, 80000 entries 0.195 s, ratio 4.8 (at most 8.0, at most 3.0 s)
+ok   restart: cancel all timers: 20000 entries 0.039 s, 80000 entries 0.193 s, ratio 5.0 (at most 8.0, at most 3.0 s)
+ok   an outcome: remove its wait among all waits: 20000 entries 0.082 s, 80000 entries 0.327 s, ratio 4.0 (at most 8.0, at most 3.0 s)
+ok   a call answered at its latest call: replace its wait among all waits: 20000 entries 0.073 s, 80000 entries 0.296 s, ratio 4.0 (at most 8.0, at most 3.0 s)
+ok   a call with every: add a wait among all waits: 20000 entries 0.077 s, 80000 entries 0.399 s, ratio 5.2 (at most 8.0, at most 3.0 s)
+ok   enter a message: remember the place among all places: 20000 entries 0.030 s, 80000 entries 0.178 s, ratio 5.9 (at most 8.0, at most 3.0 s)
+snapshot scaling: cases 9, failed 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 1500 lake build figram-engine 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/fixeng
+start: 2026-11-04T00:53:15.163Z
+end: 2026-11-04T00:53:36.411Z
+exit_code: 0
+--- stdout (162 bytes, last 200 lines)
+✔ [26/28] Built EngineMain (1.2s)
+✔ [27/28] Built EngineMain:c.o (1.3s)
+✔ [28/28] Built «figram-engine»:exe (17s)
+Build completed successfully (28 jobs).
+--- stderr (0 bytes, last 100 lines)

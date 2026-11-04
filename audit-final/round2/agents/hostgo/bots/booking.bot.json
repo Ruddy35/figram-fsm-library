@@ -1,0 +1,68 @@
+{
+  "figram": 1,
+  "conditions": {
+    "has_credit": "The user has a prepaid credit (host data, written by topup/charge)"
+  },
+  "calls": {
+    "reserve": {"text": "Hold a slot in the booking system", "outcomes": ["held", "taken"]},
+    "release": "Release a held slot",
+    "charge": "Use one prepaid credit",
+    "topup": "Add one prepaid credit",
+    "apologize": {"text": "Send an apology for the wait", "detached": true},
+    "log_ping": {"text": "Log a ping", "detached": true, "outcomes": ["ok"]},
+    "count_ping": "Count an answered ping"
+  },
+  "bot": {
+    "initial": "lobby",
+    "on": {
+      "cmd:start": [{"to": "lobby"}],
+      "cmd:help": [{"to": "help"}],
+      "call:log_ping:ok": [{"do": ["count_ping"]}],
+      "call:log_ping:failed": [{"do": ["count_ping"]}],
+      "call:reserve:held": [{"do": ["release"]}],
+      "call:reserve:taken": [{}],
+      "call:reserve:failed": [{}]
+    },
+    "children": {
+      "lobby": {
+        "on": {
+          "btn:book": [{"to": "booking", "resume": true}],
+          "btn:topup": [{"do": ["topup"]}]
+        }
+      },
+      "help_sec": {
+        "initial": "help",
+        "children": {"help": {"on": {"btn:back": [{"to": "lobby", "back": true}]}}}
+      },
+      "booking": {
+        "initial": "pick",
+        "on": {
+          "btn:leave": [{"to": "lobby"}],
+          "btn:ping": [{"do": ["log_ping"]}],
+          "call:reserve:taken": [{"to": "pick"}],
+          "call:reserve:failed": [{"to": "pick"}]
+        },
+        "children": {
+          "pick": {"on": {"btn:slot": [{"to": "hold", "do": ["reserve"]}]}},
+          "hold": {
+            "timers": {"patience": 300},
+            "on": {
+              "call:reserve:held": [{"to": "confirm"}],
+              "btn:again": [{"to": "hold", "do": ["reserve"]}],
+              "timer:patience": [{"do": ["apologize"]}]
+            }
+          },
+          "confirm": {
+            "timers": {"expire": 2000},
+            "on": {
+              "btn:pay": [{"if": "has_credit", "to": "booked", "do": ["charge"]}, {"to": "topup_needed"}],
+              "timer:expire": [{"to": "pick", "do": ["release"]}]
+            }
+          },
+          "topup_needed": {"on": {"btn:topup": [{"to": "confirm", "do": ["topup"]}]}},
+          "booked": {"on": {"btn:again": [{"to": "pick"}]}}
+        }
+      }
+    }
+  }
+}

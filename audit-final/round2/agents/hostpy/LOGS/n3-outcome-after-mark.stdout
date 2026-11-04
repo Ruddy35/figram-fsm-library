@@ -1,0 +1,156 @@
+{
+ "ok": false,
+ "duration_load_s": 15.0,
+ "duration_total_s": 21.3,
+ "user_actions": 1786,
+ "updates_sent": 1846,
+ "duplicate_deliveries": 275,
+ "host_crashes_injected": 10,
+ "throughput_steps_per_s_load": 150.2,
+ "mem": {
+  "host_max_kb": 46504,
+  "engine_max_kb": 6540
+ },
+ "cpu_s": {
+  "host": 19.1,
+  "engines": 0.2
+ },
+ "notes": {
+  "users": 60,
+  "elog": 2291,
+  "steps": 2291,
+  "calls_with_token": 291,
+  "outcomes": {
+   "accepted": 273,
+   "replaced_by_later_call": 7
+  },
+  "users_on_waiting_message_without_wait": 0,
+  "stuck_classes": {},
+  "stuck_examples": {},
+  "replayed_entries": 2291,
+  "steps_with_background_pending": 362,
+  "failq": 26,
+  "effects_positive": 274,
+  "applications": 375
+ },
+ "alerts": {
+  "failure_queue": 26
+ },
+ "log": [
+  [
+   15.0,
+   "load end",
+   {
+    "inbound": 12,
+    "outbox_new": 18,
+    "timers": 13,
+    "steps": 2254,
+    "deliveries": 0,
+    "delayed": 0,
+    "callbacks": 16,
+    "cb_pending": 4
+   }
+  ]
+ ],
+ "latency_ms": {
+  "tg": {
+   "n": 1846,
+   "p50": 167.1,
+   "p90": 906.8,
+   "p99": 2659.6,
+   "max": 3721.7
+  },
+  "outcome": {
+   "n": 280,
+   "p50": 83.0,
+   "p90": 803.1,
+   "p99": 2432.8,
+   "max": 3329.7
+  },
+  "timer": {
+   "n": 165,
+   "p50": 266.0,
+   "p90": 1275.7,
+   "p99": 3571.2,
+   "max": 3863.5
+  }
+ },
+ "user_visible_divergence": {
+  "users": 60,
+  "chat_differs_from_snapshot": 0,
+  "chat_shows_waiting_message": 0,
+  "examples": []
+ },
+ "violations": {
+  "I2.outcome_never_processed": {
+   "count": 11,
+   "examples": [
+    {
+     "user": "u0021",
+     "call": "call:create_order:6:86a92293-d36a-49fd-98aa-4d22f221d099",
+     "state": "done"
+    },
+    {
+     "user": "u0044",
+     "call": "call:send_receipt:7:48884570-4f93-43d6-a0ce-ca640d141127",
+     "state": "done"
+    }
+   ]
+  },
+  "I3.wait_left_in_snapshot": {
+   "count": 2,
+   "examples": [
+    {
+     "user": "u0005",
+     "pending": [
+      {
+       "call": "create_order",
+       "token": 32
+      }
+     ],
+     "at": "placing"
+    },
+    {
+     "user": "u0021",
+     "pending": [
+      {
+       "call": "send_receipt",
+       "token": 27
+      }
+     ],
+     "at": "done"
+    }
+   ]
+  },
+  "I3.timer_never_fired": {
+   "count": 1,
+   "examples": [
+    {
+     "user": "u0058",
+     "timer": "slow",
+     "token": 8,
+     "due": 1793756332.51,
+     "held_until": 1793756336.0051966,
+     "run": "a36823b8-11dc-4fc0-8316-e35b10df5218"
+    }
+   ]
+  }
+ },
+ "metrics": {
+  "bg.retry": 279.0,
+  "callbacks.received": 16.0,
+  "crash.x.between_mark_and_outcome": 10.0,
+  "dup.skipped.outcome": 18.0,
+  "dup.skipped.tg": 289.0,
+  "dup.skipped.timer": 2.0,
+  "steps": 2289.0,
+  "steps.outcome": 279.0,
+  "steps.tg": 1845.0,
+  "steps.timer": 165.0,
+  "tg.received": 2119.0,
+  "timers.fired": 165.0,
+  "x.reconcile": 41.0,
+  "x.reconciled_found": 16.0,
+  "x.retry": 124.0
+ }
+}

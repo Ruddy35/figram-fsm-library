@@ -1,0 +1,21 @@
+exit_code=1 log=LOGS/n4-no-reconcile.log
+n4-no-reconcile ok= False {'I1.told_failed_but_acted': 6} crashes 0 tput 148.6 outcomes {'accepted': 376, 'replaced_by_later_call': 12} stuck {} {}
+exit_code=1 log=LOGS/n5-bg-in-barrier.log
+n5-bg-in-barrier ok= False {'I2.outcome_never_processed': 20, 'I3.wait_left_in_snapshot': 20, 'I5.event_waited_for_background_action': 1, 'I8.inbound_not_drained': 1} crashes 0 tput 99.5 outcomes {'accepted': 256} stuck {} {}
+exit_code=1 log=LOGS/n6-no-barrier.log
+n6-no-barrier ok= False {'I7.overdraft': 6, 'I7.condition_with_pending_sequential_actions': 1} crashes 0 tput 48.1 outcomes {'accepted': 269} stuck {} {}
+exit_code=1 log=LOGS/n7-no-runid-check.log
+n7-no-runid-check ok= False {'I2.timer_of_another_history_processed': 3} crashes 0 tput 80.6 outcomes {'accepted': 432, 'replaced_by_later_call': 2} stuck {} {'repair.dropped': 0.0, 'repair.rearmed': 49.0}
+exit_code=1 log=LOGS/n8-keys-seq.log
+n8-keys-seq ok= False {'I1.duplicate_effect': 1} crashes 0 tput 100.5 outcomes {'accepted': 498, 'replaced_by_later_call': 5} stuck {} {'drop.stale_run': 16.0}
+exit_code=1 log=LOGS/n9-store-only-if-seq.log
+n9-store-only-if-seq ok= False {'I4.step_read_a_stale_snapshot': 10, 'I4.replay_differs': 10} crashes 0 tput 135.1 outcomes {'accepted': 345, 'replaced_by_later_call': 5} stuck {} {}
+exit_code=1 log=LOGS/n10-bad-engine.log
+n10-bad-engine ok= False {'I6.protocol_violation': 1} crashes 0 tput 133.7 outcomes {'accepted': 355, 'replaced_by_later_call': 3} stuck {} {}
+exit_code=1 log=LOGS/n11-no-dedupe.log
+n11-no-dedupe ok= False {'I2.outcome_processed_twice': 14, 'I4.delivery_processed_twice': 248} crashes 0 tput 160.4 outcomes {'accepted': 328, 'replaced_by_later_call': 18} stuck {} {}
+exit_code=1 log=LOGS/t2-sched-out-triple-norearm.log
+t2-sched-out-triple-norearm ok= False {'I3.timer_never_fired': 13} crashes 49 tput 118.2 outcomes {'accepted': 152, 'replaced_by_later_call': 3} stuck {} {'drop.stale_run': 11.0}
+exit_code=1 log=LOGS/t3-outcome-inline.log
+t3-outcome-inline ok= False {'I3.timer_never_fired': 1, 'I8.executor_deadlocked_on_user_lock': 1} crashes 0 tput 81.5 outcomes {'accepted': 130, 'replaced_by_later_call': 5} stuck {} {'deadlock.outcome_inline': 19.0}
+MATRIX DONE

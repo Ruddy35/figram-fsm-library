@@ -1,0 +1,22 @@
+command: nice -n 10 bash tests/capi/mutants.sh 
+cwd: /home/user/figram-audit-worktrees/cleanup-int
+start: 2026-11-04T03:57:41.200Z
+end: 2026-11-04T03:57:50.735Z
+exit_code: 0
+--- stdout (1472 bytes, last 200 lines)
+ok   no runtime size defaults (1 GiB mimalloc arena) caught: FAIL figram_init address-space reservation: VmSize 11308 → 1059948 KB (+1048640 KB, limit 73728 KB)
+ok   stock runtime start-up (libuv thread, io_uring, descriptors) caught: FAIL no runtime threads: threads 1 → 3 after init → 3 after load and request
+ok   SIGSEGV/SIGBUS handler in the embedded library caught: FAIL SIGSEGV disposition preserved: before (nil) flags 0, after 0x564df9af5590 flags 201326596
+ok   no lazy initialization caught: 
+ok   no NULL check of the request caught: FAIL request_json(h, NULL) → bad_request: {"id":null,"error":"empty request","code":"parse_error"}
+ok   no double-unload detection caught: 
+ok   _n variants without the NUL check caught: FAIL request_json_n with embedded NUL → parse_error: {"id":5,"error":"extra text after the JSON value","code":"parse_e
+ok   no UTF-8 check of the request caught: FAIL invalid UTF-8 request 1 → parse_error, id null: {"id":1,"snapshot":{"at":"menu"},"actions":[]}
+ok   no request size limit caught: FAIL request of 1 MiB + 1 → too_large (default limit): {"id":1,"protocol":3,"states":13}
+ok   the request limit not passed to the snapshot check caught: FAIL limit 65536: snapshot_too_large with the request's id: {"id":42,"snapshot":{"at":"home","pending":[{"call":"ping","
+ok   SIGPIPE not restored caught: FAIL SIGPIPE disposition preserved: before 0x55a5f38a11b9 flags 335544320, after 0x1 flags 335544320
+all mutants caught
+--- stderr (303 bytes, last 100 lines)
+cc: warning: /usr/lib/x86_64-linux-gnu/libgmp.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libssl.so: linker input file unused because linking not done
+cc: warning: /usr/lib/x86_64-linux-gnu/libcrypto.so: linker input file unused because linking not done

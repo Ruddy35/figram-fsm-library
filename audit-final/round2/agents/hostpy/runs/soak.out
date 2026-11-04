@@ -1,0 +1,2 @@
+exit_code=0 log=LOGS/soak-shop.log
+soak-shop ok= True {} crashes 8 tput 17.9 outcomes {'accepted': 1101, 'replaced_by_later_call': 25} stuck {} {'drop.restart_without_snapshot': 2.0}

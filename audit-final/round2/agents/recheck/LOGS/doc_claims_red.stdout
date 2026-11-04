@@ -1,0 +1,47 @@
+FAIL step 'timer:' token=None — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 0, "error": "empty timer name in `event`", "code": "bad_request"}
+FAIL step 'timer:' token=3 — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 1, "error": "empty timer name in `event`", "code": "bad_request"}
+FAIL step 'call:x' token=None — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 2, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call:x' token=3 — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 3, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call::ok' token=None — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 4, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call::ok' token=3 — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 5, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call:a:' token=None — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 6, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call:a:' token=3 — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 7, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call:' token=None — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 8, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL step 'call:' token=3 — format.md §8: reserved prefix not of the form → bad_request
+     reply: {"id": 9, "error": "an outcome event is `call:<action>:<outcome>`, both parts non-empty", "code": "bad_request"}
+FAIL start call:check_stock:yes — host-contract §1 step 2 / format.md §8: start rejects outcome events
+     reply: {"id": 10, "error": "an outcome event cannot start a user", "code": "bad_request"}
+FAIL start call:check_stock:yes token — format.md §8: start takes no token
+     reply: {"id": 11, "error": "unknown request field `token`", "code": "bad_request"}
+FAIL recovery outcome accepted removes wait — format.md §8 rule 1: recovery keeps waits, an accepted outcome is processed (root arrow call:ping:pong → log)
+     reply: {"id": 12, "snapshot": {"at": "home", "timers": {"idle": 6}, "pending": [{"call": "check_stock", "token": 3}], "seq": 6}, "actions": [{"call": "log", "detached": true}, {"start_timer": "idle", "ms": 60000, "token": 6}, {"send": "home"}], "recovered": true}
+FAIL recovery outcome stale chooses nothing, waits kept — format.md §8 rule 1: an outcome without a wait chooses nothing in recovery
+     reply: {"id": 13, "snapshot": {"at": "home", "timers": {"idle": 6}, "pending": [{"call": "check_stock", "token": 3}], "seq": 6}, "actions": [{"start_timer": "idle", "ms": 60000, "token": 6}, {"send": "home"}], "recovered": true}
+FAIL undeclared outcome removes the wait only — format.md §8 rule 2, host-contract §2: an undeclared outcome only removes the wait (seq unchanged)
+     reply: {"id": 14, "snapshot": {"at": "item", "seq": 5}, "actions": []}
+FAIL accepted outcome without arrow: seq same, pending changed — host-contract §1 step 4: an accepted outcome without an arrow removes its wait without a transition
+     reply: {"id": 15, "snapshot": {"at": "home", "timers": {"idle": 5}, "seq": 5}, "actions": []}
+FAIL wait token > seq accepted — format.md (snapshot): a snapshot with a token greater than seq is accepted
+     reply: {"id": 16, "snapshot": {"at": "item2", "resume": {"shop": "item2"}, "seq": 6}, "actions": [{"cancel_timer": "remind"}, {"send": "item2"}]}
+FAIL snapshot duplicate key — format.md (snapshot): no duplicate keys → parse_error
+     reply: {"id": null, "error": "duplicate key `at`", "code": "parse_error"}
+FAIL snapshot lone surrogate — format.md (snapshot): no lone surrogates → parse_error
+     reply: {"id": null, "error": "unpaired surrogate in \\u escape", "code": "parse_error"}
+FAIL snapshot exponent out of range — format.md (snapshot): exponents in range → parse_error
+     reply: {"id": null, "error": "exponent out of range: absolute value above 1000", "code": "parse_error"}
+FAIL consumed timer still cancelled on leave — host-contract §3: leaving a message emits cancel_timer for a timer already consumed by a stay
+     reply: {"id": 20, "snapshot": {"at": "home", "timers": {"idle": 8}, "seq": 8}, "actions": [{"cancel_timer": "nudge"}, {"start_timer": "idle", "ms": 60000, "token": 8}, {"send": "home"}]}
+FAIL stay timer firing consumes timer — host-contract §3: a firing handled by an arrow without a target removes the timer
+     reply: {"id": 21, "snapshot": {"at": "vip", "seq": 8}, "actions": [{"call": "log", "detached": true}]}
+FAIL duplicate wait removed by one outcome — format.md (snapshot): the same wait listed twice is one wait
+     reply: {"id": 22, "snapshot": {"at": "item", "seq": 6}, "actions": [{"call": "log", "detached": true}]}
+claims 23, replies 23, failed 23

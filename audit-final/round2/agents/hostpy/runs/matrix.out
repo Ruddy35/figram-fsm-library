@@ -1,0 +1,20 @@
+exit_code=0 log=LOGS/g1-shop.log
+g1-shop ok= True {} crashes 95 tput 215.0 outcomes {'accepted': 91, 'cleared_by_restart': 2, 'replaced_by_later_call': 17, 'cleared_by_lose': 1} stuck {} {'drop.no_snapshot': 4.0}
+exit_code=0 log=LOGS/g2-payouts.log
+g2-payouts ok= True {} crashes 64 tput 140.3 outcomes {'accepted': 751, 'replaced_by_later_call': 3, 'cleared_by_restart': 2, 'dropped:no_snapshot': 1} stuck {} {'drop.no_snapshot': 3.0}
+exit_code=0 log=LOGS/g3-booking.log
+g3-booking ok= True {} crashes 106 tput 151.7 outcomes {'accepted': 230, 'cleared_by_lose': 3, 'dropped:no_snapshot': 1, 'cleared_by_restart': 1} stuck {'doc_trap:entered_without_the_call(resume_or_back)': 44} {'drop.no_snapshot': 3.0}
+exit_code=0 log=LOGS/g4-restore.log
+g4-restore ok= True {} crashes 54 tput 116.3 outcomes {'accepted': 145, 'cleared_by_lose': 1, 'cleared_by_restart': 3, 'replaced_by_later_call': 2} stuck {} {'drop.stale_run': 2.0, 'drop.no_snapshot': 1.0}
+exit_code=0 log=LOGS/g5-restore-booking.log
+g5-restore-booking ok= True {} crashes 17 tput 56.7 outcomes {'accepted': 509} stuck {'doc_trap:entered_without_the_call(resume_or_back)': 12} {}
+exit_code=0 log=LOGS/g6-sched-out-triple-rearm.log
+g6-sched-out-triple-rearm ok= True {} crashes 49 tput 117.2 outcomes {'accepted': 190} stuck {} {'repair.dropped': 0.0, 'repair.rearmed': 104.0, 'drop.stale_run': 18.0}
+exit_code=0 log=LOGS/g7-sched-out-pair-rearm-purge.log
+g7-sched-out-pair-rearm-purge ok= True {} crashes 55 tput 112.0 outcomes {'accepted': 281, 'replaced_by_later_call': 3} stuck {} {'repair.dropped': 15.0, 'repair.rearmed': 154.0, 'sched.start_refused': 116.0, 'drop.stale_run': 3.0}
+exit_code=1 log=LOGS/n1-no-user-lock.log
+n1-no-user-lock ok= False {'I2.outcome_not_accepted_without_reason': 16, 'I2.outcome_of_current_call_dropped': 4, 'I2.timer_of_another_history_processed': 2, 'I3.wait_left_in_snapshot': 9, 'I4.step_read_a_stale_snapshot': 136, 'I4.replay_differs': 136, 'I7.condition_with_pending_sequential_actions': 1} crashes 0 tput 163.1 outcomes {'accepted': 276, 'replaced_by_later_call': 5, 'dropped:stale_run': 4} stuck {} {'drop.stale_run': 8.0}
+exit_code=1 log=LOGS/n2-random-keys.log
+n2-random-keys ok= False {'I1.duplicate_effect': 9, 'I1.positive_outcome_of_another_action': 171} crashes 0 tput 123.9 outcomes {'accepted': 343, 'replaced_by_later_call': 14} stuck {} {}
+exit_code=1 log=LOGS/n3-outcome-after-mark.log
+n3-outcome-after-mark ok= False {'I2.outcome_never_processed': 11, 'I3.wait_left_in_snapshot': 2, 'I3.timer_never_fired': 1} crashes 10 tput 150.2 outcomes {'accepted': 273, 'replaced_by_later_call': 7} stuck {} {}

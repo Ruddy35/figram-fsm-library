@@ -1,0 +1,15 @@
+command: repro/doc_update_drops_outcomes.sh 
+cwd: /home/user/figram-audit/agents6/hostpy
+start: 2026-11-04T01:22:57.417Z
+end: 2026-11-04T01:22:57.468Z
+exit_code: 1
+--- stdout (467 bytes, last 200 lines)
+== figram check v2
+ok
+check rc=0
+{"id":1,"snapshot":{"at":"placing","back":"confirm","resume":{"shop":"confirm"},"timers":{"slow":6},"seq":6},"actions":[]}
+{"id":2,"snapshot":{"at":"placing","back":"confirm","resume":{"shop":"confirm"},"pending":[{"call":"create_order","token":6}],"seq":7},"actions":[{"call":"log_slow","detached":true}]}
+RESULT after the outcome: {'at': 'placing', 'back': 'confirm', 'resume': {'shop': 'confirm'}, 'timers': {'slow': 6}, 'seq': 6}
+--- stderr (185 bytes, last 100 lines)
+warning: message `placing` is unreachable: no arrow leads to it from the start of the bot
+warning: message `order_failed` is unreachable: no arrow leads to it from the start of the bot
