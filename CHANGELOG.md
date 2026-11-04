@@ -51,6 +51,11 @@ command names and the exit statuses; the texts of messages are for humans and ma
   variants that no reachable snapshot fires, with their numbers in the compiled machine
   (`mutation.py --unreachable` runs their mutations apart: they must survive). `verify.sh`
   requires every other arrow variant of the examples covered.
+- The error `snapshot_too_large`: under a request size limit (`--max-request`,
+  `figram_set_max_request`) the engine refuses a step whose new snapshot would take more than 15/16
+  of the limit, and the snapshot is not changed. Before, a user whose waits nobody answered got a
+  snapshot whose every next request — its outcomes and `restart` included — was `too_large`, and
+  stayed stuck ([docs/format.md](docs/format.md), section 8; found by the embedded Go host).
 - Mutants of the new features: `detach-flip`, `wait-free`, `wait-swap` (latest ↔ every) of an
   action, `stay-reenter` of a variant without a target. The mutation tests fail when the engine
   refuses a mutation instead of counting it as detected (an action name may contain `:`).
@@ -77,6 +82,11 @@ command names and the exit statuses; the texts of messages are for humans and ma
   through their properties) changed deliberately.
 - The Python validators reject an empty `mutant` in `hello` (test mode only), as the Go client
   does.
+- The runtime gives mimalloc a 64 MiB arena when at least 128 MiB of address space is free (before:
+  no arena). Without it the memory freed after a large request was not reused, and with snapshots
+  of thousands of waits the resident memory grew with every request, without bound
+  ([docs/embedding.md](docs/embedding.md), "Memory and RLIMIT_AS"); the address space after
+  start-up is about 64 MiB larger.
 - The examples: pizza creates the order with outcomes, handled on the root (an outcome that comes
   while the user is on `/help` is not lost), and notifies the kitchen in the background;
   features shows background actions, outcomes with `every`, arrows without a target and a timer

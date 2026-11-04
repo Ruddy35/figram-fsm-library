@@ -22,10 +22,11 @@ snapshot).
 
 Second: the waiting message is a "please wait" message (all arrows drawn on it are outcome
 arrows) and handles an outcome, but an arrow of a section leads from it to a message where that
-outcome has no arrow, and the user can come back to the waiting message by "back" (the
-document has such a variant) or "resume" (into a section containing it): an outcome that
-arrives on the other message is ignored, and the user returns to "please wait" with nothing
-to wait for. One warning per waiting message and action. -/
+outcome does not move the user (no arrow, or only variants without a target), and the user can
+come back to the waiting message by "back" (the document has such a variant) or "resume" (into
+a section containing it): an outcome that arrives on the other message leaves the user there,
+and the user returns to "please wait" with nothing to wait for. One warning per waiting message
+and action. -/
 def Doc.outcomeWarnings (d : Doc) : List String := Id.run do
   let c := d.toChart
   let ix := c.index
@@ -74,16 +75,21 @@ def Doc.outcomeWarnings (d : Doc) : List String := Id.run do
               if pleaseWait M && (backUsed || resumedInto M) && !seen.contains (M, n) then
                 let handled := os.filter fun o => (m.row M (outcomeEvent n o)).isSome
                 let exits := ((lookup m.table M).getD []).filter fun r => !os.any (r.event == outcomeEvent n ·)
+                -- the outcome does not move the user from `L`: no arrow there, or only variants
+                -- without a target
+                let stays (L : NodeId) (o : String) : Bool := match m.row L (outcomeEvent n o) with
+                  | none => true
+                  | some r => r.branches.all (·.target == .stay)
                 let lost := exits.flatMap fun r => r.branches.flatMap fun fb =>
                   (landings fb.target).filterMap fun L =>
                     if L == M then none else
-                    (handled.find? fun o => (m.row L (outcomeEvent n o)).isNone).map fun o => (r.event, L, o)
+                    (handled.find? fun o => stays L o).map fun o => (r.event, L, o)
                 if let some (e, L, o) := lost.head? then
                   seen := seen.push (M, n)
-                  ws := ws.push (s!"outcome `{o}` of action `{n}` has no arrow on `{Chart.shown L}`, " ++
-                    s!"where `{e}` leads from `{Chart.shown M}`, which waits for it: there it is ignored, " ++
-                    s!"and `back` or `resume` can return the user to `{Chart.shown M}` with nothing to " ++
-                    "wait for (draw the arrows of the outcome on a section or the root)")
+                  ws := ws.push (s!"outcome `{o}` of action `{n}` does not move the user from `{Chart.shown L}` " ++
+                    s!"(no arrow, or one without a target), where `{e}` leads from `{Chart.shown M}`, which " ++
+                    s!"waits for it: `back` or `resume` can then return the user to `{Chart.shown M}` with " ++
+                    "nothing to wait for (draw on a section or the root arrows of the outcome that lead on)")
         | _ => pure ()
   return ws.toList
 

@@ -45,7 +45,7 @@ Steps, in order:
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
 6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (38 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
-7. **Warnings** — `tests/compiler/lint_warnings.py`: at least 35 documents; the warnings of
+7. **Warnings** — `tests/compiler/lint_warnings.py`: at least 36 documents; the warnings of
    `figram check` contain the expected fragments, and clean documents have none.
 8. **Conformance** — `figram trace … --directed` generates 200 random reference scenarios of
    length 40 for each example document (outcome events included: the generator delivers
@@ -92,7 +92,10 @@ Steps, in order:
     outcome events accepted, stale, without an arrow, with `every`, in recovery and after
     `restart`, malformed `call:` names, `start` with an outcome event, `pending` decoding errors,
     the `token` and `detached` fields of `call`, arrows without a target, and the Python
-    protocol validators on hand-written replies), and
+    protocol validators on hand-written replies), `tests/engine/snapshot_limit.py` (a user who
+    keeps adding waits under `--max-request 65536`: the step whose new snapshot would take more
+    than 15/16 of the limit is refused with `snapshot_too_large`, and the outcome and `restart`
+    with the last snapshot written still work; the engine before the 0.3.0 audit fails it), and
     `tests/engine/snapshot_scaling.py`: leaving a message, recovery (with and without a variant
     for the event at the initial message, and with a late timer event) and `restart` with
     20 000 and 80 000 snapshot timers, entering a message among as many remembered places, and

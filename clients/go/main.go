@@ -35,6 +35,7 @@ import "C"
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -122,7 +123,11 @@ func Load(doc string) (*Bot, error) {
 	return &Bot{m: m}, nil
 }
 
-// Close frees the machine; after it Request returns an error.
+// ErrClosed is the error of Request on a closed Bot: a goroutine that still held the old Bot of
+// a reloaded document repeats its whole step (with the condition round trip) on the new one.
+var ErrClosed = errors.New("bot is closed")
+
+// Close frees the machine; after it Request returns ErrClosed.
 func (b *Bot) Close() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -133,12 +138,16 @@ func (b *Bot) Close() {
 }
 
 // Request sends one engine protocol request. The reply is validated strictly
-// (checkReply): the id, exactly one reply variant, field types.
+// (checkReply): the id, exactly one reply variant, field types. It returns the reply, its
+// variant — "result", "need", "error" (an engine error reply: switch on its "code") or "hello" —
+// and an error only if the request could not be made or the reply violates the protocol
+// (ErrClosed on a closed Bot). A `need` and an engine error come with a nil error: check the
+// variant, not only the error.
 func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 	if b.m == nil {
-		return nil, "", fmt.Errorf("bot is closed")
+		return nil, "", ErrClosed
 	}
 	id := b.nextID.Add(1)
 	// The caller's map is not modified: id is added to a copy of the top
@@ -368,6 +377,7 @@ func checkActions(v any) error {
 // Error codes of the protocol (docs/format.md, section 8, "Errors").
 var errorCodes = map[string]bool{
 	"parse_error": true, "too_large": true, "bad_request": true, "bad_snapshot": true, "seq_overflow": true,
+	"snapshot_too_large": true,
 }
 
 // legacyErrorWithoutCode: an older engine replied to an error with {id, error} without code.

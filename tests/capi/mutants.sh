@@ -66,6 +66,9 @@ mutant "no UTF-8 check of the request" \
 mutant "no request size limit" \
   'if (max != 0 && len > max)' 'if (0)' \
   "$C" limit $D
+mutant "the request limit not passed to the snapshot check" \
+  'figram_request(m, lean_mk_string_unchecked(line, len, chars), max)' 'figram_request(m, lean_mk_string_unchecked(line, len, chars), 0)' \
+  "$C" snapshot_limit $D2
 mutant "SIGPIPE not restored" \
   'if (have_pipe) sigaction(SIGPIPE, pipe_old.b, (void*)0);' '' \
   "$C" signals custom

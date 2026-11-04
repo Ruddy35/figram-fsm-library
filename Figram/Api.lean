@@ -38,11 +38,13 @@ def loadEx (doc : String) : Except String Machine :=
   | .ok m => .ok m
   | .error es => .error ("\n".intercalate es)
 
-/-- An engine protocol request to a loaded machine (`Engine.handle`, docs/format.md, section 8):
-the same strict field check, error reply `{id, error, code}` and `id` echo on a parse error as
-in the `figram-engine` process. The shim checks an empty request, the size limit and UTF-8
+/-- An engine protocol request to a loaded machine (`Engine.handleLimited`, docs/format.md,
+section 8): the same strict field check, error reply `{id, error, code}`, `id` echo on a parse
+error and check of the new snapshot against the request size limit `limit` (0 means no limit)
+as in the `figram-engine` process. The shim checks an empty request, the size limit and UTF-8
 before the call (its reply has `id: null`). -/
 @[export figram_request]
-def request (m : Machine) (line : String) : String := Engine.handle m line
+def request (m : Machine) (line : String) (limit : USize) : String :=
+  Engine.handleLimited none limit.toNat m line
 
 end Figram.Api

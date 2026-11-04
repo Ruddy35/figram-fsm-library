@@ -8,8 +8,9 @@ import Figram.Mutate
   compiles it once and serves requests line by line over stdin/stdout
   (`Figram.Engine`). A line is read as bytes: a line longer than the limit (by default
   1 MiB, 0 means no limit) gets `too_large`, a line that is not UTF-8 gets `parse_error`;
-  a line of JSON whitespace only is skipped without a reply. Replies come strictly
-  in request order.
+  a step whose new snapshot would take more than 15/16 of the limit gets `snapshot_too_large`
+  (`Engine.handleLimited`); a line of JSON whitespace only is skipped without a reply. Replies
+  come strictly in request order.
 * Test mode, only with `FIGRAM_ALLOW_MUTANTS=1` in the environment:
   `figram-engine --mutants bot.json` — the list of mutations for testing the tests;
   `figram-engine [--max-request BYTES] --mutate <mutation> bot.json` — the
@@ -51,7 +52,7 @@ partial def serve (cfg : Cfg) (m : Machine) (inp out : IO.FS.Stream) : IO Unit :
     let reply :=
       if cfg.limit != 0 && len > cfg.limit then
         Engine.errorLine (Engine.utf8Prefix b) .tooLarge (Engine.tooLargeText cfg.limit)
-      else Engine.handleBytes cfg.mutant 0 m b
+      else Engine.handleBytes cfg.mutant cfg.limit m b
     out.putStr (reply ++ "\n")
     out.flush
   serve cfg m inp out

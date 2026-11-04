@@ -184,7 +184,8 @@ $ printf '%s\n' '{"id":1,"op":"start"}' '{"id":2,"op":"step","snapshot":{"at":"m
 
 The operations are `hello`, `start`, `restart` and `step`; a `step` (and a `start` with the
 user's first event) may answer `{"need": [...]}` when it needs condition values, and errors carry a machine-readable `code`
-(`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`). The complete
+(`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`,
+`snapshot_too_large`). The complete
 protocol, the snapshot format and the error rules are in [docs/format.md](docs/format.md),
 section 8; the rules a host must follow (per-user ordering, transactions, idempotency, timers,
 document updates) are in [docs/host-contract.md](docs/host-contract.md).

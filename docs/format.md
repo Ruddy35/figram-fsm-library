@@ -150,10 +150,13 @@ stays valid (`Doc.warnings`; warnings do not affect the engine):
   snapshot);
 - a "please wait" message (all arrows drawn on it are outcome arrows) handles an outcome, an
   arrow of one of its sections (`/help`, "Cancel") leads from it to a message where that
-  outcome has no arrow, and `back` (anywhere in the document) or `resume` into a section
-  containing it can bring the user back: an outcome that comes while the user is away is
-  ignored, and the user returns to "please wait" with nothing to wait for. Draw the arrows of
-  such an outcome on the root (decision 12).
+  outcome does not move the user (no arrow, or only variants without a target), and `back`
+  (anywhere in the document) or `resume` into a section containing it can bring the user back:
+  an outcome that comes while the user is away leaves the user there, and the user returns to
+  "please wait" with nothing to wait for. Draw on the root arrows of such an outcome that lead
+  on (decision 12). A waiting message with a button or a timer of its own is not reported: the
+  user is not stuck there, but may still see "please wait" after the outcome was handled
+  elsewhere.
 
 V1 and V3–V5 are references between parts of the document. A JSON value is a finite tree,
 while the arrow graph of a bot has cycles (menu → order → "Cancel" → menu). Arrows therefore
@@ -683,9 +686,22 @@ hosts decide by `code`:
 | `bad_request` | unknown operation; unknown, missing or mistyped field; invalid `event`, `token`, `seq` or `guards`; the request is JSON but not an object |
 | `bad_snapshot` | the snapshot in the request is not accepted (rules of "User snapshot") |
 | `seq_overflow` | the new `seq` would exceed 2^53 − 1 (rule 5) |
+| `snapshot_too_large` | the new snapshot would take more than 15/16 of the request size limit (below) |
 
-Repeating a request that failed with `bad_request`, `bad_snapshot`, `seq_overflow` or
-`parse_error` gives the same error ([host-contract.md](host-contract.md), section 5).
+Repeating a request that failed with `bad_request`, `bad_snapshot`, `seq_overflow`,
+`snapshot_too_large` or `parse_error` gives the same error ([host-contract.md](host-contract.md),
+section 5).
+
+The engine never writes a snapshot that requests cannot carry back. Under a request size limit
+(`figram-engine --max-request`, `figram_set_max_request` of the C ABI; 1 MiB by default, 0 — no
+limit) a reply whose new snapshot would take more than 15/16 of the limit (64 KiB to spare at
+1 MiB, for the rest of the next request) is replaced by the error `snapshot_too_large` with the
+request's `id`, and the snapshot is not changed. A snapshot grows only by its waits, timers and
+remembered places — a wait takes about 30 bytes with a short action name, some 30 000 waits fit
+into 1 MiB — so the error means waits nobody answers (host-contract.md, section 2); the stored snapshot still fits,
+so its outcomes, which remove waits, and `restart` keep working. Without this rule (before the
+0.3.0 audit) the engine wrote a snapshot whose every next request, its outcomes and `restart`
+included, was `too_large`.
 
 If a line cannot be parsed as JSON (`parse_error`) or is longer than the limit (`too_large`),
 and it starts with `{"id":` followed by a scalar value (string, number, `true`, `false`,

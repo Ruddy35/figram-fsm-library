@@ -69,7 +69,7 @@ class EngineError(Exception):
       an engine reply with `error` (snapshot rejected, `seq_overflow`, line not
       parsed) or an argument that cannot be sent; a retry gives the same result.
     * `code` — the machine-readable code from the engine reply (`parse_error`,
-      `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`); None if there
+      `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`, `snapshot_too_large`); None if there
       was no error reply or the reply has no `code` field (pre-release engines).
     """
 

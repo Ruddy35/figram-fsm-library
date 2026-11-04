@@ -176,18 +176,28 @@ def pizza_outcomes_on_placing():
 HELP = {"cmd:help": [{"to": "h"}]}
 CASES += [
     ("wait_trap_pizza_outcomes_on_placing", pizza_outcomes_on_placing(),
-     ["outcome `created` of action `create_order` has no arrow on `menu`, where `cmd:start` leads from "
-      "`placing`, which waits for it", "can return the user to `placing` with nothing to wait for"], []),
+     ["outcome `created` of action `create_order` does not move the user from `menu` (no arrow, or one "
+      "without a target), where `cmd:start` leads from `placing`, which waits for it",
+      "can then return the user to `placing` with nothing to wait for"], []),
     ("wait_trap_back", d3({"initial": "a", "on": HELP, "children": {
         "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
         "w": {"on": ALL_CHK},
         "h": {"on": {"btn:back": [{"to": "a", "back": True}]}}}}),
-     ["outcome `yes` of action `chk` has no arrow on `h`, where `cmd:help` leads from `w`"], []),
+     ["outcome `yes` of action `chk` does not move the user from `h`", "where `cmd:help` leads from `w`"], []),
     ("wait_trap_resume", d3({"initial": "a", "on": HELP, "children": {
         "a": {"on": {"btn:x": [{"to": "S", "do": ["chk"]}]}},
         "S": {"initial": "w", "children": {"w": {"on": ALL_CHK}}},
         "h": {"on": {"btn:back": [{"to": "S", "resume": True}]}}}}),
-     ["outcome `yes` of action `chk` has no arrow on `h`, where `cmd:help` leads from `w`"], []),
+     ["outcome `yes` of action `chk` does not move the user from `h`", "where `cmd:help` leads from `w`"], []),
+    # the outcome is handled on the root, but without a target: the user stays away from `w`, and
+    # "resume" brings them back to it (the booking bot of the embedded Go host)
+    ("wait_trap_root_stay", d3({"initial": "a", "on": dict(HELP, **{"call:chk:yes": [{"do": ["k"]}],
+                                                                  "call:chk:no": [{}], "call:chk:failed": [{}]}),
+                                "children": {
+        "a": {"on": {"btn:x": [{"to": "S", "do": ["chk"]}]}},
+        "S": {"initial": "w", "children": {"w": {"on": {"call:chk:yes": [{"to": "a"}]}}}},
+        "h": {"on": {"btn:back": [{"to": "S", "resume": True}]}}}}),
+     ["outcome `yes` of action `chk` does not move the user from `h`", "where `cmd:help` leads from `w`"], []),
     # no way back to the waiting message: an ignored outcome does not trap the user
     ("wait_trap_no_return_ok", d3({"initial": "a", "on": HELP, "children": {
         "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},

@@ -138,6 +138,8 @@ inductive ErrCode where
   | badSnapshot
   /-- the new `seq` would exceed 2^53 − 1 -/
   | seqOverflow
+  /-- the new snapshot would take more than 15/16 of the request size limit -/
+  | snapshotTooLarge
   deriving DecidableEq, Repr, Inhabited
 
 def ErrCode.name : ErrCode → String
@@ -146,6 +148,7 @@ def ErrCode.name : ErrCode → String
   | .badRequest => "bad_request"
   | .badSnapshot => "bad_snapshot"
   | .seqOverflow => "seq_overflow"
+  | .snapshotTooLarge => "snapshot_too_large"
 
 /-- The result of handling a request: a value, or an error code with a text. -/
 abbrev RE := Except (ErrCode × String)
@@ -374,8 +377,8 @@ def markMutant (mutant : Option String) (kvs : Obj) (j : J) : J :=
 
 /-- One request line (UTF-8 text) → one reply line; `mutant` is the mutation of the
 deliberately broken test-mode engine (`figram-engine --mutate`), otherwise `none`. -/
-def handleWith (mutant : Option String) (m : Machine) (line : String) : String :=
-  renderCompact <| match parse line with
+def replyJ (mutant : Option String) (m : Machine) (line : String) : J :=
+  match parse line with
     | .ok (.obj kvs) =>
       match checkFields kvs >>= fun _ => handleObj m kvs with
       | .ok j => markMutant mutant kvs j
@@ -383,8 +386,35 @@ def handleWith (mutant : Option String) (m : Machine) (line : String) : String :
     | .ok _ => errorJ .null .badRequest "request must be an object"
     | .error e => errorJ (echoId line) .parseError e
 
+def handleWith (mutant : Option String) (m : Machine) (line : String) : String :=
+  renderCompact (replyJ mutant m line)
+
 /-- One request line → one reply line. -/
 def handle (m : Machine) (line : String) : String := handleWith none m line
+
+/-- The new snapshot fits into a request under `limit` with room for the rest of it: the
+snapshot takes at most 15/16 of the limit (64 KiB to spare under the default 1 MiB). -/
+def snapshotFits (limit n : Nat) : Bool := limit == 0 || n + limit / 16 ≤ limit
+
+def snapshotTooLargeText (n limit : Nat) : String :=
+  s!"the new snapshot ({n} bytes) would not fit into a request under the limit of {limit} bytes; " ++
+  "the snapshot is not changed"
+
+/-- `handleWith` under the request size limit `limit` (0 means no limit): a reply whose new
+snapshot would not fit into the next request (`snapshotFits`) becomes the error
+`snapshot_too_large`, so the stored snapshot stays one that requests can carry — its outcomes,
+which shrink it, and `restart`. -/
+def handleLimited (mutant : Option String) (limit : Nat) (m : Machine) (line : String) : String :=
+  let j := replyJ mutant m line
+  match j with
+  | .obj kvs =>
+    match get kvs "snapshot" with
+    | some snap =>
+      let n := (renderCompact snap).utf8ByteSize
+      if snapshotFits limit n then renderCompact j
+      else renderCompact (errorJ ((get kvs "id").getD .null) .snapshotTooLarge (snapshotTooLargeText n limit))
+    | none => renderCompact j
+  | _ => renderCompact j
 
 /-! ## Lines the engine does not parse
 
@@ -417,11 +447,11 @@ def errorLine (pre : String) (c : ErrCode) (text : String) : String :=
   renderCompact (errorJ (echoId pre) c text)
 
 /-- A request line as bytes → a reply line: the limit `limit` (0 means no limit),
-then UTF-8, then `handleWith`. -/
+then UTF-8, then `handleLimited`. -/
 def handleBytes (mutant : Option String) (limit : Nat) (m : Machine) (b : ByteArray) : String :=
   if limit != 0 && b.size > limit then errorLine (utf8Prefix b) .tooLarge (tooLargeText limit)
   else match String.fromUTF8? b with
-    | some s => handleWith mutant m s
+    | some s => handleLimited mutant limit m s
     | none => errorLine (utf8Prefix b) .parseError invalidUtf8Text
 
 /-! ## Load conditions of the machine -/

@@ -112,7 +112,7 @@ Functions (all declared in [`ffi/figram.h`](../ffi/figram.h)):
 |---|---|
 | `figram_init` | initialize the runtime (optional; every other function does it on first use) |
 | `figram_last_error` | text of the last error detected in the calling thread |
-| `figram_set_max_request` | request size limit in bytes for the whole process (0 — none) |
+| `figram_set_max_request` | request size limit in bytes for the whole process (0 — none); new snapshots are kept within 15/16 of it (`snapshot_too_large`) |
 | `figram_check_json`, `figram_check_json_n` | check a document: `"ok"` or the errors separated by newlines (the warnings of `figram check` are not reported) |
 | `figram_fmt_json`, `figram_fmt_json_n` | canonical form of a document, or `"error: …"` |
 | `figram_load_doc`, `figram_load_doc_n`, `figram_load_doc_ex`, `figram_load_doc_ex_n` | load a document and return a machine handle (or NULL) |
@@ -163,7 +163,12 @@ until then). `figram_unload(NULL)` does nothing, like `free(NULL)`.
 **Undefined behaviour** (not detected):
 
 * `figram_unload` concurrently with requests to the **same** handle (serialize them yourself;
-  the Go wrapper uses a `sync.RWMutex`);
+  the Go wrapper uses a `sync.RWMutex`): the detection of unloaded handles covers only requests
+  that start after the unload, and a request already running — from the moment it reads the
+  handle, through the UTF-8 check of the whole request — may crash (SIGSEGV within a fraction
+  of a second when a test swaps and unloads machines under load). To reload a document, publish
+  the new handle, wait until the requests that hold the old one finish (a reader count or a
+  read-write lock per handle), then unload it;
 * a request or unload through a handle unloaded more than 1024 unloads ago: its slot may belong
   to a new machine by then;
 * a string without a terminating NUL in the variants without `_n`; a buffer shorter than `len`
@@ -279,14 +284,27 @@ scenarios from many goroutines. Both are one `main` package (module `gofig`).
 * `Bot.Request(map)` sends one request with a fresh numeric `id`, decodes the reply with
   `json.Number` and validates it strictly (`checkReply`: the `id`, exactly one reply variant,
   field types, known error `code`). The caller's map is not modified, so one map may be shared
-  between goroutines.
+  between goroutines. It returns the reply, its variant and an error. The error is non-nil only
+  if the request could not be made or the reply violates the protocol; a `need` and an engine
+  error reply come back with a nil error as the variants `"need"` and `"error"` (switch on the
+  reply's `code`), so check the variant, not only the error — a host that only checks the error
+  stores the `need` reply's missing snapshot as `null`. `checkReply` validates replies to the
+  requests the wrapper sends: an error with `id: null` is accepted only for `parse_error` and
+  `too_large`; the shim's `bad_request` with `id: null` (a `NULL` or unloaded handle) cannot
+  happen through a `*Bot`.
 * A `*Bot` is safe for concurrent `Request` calls; `Close` frees the machine after waiting for
-  running calls (`sync.RWMutex`), after which `Request` returns an error. Documents can be
-  reloaded without memory growth (`gofig -reload N` checks this).
+  running calls (`sync.RWMutex`), after which `Request` returns `ErrClosed`. To reload a
+  document, load the new `*Bot`, switch to it (an atomic pointer), close the old one; a
+  goroutine that still held the old one gets `ErrClosed` and repeats its whole step — the
+  condition round trip included — on the new one. Documents can be reloaded without memory
+  growth (`gofig -reload N` checks this).
 * `figram_last_error()` is thread-local; the wrapper reads it in the same C call, because a
   goroutine may move to another OS thread between two cgo calls.
 
-To use the wrapper in your own module, pass the directory of `figram.h` and the flags from
+The package cannot be imported (`import "gofig"` fails: "is a program, not an importable
+package"). Until the `ffl-go` version for this release is published, copy `clients/go/main.go`
+into a package of your module, change its `package` line and drop the `gofig` driver (`main`
+and the functions only it uses). Pass the directory of `figram.h` and the flags from
 `ffi/out/LDFLAGS` in the environment (its `#cgo CFLAGS` line points into this repository; cgo
 accepts `-Wl,--gc-sections` from the environment):
 

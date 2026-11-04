@@ -11,6 +11,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -154,6 +155,28 @@ func TestFixLoadReason(t *testing.T) {
 	}
 }
 
+// Request on a closed Bot returns ErrClosed (a reload repeats the step on the new Bot); a need and an
+// engine error come back as variants with a nil error.
+func TestFixClosedAndVariants(t *testing.T) {
+	bot, err := Load(pizzaDoc(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, v, err := bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": "cart"}, "event": "btn:checkout"})
+	if err != nil || v != "need" {
+		t.Errorf("need: variant %q, err %v", v, err)
+	}
+	r, v, err := bot.Request(map[string]any{"op": "step", "snapshot": map[string]any{"at": ""}, "event": "btn:x"})
+	if err != nil || v != "error" || r["code"] != "bad_snapshot" {
+		t.Errorf("engine error: variant %q, reply %v, err %v", v, r, err)
+	}
+	bot.Close()
+	_, _, err = bot.Request(map[string]any{"op": "hello"})
+	if !errors.Is(err, ErrClosed) {
+		t.Errorf("closed: %v, want ErrClosed", err)
+	}
+}
+
 // A request longer than the limit (1 MiB) gets a too_large reply with id null; Request does not crash.
 func TestFixRequestTooLarge(t *testing.T) {
 	bot, err := Load(pizzaDoc(t))
@@ -197,6 +220,7 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"error":"x","code":"bad_request"}`, "error"},
 		{"step", `{"id":5,"error":"x","code":"bad_snapshot"}`, "error"},
 		{"restart", `{"id":5,"error":"seq_overflow","code":"seq_overflow"}`, "error"},
+		{"step", `{"id":5,"error":"x","code":"snapshot_too_large"}`, "error"},
 		{"step", `{"id":5,"error":"x","code":"parse_error"}`, "error"},
 		{"step", `{"id":null,"error":"x","code":"too_large"}`, "error"},
 		{"step", `{"id":null,"error":"x","code":"parse_error"}`, "error"},

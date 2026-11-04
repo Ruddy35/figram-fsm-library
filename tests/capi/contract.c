@@ -763,12 +763,40 @@ static int t_large_rss(const char* path) {
   return !(ok == 1600 && rss1 - rss0 <= 2048);
 }
 
+/* ---------- the new snapshot under the request size limit ---------- */
+
+/* features.bot.json: `btn:ping` adds a wait (every). With figram_set_max_request(65536) a step whose
+   new snapshot takes more than 15/16 of the limit is refused with snapshot_too_large and the
+   request's id; with no limit the same step is answered. */
+static int t_snapshot_limit(const char* path) {
+  figram_init();
+  void* m = figram_load_doc(read_all(path));
+  size_t cap = 100000, len = 0;
+  char* req = malloc(cap);
+  len += (size_t)snprintf(req + len, cap - len, "{\"id\":42,\"op\":\"step\",\"snapshot\":{\"at\":\"home\",\"seq\":10000,\"pending\":[");
+  for (int i = 0; i < 2200; i++)
+    len += (size_t)snprintf(req + len, cap - len, "%s{\"call\":\"ping\",\"token\":%d}", i ? "," : "", 9999 - i);
+  snprintf(req + len, cap - len, "]},\"event\":\"btn:ping\"}");
+  size_t old = figram_set_max_request(65536);
+  char* r1 = figram_request_json(m, req);
+  figram_set_max_request(0);
+  char* r2 = figram_request_json(m, req);
+  figram_set_max_request(old);
+  ok_if(r1 != NULL && strstr(r1, "\"code\":\"snapshot_too_large\"") && strstr(r1, "\"id\":42"),
+        "limit 65536: snapshot_too_large with the request's id", r1);
+  ok_if(r2 != NULL && strstr(r2, "\"snapshot\"") != NULL, "no limit: the step is answered", r2 ? "snapshot" : "NULL");
+  printf("request %zu bytes\n", strlen(req));
+  figram_free(r1); figram_free(r2); free(req);
+  figram_unload(m);
+  return n_fail != 0;
+}
+
 static int usage(void) {
   fprintf(stderr, "usage: contract init_twice | init_race DOC | before_init check|fmt|load DOC |\n"
                   "  null check|fmt|load|line|handle|unload|free|unload_failed_load DOC |\n"
                   "  unload_twice DOC | use_after_unload DOC [OTHER] | threads DOC N |\n"
                   "  side_effects | nul DOC | utf8 DOC | signals default|custom | host_state DOC |\n"
-                  "  deep_stack KB | protocol3 FEATURES_DOC | large_rss PIZZA_DOC\n");
+                  "  deep_stack KB | protocol3 FEATURES_DOC | large_rss PIZZA_DOC | snapshot_limit FEATURES_DOC\n");
   return 2;
 }
 
@@ -799,5 +827,6 @@ int main(int argc, char** argv) {
   if (!strcmp(t, "deep_stack") && argc > 2) return t_deep_stack(atoi(argv[2]));
   if (!strcmp(t, "protocol3") && argc > 2) return t_protocol3(argv[2]);
   if (!strcmp(t, "large_rss") && argc > 2) return t_large_rss(argv[2]);
+  if (!strcmp(t, "snapshot_limit") && argc > 2) return t_snapshot_limit(argv[2]);
   return usage();
 }

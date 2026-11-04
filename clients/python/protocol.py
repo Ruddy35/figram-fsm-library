@@ -21,7 +21,8 @@ MAX_INT = 9007199254740991
 PROTOCOL = 3
 
 # Machine codes of an error reply (docs/format.md, section 8, "Errors").
-ERROR_CODES = frozenset({"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow"})
+ERROR_CODES = frozenset({"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow",
+                         "snapshot_too_large"})
 
 
 class ProtocolError(Exception):

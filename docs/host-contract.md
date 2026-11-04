@@ -196,8 +196,12 @@ A separate executor takes actions from the outbox in order and marks them execut
   processed (the barrier then no longer covers it). The same holds for a background action with
   outcomes: its outcome event is the moment its effect is there, and a condition evaluated on
   that event or after it may read it. With `every`, each call
-  adds a wait until its outcome comes: a host that does not answer them makes the snapshot
-  grow until requests with it exceed the line limit (`too_large`).
+  adds a wait until its outcome comes (about 30 bytes of the snapshot): when calls come faster
+  than their outcomes, or a host does not answer them, the snapshot grows until the engine
+  refuses the step that would make it too large for a request (`snapshot_too_large`,
+  [format.md](format.md), section 8) — the user's events then go to the failure queue until
+  outcomes come, while the outcomes themselves and `restart` still work with the stored
+  snapshot.
 * **Timer deadlines** are counted from the step's commit (store the time in the outbox), not
   from the moment the executor reaches `start_timer`.
 * **send** — sending a message to the user, "at least once". A resend after a failure is
@@ -365,12 +369,14 @@ deterministic: a retry gives the same error, so the event goes to the failure qu
 alert instead of being retried forever. Distinguish errors by `code` (`EngineError.code`), not
 by text ([format.md](format.md), section 8): `bad_snapshot` — the stored snapshot is corrupted
 or was written by a newer engine (repair — section 4); `seq_overflow` — the counter is
-exhausted; `parse_error`, `too_large`, `bad_request` — a bug in the host's request. A failure of
-the process or of the transport has no code (`EngineError.code` is `None`, `retryable` is True):
-alert on those by `retryable`, not by the text. The client also accepts an error reply without
-`code` (`EngineError.code` is then `None`); the engine always sends `code`, and the protocol
-validators (`clients/python/protocol.py`, `checkReply` in `clients/go`) reject an error reply
-without it.
+exhausted; `snapshot_too_large` — the user's snapshot has as many waits as the request size
+limit allows (section 2): the event goes to the failure queue with an alert, the user's outcomes
+and `restart` still work; `parse_error`, `too_large`, `bad_request` — a bug in the host's
+request. A failure of the process or of the transport has no code (`EngineError.code` is `None`,
+`retryable` is True): alert on those by `retryable`, not by the text. The client also accepts an
+error reply without `code` (`EngineError.code` is then `None`); the engine always sends `code`,
+and the protocol validators (`clients/python/protocol.py`, `checkReply` in `clients/go`) reject
+an error reply without it.
 
 The document is loaded before the process answers its first request, so large documents need a
 separate start timeout. When it starts a process, the client sends `hello` and waits for the
@@ -420,7 +426,9 @@ concurrently, with one shared `timeout`.
 * Waits for outcomes are kept: a wait of an action that is removed or loses its outcomes in the
   new version still accepts its outcome, and the outcome then only removes the wait (the new
   version can have no arrow for it, V5 of format.md, section 3); a wait of an action that is
-  still declared with that outcome is handled by the arrows of the new version. Users on a
+  still declared with that outcome is handled by the arrows of the new version. An action that
+  changes from `every` to answered only at its latest call keeps its waits until its next call,
+  which removes all of them but its own (their outcomes are then ignored). Users on a
   "please wait" message for an action that loses its outcomes stay there: the outcome no longer
   leads anywhere. Keep the old outcome arrows until the waits are answered, or `restart` those
   users (section 4).

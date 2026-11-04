@@ -180,7 +180,7 @@ echo "ok ($(cat "$T/golden.out"))"
 
 step "Warnings of figram check: expected fragments, none on clean documents"
 logged lint_warnings python3 tests/compiler/lint_warnings.py --figram $F
-expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 35 and g[1] == 0' "warnings"
+expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 36 and g[1] == 0' "warnings"
 
 step "Engine conformance: golden and random scenarios"
 for d in pizza features; do
@@ -265,6 +265,9 @@ expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mi
 logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
 expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 9 and g[1] == 0' \
   "time linear in the snapshot size"
+logged snapshot_limit python3 $P/snapshot_limit.py $E examples/features.bot.json
+expect "$LOGS/snapshot_limit.log" '^snapshot limit: steps (\d+), waits (\d+), failed (\d+)$' \
+  'g[0] > 1000 and g[2] == 0' "a snapshot that requests cannot carry is refused (snapshot_too_large)"
 
 step "JSON text layer: differential against Python json"
 logged json_fuzz python3 $P/json_fuzz.py $F 30000 1
