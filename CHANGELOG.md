@@ -98,6 +98,24 @@ are not part of the tree and are preserved at commit
   features shows background actions, outcomes with `every`, arrows without a target and a timer
   handled without a move. `examples/golden.jsonl` has 38 scenarios.
 
+### Known issues
+
+- The JSON reader still finds duplicate keys of an object with a hash set: O(1) per key on
+  average, but keys chosen so that their hashes collide make one request take time quadratic in
+  the number of keys of one object (about 12 s within the default limit of 1 MiB). It is in 0.1.0
+  and 0.2.0 as well. The fix announced for this release (a check that does not depend on the
+  hash) is not in it and moves to 0.3.1. Until then a host that does not trust its stored
+  snapshots can lower `--max-request` (the time falls with the square of the limit) and run more
+  than one engine process, so that one slow request does not hold up the requests of other users
+  ([docs/host-contract.md](docs/host-contract.md), section 5).
+- Under an `RLIMIT_AS` that leaves less than 128 MiB of address space free, the runtime starts
+  without the mimalloc arena, and the memory freed after large requests (snapshots with
+  thousands of waits) is not reused ([docs/embedding.md](docs/embedding.md), "Memory and
+  RLIMIT_AS").
+- The Go module `ffl-go` v0.2.0 speaks protocol 2 and rejects this release's snapshots; until its
+  version for 0.3.0 is published, copy the wrapper `clients/go/main.go` into your module
+  ([docs/embedding.md](docs/embedding.md), "Go").
+
 ## [0.2.0] - 2026-10-25
 
 ### Added
