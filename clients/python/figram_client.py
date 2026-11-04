@@ -150,7 +150,7 @@ def _check_hello(resp: dict) -> None:
     if type(resp["protocol"]) is not int or type(resp["states"]) is not int \
             or not 0 <= resp["states"] <= MAX_INT:
         raise ProtocolError(f"hello reply: {resp!r}")
-    if "mutant" in resp and type(resp["mutant"]) is not str:
+    if "mutant" in resp and (type(resp["mutant"]) is not str or not resp["mutant"]):
         raise ProtocolError(f"hello reply: mutant {resp['mutant']!r}")
     if resp["protocol"] != PROTOCOL:
         raise ProtocolError(f"engine protocol {resp['protocol']}, the client supports only {PROTOCOL}")

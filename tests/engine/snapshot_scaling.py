@@ -106,14 +106,26 @@ def wrong(req, reply):
     resume = got.get("resume", {})
     if any(resume.get(k) != v for k, v in snap.get("resume", {}).items()):
         return "a remembered place is lost"
-    # every wait of another action stays; the answered or replaced one is gone
-    pend = {(w["call"], w["token"]) for w in got.get("pending", [])}
+    # every wait of another action stays; the answered or replaced one is gone; a call records
+    # its wait with the token of the step (the new seq), once
+    got_pend = [(w["call"], w["token"]) for w in got.get("pending", [])]
+    pend = set(got_pend)
     others = [(w["call"], w["token"]) for w in snap.get("pending", []) if w["call"].startswith("w")]
     if any(w not in pend for w in others):
         return "a wait of another action is lost"
-    if any(w["call"] == "check_stock" and w["token"] == 1 for w in got.get("pending", [])):
+    if ("check_stock", 1) in pend:
         return "the answered or replaced wait is still there"
+    new = NEW_WAIT.get(req.get("event"))
+    want = set(others) | ({(new, snap["seq"] + 1)} if new else set())
+    if new and (new, snap["seq"] + 1) not in pend:
+        return f"the new wait ({new}, {snap['seq'] + 1}) is not recorded"
+    if pend != want or len(got_pend) != len(want):
+        return f"waits {len(got_pend)}, expected {len(want)} (the old ones of other actions and the new one)"
     return None
+
+
+# the action whose wait a step on the event records (the document's arrows on `item`)
+NEW_WAIT = {"btn:check": "check_stock", "btn:ping": "ping"}
 
 
 def measure(line, enough):

@@ -97,3 +97,6 @@ STMT Figram.addWait_free : ∀ (pend : List (String × Nat)) (n : String) (tok :
 STMT Figram.addWait_latest : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), Figram.addWait pend n tok Figram.Wait.latest = (n, tok) :: List.filter (fun p => decide (p.fst ≠ n)) pend
 STMT Figram.addWait_every : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), Figram.addWait pend n tok Figram.Wait.every = (n, tok) :: List.filter (fun p => decide (p ≠ (n, tok))) pend
 STMT Figram.stay_eq : ∀ (s : Figram.Snapshot) (ev : Figram.Event) (acts : List Figram.Action), Figram.stay s ev acts = Figram.realize (s.consume ev) s.state acts
+STMT Figram.waitNames_nil : Figram.waitNames [] = []
+STMT Figram.waitNames_call : ∀ (n : String) (d : Bool) (w : Figram.Wait) (tok : Nat) (acts : List Figram.Action), Figram.waitNames (Figram.Action.call n d w tok :: acts) = (if w = Figram.Wait.free then [] else [n]) ++ Figram.waitNames acts
+STMT Figram.waitNames_other : ∀ (a : Figram.Action) (acts : List Figram.Action), (∀ (n : String) (d : Bool) (w : Figram.Wait) (tok : Nat), a ≠ Figram.Action.call n d w tok) → Figram.waitNames (a :: acts) = Figram.waitNames acts

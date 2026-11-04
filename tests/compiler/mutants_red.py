@@ -259,6 +259,13 @@ def main():
             sys.exit(1)
         t_doc = time.time()
         for m in muts[: args.max_mutants]:
+            # a mutation the engine refuses would diverge everywhere and count as killed
+            hello = subprocess.run([args.engine, "--mutate", m, f.name], input='{"id":1,"op":"hello"}\n',
+                                   capture_output=True, text=True, timeout=60,
+                                   env=dict(os.environ, FIGRAM_ALLOW_MUTANTS="1"))
+            if hello.returncode != 0 or f'"mutant":{json.dumps(m)}' not in hello.stdout:
+                print(f"the engine refuses the mutation {m} (seed {seed}): a harness error, not a kill")
+                sys.exit(1)
             a = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=m,
                                    oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
             st2, d2 = {}, []

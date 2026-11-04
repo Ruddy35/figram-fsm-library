@@ -401,8 +401,9 @@ Decisions of the specification:
    in the snapshot (field `pending`: the action and the token). The host performs the action
    and then sends exactly one event `call:<action>:<outcome>` with that token: one of the
    declared outcomes (the external system answered: `created`, `rejected`), or `failed`, which
-   every action with outcomes has (the action could not be performed: no answer, an error of
-   the system, retries exhausted). An outcome is accepted only with the token of a wait for
+   every action with outcomes has (the host gave up without an answer: no answer, an error of
+   the system, retries exhausted; the action may still have taken effect, so the host first
+   reconciles, [host-contract.md](host-contract.md), section 2). An outcome is accepted only with the token of a wait for
    that action in the snapshot; accepting it removes the wait, so each wait accepts one
    outcome and a repeated delivery is ignored. An accepted outcome is then an event like any
    other: the arrows of the current message and of its sections decide (decision 1), so an

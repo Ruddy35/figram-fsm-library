@@ -41,12 +41,13 @@ command names and the exit statuses; the texts of messages are for humans and ma
   machine (`step_undetach`, `startWith_undetach`, `recover_undetach`); the arrow is looked up by
   exactly the event the host sent (`decEvent_key`, `decEvent_outcome`), `start` takes no outcome
   event (`decStartEvent_ok`), `restart` clears the waits (`handle_restart`, `restart_pending`).
-  `compile_correct` covers all three features; 99 theorem statements are pinned.
+  `compile_correct` covers all three features; 102 theorem statements are pinned.
 - `figram trace … --directed`: after the random scenarios, the shortest scenarios a search over
   the reachable places finds for the arrow variants they missed; the random scenarios are guided
   towards uncovered variants. `verify.sh` requires every arrow variant of the examples covered.
 - Mutants of the new features: `detach-flip`, `wait-free`, `wait-swap` (latest ↔ every) of an
-  action, `stay-reenter` of a variant without a target.
+  action, `stay-reenter` of a variant without a target. The mutation tests fail when the engine
+  refuses a mutation instead of counting it as detected (an action name may contain `:`).
 
 ### Changed
 
@@ -68,9 +69,11 @@ command names and the exit statuses; the texts of messages are for humans and ma
   `enterBot_eq_realize_some`, `enterBot_eq_realize_none` (the snapshot has waits; an outcome is
   matched only with a wait) and `toChart_decls` (the chart depends on the declarations of actions
   through their properties) changed deliberately.
+- The Python validators reject an empty `mutant` in `hello` (test mode only), as the Go client
+  does.
 - The examples: pizza creates the order with outcomes and notifies the kitchen in the background;
   features shows background actions, outcomes with `every`, arrows without a target and a timer
-  handled without a move. `examples/golden.jsonl` has 37 scenarios.
+  handled without a move. `examples/golden.jsonl` has 38 scenarios.
 
 ## [0.2.0] - 2026-10-25
 

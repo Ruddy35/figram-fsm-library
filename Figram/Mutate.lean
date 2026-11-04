@@ -135,37 +135,48 @@ def mutants (m : Machine) : List String :=
   -- a variant without a target that leaves and enters its message again
   ++ (bs.filterMap fun (b, k) => if b.target == .stay then some s!"stay-reenter:{k}" else none)
 
-def apply (m : Machine) (spec : String) : Option Machine :=
+/-- A mutation `<kind>` or `<kind>:<argument>`, split at the first `:` (the argument may be an
+action name, which may contain `:`). -/
+def splitSpec (spec : String) : String × Option String :=
   match spec.splitOn ":" with
-  | ["drop-call", n] => some (mapBranches m fun _ b =>
+  | [] => ("", none)
+  | [k] => (k, none)
+  | k :: rest => (k, some (":".intercalate rest))
+
+/-- The mutations whose argument is the name of an action. -/
+def namedKinds : List String := ["drop-call", "detach-flip", "wait-free", "wait-swap"]
+
+def apply (m : Machine) (spec : String) : Option Machine :=
+  match splitSpec spec with
+  | ("drop-call", some n) => some (mapBranches m fun _ b =>
       { b with actions := b.actions.filter fun | .call n' .. => n' != n | _ => true })
-  | ["redirect", k] => k.toNat?.map fun k => mapBranches m fun i b =>
+  | ("redirect", some k) => k.toNat?.map fun k => mapBranches m fun i b =>
       if i != k then b else
       let other := (m.states.find? fun s => match b.target with
         | .node n => s != n | .resume _ | .back _ | .stay => true).getD m.initial
       { b with target := .node other }
-  | ["reverse-actions", k] => k.toNat?.map fun k => mapBranches m fun i b =>
+  | ("reverse-actions", some k) => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with actions := b.actions.reverse } else b
-  | ["drop-guard", k] => k.toNat?.map fun k => mapBranches m fun i b =>
+  | ("drop-guard", some k) => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with guard := none } else b
-  | ["swap-branches", k] => k.toNat?.map fun k => mapRows m fun i r =>
+  | ("swap-branches", some k) => k.toNat?.map fun k => mapRows m fun i r =>
       if i == k then { r with branches := r.branches.reverse } else r
-  | ["reverse-entry", k] => k.toNat?.map fun k =>
+  | ("reverse-entry", some k) => k.toNat?.map fun k =>
       { m with entry := m.entry.zipIdx.map fun (e, i) => if i == k then (e.1, e.2.reverse) else e }
-  | ["drop-exit"] => some { m with exit := m.exit.map fun e => (e.1, []) }
-  | ["drop-remember"] => some { m with entry := m.entry.map fun e =>
+  | ("drop-exit", none) => some { m with exit := m.exit.map fun e => (e.1, []) }
+  | ("drop-remember", none) => some { m with entry := m.entry.map fun e =>
       (e.1, e.2.filter fun | .remember .. => false | _ => true) }
-  | ["resume-default"] => some { m with resumes := m.resumes.map ({ · with members := [] }) }
-  | ["drop-timer-start"] => some { m with entry := m.entry.map fun e =>
+  | ("resume-default", none) => some { m with resumes := m.resumes.map ({ · with members := [] }) }
+  | ("drop-timer-start", none) => some { m with entry := m.entry.map fun e =>
       (e.1, e.2.filter fun | .startTimer .. => false | _ => true) }
-  | ["one-zone"] => some { m with zone := m.zone.map fun e => (e.1, none) }
-  | ["detach-flip", n] => some (mapCalls m n fun d w => (!d, w))
-  | ["wait-free", n] => some (mapCalls m n fun d _ => (d, .free))
-  | ["wait-swap", n] => some (mapCalls m n fun d w => (d, match w with
+  | ("one-zone", none) => some { m with zone := m.zone.map fun e => (e.1, none) }
+  | ("detach-flip", some n) => some (mapCalls m n fun d w => (!d, w))
+  | ("wait-free", some n) => some (mapCalls m n fun d _ => (d, .free))
+  | ("wait-swap", some n) => some (mapCalls m n fun d w => (d, match w with
       | .latest => .every
       | .every => .latest
       | .free => .free))
-  | ["stay-reenter", k] => k.toNat?.map fun k => mapBranchesAt m fun s i b =>
+  | ("stay-reenter", some k) => k.toNat?.map fun k => mapBranchesAt m fun s i b =>
       if i == k && b.target == .stay then { b with target := .node s } else b
   | _ => none
 

@@ -191,9 +191,11 @@ The random scenarios reach deep messages by chance. A breadth-first search over 
 reachable from the first entry finds, for each arrow variant the random scenarios missed, the
 shortest list of inputs that fires it; `figram trace` adds these as scenarios of the same form. -/
 
-/-- The place of a snapshot for the search: everything but the counter and the tokens. -/
+/-- The place of a snapshot for the search: everything but the counter and the tokens, and the
+waits as the set of waiting actions (a second wait of an `every` action accepts the same
+outcomes, so it opens no new variant; counting copies made the search grow with every call). -/
 def placeKey (s : Snapshot) : String :=
-  s!"{s.state}|{s.resume}|{s.timers.map (·.1)}|{s.back}|{s.pending.map (·.1)}"
+  s!"{s.state}|{s.resume}|{s.timers.map (·.1)}|{s.back}|{(s.pending.map (·.1)).eraseDups}"
 
 /-- The conditions of a step from `s` on `ev` aimed at candidate `i`: its condition true, the
 others false (so the first candidate whose condition holds is `i`, unless an earlier one has

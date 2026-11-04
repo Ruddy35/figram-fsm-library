@@ -73,6 +73,18 @@ theorem addWait_every (pend : List (String × Nat)) (n : String) (tok : Nat) :
 theorem stay_eq (s : Snapshot) (ev : Event) (acts : List Action) :
     stay s ev acts = realize (s.consume ev) s.state acts := rfl
 
+theorem waitNames_nil : waitNames [] = [] := rfl
+
+theorem waitNames_call (n : String) (d : Bool) (w : Wait) (tok : Nat) (acts : List Action) :
+    waitNames (.call n d w tok :: acts) = (if w = .free then [] else [n]) ++ waitNames acts := by
+  by_cases h : w = .free <;> simp [waitNames, h]
+
+theorem waitNames_other (a : Action) (acts : List Action) (h : ∀ n d w tok, a ≠ .call n d w tok) :
+    waitNames (a :: acts) = waitNames acts := by
+  cases a with
+  | call n d w tok => exact absurd rfl (h n d w tok)
+  | _ => rfl
+
 /-! ## Executing actions and the waits -/
 
 theorem realizeOne_pending_mem (tok : Nat) (acc : Snapshot × List Action) (a : Action)

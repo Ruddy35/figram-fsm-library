@@ -328,6 +328,12 @@ example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat),
     addWait pend n tok .every = (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok))) := @addWait_every
 example : ∀ (s : Snapshot) (ev : Event) (acts : List Action),
     stay s ev acts = realize (s.consume ev) s.state acts := @stay_eq
+example : waitNames [] = [] := waitNames_nil
+example : ∀ (n : String) (d : Bool) (w : Wait) (tok : Nat) (acts : List Action),
+    waitNames (.call n d w tok :: acts) = (if w = .free then [] else [n]) ++ waitNames acts :=
+  @waitNames_call
+example : ∀ (a : Action) (acts : List Action), (∀ n d w tok, a ≠ .call n d w tok) →
+    waitNames (a :: acts) = waitNames acts := @waitNames_other
 
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse

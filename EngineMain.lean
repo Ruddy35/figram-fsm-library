@@ -75,19 +75,22 @@ def usage : String :=
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine [--max-request BYTES] --mutate <mutation> <bot.json>"
 
 /-- The number or name in a mutation refers to this machine: otherwise, for example,
-`redirect:999` or `drop-call:no_such_call` would silently give an unbroken engine.
+`redirect:999` or `drop-call:no_such_call` would silently give an unbroken engine. A name is an
+action of the machine (`wait-free` and `wait-swap`: an action with outcomes); it may contain `:`.
 Mutations without a number (`drop-exit` and the like) apply to any machine. -/
 def specInRange (m : Machine) (spec : String) : Bool :=
-  match spec.splitOn ":" with
-  | ["drop-call", n] => (Mutate.callNames m).contains n
-  | [kind, k] =>
-    match k.toNat? with
-    | some k =>
-      if kind == "swap-branches" then k < m.rows.length
-      else if kind == "reverse-entry" then k < m.entry.length
-      else k < (Mutate.branches m).length
-    | none => false
-  | _ => true
+  match Mutate.splitSpec spec with
+  | (kind, some n) =>
+    if kind == "wait-free" || kind == "wait-swap" then (Mutate.waitNames m).contains n
+    else if Mutate.namedKinds.contains kind then (Mutate.callNames m).contains n
+    else
+      match n.toNat? with
+      | some k =>
+        if kind == "swap-branches" then k < m.rows.length
+        else if kind == "reverse-entry" then k < m.entry.length
+        else k < (Mutate.branches m).length
+      | none => false
+  | (_, none) => true
 
 /-- The test mode of the deliberately broken engine is enabled only explicitly. -/
 def mutantsAllowed : IO Bool := return (← IO.getEnv "FIGRAM_ALLOW_MUTANTS") == some "1"

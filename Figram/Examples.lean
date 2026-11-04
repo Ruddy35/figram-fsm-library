@@ -158,6 +158,18 @@ def golden : List (String × Doc × Option Snapshot × List In) := [
     .ev "msg:text" [("in_delivery_zone", true)],
     .ev "payment:success", .outcomeNow "create_order" "failed", .ev "btn:retry",
     .outcomeNow "create_order" "created"]),
+  -- the user leaves "placing" while create_order is waited for and orders again: the new call
+  -- replaces the wait (only the latest call is answered), so the outcome of the first is ignored
+  ("pizza_order_again_while_waiting", pizzaDoc, none, [
+    .ev "btn:order", .ev "btn:cart",
+    .ev "btn:checkout" [("cart_not_empty", true)],
+    .ev "msg:text" [("in_delivery_zone", true)],
+    .ev "payment:success", .ev "btn:cancel",
+    .ev "btn:order", .ev "btn:cart",
+    .ev "btn:checkout" [("cart_not_empty", true)],
+    .ev "msg:text" [("in_delivery_zone", true)],
+    .ev "payment:success", .outcomeTok "create_order" "created" 6,
+    .outcomeNow "create_order" "created"]),
   ("pizza_empty_cart_and_pickup", pizzaDoc, none, [
     .ev "btn:order", .ev "btn:cart",
     .ev "btn:checkout" [("cart_not_empty", false)],
@@ -318,6 +330,10 @@ def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten
 -- an action with outcomes: the user waits on `placing`, which handles each outcome
 #guard finalAt "pizza_order_rejected_address" == "address"
 #guard finalAt "pizza_order_failed_retry" == "done"
+-- ordering again while waiting: the first outcome (token 6) is ignored on "placing", the second
+-- (token 12) is accepted
+#guard ((runGolden "pizza_order_again_while_waiting").map fun r =>
+    (r.1.state, r.1.pending, r.2.reverse.getD 1 [])) == some ("done", [], [])
 #guard ((runGolden "pizza_order_success").map fun r => r.1.pending) == some []
 -- an arrow without a target: no exit, no entry, the timers are not restarted, `seq` grows
 #guard ((runGolden "stay_keeps_message").map fun r => (r.1.state, r.1.seq, r.1.timers, r.2.getLast!)) ==
@@ -427,6 +443,13 @@ def textRoundTrip (d : Doc) : Bool :=
       && d.check.contains "`m` → `btn:x`: action `a` with outcomes occurs twice in `do`"
       && d.check.contains "`m` → `btn:y`: `resume` and `back` need `to`"
       && !(d.check.any (·.startsWith "event `call:a:ok`")) && !(d.check.any (·.startsWith "event `call:a:failed`"))
+  | .error _ => false
+-- the count is per action, whatever its kind of wait (`every`) or a background action with
+-- outcomes; an action without outcomes may occur twice
+#guard match parse "{\"figram\": 1, \"calls\": {\"e\": {\"text\": \"E\", \"outcomes\": [\"ok\"], \"every\": true}, \"d\": {\"text\": \"D\", \"outcomes\": [\"ok\"], \"detached\": true}, \"p\": \"P\"}, \"bot\": {\"initial\": \"m\", \"children\": {\"m\": {\"on\": {\"btn:e\": [{\"do\": [\"e\", \"p\", \"e\"]}], \"btn:d\": [{\"do\": [\"d\", \"p\", \"d\"]}], \"btn:p\": [{\"do\": [\"p\", \"p\", \"e\", \"d\"]}]}}}}}" >>= decode with
+  | .ok d => d.check.contains "`m` → `btn:e`: action `e` with outcomes occurs twice in `do`"
+      && d.check.contains "`m` → `btn:d`: action `d` with outcomes occurs twice in `do`"
+      && !(d.check.any (·.startsWith "`m` → `btn:p`")) && d.check.length == 2
   | .error _ => false
 
 #guard pizza.compile.wf && features.compile.wf

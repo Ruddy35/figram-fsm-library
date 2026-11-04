@@ -138,7 +138,7 @@ def check_reply(resp, rid: int, op: str) -> str:
         # "mutant" — only from a corrupted engine in test mode (FIGRAM_ALLOW_MUTANTS=1)
         if keys - {"mutant"} != {"protocol", "states"} or not is_int(resp["protocol"]) \
                 or not is_int(resp["states"]) or not 0 <= resp["states"] <= MAX_INT \
-                or ("mutant" in resp and type(resp["mutant"]) is not str):
+                or ("mutant" in resp and (type(resp["mutant"]) is not str or not resp["mutant"])):
             raise ProtocolError(f"hello reply: {resp!r}")
         if resp["protocol"] != PROTOCOL:
             raise ProtocolError(f"hello reply: protocol {resp['protocol']}, expected {PROTOCOL}")

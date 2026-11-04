@@ -7,7 +7,7 @@ that the project relies on, how the proofs are checked, and what the proofs do n
 
 ## Pinned theorems
 
-The statements of these 99 theorems are pinned: `./verify.sh` elaborates
+The statements of these 102 theorems are pinned: `./verify.sh` elaborates
 [`tests/proofs/theorems.lean`](../tests/proofs/theorems.lean), prints the statement of each one
 and requires it to equal the corresponding line of
 [`tests/proofs/THEOREMS.expected`](../tests/proofs/THEOREMS.expected) character for character.
@@ -130,7 +130,8 @@ without a target as the machine (`Snapshot.accepts`, `settle`, `consume`, `addWa
 `realize` in `Figram/Core.lean`), so `compile_correct` and the conformance tests cannot find an
 error in them. What they compute is pinned in terms of lists, and they are checked by the
 theorems above and by the independent oracle of `tests/compiler` (written from the prose, it
-does not read the Lean sources):
+does not read the Lean sources). `check` and `Chart.WaitsOnce` count the waits of a variant
+with `waitNames`, whose equations are pinned as well:
 
 | Theorem | Meaning |
 |---|---|
@@ -144,6 +145,9 @@ does not read the Lean sources):
 | `Figram.addWait_latest` | A call answered only at its latest call puts its wait first and removes the other waits of its action. |
 | `Figram.addWait_every` | A call with `every` puts its wait first and keeps the others. |
 | `Figram.stay_eq` | A variant without a target is `realize` of its actions on the current message from the snapshot without the consumed timer. |
+| `Figram.waitNames_nil` | No actions call no action with outcomes. |
+| `Figram.waitNames_call` | A call is counted once for each occurrence, unless its action has no outcomes (`check` and `WaitsOnce` use this count). |
+| `Figram.waitNames_other` | Other actions are not counted. |
 
 ### Linear-time execution
 
@@ -245,7 +249,7 @@ connects the product theorems end to end, among others:
      `debug.skipKernelTC`, `run_elab`, `run_cmd`, `run_meta`, `modifyEnv`, `addDeclCore`,
      `unsafe`, `@[csimp]`);
    * the list of every `theorem` in `Figram/*.lean` is generated from the sources and must equal
-     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (365 theorems);
+     the tracked pin [`tests/proofs/theorems.txt`](../tests/proofs/theorems.txt) (368 theorems);
      `#print axioms` is run for each of them, the number of answers must match, and only the
      three standard axioms are allowed;
    * [`tests/proofs/AxiomGate.lean`](../tests/proofs/AxiomGate.lean) repeats the axiom check from

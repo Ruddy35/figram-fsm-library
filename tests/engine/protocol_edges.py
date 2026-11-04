@@ -590,13 +590,18 @@ def run_raw(section, args, cases, final_newline=True):
 
 
 # ---- the validators of clients/python/protocol.py on hand-written replies (protocol 3) ----
-# (reply, op, accepted?): the same rows as TestFixCheckReplyProtocolChanges in clients/go.
+# (reply, op, accepted?): the hello and protocol 3 rows of TestFixCheckReplyProtocolChanges in
+# clients/go/fix_test.go are the same (keep the two lists in step; the Go test also has rows for
+# error replies, `need`, `back` and `recovered`).
 R = '{"id":5,"snapshot":%s,"actions":%s}'
 VALIDATOR = [
     ('{"id":5,"protocol":3,"states":-1}', "hello", False),
     ('{"id":5,"protocol":3,"states":18446744073709551616}', "hello", False),
     ('{"id":5,"protocol":3,"states":8}', "hello", True),
     ('{"id":5,"protocol":3,"states":8,"mutant":"drop-call:ping"}', "hello", True),
+    ('{"id":5,"protocol":3,"states":8,"mutant":""}', "hello", False),
+    ('{"id":5,"protocol":3,"states":8,"mutant":3}', "hello", False),
+    ('{"id":5,"protocol":3,"states":8,"extra":"x"}', "hello", False),
     ('{"id":5,"protocol":2,"states":8}', "hello", False),
     ('{"id":5,"protocol":4,"states":8}', "hello", False),
     ('{"id":5,"protocol":3.0,"states":8}', "hello", False),
@@ -611,6 +616,7 @@ VALIDATOR = [
     (R % ('{"at":"home","pending":[{"call":"ping","token":-1}]}', '[]'), "step", False),
     (R % ('{"at":"home","pending":[{"call":"ping","token":1.5}]}', '[]'), "step", False),
     (R % ('{"at":"home","pending":[{"call":"ping","token":1.0}]}', '[]'), "step", False),
+    (R % ('{"at":"home","pending":[{"call":"ping","token":"1"}]}', '[]'), "step", False),
     (R % ('{"at":"home","pending":[{"call":"ping","token":9007199254740992}]}', '[]'), "step", False),
     (R % ('{"at":"home","pending":[{"call":"ping","token":true}]}', '[]'), "step", False),
     (R % ('{"at":"home","pending":[{"call":"ping","token":1,"x":1}]}', '[]'), "step", False),

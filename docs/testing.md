@@ -36,14 +36,14 @@ Steps, in order:
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
    the variable the step is skipped (not a waiver).
-4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 99 pinned theorems
+4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 102 pinned theorems
    must equal `tests/proofs/THEOREMS.expected` and depend only on `propext`, `Quot.sound` and
    `Classical.choice`; the Lean sources must not contain `axiom`, `sorry`, `admit`,
    `native_decide`, `implemented_by`, `@[extern`, `skipKernelTC`, `ofReduceBool`,
    `ofReduceNat` ([proofs.md](proofs.md)).
-5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 365 source theorems and
+5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 368 source theorems and
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
-6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (37 scenarios) and
+6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (38 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
 7. **Warnings** — `tests/compiler/lint_warnings.py`: at least 29 documents; the warnings of
    `figram check` contain the expected fragments, and clean documents have none.
@@ -79,7 +79,7 @@ Steps, in order:
 15. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 49
     snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones,
     `pending` included, and an event without an arrow gives every accepted snapshot back; the
-    `seq` boundary) and `tests/engine/protocol_edges.py` (at least 250 hand-written cases:
+    `seq` boundary) and `tests/engine/protocol_edges.py` (at least 256 hand-written cases:
     error codes, strict fields, tokens and `seq` by value, `start` with `seq`, "back", `restart`, `id`
     echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating; protocol 3:
     outcome events accepted, stale, without an arrow, with `every`, in recovery and after

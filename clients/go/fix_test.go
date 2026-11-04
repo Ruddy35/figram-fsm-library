@@ -210,6 +210,8 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"error":"x"}`, "ERR"}, // code is required
 		{"step", `{"id":null,"error":"x"}`, "ERR"},
 		{"hello", `{"id":5,"protocol":3,"states":11}`, "hello"},
+		{"hello", `{"id":5,"protocol":3,"states":-1}`, "ERR"},
+		{"hello", `{"id":5,"protocol":3,"states":18446744073709551616}`, "ERR"},
 		{"hello", `{"id":5,"protocol":3,"states":11,"mutant":"drop-call:create_order"}`, "hello"},
 		{"hello", `{"id":5,"protocol":3,"states":11,"mutant":""}`, "ERR"},
 		{"hello", `{"id":5,"protocol":3,"states":11,"mutant":3}`, "ERR"},
@@ -245,6 +247,8 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1.5}]},"actions":[]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":9007199254740992}]},"actions":[]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":"1"}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1.0}]},"actions":[]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":true}]},"actions":[]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","pending":[{"call":"ping","token":1,"x":1}]},"actions":[]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","pending":[["ping",1]]},"actions":[]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","pending":{"ping":1}},"actions":[]}`, "ERR"},
@@ -255,6 +259,7 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":1,"detached":true}]}`, "result"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":false}]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":"true"}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":1}]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"log","detached":null}]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":-1}]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","token":1.5}]}`, "ERR"},
@@ -265,6 +270,7 @@ func TestFixCheckReplyProtocolChanges(t *testing.T) {
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"call":"ping","ms":1,"token":1}]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"send":"home","detached":true}]}`, "ERR"},
 		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"start_timer":"t","ms":1,"token":1,"detached":true}]}`, "ERR"},
+		{"step", `{"id":5,"snapshot":{"at":"home","seq":1},"actions":[{"send":"home","token":1}]}`, "ERR"},
 	}
 	for _, c := range cases {
 		v, err := checkReply(decodeReply(t, c.reply), 5, c.op)

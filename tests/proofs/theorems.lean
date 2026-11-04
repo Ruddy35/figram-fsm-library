@@ -112,7 +112,10 @@ open Lean Elab Command Meta in
       ``Figram.addWait_free,
       ``Figram.addWait_latest,
       ``Figram.addWait_every,
-      ``Figram.stay_eq
+      ``Figram.stay_eq,
+      ``Figram.waitNames_nil,
+      ``Figram.waitNames_call,
+      ``Figram.waitNames_other
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -217,3 +220,6 @@ open Lean Elab Command Meta in
 #print axioms Figram.addWait_latest
 #print axioms Figram.addWait_every
 #print axioms Figram.stay_eq
+#print axioms Figram.waitNames_nil
+#print axioms Figram.waitNames_call
+#print axioms Figram.waitNames_other

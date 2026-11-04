@@ -46,7 +46,8 @@ For every Telegram update (it carries an `update_id`):
    it from the update. A timer event or an outcome event for a user without a snapshot is not
    such an update: a new user has no timers and no waits, the event belongs to a lost or deleted
    snapshot, and `start` rejects it (`bad_request`). Drop it and record its mark as processed
-   (`timer:<name>:<token>`, `call:<action>:<token>`); do not start the user with it.
+   (`timer:<name>:<token>`, `call:<action>:<token>`, with the run id if the snapshot database
+   can roll back, step 4); do not start the user with it.
 
    **Shared scarce resources.** The per-user barrier does not protect data shared between
    users: the last seat, the remaining stock, a limit. Two users checking `slot_free` at the
@@ -130,8 +131,8 @@ A separate executor takes actions from the outbox in order and marks them execut
   decision 11) are not waited for: the barrier of section 1, step 3 does not include them, and
   the executor may run them from a separate queue, in any order relative to the user's other
   actions, after the commit that produced them. After a few failed attempts such an action goes
-  to the failure queue with an alert, and the user goes on (with outcomes: and `failed` is
-  delivered, below). Declare an action as a background
+  to the failure queue with an alert, and the user goes on; if it has outcomes, the host also
+  delivers `failed` (below). Declare an action as a background
   action only if no condition reads its effect (a condition computed before it ran sees the old
   data) and no other action needs it to have run first — a notification, a log entry, an
   analytics event. It may run twice like any action, so it takes the idempotency key too.
@@ -433,7 +434,7 @@ procedure (section 4) is checked by the example above (`ci/check_docs.py` runs i
 `tests/engine/protocol_edges.py` (`restart` and `start` with `seq`).
 
 The client is tested by `tests/engine/client_faults.py` — 13 kinds of engine failure on a
-request (8 threads each), 5 before readiness (before the `hello` reply), and 300 concurrent
+request (8 threads each), 11 before readiness (before a valid `hello` reply), and 300 concurrent
 requests to a process that does not read its input: every request fails without hanging and
 the process is replaced — and by `tests/engine/client_robustness.py` (checks R1–R20: waking
 waiters, resources after hundreds of replacements, `close()`, the start phase, a timeout that

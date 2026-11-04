@@ -8,6 +8,7 @@ itself).
     python3 mutation.py ENGINE --golden examples/golden.jsonl DOC=TRACES.jsonl ...
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -17,6 +18,17 @@ from conformance import corpus, run
 from protocol import default_timeout, mutant_env
 
 MIN_MUTANTS = 1   # per document; an empty list of mutations is a failure, not 100%
+
+
+def mutant_runs(engine, doc, m):
+    """The engine runs mutation m: `hello` succeeds and names the mutation."""
+    try:
+        out = subprocess.run([engine, "--mutate", m, doc], input=b'{"id":1,"op":"hello"}\n',
+                             capture_output=True, timeout=default_timeout(), env=mutant_env())
+        reply = json.loads(out.stdout.decode().splitlines()[0])
+    except (subprocess.TimeoutExpired, IndexError, ValueError):
+        return False
+    return out.returncode == 0 and reply.get("mutant") == m
 
 
 def main():
@@ -38,6 +50,11 @@ def main():
             print(f"the unmodified engine fails the set for {doc}: {base[:1]}")
             sys.exit(1)
         for m in mutants:
+            # A mutation the engine refuses (exit 2) would fail every scenario and count as
+            # detected; the engine must accept it and report it in `hello`.
+            if not mutant_runs(engine, doc, m):
+                print(f"{doc}: the engine refuses the mutation {m}: a harness error, not a detection")
+                sys.exit(1)
             _, bad = run(engine, doc, traces, m)
             if bad:
                 killed += 1
