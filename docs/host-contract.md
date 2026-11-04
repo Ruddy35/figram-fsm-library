@@ -77,7 +77,11 @@ For every Telegram update (it carries an `update_id`):
    outbox row of the call at commit and kept with its outcome (after a rollback the reissued
    `seq` gives a new call the same token, and the late outcome of the lost call would otherwise
    answer it: drop an outcome whose run id is not that of the current call with its token); for
-   a reset (section 4) — the id of the reset operation. `action` is
+   a reset (section 4) — the id of the reset operation. The check needs the run ids for as long
+   as an event can come: keep the run id of a call until its outcome is processed (or its wait is
+   gone from the snapshot) and the run id of a timer while the snapshot holds the timer, also when
+   executed outbox rows are deleted (section 4) — a host that loses them drops every outcome and
+   every firing as stale, and its users wait for good. `action` is
    `call:create_order`, `send:menu`, `start_timer:cart_reminder` and so on; `occurrence` is the
    index of the same action within this reply (usually 0). After a rollback, a redelivery of
    the same update gets the same key, so the external system does not execute the action
@@ -96,6 +100,13 @@ For every Telegram update (it carries an `update_id`):
    the database that can roll back and is incremented on every restore and failover. The
    epoch prevents lost actions, but after a rollback a redelivery of the same update executes
    its actions again.
+
+   A rollback also loses what no one delivers again: updates confirmed to Telegram after the
+   backup (step 5) are not redelivered, so the users' steps since then are gone, while the
+   actions they caused in external systems stay (an order created in the lost history, which the
+   user, back on the cart, may place again). After a restore, reconcile with the external
+   systems since the backup and tell the affected users; the timers need the procedure of
+   section 3, "Restoring the snapshot database".
 5. **Acknowledgement.** Acknowledge the update to Telegram only after the transaction commits.
    A failure before the commit makes Telegram deliver the update again, and it is processed as
    the first time. Webhook: the acknowledgement is a 2xx response to the request carrying the
@@ -144,7 +155,12 @@ A separate executor takes actions from the outbox in order and marks them execut
   retries exhausted). No answer does not mean that the action was not performed: before
   delivering `failed` for an action that may have taken effect, reconcile — ask the external
   system for the result of the call by its idempotency key (section 1, step 4) and deliver
-  that outcome if it acted. Otherwise a retry that the designer draws after `failed` (the
+  that outcome if it acted. A read settles it only if the system applies a request before it
+  answers or never; a system that may still apply an accepted request later (a queue inside it,
+  an asynchronous replica) answers "unknown" and acts afterwards. Then close the key first —
+  cancel or fence the call by its key, so that the system refuses to apply it later, and read the
+  result after that — or wait until the system's deadline for the key has passed; deliver
+  `failed` only then. Otherwise a retry that the designer draws after `failed` (the
   pizza's `order_failed` → `btn:retry`) is a new call with a new key and creates a second
   order; if reconciling is impossible, make such a retry safe with a business key (the id of
   the order the host keeps), not the key of the call. Deliver only a declared outcome or
@@ -154,8 +170,11 @@ A separate executor takes actions from the outbox in order and marks them execut
   outcome is an event of the user and goes through section 1: one at a time per user, in order
   with the user's other events, duplicate filtering with the `update_id`
   `call:<action>:<token>` (with the run id if the database can roll back, section 1, step 4),
-  the atomic write. Record it in the same transaction that marks the action executed (or record it first
-  when the action runs outside the transaction), so that a failure cannot lose it: a wait whose
+  the atomic write. Record it in the inbound queue of the user's events in the same transaction
+  that marks the action executed (or record it first when the action runs outside the
+  transaction), so that a failure cannot lose it, and process it later under the user's lock
+  like an update — not inside the executor's transaction: the barrier of section 1, step 3
+  waits for the user's pending actions, this call among them until its mark commits. A wait whose
   outcome never comes stays in the snapshot — with `every` for good — and a user waiting for it
   on a "please wait" message waits forever. Store the details of the outcome (the error of the
   external system) with the event: conditions and message texts read them. An outcome is handled
@@ -164,7 +183,19 @@ A separate executor takes actions from the outbox in order and marks them execut
   and may come after other events of the user — the user pressed "Cancel" on "please wait" —
   and a background action with outcomes may answer at any time. On a message without an arrow
   for it the outcome only answers the call; draw the arrows of an outcome that must not be lost
-  on a section or the root, where they work on every message inside. With `every`, each call
+  on a section or the root, where they work on every message inside (the pizza example draws
+  them on the root). Otherwise a user who opened `/help` on "please wait" and came back with
+  "Back" (or "resume") after the outcome was ignored on `help` stays on "please wait" with
+  nothing to wait for (`figram check` warns, [format.md](format.md), section 3).
+  The message of the variant's target is sent after the variant's actions (section 2, "Order"):
+  with a sequential `create_order` that the executor performs until the CRM answers, "please
+  wait" reaches the user only after the answer. An action with outcomes does not need that: the
+  executor may mark the call executed as soon as the external system has accepted the request
+  (with its key) and deliver the outcome when the answer comes (a callback, polling), so the next
+  action is sent at once — provided no condition reads the call's effect before its outcome is
+  processed (the barrier then no longer covers it). The same holds for a background action with
+  outcomes: its outcome event is the moment its effect is there, and a condition evaluated on
+  that event or after it may read it. With `every`, each call
   adds a wait until its outcome comes: a host that does not answer them makes the snapshot
   grow until requests with it exceed the line limit (`too_large`).
 * **Timer deadlines** are counted from the step's commit (store the time in the outbox), not
@@ -179,14 +210,18 @@ A separate executor takes actions from the outbox in order and marks them execut
 * `start_timer` comes with a token. The host schedules the event
   `{"event": "timer:<name>", "token": <token>}` after `ms` milliseconds and stores it under the
   pair (user, name). A start replaces the stored event with the same name only if its token is
-  greater than the stored one.
+  greater than the stored one — or, if the snapshot database can roll back, equal to it with
+  another run id: after a rollback the reissued `seq` gives a new start the token of an event of
+  the lost history; refused or ignored, the new timer never fires, and the old event is dropped
+  by the run-id check (below).
 * `cancel_timer` carries no token. Remove a scheduled event only if its token is smaller than
   the `seq` of the reply that carried the cancellation (`seq` is stored in the outbox row,
   section 1): a start in the same reply has a token equal to that `seq`, later starts have
   greater tokens, so a cancellation never removes a newer start, even if the executor runs
   actions out of order. Alternatively the scheduler stores events by the triple
-  (user, name, token), and a cancellation removes the events with that name and a token smaller
-  than `seq`.
+  (user, name, token) — with the run id as a fourth part if the database can roll back, for the
+  same reason — and a cancellation removes the events with that name and a token smaller than
+  `seq`.
 * If an event is already in flight and cannot be cancelled, that is fine: the engine accepts a
   firing only with the token of the current run and only on the message that owns the timer,
   and ignores a stale one. A missed or late cancellation therefore does not break correctness —
@@ -216,9 +251,19 @@ A separate executor takes actions from the outbox in order and marks them execut
   and leaves the timer in place. A firing handled by an arrow without a target removes the
   timer from the snapshot; leaving the message later still emits `cancel_timer` for it (the
   exit cancels every timer of the message), which then finds no scheduled event. For the same reason `snapshot.timers` is not a list of
-  scheduled events: rebuilding the scheduler from it brings back timers that already fired. If
+  scheduled events: rebuilding the scheduler from it brings back timers that already fired —
+  unless their firing marks are consulted, as after a restore (below). If
   a conditional reminder must not be lost, give the timer arrow a last variant without a
   condition.
+* **Restoring the snapshot database.** Keep the scheduler in the same database, and a restore
+  brings back the scheduled events together with the snapshots. A scheduler outside it keeps
+  its state: it still holds the events of the lost history (the run-id check drops them), but it
+  has already fired and forgotten the timers that fired after the backup, whose firings were
+  rolled back — the restored snapshots still hold those timers, and nothing fires them. After
+  such a restore, schedule again every timer that a restored snapshot holds whose `start_timer`
+  row is in the restored database, whose firing mark (with its run id) is neither processed nor
+  queued, and which the scheduler does not hold with that run id: with the run id and the
+  deadline of that row (fire it at once if the deadline has passed).
 * **A loop restarts all timers of the message.** An arrow to the same message (including a
   timer loop `timer:tick` → the same message) leaves the message and enters it again
   ([format.md](format.md), section 7, decision 3): all timers of the message are cancelled and
@@ -320,10 +365,12 @@ deterministic: a retry gives the same error, so the event goes to the failure qu
 alert instead of being retried forever. Distinguish errors by `code` (`EngineError.code`), not
 by text ([format.md](format.md), section 8): `bad_snapshot` — the stored snapshot is corrupted
 or was written by a newer engine (repair — section 4); `seq_overflow` — the counter is
-exhausted; `parse_error`, `too_large`, `bad_request` — a bug in the host's request. The client
-also accepts an error reply without `code` (`EngineError.code` is then `None`); the engine
-always sends `code`, and the protocol validators (`clients/python/protocol.py`, `checkReply` in
-`clients/go`) reject an error reply without it.
+exhausted; `parse_error`, `too_large`, `bad_request` — a bug in the host's request. A failure of
+the process or of the transport has no code (`EngineError.code` is `None`, `retryable` is True):
+alert on those by `retryable`, not by the text. The client also accepts an error reply without
+`code` (`EngineError.code` is then `None`); the engine always sends `code`, and the protocol
+validators (`clients/python/protocol.py`, `checkReply` in `clients/go`) reject an error reply
+without it.
 
 The document is loaded before the process answers its first request, so large documents need a
 separate start timeout. When it starts a process, the client sends `hello` and waits for the
@@ -373,7 +420,10 @@ concurrently, with one shared `timeout`.
 * Waits for outcomes are kept: a wait of an action that is removed or loses its outcomes in the
   new version still accepts its outcome, and the outcome then only removes the wait (the new
   version can have no arrow for it, V5 of format.md, section 3); a wait of an action that is
-  still declared with that outcome is handled by the arrows of the new version.
+  still declared with that outcome is handled by the arrows of the new version. Users on a
+  "please wait" message for an action that loses its outcomes stay there: the outcome no longer
+  leads anywhere. Keep the old outcome arrows until the waits are answered, or `restart` those
+  users (section 4).
 * Renamed conditions and actions: a host built for the old version passes a condition under its
   old name — the engine ignores it as extra and answers `need` again. Deploy the host and the
   document together; `hello` does not report the document version.

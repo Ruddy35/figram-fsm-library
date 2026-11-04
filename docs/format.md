@@ -415,11 +415,14 @@ Decisions of the specification:
    other: the arrows of the current message and of its sections decide (decision 1), so an
    arrow on the waiting message handles it only there, and an arrow on the root section
    handles it wherever the user is; without a matching arrow it is ignored, but its wait is
-   gone. Moves do not touch the waits: a user who leaves the waiting message still gets the
-   outcome, by the arrows of the message the user is on then. A new call of the same action
-   replaces its wait — only the latest call is answered, and the outcome of an earlier one is
-   ignored — unless the action is declared with `"every": true`: then each call has its own
-   wait and each of their outcomes is accepted once. `restart` clears the waits; recovery
+   gone. Draw the arrows of an outcome that must reach the user on the root (the pizza example
+   does): on the waiting message alone they miss an outcome that comes while the user is on
+   `/help`, and "back" then returns the user to "please wait" with nothing to wait for
+   (`figram check` warns about such a message, section 3). Moves do not touch the waits: a
+   user who leaves the waiting message still gets the outcome, by the arrows of the message the
+   user is on then. A new call of the same action replaces its wait — only the latest call is
+   answered, and the outcome of an earlier one is ignored — unless the action is declared with
+   `"every": true`: then each call has its own wait and each of their outcomes is accepted once. `restart` clears the waits; recovery
    (decision 8) keeps them, and an accepted outcome is matched there as a named event at the
    initial message (decision 9), while an outcome that is not accepted chooses no variant and
    gives the plain start over. A new user has no waits, so an outcome cannot start a user.
@@ -590,10 +593,10 @@ Rules of a step:
 An action with outcomes (decision 12) in [`examples/pizza.bot.json`](../examples/pizza.bot.json):
 `payment:success` on `pay` leads to `placing` and calls `create_order`, which has the outcomes
 `created` and `rejected` (and `failed`). The call carries the token of the step, and the snapshot
-waits for it (request 1). The outcome comes back with that token, and the arrows of `placing`
-handle it (requests 2 and 3: `rejected` with the condition `address_rejected` leads back to the
-address). After that the wait is gone, so a repeated delivery is ignored (request 4), and so is
-an outcome with a token of no wait (request 5):
+waits for it (request 1). The outcome comes back with that token, and the arrows of the root
+handle it wherever the user is (requests 2 and 3: `rejected` with the condition
+`address_rejected` leads back to the address). After that the wait is gone, so a repeated
+delivery is ignored (request 4), and so is an outcome with a token of no wait (request 5):
 
 ```sh doctest
 $ printf '%s\n' \

@@ -168,7 +168,8 @@ clean client_robustness python3 $P/client_robustness.py $E examples/pizza.bot.js
 
 if [ $QUICK = 0 ]; then
   step "Harness self-test"
-  logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl"
+  logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl" \
+    "$T/pizza.cov" "$T/features.cov"
   n_ok=$(grep -c '^ok ' "$LOGS/selftest.log" || true)
   n_bad=$(grep -c '^FAIL' "$LOGS/selftest.log" || true)
   [ "$n_ok" -ge "$MIN_SELFTEST_OK" ] && [ "$n_bad" -eq 0 ] \

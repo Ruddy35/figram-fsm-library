@@ -371,7 +371,8 @@ clean client_robustness python3 $P/client_robustness.py $E examples/pizza.bot.js
 
 step "Test harness catches a corrupted, incomplete, empty and hanging engine"
 $F trace examples/pizza.bot.json 20 30 7 > "$T/small.jsonl" 2>/dev/null
-logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl"
+logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl" \
+  "$T/pizza.cov" "$T/features.cov"
 n_ok=$(grep -c '^ok ' "$LOGS/selftest.log" || true)
 n_bad=$(grep -c '^FAIL' "$LOGS/selftest.log" || true)
 [ "$n_ok" -ge "$MIN_SELFTEST_OK" ] && [ "$n_bad" -eq 0 ] \

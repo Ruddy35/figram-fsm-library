@@ -31,7 +31,10 @@ command names and the exit statuses; the texts of messages are for humans and ma
   initial message (decision 13).
 - `figram check`: an arrow on an outcome an action does not have, an action with outcomes twice in
   one `do`, invalid outcome names, `every` without `outcomes`, `resume` or `back` without `to` are
-  errors; a variant that waits for an outcome on a message without an arrow for it is a warning.
+  errors; a variant that waits for an outcome on a message without an arrow for it is a warning,
+  and so is a "please wait" message whose outcome arrows miss a message the user can go to from
+  it, when `back` or `resume` can bring the user back (the user would wait with nothing to wait
+  for).
 - Proofs ([docs/proofs.md](docs/proofs.md)): an event the snapshot does not accept changes nothing
   (`step_rejected`); a step keeps every other wait whatever the move (`step_keeps_wait`,
   `step_pending_new`), records the waits of its calls with its token (`step_records_wait`) and a
@@ -44,7 +47,10 @@ command names and the exit statuses; the texts of messages are for humans and ma
   `compile_correct` covers all three features; 102 theorem statements are pinned.
 - `figram trace … --directed`: after the random scenarios, the shortest scenarios a search over
   the reachable places finds for the arrow variants they missed; the random scenarios are guided
-  towards uncovered variants. `verify.sh` requires every arrow variant of the examples covered.
+  towards uncovered variants. When the search goes through all reachable places, it lists the
+  variants that no reachable snapshot fires, with their numbers in the compiled machine
+  (`mutation.py --unreachable` runs their mutations apart: they must survive). `verify.sh`
+  requires every other arrow variant of the examples covered.
 - Mutants of the new features: `detach-flip`, `wait-free`, `wait-swap` (latest ↔ every) of an
   action, `stay-reenter` of a variant without a target. The mutation tests fail when the engine
   refuses a mutation instead of counting it as detected (an action name may contain `:`).
@@ -71,7 +77,8 @@ command names and the exit statuses; the texts of messages are for humans and ma
   through their properties) changed deliberately.
 - The Python validators reject an empty `mutant` in `hello` (test mode only), as the Go client
   does.
-- The examples: pizza creates the order with outcomes and notifies the kitchen in the background;
+- The examples: pizza creates the order with outcomes, handled on the root (an outcome that comes
+  while the user is on `/help` is not lost), and notifies the kitchen in the background;
   features shows background actions, outcomes with `every`, arrows without a target and a timer
   handled without a move. `examples/golden.jsonl` has 38 scenarios.
 

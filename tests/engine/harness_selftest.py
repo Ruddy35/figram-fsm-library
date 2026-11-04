@@ -4,7 +4,12 @@ corresponding test red.
 The fake engines are proxies to the real engine that corrupt replies, do not
 answer everything, offer no mutations or hang.
 
-    python3 harness_selftest.py ENGINE pizza.bot.json traces.jsonl FEATURES_TRACES.jsonl
+    python3 harness_selftest.py ENGINE pizza.bot.json traces.jsonl FEATURES_TRACES.jsonl \
+        PIZZA_COVERAGE FEATURES_COVERAGE
+
+The coverage files are the stderr of `figram trace … --directed` for the two documents: the
+mutation test on the full corpus takes the unreachable variants from them (mutation.py
+--unreachable).
 """
 
 import os
@@ -15,7 +20,7 @@ import sys
 import tempfile
 import time
 
-engine, doc, traces, ftraces = (os.path.abspath(a) for a in sys.argv[1:5])
+engine, doc, traces, ftraces, cov, fcov = (os.path.abspath(a) for a in sys.argv[1:7])
 here = os.path.dirname(os.path.abspath(__file__))
 features = os.path.join(os.path.dirname(doc), "features.bot.json")
 schema = os.path.join(here, "..", "..", "schemas", "snapshot.schema.json")
@@ -198,8 +203,9 @@ with tempfile.TemporaryDirectory() as d:
         rc, took = run_tool(tool, args(engine))
         report(rc == 0, f"{tool}, real engine: exit code {rc} ({took:.1f} s)")
     golden = os.path.join(os.path.dirname(doc), "golden.jsonl")
-    rc, took = run_tool("mutation", [engine, "--golden", golden, f"{doc}={traces}",
-                                     f"{features}={ftraces}"], timeout=1800)
+    rc, took = run_tool("mutation", [engine, "--unreachable", f"{doc}={cov}",
+                                     "--unreachable", f"{features}={fcov}", "--golden", golden,
+                                     f"{doc}={traces}", f"{features}={ftraces}"], timeout=1800)
     report(rc == 0, f"mutation, real engine on the full corpus: exit code {rc} ({took:.1f} s)")
 
 print("the harness catches corruption" if ok else "THE HARNESS MISSES CORRUPTION (see the FAIL lines above)")
