@@ -75,7 +75,9 @@ step 0 designer-same-version timeout 600 python3 diff_random.py --engine "$ENGIN
 # baseline engine, 0 on the current one)
 step $UPW designer-upgrades timeout 600 python3 diff_random.py --engine "$ENGINE" --docs 400 --steps 80 --seed 21 \
      --no-exhaustive --no-perturb --oracle-opt timer_accept=owned --oracle-opt exit_cancels=snapshot --out "$LOG/designer-upgrades"
-step 0 mutants timeout 840 python3 mutants_red.py --engine "$ENGINE" --docs 8 --steps 100 --out "$LOG/mutant_survivors.json" $D
+# ~7 min on a CI runner and locally; the budget leaves room for a runner 4 times slower (CI run 48
+# on a docs-only commit: every step 3.5–5 times slower, this one hit 840 s)
+step 0 mutants timeout 1800 python3 mutants_red.py --engine "$ENGINE" --docs 8 --steps 100 --out "$LOG/mutant_survivors.json" $D
 step 0 metamorphic timeout 840 python3 metamorphic.py --engine "$ENGINE" --docs 40 --steps 60
 for t in rename_nodes annotations unreachable_resume shuffle_children call_forms all_detached; do
   step 0 red-metamorphic-$t timeout 300 python3 metamorphic.py --engine "$ENGINE" --docs 3 --steps 20 \

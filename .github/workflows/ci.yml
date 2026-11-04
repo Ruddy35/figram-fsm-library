@@ -56,7 +56,7 @@ jobs:
       matrix:
         include:
           - { suite: formats, timeout: 30 }    # text layer, schema, requests, CLI names, parser budgets
-          - { suite: compiler, timeout: 45 }   # independent oracle, differential/metamorphic, mutants (~9 min)
+          - { suite: compiler, timeout: 60 }   # independent oracle, differential/metamorphic, mutants (~10 min; slow runners up to 4x)
           - { suite: capi, timeout: 30 }       # C ABI under ASan/UBSan and TSan, mutants of the C layer
           - { suite: go, timeout: 30 }         # go test of the Go wrapper, plain and -race
           - { suite: proofs, timeout: 30 }     # strict gate leaves tracked files untouched; proof controls
