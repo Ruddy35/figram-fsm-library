@@ -245,6 +245,7 @@ with `tests/engine/engine_memory.py` after 2000 requests on `examples/pizza.bot.
 
 | Build | Address space (`VmSize`) | Resident (`VmRSS`) | Threads |
 |---|---|---|---|
+| official Lean 4.35.0 release (CI) | 73 MiB (64 MiB of them the arena) | 4 MiB | 1 |
 | Lean 4.35.0 built from source (gcc) | 75 MiB (64 MiB of them the arena) | 6 MiB | 1 |
 
 ```sh
