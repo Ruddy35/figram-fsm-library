@@ -79,13 +79,28 @@ def trace (p count len seed : String) (directed : Bool) : IO Unit := do
     let (j, cov) := Trace.random c len (seed + i * 7919) covered
     IO.println (renderCompact j)
     covered := cov
+  let mut dead : Option (List String) := none
   if directed then
-    let (extra, all) := Trace.directed c covered
+    let (extra, all, unreachable) := Trace.directed c covered
     for j in extra do
       IO.println (renderCompact j)
     IO.eprintln s!"directed scenarios: {extra.length}"
     covered := all
+    dead := unreachable
   IO.eprintln s!"arrow variants covered: {covered.length} of {Trace.totalBranches c}"
+  if let some ds := dead then
+    -- the variants no reachable snapshot fires, with their numbers in the compiled machine
+    -- (`figram-engine --mutants` numbers branches and rows the same way): a mutation of such a
+    -- branch, or of a row of only such branches, does not change the behaviour
+    let rows := c.compile.rows
+    let keys := rows.flatMap fun r => (List.range r.branches.length).map fun i => s!"{r.src}|{r.event}|{i}"
+    IO.eprintln s!"arrow variants unreachable: {ds.length}"
+    for (k, b) in keys.zipIdx.filterMap (fun (key, b) => if ds.contains key then some (key, b) else none) do
+      IO.eprintln s!"unreachable variant: {k} branch {b}"
+    for (r, ri) in rows.zipIdx do
+      let n := r.branches.length
+      if n > 0 && (List.range n).all (fun i => ds.contains s!"{r.src}|{r.event}|{i}") then
+        IO.eprintln s!"unreachable row: {r.src}|{r.event} row {ri}"
 
 def run (args : List String) : IO Unit := do
   match args with

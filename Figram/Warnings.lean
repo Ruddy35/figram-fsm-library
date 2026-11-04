@@ -18,12 +18,38 @@ namespace Figram.Format
 the messages under its arrow where it fires) where an outcome of that action, `failed` included, has no arrow
 on the message or its sections: the outcome would be ignored, and a user waiting there would
 wait for good. Variants with "resume" or "back" are not checked (their target depends on the
-snapshot). -/
+snapshot).
+
+Second: the waiting message is a "please wait" message (all arrows drawn on it are outcome
+arrows) and handles an outcome, but an arrow of a section leads from it to a message where that
+outcome has no arrow, and the user can come back to the waiting message by "back" (the
+document has such a variant) or "resume" (into a section containing it): an outcome that
+arrives on the other message is ignored, and the user returns to "please wait" with nothing
+to wait for. One warning per waiting message and action. -/
 def Doc.outcomeWarnings (d : Doc) : List String := Id.run do
   let c := d.toChart
   let ix := c.index
   let m := c.compile
+  let backUsed := c.transitions.any fun t => t.branches.any fun b =>
+    match b.target with | .back _ => true | _ => false
+  let resumedInto (M : NodeId) : Bool := c.transitions.any fun t => t.branches.any fun b =>
+    match b.target with
+    | .history s => (ix.anc M).contains s
+    | .back (.history s) => (ix.anc M).contains s
+    | _ => false
+  -- the messages an arrow of the machine can lead to (a resumed section: any of its messages)
+  let landings : Target → List NodeId
+    | .node x => [x]
+    | .resume s => match m.resumes.find? (·.sec == s) with
+      | some r => r.default :: r.members
+      | none => []
+    | .back (.node x) => [x]
+    | _ => []
+  let pleaseWait (M : NodeId) : Bool :=
+    let own := c.transitions.filter (·.src == M)
+    !own.isEmpty && own.all (·.event.startsWith "call:")
   let mut ws : Array String := #[]
+  let mut seen : Array (NodeId × String) := #[]
   for t in c.transitions do
     for b in t.branches do
       for a in b.actions do
@@ -45,6 +71,19 @@ def Doc.outcomeWarnings (d : Doc) : List String := Id.run do
                   ws := ws.push (s!"outcome `{o}` of action `{n}` has no arrow on `{Chart.shown M}`: " ++
                     s!"the variant of `{Chart.shown t.src}` on `{t.event}` waits for it there " ++
                     "(an outcome without an arrow is ignored)")
+              if pleaseWait M && (backUsed || resumedInto M) && !seen.contains (M, n) then
+                let handled := os.filter fun o => (m.row M (outcomeEvent n o)).isSome
+                let exits := ((lookup m.table M).getD []).filter fun r => !os.any (r.event == outcomeEvent n ·)
+                let lost := exits.flatMap fun r => r.branches.flatMap fun fb =>
+                  (landings fb.target).filterMap fun L =>
+                    if L == M then none else
+                    (handled.find? fun o => (m.row L (outcomeEvent n o)).isNone).map fun o => (r.event, L, o)
+                if let some (e, L, o) := lost.head? then
+                  seen := seen.push (M, n)
+                  ws := ws.push (s!"outcome `{o}` of action `{n}` has no arrow on `{Chart.shown L}`, " ++
+                    s!"where `{e}` leads from `{Chart.shown M}`, which waits for it: there it is ignored, " ++
+                    s!"and `back` or `resume` can return the user to `{Chart.shown M}` with nothing to " ++
+                    "wait for (draw the arrows of the outcome on a section or the root)")
         | _ => pure ()
   return ws.toList
 

@@ -147,7 +147,13 @@ stays valid (`Doc.warnings`; warnings do not affect the engine):
   where an outcome of that action, `failed` included, has no arrow on the message or its
   sections: an outcome without an arrow is ignored, and a user waiting there would wait
   forever. Variants with `resume` or `back` are not checked (their target depends on the
-  snapshot).
+  snapshot);
+- a "please wait" message (all arrows drawn on it are outcome arrows) handles an outcome, an
+  arrow of one of its sections (`/help`, "Cancel") leads from it to a message where that
+  outcome has no arrow, and `back` (anywhere in the document) or `resume` into a section
+  containing it can bring the user back: an outcome that comes while the user is away is
+  ignored, and the user returns to "please wait" with nothing to wait for. Draw the arrows of
+  such an outcome on the root (decision 12).
 
 V1 and V3–V5 are references between parts of the document. A JSON value is a finite tree,
 while the arrow graph of a bot has cycles (menu → order → "Cancel" → menu). Arrows therefore

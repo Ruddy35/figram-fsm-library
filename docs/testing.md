@@ -45,7 +45,7 @@ Steps, in order:
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
 6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (38 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
-7. **Warnings** — `tests/compiler/lint_warnings.py`: at least 29 documents; the warnings of
+7. **Warnings** — `tests/compiler/lint_warnings.py`: at least 35 documents; the warnings of
    `figram check` contain the expected fragments, and clean documents have none.
 8. **Conformance** — `figram trace … --directed` generates 200 random reference scenarios of
    length 40 for each example document (outcome events included: the generator delivers
@@ -54,7 +54,10 @@ Steps, in order:
    they missed, the shortest scenarios a breadth-first search over the reachable places finds,
    and for each action with outcomes, from the first place found where it is waited for, each
    outcome with a stale token, with the token of the wait and once more; together they must
-   cover every arrow variant; `tests/engine/conformance.py`
+   cover every arrow variant except those the search proves unreachable (it goes through all
+   reachable places: pizza handles the outcomes of `create_order` on the root, and the 8 variants
+   of those arrows on `done` and `order_failed`, where the outcomes lead, never fire because no
+   wait is pending there; `verify.sh` pins the number, 0 for features); `tests/engine/conformance.py`
    replays the golden and the random scenarios against `figram-engine` and requires zero
    mismatches. The reference scenarios come from the proved chart semantics, not from the
    engine (the chart semantics shares the helpers of waits and variants without a target with
@@ -64,8 +67,10 @@ Steps, in order:
 9. **Random documents** — `tests/engine/random_docs.py`: 100 random valid documents
    (`figram random`) with 12 messages each, every one checked on 20 reference scenarios of length 30.
 10. **Mutation testing** — `tests/engine/mutation.py` runs every mutant of the compiled machine
-   (`figram-engine --mutants`, at least 211 on the two example documents) and requires that the
-   scenarios detect each one.
+   (`figram-engine --mutants`, at least 271 on the two example documents) and requires that the
+   scenarios detect each one, and that the engine accepts each mutation (a refused one is a
+   harness error, not a detection). The 12 mutations of the unreachable variants (step 8) are
+   run too, must survive (a detected one means the variant was reached) and are not counted.
 11. **Host contract** — `tests/engine/host_sim.py` ([host-contract.md](host-contract.md),
     section 7): the order scenario with outcomes of `create_order` (exactly one outcome event
     per call, none lost or processed twice, no wait left), background actions that never hold

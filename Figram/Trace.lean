@@ -225,9 +225,11 @@ def waitCalls (c : Chart) : List String :=
 /-- Breadth-first search over at most `limit` places reachable from the first entry: for each
 arrow variant not in `covered`, the shortest list of inputs found that fires it, and for each
 action of `calls`, the shortest list of inputs found after which it is waited for. The search
-stops once `want` variants and all of `calls` are found. -/
+stops once `want` variants and all of `calls` are found. The flag: the search went through all
+reachable places (then a variant neither covered nor found fires from no reachable snapshot:
+the place of a snapshot determines which variants can fire and the places of its successors). -/
 def search (c : Chart) (covered : List String) (limit want : Nat) (calls : List String) :
-    List (String × Path) × List (String × Path) := Id.run do
+    List (String × Path) × List (String × Path) × Bool := Id.run do
   let s0 := c.start.1
   let mut seen : Tab Unit := (Tab.empty 4096).insert (placeKey s0) ()
   let mut queue : Array (Snapshot × Path) := #[(s0, [])]
@@ -254,7 +256,7 @@ def search (c : Chart) (covered : List String) (limit want : Nat) (calls : List 
           for p in s'.pending do
             if calls.contains p.1 && !waits.any (·.1 == p.1) then
               waits := waits.push (p.1, rpath'.reverse)
-  return (out.toList, waits.toList)
+  return (out.toList, waits.toList, decide (i ≥ queue.size))
 
 /-- The scenario of a list of inputs from the first entry. -/
 def replay (c : Chart) (path : Path) : J := Id.run do
@@ -289,14 +291,26 @@ def waitScenarios (c : Chart) (waits : List (String × Path)) : List J :=
     (outcomesOf c n).map fun o =>
       replay c (extend c path [.outcome n o (tok + 1), .outcome n o tok, .outcome n o tok])
 
+/-- Every arrow variant: `<message>|<event>|<index>` of each candidate of each message. -/
+def allBranches (c : Chart) : List String :=
+  c.leafIds.flatMap fun L => c.events.flatMap fun e =>
+    (List.range (c.cands L e).length).map fun i => s!"{L}|{e}|{i}"
+
 /-- Scenarios for the arrow variants not in `covered` that the search reaches and for the outcomes
-of each action with outcomes (`waitScenarios`), and the variants covered then. -/
-def directed (c : Chart) (covered : List String) (limit : Nat := 3000) : List J × List String :=
+of each action with outcomes (`waitScenarios`), the variants covered then, and, if the search
+went through all reachable places, the variants that fire from no reachable snapshot (a variant
+of a section's arrow on a message where its event never comes: the outcome of an action on the
+message its other outcome leads to). -/
+def directed (c : Chart) (covered : List String) (limit : Nat := 20000) :
+    List J × List String × Option (List String) :=
   let want := totalBranches c - covered.length
   let calls := waitCalls c
-  if want = 0 && calls.isEmpty then ([], covered) else
-  let (found, waits) := search c covered limit want calls
-  (found.map (fun p => replay c p.2) ++ waitScenarios c waits, covered ++ found.map (·.1))
+  if want = 0 && calls.isEmpty then ([], covered, some []) else
+  let (found, waits, all) := search c covered limit want calls
+  let cov := covered ++ found.map (·.1)
+  let missed := (allBranches c).filter (!cov.contains ·)
+  (found.map (fun p => replay c p.2) ++ waitScenarios c waits, cov,
+    if missed.isEmpty then some [] else if all then some missed else none)
 
 
 /-! ## Scripted scenario -/

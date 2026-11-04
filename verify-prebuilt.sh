@@ -34,7 +34,7 @@ BIN=${BIN:-${FIGRAM_BIN:-}}
 for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an executable file"; done
 BIN=$(cd "$BIN" && pwd)
 cd "$(dirname "$0")"
-MIN_MUTANTS=211        # mutations in the two example documents (fewer is a failure)
+MIN_MUTANTS=271        # mutations in the two example documents (fewer is a failure)
 MIN_SELFTEST_OK=72     # passed checks of the harness self-test
 F=$BIN/figram
 E=$BIN/figram-engine
@@ -106,13 +106,18 @@ echo "ok ($(cat "$T/golden.out"))"
 
 step "Warnings of figram check: expected fragments, none on clean documents"
 logged lint_warnings python3 tests/compiler/lint_warnings.py --figram $F
-expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 29 and g[1] == 0' "warnings"
+expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 35 and g[1] == 0' "warnings"
 
 step "Engine conformance"
 for d in pizza features; do
   $F trace examples/$d.bot.json 200 40 7 --directed > "$T/$d.jsonl" 2> "$T/$d.cov"
   cat "$T/$d.cov"
-  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "coverage $d"
+  # every variant is covered, except those no reachable snapshot fires (the search went through
+  # all reachable places): pizza handles the outcomes of create_order on the root, and no wait can
+  # be pending on `done` and `order_failed`, where they lead
+  U=$(sed -n 's/^arrow variants unreachable: \([0-9]*\)$/\1/p' "$T/$d.cov")
+  [ "$U" = "$(case $d in pizza) echo 8;; *) echo 0;; esac)" ] || fail "$d: unreachable arrow variants: '$U'"
+  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' "g[1] > 0 and g[0] + $U == g[1]" "coverage $d"
 done
 python3 $P/conformance.py $E --golden examples/golden.jsonl \
   examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl" | tee "$T/conf.out"
@@ -125,9 +130,13 @@ expect "$LOGS/random_docs.log" '^documents (\d+), requests (\d+), documents with
 if [ $QUICK = 0 ]; then
   step "Mutation testing"
   # --mutants/--mutate are the test mode of the engine, only with FIGRAM_ALLOW_MUTANTS=1 (mutation.py sets it).
-  SHOW=3 logged mutation env FIGRAM_ALLOW_MUTANTS=1 python3 $P/mutation.py $E --golden examples/golden.jsonl \
+  SHOW=3 logged mutation env FIGRAM_ALLOW_MUTANTS=1 python3 $P/mutation.py $E \
+    --unreachable examples/pizza.bot.json="$T/pizza.cov" --unreachable examples/features.bot.json="$T/features.cov" \
+    --golden examples/golden.jsonl \
     examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl"
   expect "$LOGS/mutation.log" '^detected (\d+) of (\d+) mutations' "g[1] >= $MIN_MUTANTS and g[0] == g[1]" "mutations"
+  expect "$LOGS/mutation.log" '^mutations of unreachable variants \(not counted, all survived\): (\d+)$' 'g[0] == 12' \
+    "mutations of unreachable variants"
 fi
 
 step "Engine memory, threads and stack overflow"

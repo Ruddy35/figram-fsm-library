@@ -35,6 +35,26 @@
         {
           "to": "help"
         }
+      ],
+      "call:create_order:created": [
+        {
+          "to": "done",
+          "do": ["notify_kitchen"]
+        }
+      ],
+      "call:create_order:rejected": [
+        {
+          "if": "address_rejected",
+          "to": "address"
+        },
+        {
+          "to": "order_failed"
+        }
+      ],
+      "call:create_order:failed": [
+        {
+          "to": "order_failed"
+        }
       ]
     },
     "children": {
@@ -168,30 +188,7 @@
               ]
             }
           },
-          "placing": {
-            "on": {
-              "call:create_order:created": [
-                {
-                  "to": "done",
-                  "do": ["notify_kitchen"]
-                }
-              ],
-              "call:create_order:rejected": [
-                {
-                  "if": "address_rejected",
-                  "to": "address"
-                },
-                {
-                  "to": "order_failed"
-                }
-              ],
-              "call:create_order:failed": [
-                {
-                  "to": "order_failed"
-                }
-              ]
-            }
-          },
+          "placing": {},
           "order_failed": {
             "on": {
               "btn:retry": [

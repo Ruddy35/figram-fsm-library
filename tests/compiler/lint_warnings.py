@@ -161,6 +161,50 @@ CASES += [
      ["outcome `no` of action `chk` has no arrow on `h`: the variant of `bot` on `timer:t`"], ["no arrow on `g`"]),
 ]
 
+# The trap of a "please wait" message (all arrows drawn on it are outcome arrows): an arrow of a
+# section leads from it to a message where an outcome has no arrow, and "back" or "resume" can
+# return the user to it after the outcome was ignored there. The pizza example had it before the
+# outcome arrows moved to the root.
+def pizza_outcomes_on_placing():
+    x = ex("pizza.bot.json")
+    root = x["bot"]["on"]
+    arrows = {e: root.pop(e) for e in list(root) if e.startswith("call:create_order:")}
+    x["bot"]["children"]["order"]["children"]["placing"] = {"on": arrows}
+    return x
+
+
+HELP = {"cmd:help": [{"to": "h"}]}
+CASES += [
+    ("wait_trap_pizza_outcomes_on_placing", pizza_outcomes_on_placing(),
+     ["outcome `created` of action `create_order` has no arrow on `menu`, where `cmd:start` leads from "
+      "`placing`, which waits for it", "can return the user to `placing` with nothing to wait for"], []),
+    ("wait_trap_back", d3({"initial": "a", "on": HELP, "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {"on": ALL_CHK},
+        "h": {"on": {"btn:back": [{"to": "a", "back": True}]}}}}),
+     ["outcome `yes` of action `chk` has no arrow on `h`, where `cmd:help` leads from `w`"], []),
+    ("wait_trap_resume", d3({"initial": "a", "on": HELP, "children": {
+        "a": {"on": {"btn:x": [{"to": "S", "do": ["chk"]}]}},
+        "S": {"initial": "w", "children": {"w": {"on": ALL_CHK}}},
+        "h": {"on": {"btn:back": [{"to": "S", "resume": True}]}}}}),
+     ["outcome `yes` of action `chk` has no arrow on `h`, where `cmd:help` leads from `w`"], []),
+    # no way back to the waiting message: an ignored outcome does not trap the user
+    ("wait_trap_no_return_ok", d3({"initial": "a", "on": HELP, "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {"on": ALL_CHK},
+        "h": {"on": {"btn:back": [{"to": "a"}]}}}}), []),
+    # the waiting message has a button of its own: the user is not stuck on it
+    ("wait_trap_message_with_buttons_ok", d3({"initial": "a", "on": HELP, "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {"on": dict(ALL_CHK, **{"btn:x": [{"do": ["chk"]}]})},
+        "h": {"on": {"btn:back": [{"to": "a", "back": True}]}}}}), []),
+    # the outcome arrows on the root: handled wherever the user is
+    ("wait_trap_outcomes_on_root_ok", d3({"initial": "a", "on": dict(HELP, **ALL_CHK), "children": {
+        "a": {"on": {"btn:x": [{"to": "w", "do": ["chk"]}]}},
+        "w": {},
+        "h": {"on": {"btn:back": [{"to": "a", "back": True}]}}}}), []),
+]
+
 # FC-07: rejected documents with the root section in the messages
 FC07 = [
     ("fc07_root_initial_and_empty_child", '{"figram":1,"bot":{"initial":"b","children":{"a":{},"":{}}}}'),

@@ -17,9 +17,10 @@ Shows all the shortcuts:
 * "Back" from the reminder to where the user left off in the order;
 * a reminder on the cart;
 * conditions as text: "the cart is not empty", "the address is in the delivery zone";
-* an action with outcomes: the order is created in the CRM while the user waits on `placing`,
-  which handles each outcome (created, rejected with the reason, failed), and a background
-  action that tells the kitchen.
+* an action with outcomes: the order is created in the CRM while the user waits on `placing`;
+  the root section handles each outcome (created, rejected with the reason, failed), so an
+  outcome that comes while the user is on `/help` is not lost; and a background action that
+  tells the kitchen.
 -/
 
 namespace Figram.Examples
@@ -77,14 +78,15 @@ def pizzaDoc : Doc where
           ("address", msg [
               ("msg:text", [vIf "in_delivery_zone" "pay" ["save_address"], v "pickup"])]),
           ("pay", msg [("payment:success", [v "placing" ["create_order"]])]),
-          ("placing", msg [
-              ("call:create_order:created", [v "done" ["notify_kitchen"]]),
-              ("call:create_order:rejected", [vIf "address_rejected" "address", v "order_failed"]),
-              ("call:create_order:failed", [v "order_failed"])]),
+          ("placing", msg []),
           ("order_failed", msg [("btn:retry", [v "placing" ["create_order"]])]),
           ("pickup", msg [])
         ] [("btn:cancel", [v "menu" ["clear_cart"]])] [])
-    ] [("cmd:start", [v "menu"]), ("cmd:help", [v "help"])] []
+    ] [("cmd:start", [v "menu"]), ("cmd:help", [v "help"]),
+       -- the outcomes on the root: they are handled wherever the user is when they come
+       ("call:create_order:created", [v "done" ["notify_kitchen"]]),
+       ("call:create_order:rejected", [vIf "address_rejected" "address", v "order_failed"]),
+       ("call:create_order:failed", [v "order_failed"])] []
   ext := []
 
 /-- The chart the machine executes. -/
@@ -327,11 +329,11 @@ def allActs (name : String) : List Action := ((runGolden name).map (·.2.flatten
 #guard ((runGolden "self_loop_restarts_timer").map (·.2.getLast!)) ==
   some [.cancelTimer "idle", .startTimer "idle" 60000 3, .send "home"]
 
--- an action with outcomes: the user waits on `placing`, which handles each outcome
+-- an action with outcomes: the user waits on `placing`, the root handles each outcome
 #guard finalAt "pizza_order_rejected_address" == "address"
 #guard finalAt "pizza_order_failed_retry" == "done"
--- ordering again while waiting: the first outcome (token 6) is ignored on "placing", the second
--- (token 12) is accepted
+-- ordering again while waiting: the first outcome (token 6) is ignored (the new call replaced
+-- its wait), the second (token 12) is accepted
 #guard ((runGolden "pizza_order_again_while_waiting").map fun r =>
     (r.1.state, r.1.pending, r.2.reverse.getD 1 [])) == some ("done", [], [])
 #guard ((runGolden "pizza_order_success").map fun r => r.1.pending) == some []
