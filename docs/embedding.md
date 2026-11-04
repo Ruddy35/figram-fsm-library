@@ -112,7 +112,7 @@ Functions (all declared in [`ffi/figram.h`](../ffi/figram.h)):
 |---|---|
 | `figram_init` | initialize the runtime (optional; every other function does it on first use) |
 | `figram_last_error` | text of the last error detected in the calling thread |
-| `figram_set_max_request` | request size limit in bytes for the whole process (0 — none) |
+| `figram_set_max_request` | request size limit in bytes for the whole process (0 — none); new snapshots are kept within 15/16 of it (`snapshot_too_large`) |
 | `figram_check_json`, `figram_check_json_n` | check a document: `"ok"` or the errors separated by newlines (the warnings of `figram check` are not reported) |
 | `figram_fmt_json`, `figram_fmt_json_n` | canonical form of a document, or `"error: …"` |
 | `figram_load_doc`, `figram_load_doc_n`, `figram_load_doc_ex`, `figram_load_doc_ex_n` | load a document and return a machine handle (or NULL) |
@@ -163,7 +163,12 @@ until then). `figram_unload(NULL)` does nothing, like `free(NULL)`.
 **Undefined behaviour** (not detected):
 
 * `figram_unload` concurrently with requests to the **same** handle (serialize them yourself;
-  the Go wrapper uses a `sync.RWMutex`);
+  the Go wrapper uses a `sync.RWMutex`): the detection of unloaded handles covers only requests
+  that start after the unload, and a request already running — from the moment it reads the
+  handle, through the UTF-8 check of the whole request — may crash (SIGSEGV within a fraction
+  of a second when a test swaps and unloads machines under load). To reload a document, publish
+  the new handle, wait until the requests that hold the old one finish (a reader count or a
+  read-write lock per handle), then unload it;
 * a request or unload through a handle unloaded more than 1024 unloads ago: its slot may belong
   to a new machine by then;
 * a string without a terminating NUL in the variants without `_n`; a buffer shorter than `len`
@@ -210,10 +215,22 @@ overflow aborts them with Lean's message `Stack overflow detected. Aborting.`
 
 By default the Lean runtime reserves 1 GiB of address space for the arena of its allocator
 (mimalloc) and 1 GiB for the stack of each runtime thread. Before the runtime starts,
-`figram_init` and the executables disable the arena reservation (memory is taken from the OS as
-needed) and set the runtime thread stack size to that of any thread of the process
-(`RLIMIT_STACK`, `ulimit -s`) — [`ffi/figram_rt.c`](../ffi/figram_rt.c). Explicitly set
-`MIMALLOC_ARENA_RESERVE` and `LEAN_STACK_SIZE_KB` take precedence.
+`figram_init` and the executables set the runtime thread stack size to that of any thread of the
+process (`RLIMIT_STACK`, `ulimit -s`) and give mimalloc a 64 MiB arena (its smallest
+reservation, further ones of 64 MiB as needed) if at least 128 MiB of address space is free —
+[`ffi/figram_rt.c`](../ffi/figram_rt.c). The arena is address space, not memory in use. Explicitly
+set `MIMALLOC_ARENA_RESERVE` and `LEAN_STACK_SIZE_KB` take precedence.
+
+Without an arena memory is taken from the OS as needed, and the memory freed after a large
+request is not reused: with snapshots of thousands of waits the resident memory grew by about
+1.5 bytes per wait with every request, without bound (6 KB per request at 4000 waits; a 10-minute
+soak of the embedded library went from 14 MB to 607 MB). With the arena it stays flat:
+`tests/engine/engine_memory.py` and `tests/capi/regress.sh` repeat a request with 4000 waits
+1500 times and require less than 2 MiB of growth, and the C ABI test checks that it grows without
+the arena. Under an `RLIMIT_AS` that leaves less than 128 MiB free the runtime starts without the
+arena (a fixed reservation would end it with `INTERNAL PANIC: out of memory` on the first large
+request), and the growth on large requests remains: give such a host the margin, or keep its
+snapshots small.
 
 The embedded runtime therefore starts under `ulimit -v` / systemd `LimitAS=` with little
 headroom: the C ABI tests initialize it with 2 MiB to 1 GiB of address space above the current
@@ -228,8 +245,8 @@ with `tests/engine/engine_memory.py` after 2000 requests on `examples/pizza.bot.
 
 | Build | Address space (`VmSize`) | Resident (`VmRSS`) | Threads |
 |---|---|---|---|
-| official Lean 4.35.0 release | 10 MiB | 4–5 MiB | 1 |
-| Lean 4.35.0 built from source (gcc) | 12 MiB | 6 MiB | 1 |
+| official Lean 4.35.0 release (CI) | 73 MiB (64 MiB of them the arena) | 4 MiB | 1 |
+| Lean 4.35.0 built from source (gcc) | 75 MiB (64 MiB of them the arena) | 6 MiB | 1 |
 
 ```sh
 python3 tests/engine/engine_memory.py .lake/build/bin/figram-engine examples/pizza.bot.json
@@ -251,10 +268,12 @@ For Go programs use the module [`github.com/Ruddy35/ffl-go`](https://github.com/
 (`go get github.com/Ruddy35/ffl-go@v0.2.0`): a typed API (`Load`, `Start`, `StartWith`, `Step`,
 `Timer`, `Restart`, `Decide`, `Check`, `Fmt`) over this C ABI that bundles the static libraries
 of the release for linux/amd64, so no build of this repository is needed. A version of the
-module bundles one release and speaks its protocol: v0.2.0 bundles this release (protocol 2),
-and its `Load` rejects a library of another protocol version, which `-tags figram_system` could
-link. v0.1.0 speaks protocol 1 and works only with release 0.1.0: it has no `start` with an
-event and rejects every reply whose snapshot carries `back` ("unknown field").
+module bundles one release and speaks its protocol, and its `Load` rejects a library of another
+protocol version, which `-tags figram_system` could link. This release speaks protocol 3 (outcome
+events, `pending`, `token` and `detached` in `call`); the module version that bundles it follows
+the release. v0.2.0 bundles release 0.2.0 (protocol 2) and rejects the snapshots and actions of
+protocol 3 ("unknown field"). v0.1.0 speaks protocol 1 and works only with release 0.1.0: it has
+no `start` with an event and rejects every reply whose snapshot carries `back`.
 
 The reference wrapper used by the tests of this repository lives in
 [`clients/go`](../clients/go). It is a cgo wrapper (`Init`, `SetMaxRequest`, `Load`,
@@ -266,14 +285,27 @@ scenarios from many goroutines. Both are one `main` package (module `gofig`).
 * `Bot.Request(map)` sends one request with a fresh numeric `id`, decodes the reply with
   `json.Number` and validates it strictly (`checkReply`: the `id`, exactly one reply variant,
   field types, known error `code`). The caller's map is not modified, so one map may be shared
-  between goroutines.
+  between goroutines. It returns the reply, its variant and an error. The error is non-nil only
+  if the request could not be made or the reply violates the protocol; a `need` and an engine
+  error reply come back with a nil error as the variants `"need"` and `"error"` (switch on the
+  reply's `code`), so check the variant, not only the error — a host that only checks the error
+  stores the `need` reply's missing snapshot as `null`. `checkReply` validates replies to the
+  requests the wrapper sends: an error with `id: null` is accepted only for `parse_error` and
+  `too_large`; the shim's `bad_request` with `id: null` (a `NULL` or unloaded handle) cannot
+  happen through a `*Bot`.
 * A `*Bot` is safe for concurrent `Request` calls; `Close` frees the machine after waiting for
-  running calls (`sync.RWMutex`), after which `Request` returns an error. Documents can be
-  reloaded without memory growth (`gofig -reload N` checks this).
+  running calls (`sync.RWMutex`), after which `Request` returns `ErrClosed`. To reload a
+  document, load the new `*Bot`, switch to it (an atomic pointer), close the old one; a
+  goroutine that still held the old one gets `ErrClosed` and repeats its whole step — the
+  condition round trip included — on the new one. Documents can be reloaded without memory
+  growth (`gofig -reload N` checks this).
 * `figram_last_error()` is thread-local; the wrapper reads it in the same C call, because a
   goroutine may move to another OS thread between two cgo calls.
 
-To use the wrapper in your own module, pass the directory of `figram.h` and the flags from
+The package cannot be imported (`import "gofig"` fails: "is a program, not an importable
+package"). Until the `ffl-go` version for this release is published, copy `clients/go/main.go`
+into a package of your module, change its `package` line and drop the `gofig` driver (`main`
+and the functions only it uses). Pass the directory of `figram.h` and the flags from
 `ffi/out/LDFLAGS` in the environment (its `#cgo CFLAGS` line points into this repository; cgo
 accepts `-Wl,--gc-sections` from the environment):
 

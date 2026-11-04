@@ -12,9 +12,10 @@ its compiler, document format and engine protocol.
 A bot is one JSON document (`examples/*.bot.json`, schema
 [`schemas/figram.schema.json`](schemas/figram.schema.json)), meant to be written by a visual
 editor (not part of this repository) or by hand; the engine executes the document. The document
-describes messages, events, arrows with ordered variants guarded by named conditions, actions,
-nested sections, "resume where the user left off" and "back to the previous section" arrows,
-and timers
+describes messages, events, arrows with ordered variants guarded by named conditions, actions
+(sequential or in the background, with outcomes the engine waits for, such as "order created" or
+"rejected"), arrows without a target that act without a move, nested sections, "resume where
+the user left off" and "back to the previous section" arrows, and timers
 ([docs/format.md](docs/format.md)).
 
 The engine is **stateless**. It loads and compiles a document once and then answers requests:
@@ -25,7 +26,7 @@ per user, evaluates conditions when the engine asks for them, executes the actio
 schedules timers ([docs/host-contract.md](docs/host-contract.md)).
 
 **What is proved.** The reference semantics of the designer's chart, the compiler to a flat
-machine and the document format are specified in Lean 4; 46 pinned theorems state, among other
+machine and the document format are specified in Lean 4; 102 pinned theorems state, among other
 things, that the compiled machine takes exactly the steps of the chart for every snapshot, event
 and condition values, that a checked document is encoded and decoded back unchanged, and that a
 `step` request runs exactly the proved step and returns a snapshot the engine can read back. All
@@ -84,7 +85,7 @@ for Linux x86_64:
   executables.
 
 ```sh
-VERSION=0.2.0
+VERSION=0.3.0
 BASE=https://github.com/Ruddy35/figram-fsm-library/releases/download/v$VERSION
 curl -LO "$BASE/figram-$VERSION-linux-x86_64.tar.gz" -LO "$BASE/SHA256SUMS"
 sha256sum --ignore-missing -c SHA256SUMS
@@ -117,7 +118,7 @@ The examples below assume that `figram` and `figram-engine` are on `PATH`
 | `figram check <bot.json>` | check a document: prints `ok`, or the errors one per line (exit 1); warnings go to stderr with the prefix `warning:` and exit 0; a document that cannot be parsed or decoded is reported on stderr (exit 1) |
 | `figram fmt <bot.json>` | print the canonical form of a document (the document is decoded, not checked) |
 | `figram stats <bot.json>` | print the size of the compiled machine |
-| `figram trace <bot.json> <count> <length> <seed>` | print `count` random reference scenarios (JSON Lines) computed from the proved chart semantics; the coverage of arrow variants goes to stderr |
+| `figram trace <bot.json> <count> <length> <seed> [--directed]` | print `count` random reference scenarios (JSON Lines) computed from the proved chart semantics; with `--directed`, also the shortest scenarios a search finds for the arrow variants the random ones missed and for the outcomes of each action with outcomes (stale, accepted, repeated); the coverage of arrow variants goes to stderr |
 | `figram random <seed> <messages>` | print a random valid document |
 | `figram golden <dir>` | write the fixed reference scenarios and their documents into `dir` |
 
@@ -130,7 +131,7 @@ the differential tests.
 $ figram check examples/pizza.bot.json
 ok
 $ figram stats examples/pizza.bot.json
-{"states":11,"rows":40,"branches":42,"resumes":1,"actions":31}
+{"states":13,"rows":86,"branches":101,"resumes":1,"actions":51}
 $ figram example | cmp - examples/pizza.bot.json && echo identical
 identical
 $ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram fmt /dev/stdin
@@ -144,7 +145,7 @@ $ echo '{"bot":{"children":{"start":{}},"initial":"start"},"figram":1}' | figram
   }
 }
 $ figram trace examples/pizza.bot.json 1 3 7 2>/dev/null
-{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","back":"menu","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"cmd:help","guards":{},"snapshot":{"at":"help","back":"cart","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"help"}]}]}
+{"start":{"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]},"steps":[{"event":"btn:order","guards":{},"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]},{"event":"btn:cart","guards":{},"snapshot":{"at":"cart","back":"menu","resume":{"order":"cart"},"timers":{"cart_reminder":3},"seq":3},"actions":[{"start_timer":"cart_reminder","ms":7200000,"token":3},{"send":"cart"}]},{"event":"btn:cancel","guards":{},"snapshot":{"at":"menu","back":"cart","resume":{"order":"cart"},"seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"call":"clear_cart"},{"send":"menu"}]}]}
 $ figram random 7 5 2>/dev/null | figram check /dev/stdin 2>/dev/null
 ok
 $ out=$(mktemp -d) && figram golden "$out" > /dev/null && ls "$out" && rm -r "$out"
@@ -183,7 +184,8 @@ $ printf '%s\n' '{"id":1,"op":"start"}' '{"id":2,"op":"step","snapshot":{"at":"m
 
 The operations are `hello`, `start`, `restart` and `step`; a `step` (and a `start` with the
 user's first event) may answer `{"need": [...]}` when it needs condition values, and errors carry a machine-readable `code`
-(`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`). The complete
+(`parse_error`, `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`,
+`snapshot_too_large`). The complete
 protocol, the snapshot format and the error rules are in [docs/format.md](docs/format.md),
 section 8; the rules a host must follow (per-user ordering, transactions, idempotency, timers,
 document updates) are in [docs/host-contract.md](docs/host-contract.md).
@@ -207,7 +209,9 @@ C example and the Go wrapper in [`clients/go`](clients/go) are described in
 [`clients/python/figram_client.py`](clients/python/figram_client.py) drives a pool of
 `figram-engine` processes with pipelined requests, timeouts, replacement of failed processes and
 restart backoff; failures are reported as `EngineError` with `code` and `retryable`
-([docs/host-contract.md](docs/host-contract.md), section 5).
+([docs/host-contract.md](docs/host-contract.md), section 5). `Engine.outcome` delivers the
+outcome of an action with outcomes with the token of its call
+([docs/host-contract.md](docs/host-contract.md), section 2).
 
 ```python doctest
 from figram_client import Engine, EngineError
@@ -226,6 +230,12 @@ try:
                         guards=lambda names: {name: True for name in names})
     print(reply["snapshot"]["at"])
 
+    # An action with outcomes: its call carries a token; the host reports the outcome with it.
+    reply = engine.step(user, {"at": "pay", "seq": 5}, "payment:success")
+    print(reply["actions"])
+    reply = engine.outcome(user, reply["snapshot"], "create_order", "created", reply["actions"][0]["token"])
+    print(reply["snapshot"]["at"], reply["actions"])
+
     try:
         engine.step(user, {"at": "cart", "vv": 1}, "btn:checkout")
     except EngineError as e:
@@ -238,6 +248,8 @@ finally:
 [{'send': 'menu'}]
 {'at': 'catalog', 'back': 'menu', 'resume': {'order': 'catalog'}, 'seq': 2} [{'send': 'catalog'}]
 address
+[{'call': 'create_order', 'token': 6}, {'send': 'placing'}]
+done [{'call': 'notify_kitchen', 'detached': True}, {'send': 'done'}]
 bad_snapshot False
 ```
 

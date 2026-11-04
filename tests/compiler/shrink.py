@@ -18,7 +18,7 @@ import sys
 
 from difflib_core import Divergence, do_step
 from engine import Engine, EngineLoadError
-from oracle import Bot, DocError, Options
+from oracle import Bot, DocError, Options, split_outcome
 
 
 def repair(d):
@@ -56,7 +56,7 @@ def repair(d):
                 if e.startswith("timer:") and e[6:] not in timers:
                     del o["on"][e]
                     continue
-                o["on"][e] = [v for v in o["on"][e] if v["to"] in names]
+                o["on"][e] = [v for v in o["on"][e] if "to" not in v or v["to"] in names]
                 if not o["on"][e]:
                     del o["on"][e]
             if not o["on"]:
@@ -71,7 +71,10 @@ def repair(d):
     used_c, used_k = set(), set()
 
     def uses(o):
-        for vs in o.get("on", {}).values():
+        for e, vs in o.get("on", {}).items():
+            sp = split_outcome(e)
+            if sp:
+                used_k.add(sp[0])        # an outcome arrow keeps its action declared (V5)
             for v in vs:
                 if "if" in v:
                     used_c.add(v["if"])
@@ -150,6 +153,12 @@ def candidates(d, inp):
         del dd[k]
         yield f"doc key {k}", dd, inp
     s = inp["snapshot"]
+    for i in range(len(s.get("pending", []))):
+        i2 = copy.deepcopy(inp)
+        del i2["snapshot"]["pending"][i]
+        if not i2["snapshot"]["pending"]:
+            del i2["snapshot"]["pending"]
+        yield f"snapshot pending[{i}]", d, i2
     for part in ("resume", "timers"):
         for k in list(s.get(part, {})):
             i2 = copy.deepcopy(inp)

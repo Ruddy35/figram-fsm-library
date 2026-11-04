@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Directed, table-driven edge cases for the decisions of the specification 1-10
-(docs/format.md, section 7) and the engine protocol (section 8).
+"""Directed, table-driven edge cases for the decisions of the specification 1-13
+(docs/format.md, section 7: 11 background actions, 12 outcomes, 13 arrows without a target)
+and the engine protocol (section 8: `pending`, rule 2, the `call` fields, `restart`).
 
 Every expectation below is written BY HAND from the prose spec, and is
 checked against BOTH the real engine and the independent oracle (so the
@@ -68,8 +69,31 @@ def go(to, cond=None, resume=False, do=None, back=False):
     return v
 
 
+def stay(cond=None, do=None):
+    """A variant without a target (docs/format.md, section 7, decision 13)."""
+    v = {}
+    if cond:
+        v["if"] = cond
+    if do:
+        v["do"] = do
+    return v
+
+
 S = lambda n: {"send": n}
 CALL = lambda n: {"call": n}
+
+
+def CALLT(n, tok=None, detached=False):
+    """`{"call": n, "token"?: tok, "detached"?: true}` in this key order (section 8)."""
+    a = {"call": n}
+    if tok is not None:
+        a["token"] = tok
+    if detached:
+        a["detached"] = True
+    return a
+
+
+W = lambda a, tok: {"call": a, "token": tok}   # a wait of `pending`
 START = lambda t, ms, tok: {"start_timer": t, "ms": ms, "token": tok}
 CANCEL = lambda t: {"cancel_timer": t}
 
@@ -160,6 +184,64 @@ D_UP_V2_RENAME = doc(sec("S", {
         "C": msg(on={"btn:x": [go("D")], "timer:remind": [go("R")]}),
         "D": msg(), "E": msg(timers={"remind": 1})}),
     "R": msg()}))
+
+# ---- 0.3.0: background actions, actions with outcomes, arrows without a target
+# (docs/format.md, section 7, decisions 11-13; section 8: `pending`, rule 2, `call` fields)
+C3 = {"conditions": {"c1": "c1", "c2": "c2", "c3": "c3"},
+      "calls": {"k1": "k1",
+                "bg": {"text": "a background action", "detached": True},
+                "chk": {"text": "ask the warehouse", "outcomes": ["yes", "no"]},
+                "ping": {"text": "ping, every call answered", "outcomes": ["pong"], "every": True},
+                "bgo": {"text": "background with outcomes", "outcomes": ["done"], "detached": True},
+                "a:b": {"text": "a name with a colon", "outcomes": ["ok"]}}}
+
+
+def doc3(bot):
+    d = {"figram": 1}
+    d.update(C3)
+    d["bot"] = bot
+    return d
+
+
+D_OUT = doc3(sec("home", {
+    "home": msg(on={"btn:go": [go("wait", do=["chk"])], "btn:two": [go("wait", do=["chk", "ping"])],
+                    "btn:w2": [go("wait2", do=["chk"])]},
+                timers={"idle": 100}),
+    "wait": msg(on={"call:chk:yes": [go("yes")], "call:chk:no": [go("no", "c1")],
+                    "call:chk:failed": [go("err")], "btn:retry": [stay(do=["chk"])],
+                    "btn:home": [go("home")]},
+                timers={"tw": 50}),
+    "wait2": msg(on={"call:chk:failed": [stay(do=["chk"])], "call:chk:yes": [go("yes")],
+                     "call:chk:no": [go("no")]}),
+    "yes": msg(), "no": msg(),
+    "err": msg(on={"btn:home": [go("home")]})},
+    on={"btn:ping": [stay(do=["ping"])], "call:ping:pong": [stay(do=["k1"])],
+        "call:ping:failed": [go("err")], "btn:chkhere": [stay(do=["chk"])],
+        "btn:bg": [stay(do=["bg", "bgo"])], "btn:ab": [stay(do=["a:b"])],
+        "call:a:b:ok": [go("yes")], "call:a:b:failed": [go("err")],
+        "call:bgo:done": [stay()], "call:bgo:failed": [stay()]}))
+
+# A guarded outcome arrow at the initial message: recovery matches an accepted outcome there and
+# asks for its condition; a stale outcome chooses nothing and needs no condition.
+D_OUT_INIT = doc3(sec("home", {
+    "home": msg(on={"btn:go": [go("wait", do=["chk"])], "call:chk:yes": [go("yes", "c1")]}),
+    "wait": msg(on={"call:chk:yes": [go("yes")], "call:chk:no": [go("home")],
+                    "call:chk:failed": [go("home")]}),
+    "yes": msg()}))
+
+# Arrows without a target: on a message (named and timer events), on a section, on the root;
+# section S is remembered (resume arrow from o) and o is outside S ("back").
+D_STAY = doc3(sec("S", {
+    "S": sec("m", {
+        "m": msg(on={"timer:tick": [stay(do=["k1"])], "btn:stay": [go("n", "c1"), stay(do=["k1"])],
+                     "btn:leave": [go("n")], "btn:chk": [stay(do=["chk"])],
+                     "call:chk:yes": [stay(do=["bg"])], "call:chk:no": [stay()],
+                     "call:chk:failed": [stay()]},
+                 timers={"tick": 10, "other": 20}),
+        "n": msg(on={"call:chk:yes": [go("m")], "call:chk:no": [go("m")], "call:chk:failed": [go("m")]})},
+        on={"btn:sec": [stay(do=["k1"])], "btn:shadow": [stay(do=["k1"])]}),
+    "o": msg(on={"btn:back": [go("S", resume=True)], "btn:prev": [go("m", back=True)]})},
+    on={"btn:root": [stay(do=["k1"])], "btn:shadow": [go("o")], "btn:x": [go("o")]}))
 
 # ---------------------------------------------------------------- cases
 # step = (event, token, guards, expect)  expect keys: at, actions, timers,
@@ -324,6 +406,258 @@ case("back_recovery_keeps", "conformance", D_BACK,
      [("btn:back", None, {}, {"at": "c2", "back": "c2", "recovered": True})], start=False,
      snapshot={"at": "gone", "back": "c2", "seq": 4}, spec="decisions 8, 10: recovery keeps the place")
 
+# ------------- 0.3.0: outcomes (decision 12), background actions (11), no target (13)
+OUT_START = {"at": "home", "timers": {"idle": 1}, "seq": 1}
+case("outcome_accepted_only_with_token", "conformance", D_OUT,
+     [("btn:go", None, {}, {"snapshot": {"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 2)], "seq": 2},
+                            "actions": [CANCEL("idle"), CALLT("chk", 2), START("tw", 50, 2), S("wait")]}),
+      ("call:chk:yes", 1, {}, {"unchanged": True}),
+      ("call:chk:yes", 3, {}, {"unchanged": True}),
+      ("call:chk:yes", 2, {}, {"snapshot": {"at": "yes", "seq": 3}, "actions": [CANCEL("tw"), S("yes")]}),
+      ("call:chk:yes", 2, {}, {"unchanged": True})],
+     spec="decision 12, rule 2: an outcome is accepted only with the token of a wait (= the seq of the step "
+          "that called the action); accepting removes the wait, a repeated delivery is ignored")
+case("outcome_wrong_action_same_token", "conformance", D_OUT,
+     [("call:ping:pong", 2, {}, {"unchanged": True}),
+      ("call:chk:maybe", 3, {}, {"unchanged": True})], start=False,
+     snapshot={"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 2)], "seq": 2},
+     spec="rule 2: the wait must be for THAT action with that token")
+case("outcome_without_arrow_removes_wait", "conformance", D_OUT,
+     [("btn:go", None, {}, {"at": "wait"}),
+      ("btn:home", None, {}, {"snapshot": {"at": "home", "timers": {"idle": 3}, "pending": [W("chk", 2)], "seq": 3},
+                              "actions": [CANCEL("tw"), START("idle", 100, 3), S("home")]}),
+      ("call:chk:yes", 2, {}, {"snapshot": {"at": "home", "timers": {"idle": 3}, "seq": 3}, "actions": []}),
+      ("call:chk:yes", 2, {}, {"unchanged": True})],
+     spec="decision 12: moves keep the waits; an accepted outcome without an arrow is ignored, but its wait is "
+          "gone (the reply carries the snapshot without it, seq unchanged)")
+case("outcome_latest_replaces", "conformance", D_OUT,
+     [("btn:go", None, {}, {"pending": [W("chk", 2)]}),
+      ("btn:retry", None, {}, {"snapshot": {"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 3)], "seq": 3},
+                               "actions": [CALLT("chk", 3)]}),
+      ("call:chk:yes", 2, {}, {"unchanged": True}),
+      ("call:chk:yes", 3, {}, {"at": "yes", "pending": [], "seq": 4})],
+     spec="decision 12: a new call of the same action replaces its wait, the outcome of the earlier call is ignored")
+case("outcome_latest_replaces_several", "conformance", D_OUT,
+     [("btn:retry", None, {}, {"pending": [W("chk", 6), W("ping", 4)], "actions": [CALLT("chk", 6)]})], start=False,
+     snapshot={"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 5), W("ping", 4), W("chk", 3)], "seq": 5},
+     spec="decision 12 (reading A10): only the latest call is answered: every older wait of a non-`every` action "
+          "(a snapshot written while it had `every`) is replaced")
+case("outcome_every_keeps_each", "conformance", D_OUT,
+     [("btn:ping", None, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "pending": [W("ping", 2)], "seq": 2},
+                              "actions": [CALLT("ping", 2)]}),
+      ("btn:ping", None, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "pending": [W("ping", 3), W("ping", 2)],
+                                           "seq": 3}, "actions": [CALLT("ping", 3)]}),
+      ("call:ping:pong", 2, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "pending": [W("ping", 3)], "seq": 4},
+                                 "actions": [CALLT("k1")]}),
+      ("call:ping:pong", 2, {}, {"unchanged": True}),
+      ("call:ping:pong", 3, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "seq": 5}, "actions": [CALLT("k1")]})],
+     spec="decision 12: with `every` each call has its own wait (the newest first in `pending`) and each outcome "
+          "is accepted once")
+case("outcome_on_root_anywhere", "conformance", D_OUT,
+     [("btn:ping", None, {}, {"pending": [W("ping", 2)]}),
+      ("btn:go", None, {}, {"snapshot": {"at": "wait", "timers": {"tw": 3}, "pending": [W("chk", 3), W("ping", 2)],
+                                         "seq": 3}}),
+      ("call:ping:failed", 2, {}, {"snapshot": {"at": "err", "pending": [W("chk", 3)], "seq": 4},
+                                   "actions": [CANCEL("tw"), S("err")]}),
+      ("call:chk:yes", 3, {}, {"snapshot": {"at": "err", "seq": 4}, "actions": []})],
+     spec="decision 12: an arrow on the root handles the outcome wherever the user is; an arrow on the waiting "
+          "message handles it only there (the user left `wait`: `call:chk:yes` is ignored on `err`)")
+case("outcome_two_waits_one_step", "conformance", D_OUT,
+     [("btn:two", None, {}, {"snapshot": {"at": "wait", "timers": {"tw": 2}, "pending": [W("ping", 2), W("chk", 2)],
+                                          "seq": 2},
+                             "actions": [CANCEL("idle"), CALLT("chk", 2), CALLT("ping", 2), START("tw", 50, 2),
+                                         S("wait")]})],
+     spec="decisions 2, 12 (reading A9): both calls get the step's token; `pending` lists the newest first: "
+          "`ping` is performed after `chk`")
+case("outcome_need_then_bubble", "conformance", D_OUT,
+     [("call:chk:no", 2, None, {"need": {"c1"}}),
+      ("call:chk:no", 2, {"c1": False}, {"snapshot": {"at": "wait", "timers": {"tw": 2}, "seq": 2}, "actions": []})],
+     start=False, snapshot={"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 2)], "seq": 2},
+     spec="decision 12, rules 2-4: an accepted outcome is an event like any other: `need`; all conditions "
+          "false and no arrow above -> ignored, the wait removed")
+case("outcome_need_true_moves", "conformance", D_OUT,
+     [("call:chk:no", 2, {"c1": True}, {"snapshot": {"at": "no", "seq": 3}, "actions": [CANCEL("tw"), S("no")]})],
+     start=False, snapshot={"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 2)], "seq": 2},
+     spec="decision 12: the outcome arrow on the waiting message")
+case("outcome_not_accepted_needs_nothing", "conformance", D_OUT,
+     [("call:chk:no", 2, None, {"unchanged": True})], start=False,
+     snapshot={"at": "wait", "timers": {"tw": 2}, "pending": [W("chk", 1)], "seq": 2},
+     spec="rule 2: an outcome without its wait is ignored before any condition is asked")
+case("outcome_of_removed_action_accepted", "conformance", D_OUT,
+     [("call:gone:ok", 4, {}, {"snapshot": {"at": "home", "pending": [W("k1", 2), W("chk", 3)], "seq": 5},
+                               "actions": []}),
+      ("call:k1:failed", 2, {}, {"snapshot": {"at": "home", "pending": [W("chk", 3)], "seq": 5}, "actions": []})],
+     start=False, snapshot={"at": "home", "pending": [W("gone", 4), W("k1", 2), W("chk", 3)], "seq": 5},
+     spec="section 8: a wait of an action that is no longer in the document, or has no outcomes, is kept and "
+          "still accepts its outcome")
+case("outcome_undeclared_name_accepted", "conformance", D_OUT,
+     [("call:chk:maybe", 3, {}, {"snapshot": {"at": "home", "seq": 5}, "actions": []})],
+     start=False, snapshot={"at": "home", "pending": [W("chk", 3)], "seq": 5},
+     spec="rule 2 (reading A12): acceptance depends on the wait (action, token) only; no arrow can exist for an "
+          "undeclared outcome (V5), so it is ignored and the wait is gone")
+case("outcome_duplicate_wait_reading", "conformance", D_OUT,
+     [("call:chk:yes", 3, {}, {"snapshot": {"at": "home", "pending": [W("ping", 4)], "seq": 5}, "actions": []})],
+     start=False, snapshot={"at": "home", "pending": [W("chk", 3), W("ping", 4), W("chk", 3)], "seq": 5},
+     spec="AMBIGUITY A11 (only a forged snapshot holds the same wait twice): the engine removes every copy; "
+          "the literal 'each wait accepts one outcome' would keep one (--oracle-opt dup_accept=one)")
+case("outcome_same_wait_reading", "conformance", D_OUT,
+     [("btn:ping", None, {}, {"snapshot": {"at": "home", "timers": {"idle": 1},
+                                           "pending": [W("ping", 2), W("x", 1), W("y", 1)], "seq": 2},
+                              "actions": [CALLT("ping", 2)]})],
+     start=False, snapshot={"at": "home", "timers": {"idle": 1}, "pending": [W("x", 1), W("ping", 2), W("y", 1)],
+                            "seq": 1},
+     spec="AMBIGUITY A15 (only a forged snapshot holds a wait with a token not below seq): the new wait of an "
+          "`every` action replaces an identical one (--oracle-opt same_wait=keep would keep both)")
+case("outcome_retry_on_failed", "conformance", D_OUT,
+     [("btn:w2", None, {}, {"snapshot": {"at": "wait2", "pending": [W("chk", 2)], "seq": 2}}),
+      ("call:chk:failed", 2, {}, {"snapshot": {"at": "wait2", "pending": [W("chk", 3)], "seq": 3},
+                                  "actions": [CALLT("chk", 3)]}),
+      ("call:chk:yes", 3, {}, {"at": "yes", "pending": []})],
+     spec="decisions 12, 13: an outcome arrow without a target calls the action again: a new wait with the new token")
+case("outcome_colon_in_action_name", "conformance", D_OUT,
+     [("btn:ab", None, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "pending": [W("a:b", 2)], "seq": 2},
+                            "actions": [CALLT("a:b", 2)]}),
+      ("call:a:b:ok", 2, {}, {"snapshot": {"at": "yes", "seq": 3}, "actions": [CANCEL("idle"), S("yes")]})],
+     spec="section 4: the event is split at its last `:`, the action name may contain `:`")
+case("background_and_token_in_calls", "conformance", D_OUT,
+     [("btn:bg", None, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "pending": [W("bgo", 2)], "seq": 2},
+                            "actions": [CALLT("bg", detached=True), CALLT("bgo", 2, detached=True)]}),
+      ("call:bgo:done", 2, {}, {"snapshot": {"at": "home", "timers": {"idle": 1}, "seq": 3}, "actions": []}),
+      ("btn:go", None, {}, {"actions": [CANCEL("idle"), CALLT("chk", 4), START("tw", 50, 4), S("wait")]})],
+     spec="decision 11, section 8: `detached: true` on a background action; `token` (the new seq) exactly "
+          "when the action has outcomes; a variant without a target and without actions still makes a "
+          "transition (seq + 1)")
+case("outcome_accepted_at_max_seq_no_transition", "conformance", D_OUT,
+     [("call:chk:yes", 3, {}, {"snapshot": {"at": "home", "seq": MAX_INT}, "actions": []})], start=False,
+     snapshot={"at": "home", "pending": [W("chk", 3)], "seq": MAX_INT},
+     spec="rule 5: an accepted outcome without an arrow is no transition, so no seq_overflow")
+case("outcome_recovery_accepted", "conformance", D_OUT,
+     [("call:ping:failed", 4, {}, {"recovered": True, "snapshot": {"at": "err", "pending": [W("chk", 3)], "seq": 7},
+                                   "actions": [CANCEL("tw"), S("err")]})], start=False,
+     snapshot={"at": "gone", "timers": {"tw": 4}, "pending": [W("ping", 4), W("chk", 3)], "seq": 6},
+     spec="decisions 8, 9, 12: recovery keeps the waits; an accepted outcome is matched as at the initial message "
+          "(the root arrow leads to err), its wait removed")
+case("outcome_recovery_stale", "conformance", D_OUT,
+     [("call:ping:failed", 5, {}, {"recovered": True,
+                                   "snapshot": {"at": "home", "timers": {"idle": 7},
+                                                "pending": [W("ping", 4), W("chk", 3)], "seq": 7},
+                                   "actions": [CANCEL("tw"), START("idle", 100, 7), S("home")]})], start=False,
+     snapshot={"at": "gone", "timers": {"tw": 4}, "pending": [W("ping", 4), W("chk", 3)], "seq": 6},
+     spec="decision 12: an outcome that is not accepted chooses no variant and gives the plain start over "
+          "(waits kept)")
+case("outcome_recovery_stale_needs_nothing", "conformance", D_OUT_INIT,
+     [("call:chk:yes", 9, None, {"recovered": True, "at": "home", "pending": [W("chk", 3)], "seq": 5})],
+     start=False, snapshot={"at": "gone", "pending": [W("chk", 3)], "seq": 4},
+     spec="decisions 8, 9, 12; format.md section 8 rule 1: in recovery an outcome that is not accepted chooses "
+          "nothing, so `need` asks for no condition of the initial message (the plain start over)")
+case("outcome_recovery_accepted_needs_guard", "conformance", D_OUT_INIT,
+     [("call:chk:yes", 3, None, {"need": {"c1"}}),
+      ("call:chk:yes", 3, {"c1": True}, {"recovered": True, "at": "yes", "seq": 5})],
+     start=False, snapshot={"at": "gone", "pending": [W("chk", 3)], "seq": 4},
+     spec="decisions 8, 9, 12: in recovery an accepted outcome is matched at the initial message and may ask "
+          "`need`")
+case("outcome_recovery_stay_leads_to_initial", "conformance", D_OUT,
+     [("call:ping:pong", 4, {}, {"recovered": True,
+                                 "snapshot": {"at": "home", "timers": {"idle": 7}, "pending": [W("chk", 3)], "seq": 7},
+                                 "actions": [CANCEL("tw"), CALLT("k1"), START("idle", 100, 7), S("home")]})],
+     start=False, snapshot={"at": "gone", "timers": {"tw": 4}, "pending": [W("ping", 4), W("chk", 3)], "seq": 6},
+     spec="decisions 8, 13: in recovery a variant without a target leads to the initial message")
+case("outcome_recovery_accepted_unmatched", "conformance", D_OUT,
+     [("call:chk:yes", 3, {}, {"recovered": True,
+                               "snapshot": {"at": "home", "timers": {"idle": 7}, "pending": [W("ping", 4)], "seq": 7},
+                               "actions": [CANCEL("tw"), START("idle", 100, 7), S("home")]})],
+     start=False, snapshot={"at": "gone", "timers": {"tw": 4}, "pending": [W("ping", 4), W("chk", 3)], "seq": 6},
+     spec="decision 12, rule 2 (reading A14): accepted (its wait removed), no arrow at the initial message: the "
+          "plain start over")
+case("outcome_start_rejected", "conformance", D_OUT,
+     [("@start=call:chk:yes", None, None, {"code": "bad_request"}),
+      ("@start=call:ping:pong", 5, None, {"code": "bad_request"})], start=False, snapshot={"at": "home"},
+     spec="decision 12, section 8: a new user has no waits, `start` rejects an outcome event")
+case("outcome_start_event_calls", "conformance", D_OUT,
+     [("@start=btn:go", 41, None, {"snapshot": {"at": "wait", "timers": {"tw": 42}, "pending": [W("chk", 42)], "seq": 42},
+                                   "actions": [CALLT("chk", 42), START("tw", 50, 42), S("wait")]})],
+     start=False, snapshot={"at": "home"},
+     spec="decision 9, 12: `start` with seq 41 and an event: the call gets the token 42 and a wait")
+case("outcome_start_event_stay", "conformance", D_OUT,
+     [("@start=btn:chkhere", None, None, {"snapshot": {"at": "home", "timers": {"idle": 1}, "pending": [W("chk", 1)],
+                                                       "seq": 1},
+                                          "actions": [CALLT("chk", 1), START("idle", 100, 1), S("home")]})],
+     start=False, snapshot={"at": "home"},
+     spec="decisions 9, 13: at `start` a variant without a target leads to the initial message, its actions in front")
+case("outcome_restart_clears", "conformance", D_OUT,
+     [("@restart", None, None, {"snapshot": {"at": "home", "timers": {"idle": 5}, "seq": 5},
+                                "actions": [CANCEL("tw"), START("idle", 100, 5), S("home")]}),
+      ("call:chk:yes", 2, {}, {"unchanged": True})], start=False,
+     snapshot={"at": "wait", "back": "err", "timers": {"tw": 2}, "pending": [W("chk", 2), W("ping", 1)], "seq": 4},
+     spec="section 8, host-contract.md section 4: `restart` clears the waits (outcomes of earlier actions are then "
+          "ignored)")
+
+STAY_SNAP = {"at": "m", "back": "o", "resume": {"S": "m"}, "timers": {"tick": 1, "other": 1}, "seq": 5}
+case("stay_start_remembers", "conformance", D_STAY, [], spec="entry of m remembers S")
+CASES[-1]["start_expect"] = {"snapshot": {"at": "m", "resume": {"S": "m"}, "timers": {"tick": 1, "other": 1}, "seq": 1},
+                             "actions": [START("tick", 10, 1), START("other", 20, 1), S("m")]}
+case("stay_keeps_timers_places_back", "conformance", D_STAY,
+     [("btn:stay", None, {"c1": False}, {"snapshot": dict(STAY_SNAP, seq=6), "actions": [CALLT("k1")]})],
+     start=False, snapshot=STAY_SNAP,
+     spec="decision 13: no exit, no entry (no cancel/start/send), timers keep their tokens, places and the place "
+          "to go back to unchanged, seq + 1")
+case("stay_consumes_fired_timer", "conformance", D_STAY,
+     [("timer:tick", 1, {}, {"snapshot": dict(STAY_SNAP, seq=6, timers={"other": 1}), "actions": [CALLT("k1")]}),
+      ("timer:tick", 1, {}, {"unchanged": True}),
+      ("btn:leave", None, {}, {"snapshot": {"at": "n", "back": "o", "resume": {"S": "n"}, "seq": 7},
+                               "actions": [CANCEL("tick"), CANCEL("other"), S("n")]})],
+     start=False, snapshot=STAY_SNAP,
+     spec="decision 13: a timer firing handled by an arrow without a target is consumed (removed from `timers`, "
+          "a redelivery is ignored); leaving cancels the timers of the message by the document (decision 2, "
+          "reading A8: also the consumed one)")
+case("stay_after_stay_timer_still_valid", "conformance", D_STAY,
+     [("btn:root", None, {}, {"snapshot": dict(STAY_SNAP, seq=6), "actions": [CALLT("k1")]}),
+      ("timer:tick", 1, {}, {"snapshot": dict(STAY_SNAP, seq=7, timers={"other": 1}), "actions": [CALLT("k1")]})],
+     start=False, snapshot=STAY_SNAP,
+     spec="decision 13 + 7: an arrow without a target raises seq but leaves the timers (and their tokens) in place: "
+          "the old token is still the current one (host-contract.md section 3)")
+case("stay_on_section_arrow", "conformance", D_STAY,
+     [("btn:sec", None, {}, {"snapshot": dict(STAY_SNAP, seq=6), "actions": [CALLT("k1")]})],
+     start=False, snapshot=STAY_SNAP, spec="decision 13 on an arrow of the section around the message")
+case("stay_stops_bubbling", "conformance", D_STAY,
+     [("btn:shadow", None, {}, {"snapshot": dict(STAY_SNAP, seq=6), "actions": [CALLT("k1")]})],
+     start=False, snapshot=STAY_SNAP,
+     spec="decision 13: a variant without a target is chosen like any variant, the root's `btn:shadow` -> o is "
+          "not reached")
+case("stay_on_root_arrow", "conformance", D_STAY,
+     [("btn:root", None, {}, {"snapshot": dict(STAY_SNAP, seq=6), "actions": [CALLT("k1")]})],
+     start=False, snapshot=STAY_SNAP, spec="decision 13 on the root section")
+case("stay_seq_overflow", "conformance", D_STAY,
+     [("btn:root", None, {}, {"error": "seq_overflow"})], start=False, snapshot=dict(STAY_SNAP, seq=MAX_INT),
+     spec="section 8 rule 5: seq grows by 1 with an arrow without a target too")
+case("stay_outcome_waits_on_message", "conformance", D_STAY,
+     [("btn:chk", None, {}, {"snapshot": dict(STAY_SNAP, seq=6, pending=[W("chk", 6)]), "actions": [CALLT("chk", 6)]}),
+      ("call:chk:yes", 6, {}, {"snapshot": dict(STAY_SNAP, seq=7), "actions": [CALLT("bg", detached=True)]})],
+     start=False, snapshot=STAY_SNAP,
+     spec="decisions 11-13: a call with outcomes from an arrow without a target; the outcome handled on the same "
+          "message without a target")
+case("stay_recovery_named_event", "conformance", D_STAY,
+     [("btn:root", None, {}, {"recovered": True,
+                              "snapshot": {"at": "m", "back": "o", "resume": {"S": "m"},
+                                           "timers": {"tick": 10, "other": 10}, "seq": 10},
+                              "actions": [CANCEL("zz"), CALLT("k1"), START("tick", 10, 10), START("other", 20, 10),
+                                          S("m")]})],
+     start=False, snapshot={"at": "gone", "back": "o", "resume": {"S": "n"}, "timers": {"zz": 3}, "seq": 9},
+     spec="decisions 8, 13: in recovery a variant without a target leads to the initial message (its entry "
+          "remembers S, the place to go back to is kept)")
+case("stay_start_event", "conformance", D_STAY,
+     [("@start=btn:root", None, None, {"snapshot": {"at": "m", "resume": {"S": "m"}, "timers": {"tick": 1, "other": 1},
+                                                    "seq": 1},
+                                       "actions": [CALLT("k1"), START("tick", 10, 1), START("other", 20, 1), S("m")]})],
+     start=False, snapshot={"at": "m"},
+     spec="decisions 9, 13: `start` with an event whose variant has no target: the first entry with the "
+          "variant's actions in front")
+case("stay_back_resume_unchanged_then_back", "conformance", D_STAY,
+     [("btn:x", None, {}, {"snapshot": {"at": "o", "back": "m", "resume": {"S": "m"}, "seq": 2}}),
+      ("btn:prev", None, {}, {"snapshot": {"at": "m", "back": "o", "resume": {"S": "m"}, "timers": {"tick": 3, "other": 3},
+                                           "seq": 3}})],
+     spec="decision 10 with the root arrow btn:x and back")
+
 # ------------- findings: designer-level expectations the baseline violates
 case("H2_upgrade_moved_timer_fires_on_other_message", "findings", D_UP_V2,
      [("btn:next", None, {}, {"at": "C", "timers_excludes": {"remind"}}),
@@ -352,6 +686,21 @@ case("H3c_need_prefix", "findings", D_BUBBLE,
      spec="need lists exactly the guards before the first unconditional variant that are not known")
 
 
+SNAP_FIELDS = ["v", "at", "back", "resume", "timers", "pending", "seq"]
+
+
+def canon(snap, order=False):
+    """JSON text of a snapshot with sorted `resume`/`timers` keys; with order=True the fields
+    are first put in the order of docs/format.md, section 8 (for expectations written with dict())."""
+    d = dict(snap)
+    if order:
+        d = {k: d[k] for k in SNAP_FIELDS if k in d}
+    for k in ("resume", "timers"):
+        if k in d:
+            d[k] = dict(sorted(d[k].items()))
+    return json.dumps(d)
+
+
 def check(exp, before, rep, oracle_res, where):
     errs = []
     if "need" in exp:
@@ -371,14 +720,24 @@ def check(exp, before, rep, oracle_res, where):
         if rep.get("error") != exp["error"]:
             errs.append(f"{where}: expected error {exp['error']}, got {rep}")
         return errs
+    if "code" in exp:
+        if rep.get("code") != exp["code"] or "snapshot" in rep:
+            errs.append(f"{where}: expected error code {exp['code']}, got {rep}")
+        return errs
     if "need" in rep:
         return [f"{where}: unexpected need {rep['need']}"]
     if "error" in rep:
         return [f"{where}: unexpected error {rep}"]
     s = snap_from_json(rep["snapshot"])
     if exp.get("unchanged"):
-        if s != snap_from_json(before) or rep["actions"] != []:
+        if canon(rep["snapshot"]) != canon(before, order=True) or rep["actions"] != []:
             errs.append(f"{where}: expected unchanged, got {rep}")
+    if "snapshot" in exp and canon(rep["snapshot"]) != canon(exp["snapshot"], order=True):
+        # exact: the field order of section 8, defaults omitted (no empty `pending`); the key
+        # order INSIDE `resume` and `timers` is not specified and is ignored
+        errs.append(f"{where}: snapshot={canon(rep['snapshot'])}, expected {canon(exp['snapshot'], order=True)}")
+    if "pending" in exp and s["pending"] != exp["pending"]:
+        errs.append(f"{where}: pending={s['pending']}, expected {exp['pending']}")
     for k in ("at", "seq"):
         if k in exp and s[k] != exp[k]:
             errs.append(f"{where}: {k}={s[k]!r}, expected {exp[k]!r}")
@@ -393,8 +752,9 @@ def check(exp, before, rep, oracle_res, where):
     for k, v in exp.get("resume_has", {}).items():
         if s["resume"].get(k) != v:
             errs.append(f"{where}: resume[{k}]={s['resume'].get(k)!r}, expected {v!r}")
-    if "actions" in exp and rep["actions"] != exp["actions"]:
-        errs.append(f"{where}: actions={rep['actions']}, expected {exp['actions']}")
+    if "actions" in exp and json.dumps(rep["actions"]) != json.dumps(exp["actions"]):
+        # exact, key order included: {"call", "token"?, "detached"?} (section 8)
+        errs.append(f"{where}: actions={json.dumps(rep['actions'])}, expected {json.dumps(exp['actions'])}")
     if "recovered" in exp and rep.get("recovered", False) != exp["recovered"]:
         errs.append(f"{where}: recovered={rep.get('recovered')}, expected {exp['recovered']}")
     return errs
@@ -410,6 +770,11 @@ class OracleAsEngine:
     def req(self, r):
         from oracle import RequestError
         try:
+            if r["op"] == "start" and "event" in r:
+                res = self.bot.start_with(r["event"], r.get("guards", {}), r.get("seq", 0))
+                if res[0] == "need":
+                    return {"need": sorted(res[1])}
+                return {"snapshot": snap_to_json(res[1]), "actions": res[2]}
             if r["op"] == "start":
                 s, a = self.bot.start()
                 return {"snapshot": snap_to_json(s), "actions": a}
@@ -418,7 +783,7 @@ class OracleAsEngine:
                 return {"snapshot": snap_to_json(s), "actions": a}
             res = self.bot.step(snap_from_json(r["snapshot"]), r["event"], r.get("token"), r.get("guards", {}))
         except RequestError as e:
-            return {"error": str(e)}
+            return {"error": e.text, "code": e.code}
         if res[0] == "need":
             return {"need": sorted(res[1])}
         _, s, a, rec = res
@@ -446,6 +811,13 @@ def run_case(c, mk):
         for i, (ev, tok, guards, exp) in enumerate(c["steps"]):
             if ev == "@restart":
                 rep = e.req({"op": "restart", "snapshot": snap})
+            elif ev.startswith("@start="):
+                req = {"op": "start", "event": ev[len("@start="):]}
+                if tok is not None:
+                    req["seq"] = tok
+                if guards is not None:
+                    req["guards"] = guards
+                rep = e.req(req)
             else:
                 req = {"op": "step", "snapshot": snap, "event": ev}
                 if tok is not None:

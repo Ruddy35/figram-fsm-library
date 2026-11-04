@@ -5,6 +5,99 @@ All notable changes to this project are documented in this file. The format is b
 snapshot formats, the engine protocol (operations, JSON field names, error `code` values), the CLI
 command names and the exit statuses; the texts of messages are for humans and may change.
 
+## [0.3.0] - 2026-11-04
+
+This release follows two audit rounds (a final audit with formalization, and a second round with
+production-like Python and Go hosts built from the documents); the reports, logs and harnesses
+are not part of the tree and are preserved at commit
+[`71d5c6a`](https://github.com/Ruddy35/figram-fsm-library/tree/71d5c6a/audit-final) of the branch
+`audit/2026-11-03`.
+
+### Added
+
+- Background actions: an action declared in `calls` with `"detached": true`
+  (`"calls": {"notify_kitchen": {"text": "…", "detached": true}}`). Its `call` carries
+  `"detached": true`; the host may run it later and in any order, and the user's next event does
+  not wait for it ([docs/format.md](docs/format.md), section 7, decision 11;
+  [docs/host-contract.md](docs/host-contract.md), sections 1 and 2). An unavailable notification
+  service no longer blocks the dialogue.
+- Actions with outcomes: an action declared with `"outcomes": ["created", "rejected"]` reports how
+  it ended as the event `call:<action>:<outcome>` with the token of its call; every such action
+  also has the outcome `failed` (no answer, an error, retries exhausted). The step that performs
+  it gives it a token and records a wait in the snapshot (`"pending": [{"call": …, "token": …}]`);
+  the engine accepts the outcome only with the token of a wait, once, and then handles it like any
+  event, by the arrows of the message the user is on then (the root section handles it anywhere).
+  Moves keep the waits; a new call of the same action replaces its wait unless the action is
+  declared with `"every": true`. `restart` clears the waits, recovery keeps them (decision 12).
+  The designer draws the screen for each outcome: in the pizza example, creating the order may
+  be rejected because of the address or fail, and each leads to its own message.
+- Arrows without a target: a variant without `to` performs its actions without a move — no exit,
+  no entry, no message sent again, timers and places unchanged; a timer firing handled this way is
+  consumed. On entering the bot (recovery, `start` with an event) such a variant leads to the
+  initial message (decision 13).
+- `figram check`: an arrow on an outcome an action does not have, an action with outcomes twice in
+  one `do`, invalid outcome names, `every` without `outcomes`, `resume` or `back` without `to` are
+  errors; a variant that waits for an outcome on a message without an arrow for it is a warning,
+  and so is a "please wait" message whose outcome arrows miss a message the user can go to from
+  it, when `back` or `resume` can bring the user back (the user would wait with nothing to wait
+  for).
+- Proofs ([docs/proofs.md](docs/proofs.md)): an event the snapshot does not accept changes nothing
+  (`step_rejected`); a step keeps every other wait whatever the move (`step_keeps_wait`,
+  `step_pending_new`), records the waits of its calls with its token (`step_records_wait`) and a
+  latest-only call replaces the older wait (`step_latest_replaces`); tokens are fresh
+  (`step_fresh`) and each call is answered once (`step_outcome_once`); a variant without a target
+  moves nothing (`step_stay`, `stay_keeps`, `enterBot_stay`); background actions do not affect the
+  machine (`step_undetach`, `startWith_undetach`, `recover_undetach`); the arrow is looked up by
+  exactly the event the host sent (`decEvent_key`, `decEvent_outcome`), `start` takes no outcome
+  event (`decStartEvent_ok`), `restart` clears the waits (`handle_restart`, `restart_pending`).
+  `compile_correct` covers all three features; 102 theorem statements are pinned.
+- `figram trace … --directed`: after the random scenarios, the shortest scenarios a search over
+  the reachable places finds for the arrow variants they missed; the random scenarios are guided
+  towards uncovered variants. When the search goes through all reachable places, it lists the
+  variants that no reachable snapshot fires, with their numbers in the compiled machine
+  (`mutation.py --unreachable` runs their mutations apart: they must survive). `verify.sh`
+  requires every other arrow variant of the examples covered.
+- The error `snapshot_too_large`: under a request size limit (`--max-request`,
+  `figram_set_max_request`) the engine refuses a step whose new snapshot would take more than 15/16
+  of the limit, and the snapshot is not changed. Before, a user whose waits nobody answered got a
+  snapshot whose every next request — its outcomes and `restart` included — was `too_large`, and
+  stayed stuck ([docs/format.md](docs/format.md), section 8; found by the embedded Go host).
+- Mutants of the new features: `detach-flip`, `wait-free`, `wait-swap` (latest ↔ every) of an
+  action, `stay-reenter` of a variant without a target. The mutation tests fail when the engine
+  refuses a mutation instead of counting it as detected (an action name may contain `:`).
+
+### Changed
+
+- Protocol version 3: `hello` replies `"protocol": 3`. Snapshots carry `pending`, `call` actions
+  carry `token` (an action with outcomes) and `detached`, and requests may send outcome events with
+  `token`; an engine or a validator of version 2 rejects them, so roll the engine back only
+  together with the snapshots.
+- **Breaking for documents:** event names starting with `call:` are reserved for outcomes. A
+  document with an arrow on an event `call:…` that is not an outcome of a declared action is
+  rejected by `figram check` and the engine; rename such events. `start` rejects outcome events,
+  a `step` with one needs `token`, and an event with a reserved prefix that is not well formed
+  (`timer:`, `call:x`) is `bad_request`.
+- `failed` means that the host gave up without an answer, not that the action was not performed:
+  the host reconciles a call whose answer was lost before delivering `failed`
+  ([docs/host-contract.md](docs/host-contract.md), section 2; `host_sim` checks it with a CRM
+  that creates the order and loses the answer, and a control host without reconciliation
+  creates a second order).
+- The pinned statements of `startWith_eq_step`, `startWith_initial`, `startWith_unmatched`,
+  `enterBot_eq_realize_some`, `enterBot_eq_realize_none` (the snapshot has waits; an outcome is
+  matched only with a wait) and `toChart_decls` (the chart depends on the declarations of actions
+  through their properties) changed deliberately.
+- The Python validators reject an empty `mutant` in `hello` (test mode only), as the Go client
+  does.
+- The runtime gives mimalloc a 64 MiB arena when at least 128 MiB of address space is free (before:
+  no arena). Without it the memory freed after a large request was not reused, and with snapshots
+  of thousands of waits the resident memory grew with every request, without bound
+  ([docs/embedding.md](docs/embedding.md), "Memory and RLIMIT_AS"); the address space after
+  start-up is about 64 MiB larger.
+- The examples: pizza creates the order with outcomes, handled on the root (an outcome that comes
+  while the user is on `/help` is not lost), and notifies the kitchen in the background;
+  features shows background actions, outcomes with `every`, arrows without a target and a timer
+  handled without a move. `examples/golden.jsonl` has 38 scenarios.
+
 ## [0.2.0] - 2026-10-25
 
 ### Added

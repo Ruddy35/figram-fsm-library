@@ -32,7 +32,8 @@ example : ∀ (d : Doc), d.check = [] → decode (encode d) = .ok d := @check_ro
 example : ∀ (j : J) (d : Doc), decode j = .ok d → ∀ f ∈ d.requires, f ∈ knownFeatures :=
   @decode_requires
 example : ∀ (d : Doc), d.strip.toChart = d.toChart := @toChart_strip
-example : ∀ (d : Doc) (conds calls vars : List (String × String)),
+example : ∀ (d : Doc) (conds vars : List (String × String)) (calls : List (String × CallDecl)),
+    callOpts calls = callOpts d.calls →
     { d with conditions := conds, calls := calls, variables := vars }.toChart = d.toChart :=
   @toChart_decls
 example : ∀ (d : Doc), d.wfOK = true → DocWF d := @wfOK_sound
@@ -71,16 +72,18 @@ example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bo
 example : ∀ (c : Chart), c.compile.wf = true → ∀ (n : Nat) (ev : Event) (env : HostEnv),
     c.compile.startWith n ev env = c.startWith n ev env := @Chart.startWith_correct
 example : ∀ (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch),
-    m.initial ∈ m.states → m.choose m.initial (.named e) env = some b →
+    m.initial ∈ m.states → m.choose m.initial (.named e) env = some b → b.target ≠ .stay →
     (∀ a ∈ m.exitOf m.initial, ∃ id, a = .cancelTimer id) →
-    ((m.step ⟨m.initial, [], [], n, none⟩ (.named e) env).1.withBack none,
-      (m.step ⟨m.initial, [], [], n, none⟩ (.named e) env).2) =
+    ((m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env).1.withBack none,
+      (m.step ⟨m.initial, [], [], n, none, []⟩ (.named e) env).2) =
       ((m.startWith n (.named e) env).1, m.exitOf m.initial ++ (m.startWith n (.named e) env).2) :=
   @Machine.startWith_eq_step
-example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv) (b : FBranch),
-    m.choose m.initial ev env = some b → m.resolve ⟨"", [], [], n, none⟩ b.target = m.initial →
+example : ∀ (m : Machine) (n : Nat) (e : EventId) (env : HostEnv) (b : FBranch),
+    m.choose m.initial (.named e) env = some b →
+    m.resolve ⟨m.initial, [], [], n, none, []⟩ b.target = m.initial →
     m.entryOf m.initial = m.initActions →
-    m.startWith n ev env = realize ⟨"", [], [], n, none⟩ m.initial (b.actions ++ m.initActions) :=
+    m.startWith n (.named e) env =
+      realize ⟨"", [], [], n, none, []⟩ m.initial (b.actions ++ m.initActions) :=
   @Machine.startWith_initial
 example : ∀ (m : Machine) (n : Nat) (e : EventId) (gs : List (String × Bool)) (env : HostEnv),
     missingStart m e gs = [] → (∀ g v, givenOf gs g = some v → env g = v) →
@@ -119,14 +122,218 @@ example : ∀ (m : Machine) (s : Snapshot), m.recover s =
     realize s m.initial (s.timers.map (fun p => .cancelTimer p.1) ++ m.initActions) :=
   @Machine.recover_eq_realize
 example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv)
-    (b : FBranch), m.choose m.initial ev env = some b →
+    (b : FBranch), s.accepts ev = true → m.choose m.initial ev env = some b →
     m.enterBot s pre ev env =
-      realize s (m.resolve s b.target) (pre ++ b.actions ++ m.entryOf (m.resolve s b.target)) :=
+      realize (s.settle ev) (m.resolve { s with state := m.initial } b.target)
+        (pre ++ b.actions ++ m.entryOf (m.resolve { s with state := m.initial } b.target)) :=
   @Machine.enterBot_eq_realize_some
 example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv),
-    m.choose m.initial ev env = none →
-    m.enterBot s pre ev env = realize s m.initial (pre ++ m.initActions) :=
+    s.accepts ev = false ∨ m.choose m.initial ev env = none →
+    m.enterBot s pre ev env = realize (s.settle ev) m.initial (pre ++ m.initActions) :=
   @Machine.enterBot_eq_realize_none
+
+-- actions with outcomes: an event the snapshot does not accept changes nothing, an accepted one
+-- without an arrow only removes its wait; the waits after a step are the old ones but the one
+-- answered and the step's own (its token is the new counter); a step keeps every other wait
+-- whatever the move, unless it calls the same action again answered only at its latest call,
+-- which then replaces the older waits
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.state ∈ m.states → s.accepts ev = false → m.step s ev env = (s, []) := @Machine.step_rejected
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.state ∈ m.states → m.row s.state ev.key = none → m.step s ev env = (s.settle ev, []) :=
+  @Machine.step_no_arrow
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) (p : String × Nat),
+    p ∈ (m.step s ev env).1.pending → p ∈ (s.settle ev).pending ∨ p.2 = s.seq + 1 :=
+  fun m s ev env _ => Machine.step_pending_new m s ev env
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) (p : String × Nat),
+    p ∈ (s.settle ev).pending → p.2 ≠ s.seq + 1 →
+    (∀ d t, Action.call p.1 d .latest t ∉ (m.step s ev env).2) →
+    p ∈ (m.step s ev env).1.pending :=
+  fun m s ev env _ => Machine.step_keeps_wait m s ev env
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) (n : String) (d : Bool)
+    (w : Wait) (t : Nat), Action.call n d w t ∈ (m.step s ev env).2 →
+    t = (m.step s ev env).1.seq ∧ (w ≠ .free → (n, t) ∈ (m.step s ev env).1.pending) :=
+  fun m s ev env _ _ _ _ => Machine.step_records_wait m s ev env
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) (n : String) (d : Bool)
+    (t t' : Nat), Action.call n d .latest t ∈ (m.step s ev env).2 →
+    (n, t') ∈ (m.step s ev env).1.pending → t' = t :=
+  fun m s ev env _ _ _ _ h h' => Machine.step_latest_replaces m s ev env h h'
+-- each call is answered once: tokens are fresh and a second outcome of a call is ignored
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.Fresh → (m.step s ev env).1.Fresh := @Machine.step_fresh
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv),
+    (m.startWith n ev env).1.Fresh := @Machine.startWith_fresh
+example : ∀ (s : Snapshot) (c o : String) (tok : Nat), s.Fresh →
+    s.accepts (.outcome c o tok) = true → tok ≤ s.seq :=
+  fun _ _ _ _ hf ha => Snapshot.Fresh.accepts_le hf ha
+example : ∀ (m : Machine), m.wf = true → ∀ (s : Snapshot) (c o o' : String) (tok : Nat)
+    (env env' : HostEnv), tok ≤ s.seq →
+    m.step (m.step s (.outcome c o tok) env).1 (.outcome c o' tok) env' =
+      ((m.step s (.outcome c o tok) env).1, []) := @Machine.step_outcome_once
+example : ∀ (m : Machine) (n : Nat) (c o : String) (t : Nat) (env : HostEnv),
+    m.startWith n (.outcome c o t) env = realize ⟨"", [], [], n, none, []⟩ m.initial m.initActions :=
+  @Machine.startWith_outcome
+
+-- variants without a target: the actions without a move, the timer that fired consumed; the
+-- message, the places, the place to go back to and the other timers stay; on entering the bot
+-- such a variant leads to the initial message
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv) (r : Row) (b : FBranch),
+    s.state ∈ m.states → s.accepts ev = true → ownsTimer (m.exitOf s.state) ev = true →
+    m.row s.state ev.key = some r → r.branches.find? (fun b => guardOK env b.guard) = some b →
+    b.target = .stay → m.step s ev env = realize ((s.settle ev).consume ev) s.state b.actions :=
+  @Machine.step_stay
+example : ∀ (s : Snapshot) (ev : Event) (acts : List Action),
+    (∀ a ∈ acts, (∃ n d w t, a = .call n d w t) ∨ ∃ n, a = .send n) →
+    (stay s ev acts).1.state = s.state ∧ (stay s ev acts).1.resume = s.resume ∧
+      (stay s ev acts).1.back = s.back ∧ (stay s ev acts).1.timers = (s.consume ev).timers ∧
+      (stay s ev acts).1.seq = s.seq + 1 := @Machine.stay_keeps
+example : ∀ (m : Machine) (s : Snapshot) (pre : List Action) (ev : Event) (env : HostEnv)
+    (b : FBranch), s.accepts ev = true → m.choose m.initial ev env = some b → b.target = .stay →
+    m.enterBot s pre ev env = realize (s.settle ev) m.initial (pre ++ b.actions ++ m.entryOf m.initial) :=
+  @Machine.enterBot_stay
+
+-- background actions do not affect the machine: every action in the foreground gives the same
+-- snapshots and the same reply up to the flag
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    m.undetach.step s ev env = ((m.step s ev env).1, (m.step s ev env).2.map Action.undetach) :=
+  @Machine.step_undetach
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv),
+    m.undetach.startWith n ev env =
+      ((m.startWith n ev env).1, (m.startWith n ev env).2.map Action.undetach) :=
+  @Machine.startWith_undetach
+example : ∀ (m : Machine) (s : Snapshot),
+    m.undetach.recover s = ((m.recover s).1, (m.recover s).2.map Action.undetach) :=
+  @Machine.recover_undetach
+
+-- the protocol: the arrow is looked up by exactly the event sent, an outcome event of an action
+-- is decoded as that outcome, `start` takes neither timer nor outcome events, `restart` is
+-- `recover` without the places, the place to go back to and the waits, and clears the waits
+example : ∀ (c o : String), c ≠ "" → o ≠ "" → ':' ∉ o.toList →
+    splitOutcome (c ++ ":" ++ o) = some (c, o) := @splitOutcome_outcomeEvent
+example : ∀ (kvs : Obj) (ev : Event), decEvent kvs = .ok ev → get kvs "event" = some (.str ev.key) :=
+  @decEvent_key
+example : ∀ (kvs : Obj) (c o : String) (tok : Nat), c ≠ "" → o ≠ "" → ':' ∉ o.toList →
+    tok ≤ maxInt → get kvs "event" = some (.str (outcomeEvent c o)) →
+    get kvs "token" = some (.num tok 0) → decEvent kvs = .ok (.outcome c o tok) := @decEvent_outcome
+example : ∀ (kvs : Obj) (e : EventId), decStartEvent kvs = .ok e →
+    get kvs "event" = some (.str e) ∧ e ≠ "" ∧ e.startsWith "timer:" = false ∧
+      e.startsWith "call:" = false := @decStartEvent_ok
+example : ∀ (m : Machine) (kvs : Obj) (j : J) (s : Snapshot),
+    get kvs "op" = some (.str "restart") → get kvs "snapshot" = some j → decSnapshot j = .ok s →
+    (m.recover { s with resume := [], back := none, pending := [] }).1.seq ≤ maxInt →
+    handleObj m kvs = .ok (result ((get kvs "id").getD .null)
+      (m.recover { s with resume := [], back := none, pending := [] }).1
+      (m.recover { s with resume := [], back := none, pending := [] }).2 false) := @handle_restart
+example : ∀ (m : Machine) (s : Snapshot) (p : String × Nat),
+    p ∈ (m.recover { s with resume := [], back := none, pending := [] }).1.pending →
+    p.2 = (m.recover { s with resume := [], back := none, pending := [] }).1.seq :=
+  fun m s _ h => restart_pending m s h
+example : ∀ (m : Machine) (s : Snapshot), s.Fresh →
+    (m.recover { s with resume := [], back := none, pending := [] }).1.Fresh := @restart_fresh
+
+-- the first entry without a variant; no duplicate waits; waits survive a document update;
+-- a timer consumed without a move; tokens grow; each call is answered once for good
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv), m.choose m.initial ev env = none →
+    m.startWith n ev env = realize ⟨"", [], [], n, none, []⟩ m.initial m.initActions :=
+  @Machine.startWith_unmatched
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.pending.Nodup → (m.step s ev env).1.pending.Nodup := @Machine.step_nodup
+example : ∀ (m : Machine) (n : Nat) (ev : Event) (env : HostEnv),
+    (m.startWith n ev env).1.pending.Nodup := @Machine.startWith_nodup
+example : ∀ (m : Machine) (s : Snapshot) (inp : List Input),
+    s.pending.Nodup → (m.run s inp).1.pending.Nodup := @Machine.run_nodup
+example : ∀ (m : Machine) (s : Snapshot) (c o : String) (tok : Nat) (env : HostEnv),
+    (c, tok) ∈ s.pending → tok ≤ s.seq →
+    (c, tok) ∉ (m.step s (.outcome c o tok) env).1.pending ∧
+      m.step s (.outcome c o tok) env ≠ (s, []) := @Machine.step_outcome_accepted
+example : ∀ (m : Machine) (s : Snapshot) (id : String) (tok : Nat) (env env' : HostEnv) (r : Row)
+    (b : FBranch), s.Fresh → s.state ∈ m.states → s.accepts (.timer id tok) = true →
+    ownsTimer (m.exitOf s.state) (.timer id tok) = true → m.row s.state (Event.timer id tok).key = some r →
+    r.branches.find? (fun b => guardOK env b.guard) = some b → b.target = .stay →
+    m.step (m.step s (.timer id tok) env).1 (.timer id tok) env' =
+      ((m.step s (.timer id tok) env).1, []) := @Machine.step_stay_timer_once
+example : ∀ (m : Machine) (s : Snapshot) (ev : Event) (env : HostEnv),
+    ((m.step s ev env).1.seq = s.seq ∧ (m.step s ev env).2 = []) ∨
+      (m.step s ev env).1.seq = s.seq + 1 := @Machine.step_seq
+example : ∀ (m : Machine) (s : Snapshot) (ev ev' : Event) (env env' : HostEnv) (n n' : String)
+    (d d' : Bool) (w w' : Wait) (t t' : Nat), Action.call n d w t ∈ (m.step s ev env).2 →
+    Action.call n' d' w' t' ∈ (m.step (m.step s ev env).1 ev' env').2 → t' = t + 1 :=
+  fun m s ev ev' env env' _ _ _ _ _ _ _ _ h1 h2 => Machine.consecutive_tokens m s ev ev' env env' h1 h2
+example : ∀ (m : Machine), m.wf = true → ∀ (s : Snapshot) (c o o' : String) (tok : Nat)
+    (env env' : HostEnv) (inp : List Input), tok ≤ s.seq →
+    m.step (m.run (m.step s (.outcome c o tok) env).1 inp).1 (.outcome c o' tok) env' =
+      ((m.run (m.step s (.outcome c o tok) env).1 inp).1, []) := @Machine.outcome_once_forever
+example : ∀ (m : Machine) (n : Nat), (startAt m n).1.Fresh := @startAt_fresh
+
+-- the reference semantics: an accepted outcome without a matching variant only loses its wait;
+-- V6 after `check`, and then one call of an action with outcomes per step; V5 after `check`;
+-- `restart` of a compiled machine leaves no waits; a document's variants only call actions, and
+-- its variants without a target move nothing; named events never have reserved keys
+example : ∀ (c : Chart) (s : Snapshot) (a o : String) (tok : Nat) (env : HostEnv),
+    s.state ∈ c.leafIds → (a, tok) ∈ s.pending →
+    (c.cands s.state (outcomeEvent a o)).find? (fun b => guardOK env b.guard) = none →
+    c.step s (.outcome a o tok) env =
+      ({ s with pending := s.pending.filter (fun p => decide (p ≠ (a, tok))) }, []) :=
+  @Chart.step_outcome_unmatched
+example : ∀ (c : Chart), c.WaitsOnce → ∀ (s : Snapshot) (ev : Event) (env : HostEnv),
+    (waitNames (c.step s ev env).2).Nodup := @Chart.step_waits_once
+example : ∀ (c : Chart), c.compile.wf = true → c.WaitsOnce → ∀ (s : Snapshot) (ev : Event)
+    (env : HostEnv), (waitNames (c.compile.step s ev env).2).Nodup := @Chart.compile_step_waits_once
+example : ∀ (c : Chart) (s : Snapshot),
+    (c.compile.recover { s with resume := [], back := none, pending := [] }).1.pending = [] :=
+  @Chart.restart_no_waits
+example : ∀ (d : Doc), d.check = [] → d.toChart.WaitsOnce := @check_waitsOnce
+example : ∀ (d : Doc), d.check = [] → ∀ t ∈ d.toChart.transitions, t.event.startsWith "call:" = true →
+    ∃ n o c, splitOutcome (t.event.drop 5).toString = some (n, o) ∧ lookup d.calls n = some c ∧
+      c.outcomes ≠ [] ∧ (o = "failed" ∨ o ∈ c.outcomes) := @check_outcome_events
+example : ∀ (d : Doc), d.check = [] → ∀ (s : Snapshot) (ev : Event) (env : HostEnv),
+    (waitNames (d.toChart.compile.step s ev env).2).Nodup := @check_step_waits_once
+example : ∀ (d : Doc), ∀ t ∈ d.toChart.transitions, ∀ b ∈ t.branches, ∀ a ∈ b.actions,
+    ∃ n dt w tok, a = Action.call n dt w tok := @toChart_calls
+example : ∀ (d : Doc), d.toChart.compile.wf = true → ∀ (s : Snapshot) (ev : Event) (env : HostEnv),
+    s.state ∈ d.toChart.leafIds → s.accepts ev = true →
+    ownsTimer (d.toChart.exitActs s.state) ev = true → ∀ (b : Branch),
+    (d.toChart.cands s.state ev.key).find? (fun b => guardOK env b.guard) = some b →
+    b.target = .stay →
+    (d.toChart.compile.step s ev env).1.state = s.state ∧
+      (d.toChart.compile.step s ev env).1.resume = s.resume ∧
+      (d.toChart.compile.step s ev env).1.back = s.back ∧
+      (d.toChart.compile.step s ev env).1.timers = (s.consume ev).timers ∧
+      (d.toChart.compile.step s ev env).1.seq = s.seq + 1 ∧
+      ∀ a ∈ (d.toChart.compile.step s ev env).2, ∃ n dt w tok, a = Action.call n dt w tok :=
+  @doc_stay
+example : ∀ (kvs : Obj) (n : String), decEvent kvs = .ok (.named n) → ∀ (c o id : String),
+    n ≠ outcomeEvent c o ∧ n ≠ timerEvent id := fun _ _ h => decEvent_named_key h
+
+-- what the helpers shared by the chart semantics and the machine compute
+example : ∀ (s : Snapshot) (e : EventId), s.accepts (.named e) = true := @Snapshot.accepts_named
+example : ∀ (s : Snapshot) (id : String) (tok : Nat),
+    s.accepts (.timer id tok) = decide ((s.timers.find? (fun p => decide (p.1 = id))).map (·.2) = some tok) :=
+  @Snapshot.accepts_timer
+example : ∀ (s : Snapshot) (c o : String) (tok : Nat),
+    s.accepts (.outcome c o tok) = decide ((c, tok) ∈ s.pending) := @Snapshot.accepts_outcome
+example : ∀ (s : Snapshot) (c o : String) (tok : Nat),
+    s.settle (.outcome c o tok) = { s with pending := s.pending.filter (fun p => decide (p ≠ (c, tok))) } :=
+  @Snapshot.settle_outcome
+example : ∀ (s : Snapshot) (id : String) (tok : Nat),
+    s.consume (.timer id tok) = { s with timers := s.timers.filter (fun p => decide (p.1 ≠ id)) } :=
+  @Snapshot.consume_timer
+example : ∀ (s : Snapshot) (ev : Event), (∀ id t, ev ≠ .timer id t) → s.consume ev = s :=
+  @Snapshot.consume_other
+example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat), addWait pend n tok .free = pend :=
+  @addWait_free
+example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat),
+    addWait pend n tok .latest = (n, tok) :: pend.filter (fun p => decide (p.1 ≠ n)) := @addWait_latest
+example : ∀ (pend : List (String × Nat)) (n : String) (tok : Nat),
+    addWait pend n tok .every = (n, tok) :: pend.filter (fun p => decide (p ≠ (n, tok))) := @addWait_every
+example : ∀ (s : Snapshot) (ev : Event) (acts : List Action),
+    stay s ev acts = realize (s.consume ev) s.state acts := @stay_eq
+example : waitNames [] = [] := waitNames_nil
+example : ∀ (n : String) (d : Bool) (w : Wait) (tok : Nat) (acts : List Action),
+    waitNames (.call n d w tok :: acts) = (if w = .free then [] else [n]) ++ waitNames acts :=
+  @waitNames_call
+example : ∀ (a : Action) (acts : List Action), (∀ n d w tok, a ≠ .call n d w tok) →
+    waitNames (a :: acts) = waitNames acts := @waitNames_other
 
 -- Which of the referenced functions are opaque to the logic (partial defs):
 #print Figram.Format.parse

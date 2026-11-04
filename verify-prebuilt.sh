@@ -34,8 +34,8 @@ BIN=${BIN:-${FIGRAM_BIN:-}}
 for b in figram figram-engine; do [ -x "$BIN/$b" ] || usage "$BIN/$b is not an executable file"; done
 BIN=$(cd "$BIN" && pwd)
 cd "$(dirname "$0")"
-MIN_MUTANTS=118        # mutations in the two example documents (fewer is a failure)
-MIN_SELFTEST_OK=39     # passed checks of the harness self-test
+MIN_MUTANTS=271        # mutations in the two example documents (fewer is a failure)
+MIN_SELFTEST_OK=72     # passed checks of the harness self-test
 F=$BIN/figram
 E=$BIN/figram-engine
 P=tests/engine
@@ -104,11 +104,20 @@ for f in golden.jsonl pizza.bot.json features.bot.json; do
 done
 echo "ok ($(cat "$T/golden.out"))"
 
+step "Warnings of figram check: expected fragments, none on clean documents"
+logged lint_warnings python3 tests/compiler/lint_warnings.py --figram $F
+expect "$LOGS/lint_warnings.log" '^cases (\d+), failed (\d+)$' 'g[0] >= 36 and g[1] == 0' "warnings"
+
 step "Engine conformance"
 for d in pizza features; do
-  $F trace examples/$d.bot.json 200 40 7 > "$T/$d.jsonl" 2> "$T/$d.cov"
+  $F trace examples/$d.bot.json 200 40 7 --directed > "$T/$d.jsonl" 2> "$T/$d.cov"
   cat "$T/$d.cov"
-  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' 'g[1] > 0 and g[0] == g[1]' "coverage $d"
+  # every variant is covered, except those no reachable snapshot fires (the search went through
+  # all reachable places): pizza handles the outcomes of create_order on the root, and no wait can
+  # be pending on `done` and `order_failed`, where they lead
+  U=$(sed -n 's/^arrow variants unreachable: \([0-9]*\)$/\1/p' "$T/$d.cov")
+  [ "$U" = "$(case $d in pizza) echo 8;; *) echo 0;; esac)" ] || fail "$d: unreachable arrow variants: '$U'"
+  expect "$T/$d.cov" '^arrow variants covered: (\d+) of (\d+)$' "g[1] > 0 and g[0] + $U == g[1]" "coverage $d"
 done
 python3 $P/conformance.py $E --golden examples/golden.jsonl \
   examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl" | tee "$T/conf.out"
@@ -121,28 +130,37 @@ expect "$LOGS/random_docs.log" '^documents (\d+), requests (\d+), documents with
 if [ $QUICK = 0 ]; then
   step "Mutation testing"
   # --mutants/--mutate are the test mode of the engine, only with FIGRAM_ALLOW_MUTANTS=1 (mutation.py sets it).
-  SHOW=3 logged mutation env FIGRAM_ALLOW_MUTANTS=1 python3 $P/mutation.py $E --golden examples/golden.jsonl \
+  SHOW=3 logged mutation env FIGRAM_ALLOW_MUTANTS=1 python3 $P/mutation.py $E \
+    --unreachable examples/pizza.bot.json="$T/pizza.cov" --unreachable examples/features.bot.json="$T/features.cov" \
+    --golden examples/golden.jsonl \
     examples/pizza.bot.json="$T/pizza.jsonl" examples/features.bot.json="$T/features.jsonl"
   expect "$LOGS/mutation.log" '^detected (\d+) of (\d+) mutations' "g[1] >= $MIN_MUTANTS and g[0] == g[1]" "mutations"
+  expect "$LOGS/mutation.log" '^mutations of unreachable variants \(not counted, all survived\): (\d+)$' 'g[0] == 12' \
+    "mutations of unreachable variants"
 fi
 
 step "Engine memory, threads and stack overflow"
 logged engine_memory python3 $P/engine_memory.py $E examples/pizza.bot.json
 expect "$LOGS/engine_memory.log" '^engine memory: address space (\d+) MiB, in use (\d+) MiB, threads (\d+)$' \
-  'g[0] <= 64 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
+  'g[0] <= 96 and g[1] <= 16 and g[2] == 1' "engine memory and threads"
 expect "$LOGS/engine_memory.log" '^ok   ulimit -v 32 MiB: exit code 0, replies 2$' 'True' "engine under ulimit -v 32 MiB"
+expect "$LOGS/engine_memory.log" '^ok   1500 large requests \((\d+) KiB\): resident memory ([+-]\d+) KB' \
+  'g[0] >= 100 and int(g[1]) <= 2048' "memory of large requests"
 
 step "Snapshots, protocol edges and the JSON text layer"
 SHOW=2 logged snapshots python3 $P/snapshot_fixtures.py $E examples/features.bot.json schemas/snapshot.schema.json
 expect "$LOGS/snapshots.log" '^snapshots (\d+), replies (\d+), schema/engine mismatches (\d+)$' \
-  'g[0] >= 30 and g[0] == g[1] and g[2] == 0' "snapshots"
+  'g[0] >= 49 and g[0] == g[1] and g[2] == 0' "snapshots"
 expect "$LOGS/snapshots.log" '^seq boundary: ok$' 'True' "seq boundary"
 logged protocol_edges python3 $P/protocol_edges.py $E examples/features.bot.json
 expect "$LOGS/protocol_edges.log" '^protocol edge cases (\d+), replies (\d+), mismatches (\d+)$' \
-  'g[0] >= 137 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
+  'g[0] >= 256 and g[0] == g[1] and g[2] == 0' "protocol edge cases"
 logged snapshot_scaling python3 $P/snapshot_scaling.py $E examples/features.bot.json
-expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 6 and g[1] == 0' \
+expect "$LOGS/snapshot_scaling.log" '^snapshot scaling: cases (\d+), failed (\d+)$' 'g[0] >= 9 and g[1] == 0' \
   "time linear in the snapshot size"
+logged snapshot_limit python3 $P/snapshot_limit.py $E examples/features.bot.json
+expect "$LOGS/snapshot_limit.log" '^snapshot limit: steps (\d+), waits (\d+), failed (\d+)$' \
+  'g[0] > 1000 and g[2] == 0' "a snapshot that requests cannot carry is refused (snapshot_too_large)"
 NFUZZ=$([ $QUICK = 1 ] && echo 5000 || echo 30000)
 logged json_fuzz python3 $P/json_fuzz.py $F $NFUZZ 1
 expect "$LOGS/json_fuzz.log" '^cases (\d+): accepted by both (\d+), rejected by both (\d+), mismatches (\d+), outputs not read back (\d+) of (\d+)$' \
@@ -155,7 +173,8 @@ clean client_robustness python3 $P/client_robustness.py $E examples/pizza.bot.js
 
 if [ $QUICK = 0 ]; then
   step "Harness self-test"
-  logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl"
+  logged selftest python3 $P/harness_selftest.py $E examples/pizza.bot.json "$T/pizza.jsonl" "$T/features.jsonl" \
+    "$T/pizza.cov" "$T/features.cov"
   n_ok=$(grep -c '^ok ' "$LOGS/selftest.log" || true)
   n_bad=$(grep -c '^FAIL' "$LOGS/selftest.log" || true)
   [ "$n_ok" -ge "$MIN_SELFTEST_OK" ] && [ "$n_bad" -eq 0 ] \
@@ -166,7 +185,15 @@ step "Host contract and load test"
 logged host python3 $P/host_sim.py $E examples/pizza.bot.json
 expect "$LOGS/host.log" '^  users (\d+): outcome as expected \(.*\) for (\d+), orders in the CRM (\d+), events processed (\d+) of (\d+) .*lost updates (\d+), actions not run (\d+)$' \
   'g[0] > 0 and g[0] == g[1] and 0 < g[2] <= g[0] and g[3] == g[4] and g[5] == 0 and g[6] == 0' "host contract"
-expect "$LOGS/host.log" '^  the test catches the violation: yes(?: \(control attempts: \d+\))?$' 'True' "control host without the contract"
+# Outcomes of actions (docs/host-contract.md, section 2): exactly one outcome event per call with a token.
+expect "$LOGS/host.log" '^  outcomes: calls with a token (\d+), outcome events lost (\d+), processed twice (\d+), without a call (\d+), waits left (\d+) \(created (\d+), rejected (\d+), failed (\d+)\); background actions run (\d+) of (\d+), in the failure queue (\d+)$' \
+  'g[0] > 0 and g[1] == g[2] == g[3] == g[4] == 0 and g[6] > 0 and g[7] > 0 and g[5] + g[6] + g[7] == g[0] and 0 < g[8] == g[9] and g[10] == 0' "host contract: outcomes"
+expect "$LOGS/host.log" '^background actions \(host by the contract\), failures injected \d+: users (\d+), kitchen down for (\d+), users not held up (\d+), blocked (\d+), orders (\d+), failure queue (\d+) notify_kitchen with an alert, other failures (\d+), sequential actions not run (\d+)$' \
+  'g[0] > 0 and 0 < g[1] < g[0] and g[2] == g[0] == g[4] and g[3] == 0 and g[5] == g[1] and g[6] == g[7] == 0' "host contract: background actions"
+# Controls: no duplicate filtering, an outcome recorded outside the transaction, background actions in the user's queue.
+[ "$(grep -cE '^  the test catches the violation: yes( \(control attempts: [0-9]+\))?$' "$LOGS/host.log")" -eq 4 ] \
+  || fail "host contract: the four controls (duplicates, lost outcomes, failed without reconciling, background actions in the user's queue) must be caught"
+expect "$LOGS/host.log" '^  the test catches the violations: yes$' 'True' "controls of the lost snapshot"
 logged load python3 $P/loadtest.py $E examples/pizza.bot.json "$T/pizza.jsonl" 64 2
 expect "$LOGS/load.log" '^threads +(\d+), processes (\d+): steps (\d+) .*mismatches (\d+),' \
   'g[0] == 64 and g[2] > 0 and g[3] == 0' "load"

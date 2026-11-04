@@ -4,7 +4,10 @@ child processes with a hard deadline. Used by the client and by all tests.
 Rule: a reply is exactly one of the variants "result", "need", "error"; field
 types are checked exactly (a boolean is not a number). An error reply has
 exactly the fields `id`, `error` (a text for humans) and `code` (a machine code
-from ERROR_CODES, docs/format.md, section 8, "Errors").
+from ERROR_CODES, docs/format.md, section 8, "Errors"). The protocol is version 3
+(PROTOCOL): a `hello` reply of another version is a violation, snapshots may carry
+`pending` (waits for outcomes), and a `call` action may carry `token` (an action
+with outcomes) and `"detached": true` (a background action).
 """
 
 from __future__ import annotations
@@ -14,9 +17,12 @@ import signal
 import subprocess
 
 MAX_INT = 9007199254740991
+# The engine protocol version these validators check (docs/format.md, section 8).
+PROTOCOL = 3
 
 # Machine codes of an error reply (docs/format.md, section 8, "Errors").
-ERROR_CODES = frozenset({"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow"})
+ERROR_CODES = frozenset({"parse_error", "too_large", "bad_request", "bad_snapshot", "seq_overflow",
+                         "snapshot_too_large"})
 
 
 class ProtocolError(Exception):
@@ -46,7 +52,7 @@ def check_snapshot(s) -> None:
     written as integers (the schema and the engine also accept `5.0` and `5e0`)."""
     if type(s) is not dict:
         raise ProtocolError(f"snapshot is not an object: {s!r}")
-    extra = set(s) - {"v", "at", "back", "resume", "timers", "seq"}
+    extra = set(s) - {"v", "at", "back", "resume", "timers", "pending", "seq"}
     if extra:
         raise ProtocolError(f"snapshot: extra fields {sorted(extra)}")
     if "v" in s and (not is_int(s["v"]) or s["v"] != 1):
@@ -63,15 +69,25 @@ def check_snapshot(s) -> None:
     for k, v in s.get("timers", {}).items():
         name(k, "snapshot.timers: name")
         nat(v, f"snapshot.timers.{k}")
+    if "pending" in s:
+        # waits for outcomes (docs/format.md, section 7, decision 12): exactly {call, token}
+        if type(s["pending"]) is not list:
+            raise ProtocolError("snapshot.pending is not a list")
+        for i, w in enumerate(s["pending"]):
+            if type(w) is not dict or set(w) != {"call", "token"}:
+                raise ProtocolError(f"snapshot.pending[{i}]: expected exactly call and token, got {w!r}")
+            name(w["call"], f"snapshot.pending[{i}].call")
+            nat(w["token"], f"snapshot.pending[{i}].token")
     if "seq" in s:
         nat(s["seq"], "snapshot.seq")
 
 
 ACTION_FORMS = {
-    "send": {"send"},
-    "call": {"call"},
-    "start_timer": {"start_timer", "ms", "token"},
-    "cancel_timer": {"cancel_timer"},
+    "send": [{"send"}],
+    # token: an action with outcomes; detached: a background action (protocol 3)
+    "call": [{"call"}, {"call", "token"}, {"call", "detached"}, {"call", "token", "detached"}],
+    "start_timer": [{"start_timer", "ms", "token"}],
+    "cancel_timer": [{"cancel_timer"}],
 }
 
 
@@ -82,12 +98,18 @@ def check_actions(acts) -> None:
         if type(a) is not dict:
             raise ProtocolError(f"action is not an object: {a!r}")
         kinds = [k for k in ACTION_FORMS if k in a]
-        if len(kinds) != 1 or set(a) != ACTION_FORMS[kinds[0]]:
+        if len(kinds) != 1 or set(a) not in ACTION_FORMS[kinds[0]]:
             raise ProtocolError(f"unknown action form: {a!r}")
         name(a[kinds[0]], f"action {kinds[0]}")
         if kinds[0] == "start_timer":
             nat(a["ms"], "start_timer.ms")
             nat(a["token"], "start_timer.token")
+        elif kinds[0] == "call":
+            if "token" in a:
+                nat(a["token"], "call.token")
+            if "detached" in a and a["detached"] is not True:
+                # the field is written only for a background action, and only as true
+                raise ProtocolError(f"call.detached: {a['detached']!r}")
 
 
 def check_error(resp) -> str:
@@ -116,8 +138,11 @@ def check_reply(resp, rid: int, op: str) -> str:
     if op == "hello":
         # "mutant" — only from a corrupted engine in test mode (FIGRAM_ALLOW_MUTANTS=1)
         if keys - {"mutant"} != {"protocol", "states"} or not is_int(resp["protocol"]) \
-                or not is_int(resp["states"]) or ("mutant" in resp and type(resp["mutant"]) is not str):
+                or not is_int(resp["states"]) or not 0 <= resp["states"] <= MAX_INT \
+                or ("mutant" in resp and (type(resp["mutant"]) is not str or not resp["mutant"])):
             raise ProtocolError(f"hello reply: {resp!r}")
+        if resp["protocol"] != PROTOCOL:
+            raise ProtocolError(f"hello reply: protocol {resp['protocol']}, expected {PROTOCOL}")
         return "hello"
     if op in ("step", "start") and keys == {"need"}:
         need = resp["need"]

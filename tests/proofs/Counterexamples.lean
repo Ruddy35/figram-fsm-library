@@ -22,7 +22,7 @@ def badChart : Chart where
   transitions := [⟨"a", "go", [⟨none, .node "ghost", []⟩]⟩]
   timers := []
 
-def s0 : Snapshot := ⟨"a", [], [], 0, none⟩
+def s0 : Snapshot := ⟨"a", [], [], 0, none, []⟩
 
 -- `compile` runs with hash indexes (opaque `String.hash` for the kernel); the kernel facts are
 -- evaluated on the list specification, which is the same machine (`Chart.compile_eq_spec`).
@@ -30,8 +30,8 @@ example : badChart.compile.wf = false := by rw [Chart.compile_eq_spec]; decide
 -- compiled step ≠ reference step (the reference sends "ghost", compiled sends nothing)
 example : badChart.compile.step s0 (.named "go") noEnv ≠ badChart.step s0 (.named "go") noEnv := by
   rw [Chart.compile_eq_spec]; decide
-example : badChart.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1, some "a"⟩, [.send "ghost"]) := by decide
-example : badChart.compile.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1, some "a"⟩, []) := by
+example : badChart.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1, some "a", []⟩, [.send "ghost"]) := by decide
+example : badChart.compile.step s0 (.named "go") noEnv = (⟨"ghost", [], [], 1, some "a", []⟩, []) := by
   rw [Chart.compile_eq_spec]; decide
 -- user lands on a state that does not exist
 example : (badChart.compile.step s0 (.named "go") noEnv).1.state ∉ badChart.compile.states := by
@@ -49,7 +49,7 @@ def timerDoc : Doc where
   calls := []
   variables := []
   bot := .sec "a" [
-      ("a", .message [("timer:t", [⟨none, "b", false, false, [], []⟩])] [("t", 1000)] []),
+      ("a", .message [("timer:t", [⟨none, some "b", false, false, [], []⟩])] [("t", 1000)] []),
       ("b", .message [] [] [])] [] []
   ext := []
 
@@ -61,8 +61,8 @@ example : tm.wf = true := by rw [tm_eq]; decide
 example : namesOK tm = true := by rw [tm_eq]; decide
 #guard timerDoc.check.isEmpty
 
-def sA : Snapshot := ⟨"a", [], [("t", 1)], 1, none⟩  -- timer t active, token 1
-def sA0 : Snapshot := ⟨"a", [], [], 1, none⟩      -- no active timer at all
+def sA : Snapshot := ⟨"a", [], [("t", 1)], 1, none, []⟩  -- timer t active, token 1
+def sA0 : Snapshot := ⟨"a", [], [], 1, none, []⟩      -- no active timer at all
 
 example : tm.step sA (.timer "t" 7) noEnv = (sA, []) := by rw [tm_eq]; decide      -- stale token ignored
 example : (tm.step sA (.timer "t" 1) noEnv).1.state = "b" := by rw [tm_eq]; decide -- current token fires
@@ -115,7 +115,7 @@ for a snapshot with duplicate timer names, while the text form is rejected by `p
 (Not reachable from the engine: `assign`/`erase` keep keys unique and `parse` rejects
 duplicate keys — but no theorem states it.) -/
 
-def dupSnap : Snapshot := ⟨"a", [], [("t", 1), ("t", 2)], 2, none⟩
+def dupSnap : Snapshot := ⟨"a", [], [("t", 1), ("t", 2)], 2, none, []⟩
 
 theorem dupSnap_ok : SnapOK dupSnap where
   state := by decide
@@ -123,6 +123,7 @@ theorem dupSnap_ok : SnapOK dupSnap where
   timers := by intro p hp; simp [dupSnap] at hp; rcases hp with rfl | rfl <;> decide
   seq := by decide
   back := by simp [dupSnap]
+  pending := by simp [dupSnap]
 
 example : decSnapshot (encSnapshot dupSnap) = .ok dupSnap := decSnapshot_encSnapshot _ dupSnap_ok
 #guard match parse (renderCompact (encSnapshot dupSnap)) with | .ok _ => false | .error _ => true
@@ -139,7 +140,7 @@ example : True := by
 (not only a hand-made Chart) with a dangling target compiles to a machine without `wf`;
 `check` rejects it (so `check = []` is what carries `wf`). -/
 
-def ghostDoc : Doc := ⟨[], [], [], [], .sec "a" [("a", .message [("go", [⟨none, "ghost", false, false, [], []⟩])] [] [])] [] [], []⟩
+def ghostDoc : Doc := ⟨[], [], [], [], .sec "a" [("a", .message [("go", [⟨none, some "ghost", false, false, [], []⟩])] [] [])] [] [], []⟩
 example : ghostDoc.toChart.compile.wf = false := by rw [Chart.compile_eq_spec]; decide
 #guard !ghostDoc.check.isEmpty
 #guard !ghostDoc.toChart.lint.isEmpty

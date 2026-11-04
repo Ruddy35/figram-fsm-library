@@ -2,7 +2,7 @@ import Figram.FormatIO
 import Figram.Compile
 
 /-!
-# Engine: the protocol "one JSON line per request, one JSON line per reply", version 2
+# Engine: the protocol "one JSON line per request, one JSON line per reply", version 3
 
 The document is loaded and compiled once. Every request is one line, every
 reply is one line with the same `id`. The full description is in docs/format.md,
@@ -17,7 +17,8 @@ Requests (no other fields are allowed in a request):
   continuing the counter (old timer tokens never match new ones);
 * `{"id": 3, "op": "step", "snapshot": {...}, "event": "btn:checkout",
    "guards": {"cart_not_empty": true}}` — a step;
-  for a timer firing: `"event": "timer:<name>", "token": <token>`.
+  for a timer firing: `"event": "timer:<name>", "token": <token>`; for the outcome of an
+  action: `"event": "call:<action>:<outcome>", "token": <token>`.
 
 Replies:
 * `{"id": 3, "snapshot": {...}, "actions": [...]}` — the step is done
@@ -36,8 +37,8 @@ fields, the line size limit, UTF-8) run before it: in `handle`, in
 namespace Figram.Engine
 open Figram.Format
 
-def protocolVersion : Nat := 2
-def snapshotKeys : List String := ["v", "at", "back", "resume", "timers", "seq"]
+def protocolVersion : Nat := 3
+def snapshotKeys : List String := ["v", "at", "back", "resume", "timers", "pending", "seq"]
 
 /-! ## Snapshot -/
 
@@ -46,6 +47,8 @@ def encSnapshot (s : Snapshot) : J :=
     ++ field "back" s.back.isSome (.str (s.back.getD ""))
     ++ field "resume" (!s.resume.isEmpty) (.obj (s.resume.map fun p => (p.1, .str p.2)))
     ++ field "timers" (!s.timers.isEmpty) (.obj (s.timers.map fun p => (p.1, .num p.2 0)))
+    ++ field "pending" (!s.pending.isEmpty)
+        (.arr (s.pending.map fun p => .obj [("call", .str p.1), ("token", .num p.2 0)]))
     ++ field "seq" (s.seq != 0) (.num s.seq 0))
 
 /-- An integer field of the snapshot: 0 … 2^53 − 1 (as in snapshot.schema.json). -/
@@ -67,6 +70,20 @@ def decResumeEntry (p : String × J) : R (String × String) := do
 def decTimerEntry (p : String × J) : R (String × Nat) := do
   if p.1.isEmpty then throw "snapshot: empty timer name"
   pure (p.1, ← boundedNat "a timer token" p.2)
+
+/-- A wait of `pending`: exactly the fields `call` (a non-empty name) and `token`. -/
+def decWait : J → R (String × Nat)
+  | .obj kvs => do
+    if kvs.any (fun p => p.1 != "call" && p.1 != "token") then
+      throw "snapshot: a `pending` entry has only the fields `call` and `token`"
+    let c ← match get kvs "call" with
+      | some j => nonEmpty "the `call` of a `pending` entry" j
+      | none => throw "snapshot: a `pending` entry needs `call`"
+    let t ← match get kvs "token" with
+      | some j => boundedNat "the `token` of a `pending` entry" j
+      | none => throw "snapshot: a `pending` entry needs `token`"
+    pure (c, t)
+  | _ => throw "snapshot: a `pending` entry must be an object"
 
 def checkKeys (kvs : Obj) : R Unit :=
   match kvs.find? (fun p => decide (p.1 ∉ snapshotKeys)) with
@@ -97,10 +114,14 @@ def decSnapshot : J → R Snapshot
       | none => pure []
       | some (.obj m) => m.mapM decTimerEntry
       | some _ => throw "snapshot: `timers` must be an object"
+    let pend ← match get kvs "pending" with
+      | none => pure []
+      | some (.arr xs) => xs.mapM decWait
+      | some _ => throw "snapshot: `pending` must be an array"
     let seq ← match get kvs "seq" with
       | none => pure 0
       | some j => boundedNat "`seq`" j
-    pure ⟨st, res, tms, seq, bk⟩
+    pure ⟨st, res, tms, seq, bk, pend⟩
   | _ => throw "snapshot must be an object"
 
 /-! ## Request errors -/
@@ -117,6 +138,8 @@ inductive ErrCode where
   | badSnapshot
   /-- the new `seq` would exceed 2^53 − 1 -/
   | seqOverflow
+  /-- the new snapshot would take more than 15/16 of the request size limit -/
+  | snapshotTooLarge
   deriving DecidableEq, Repr, Inhabited
 
 def ErrCode.name : ErrCode → String
@@ -125,6 +148,7 @@ def ErrCode.name : ErrCode → String
   | .badRequest => "bad_request"
   | .badSnapshot => "bad_snapshot"
   | .seqOverflow => "seq_overflow"
+  | .snapshotTooLarge => "snapshot_too_large"
 
 /-- The result of handling a request: a value, or an error code with a text. -/
 abbrev RE := Except (ErrCode × String)
@@ -139,7 +163,8 @@ def errorJ (id : J) (c : ErrCode) (text : String) : J :=
 
 def encAction : Action → Option J
   | .send n => some (.obj [("send", .str n)])
-  | .call n => some (.obj [("call", .str n)])
+  | .call n d w tok => some (.obj ([("call", .str n)]
+      ++ field "token" (w != .free) (.num tok 0) ++ field "detached" d (.bool true)))
   | .startTimer id ms tok => some (.obj [("start_timer", .str id), ("ms", .num ms 0), ("token", .num tok 0)])
   | .cancelTimer id => some (.obj [("cancel_timer", .str id)])
   | .remember .. => none
@@ -190,8 +215,9 @@ def decGuards (kvs : Obj) : R (List (String × Bool)) :=
       | (k, _) => throw s!"condition `{k}`: expected true or false"
   | some _ => throw "`guards` must be an object"
 
-/-- The request event: a non-empty string; `timer:<name>` (with a non-empty name) only
-with a token, any other event without a token. -/
+/-- The request event: a non-empty string; `timer:<name>` (with a non-empty name) and
+`call:<action>:<outcome>` (split at the last `:`, both parts non-empty) only with a token, any
+other event without a token. -/
 def decEvent (kvs : Obj) : R Event := do
   let name ← match get kvs "event" with
     | some (.str e) => if e.isEmpty then throw "`event` must be a non-empty string" else pure e
@@ -203,8 +229,15 @@ def decEvent (kvs : Obj) : R Event := do
     match get kvs "token" with
     | some j => pure (.timer id (← reqNat "token" j))
     | none => throw "missing field `token` for a timer event"
+  else if name.startsWith "call:" then
+    match splitOutcome (name.drop 5).toString with
+    | none => throw "an outcome event is `call:<action>:<outcome>`, both parts non-empty"
+    | some (c, o) =>
+      match get kvs "token" with
+      | some j => pure (.outcome c o (← reqNat "token" j))
+      | none => throw "missing field `token` for an outcome event"
   else
-    if (get kvs "token").isSome then throw "field `token` is allowed only for a timer event"
+    if (get kvs "token").isSome then throw "field `token` is allowed only for a timer or an outcome event"
     pure (.named name)
 
 /-- The `seq` of `start`: the user's high-water mark, 0 if absent. -/
@@ -213,13 +246,14 @@ def decStartSeq (kvs : Obj) : R Nat :=
   | none => pure 0
   | some j => reqNat "seq" j
 
-/-- The event of `start`: a non-empty string that is not a timer event (a new user has no
-timers). -/
+/-- The event of `start`: a non-empty string that is neither a timer nor an outcome event (a new
+user has no timers and no waits). -/
 def decStartEvent (kvs : Obj) : R EventId :=
   match get kvs "event" with
   | some (.str e) =>
     if e.isEmpty then throw "`event` must be a non-empty string"
     else if e.startsWith "timer:" then throw "a timer event cannot start a user"
+    else if e.startsWith "call:" then throw "an outcome event cannot start a user"
     else pure e
   | _ => throw "`event` must be a non-empty string"
 
@@ -245,6 +279,7 @@ def missing (m : Machine) (s : Snapshot) (ev : Event) (gs : List (String × Bool
     match ev with
     | .named e => missingStart m e gs
     | .timer .. => []
+    | .outcome .. => if s.accepts ev then missingStart m ev.key gs else []
   else if s.accepts ev && ownsTimer (m.exitOf s.state) ev then
     (dedup (m.neededGuards s.state ev.key (givenOf gs))).filter fun n => !(gs.any (·.1 == n))
   else []
@@ -295,12 +330,12 @@ def handleObj (m : Machine) (kvs : Obj) : RE J := do
       pure (result id s as false)
   | some (.str "restart") =>
     -- Start the user over without resetting the counter: cancel the user's timers,
-    -- run the first-entry actions, clear the remembered places and the place to go back to.
-    -- Tokens keep growing, so late events of old timers never match new ones.
+    -- run the first-entry actions, clear the remembered places, the place to go back to and
+    -- the waits. Tokens keep growing, so late events of old timers never match new ones.
     let s ← match get kvs "snapshot" with
       | some j => withCode .badSnapshot (decSnapshot j)
       | none => throw (.badRequest, "missing field `snapshot`")
-    let (s', as) := m.recover { s with resume := [], back := none }
+    let (s', as) := m.recover { s with resume := [], back := none, pending := [] }
     if s'.seq > maxInt then throw (.seqOverflow, "seq_overflow")
     pure (result id s' as false)
   | some (.str "step") =>
@@ -342,8 +377,8 @@ def markMutant (mutant : Option String) (kvs : Obj) (j : J) : J :=
 
 /-- One request line (UTF-8 text) → one reply line; `mutant` is the mutation of the
 deliberately broken test-mode engine (`figram-engine --mutate`), otherwise `none`. -/
-def handleWith (mutant : Option String) (m : Machine) (line : String) : String :=
-  renderCompact <| match parse line with
+def replyJ (mutant : Option String) (m : Machine) (line : String) : J :=
+  match parse line with
     | .ok (.obj kvs) =>
       match checkFields kvs >>= fun _ => handleObj m kvs with
       | .ok j => markMutant mutant kvs j
@@ -351,8 +386,35 @@ def handleWith (mutant : Option String) (m : Machine) (line : String) : String :
     | .ok _ => errorJ .null .badRequest "request must be an object"
     | .error e => errorJ (echoId line) .parseError e
 
+def handleWith (mutant : Option String) (m : Machine) (line : String) : String :=
+  renderCompact (replyJ mutant m line)
+
 /-- One request line → one reply line. -/
 def handle (m : Machine) (line : String) : String := handleWith none m line
+
+/-- The new snapshot fits into a request under `limit` with room for the rest of it: the
+snapshot takes at most 15/16 of the limit (64 KiB to spare under the default 1 MiB). -/
+def snapshotFits (limit n : Nat) : Bool := limit == 0 || n + limit / 16 ≤ limit
+
+def snapshotTooLargeText (n limit : Nat) : String :=
+  s!"the new snapshot ({n} bytes) would not fit into a request under the limit of {limit} bytes; " ++
+  "the snapshot is not changed"
+
+/-- `handleWith` under the request size limit `limit` (0 means no limit): a reply whose new
+snapshot would not fit into the next request (`snapshotFits`) becomes the error
+`snapshot_too_large`, so the stored snapshot stays one that requests can carry — its outcomes,
+which shrink it, and `restart`. -/
+def handleLimited (mutant : Option String) (limit : Nat) (m : Machine) (line : String) : String :=
+  let j := replyJ mutant m line
+  match j with
+  | .obj kvs =>
+    match get kvs "snapshot" with
+    | some snap =>
+      let n := (renderCompact snap).utf8ByteSize
+      if snapshotFits limit n then renderCompact j
+      else renderCompact (errorJ ((get kvs "id").getD .null) .snapshotTooLarge (snapshotTooLargeText n limit))
+    | none => renderCompact j
+  | _ => renderCompact j
 
 /-! ## Lines the engine does not parse
 
@@ -385,11 +447,11 @@ def errorLine (pre : String) (c : ErrCode) (text : String) : String :=
   renderCompact (errorJ (echoId pre) c text)
 
 /-- A request line as bytes → a reply line: the limit `limit` (0 means no limit),
-then UTF-8, then `handleWith`. -/
+then UTF-8, then `handleLimited`. -/
 def handleBytes (mutant : Option String) (limit : Nat) (m : Machine) (b : ByteArray) : String :=
   if limit != 0 && b.size > limit then errorLine (utf8Prefix b) .tooLarge (tooLargeText limit)
   else match String.fromUTF8? b with
-    | some s => handleWith mutant m s
+    | some s => handleLimited mutant limit m s
     | none => errorLine (utf8Prefix b) .parseError invalidUtf8Text
 
 /-! ## Load conditions of the machine -/
@@ -397,6 +459,7 @@ def handleBytes (mutant : Option String) (limit : Nat) (m : Machine) (b : ByteAr
 def actionOK : Action → Bool
   | .remember sec n => !sec.isEmpty && !n.isEmpty
   | .startTimer id _ _ => !id.isEmpty
+  | .call n _ w _ => w == .free || !n.isEmpty
   | _ => true
 
 /-- All names that can get into a snapshot are non-empty. -/

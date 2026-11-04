@@ -59,7 +59,63 @@ open Lean Elab Command Meta in
       ``Figram.Machine.fire_eq_realize,
       ``Figram.Machine.enterBot_eq_realize_some,
       ``Figram.Machine.enterBot_eq_realize_none,
-      ``Figram.Machine.recover_eq_realize
+      ``Figram.Machine.recover_eq_realize,
+      ``Figram.Machine.step_rejected,
+      ``Figram.Machine.step_no_arrow,
+      ``Figram.Machine.step_pending_new,
+      ``Figram.Machine.step_keeps_wait,
+      ``Figram.Machine.step_records_wait,
+      ``Figram.Machine.step_latest_replaces,
+      ``Figram.Machine.step_fresh,
+      ``Figram.Machine.startWith_fresh,
+      ``Figram.Snapshot.Fresh.accepts_le,
+      ``Figram.Machine.step_outcome_once,
+      ``Figram.Machine.step_stay,
+      ``Figram.Machine.stay_keeps,
+      ``Figram.Machine.enterBot_stay,
+      ``Figram.Machine.startWith_outcome,
+      ``Figram.Machine.step_undetach,
+      ``Figram.Machine.startWith_undetach,
+      ``Figram.Machine.recover_undetach,
+      ``Figram.splitOutcome_outcomeEvent,
+      ``Figram.Engine.decEvent_key,
+      ``Figram.Engine.decEvent_outcome,
+      ``Figram.Engine.decStartEvent_ok,
+      ``Figram.Engine.handle_restart,
+      ``Figram.Engine.restart_pending,
+      ``Figram.Engine.restart_fresh,
+      ``Figram.Machine.step_nodup,
+      ``Figram.Machine.startWith_nodup,
+      ``Figram.Machine.run_nodup,
+      ``Figram.Machine.step_outcome_accepted,
+      ``Figram.Machine.step_stay_timer_once,
+      ``Figram.Machine.step_seq,
+      ``Figram.Machine.consecutive_tokens,
+      ``Figram.Machine.outcome_once_forever,
+      ``Figram.Chart.step_outcome_unmatched,
+      ``Figram.Chart.step_waits_once,
+      ``Figram.Chart.compile_step_waits_once,
+      ``Figram.Chart.restart_no_waits,
+      ``Figram.Format.toChart_calls,
+      ``Figram.Format.doc_stay,
+      ``Figram.Format.check_waitsOnce,
+      ``Figram.Format.check_outcome_events,
+      ``Figram.Format.check_step_waits_once,
+      ``Figram.Engine.decEvent_named_key,
+      ``Figram.Engine.startAt_fresh,
+      ``Figram.Snapshot.accepts_named,
+      ``Figram.Snapshot.accepts_timer,
+      ``Figram.Snapshot.accepts_outcome,
+      ``Figram.Snapshot.settle_outcome,
+      ``Figram.Snapshot.consume_timer,
+      ``Figram.Snapshot.consume_other,
+      ``Figram.addWait_free,
+      ``Figram.addWait_latest,
+      ``Figram.addWait_every,
+      ``Figram.stay_eq,
+      ``Figram.waitNames_nil,
+      ``Figram.waitNames_call,
+      ``Figram.waitNames_other
     ] do
     let ci ← getConstInfo n
     let f ← liftTermElabM (ppExpr ci.type)
@@ -111,3 +167,59 @@ open Lean Elab Command Meta in
 #print axioms Figram.Machine.enterBot_eq_realize_some
 #print axioms Figram.Machine.enterBot_eq_realize_none
 #print axioms Figram.Machine.recover_eq_realize
+#print axioms Figram.Machine.step_rejected
+#print axioms Figram.Machine.step_no_arrow
+#print axioms Figram.Machine.step_pending_new
+#print axioms Figram.Machine.step_keeps_wait
+#print axioms Figram.Machine.step_records_wait
+#print axioms Figram.Machine.step_latest_replaces
+#print axioms Figram.Machine.step_fresh
+#print axioms Figram.Machine.startWith_fresh
+#print axioms Figram.Snapshot.Fresh.accepts_le
+#print axioms Figram.Machine.step_outcome_once
+#print axioms Figram.Machine.step_stay
+#print axioms Figram.Machine.stay_keeps
+#print axioms Figram.Machine.enterBot_stay
+#print axioms Figram.Machine.startWith_outcome
+#print axioms Figram.Machine.step_undetach
+#print axioms Figram.Machine.startWith_undetach
+#print axioms Figram.Machine.recover_undetach
+#print axioms Figram.splitOutcome_outcomeEvent
+#print axioms Figram.Engine.decEvent_key
+#print axioms Figram.Engine.decEvent_outcome
+#print axioms Figram.Engine.decStartEvent_ok
+#print axioms Figram.Engine.handle_restart
+#print axioms Figram.Engine.restart_pending
+#print axioms Figram.Engine.restart_fresh
+#print axioms Figram.Machine.step_nodup
+#print axioms Figram.Machine.startWith_nodup
+#print axioms Figram.Machine.run_nodup
+#print axioms Figram.Machine.step_outcome_accepted
+#print axioms Figram.Machine.step_stay_timer_once
+#print axioms Figram.Machine.step_seq
+#print axioms Figram.Machine.consecutive_tokens
+#print axioms Figram.Machine.outcome_once_forever
+#print axioms Figram.Chart.step_outcome_unmatched
+#print axioms Figram.Chart.step_waits_once
+#print axioms Figram.Chart.compile_step_waits_once
+#print axioms Figram.Chart.restart_no_waits
+#print axioms Figram.Format.toChart_calls
+#print axioms Figram.Format.doc_stay
+#print axioms Figram.Format.check_waitsOnce
+#print axioms Figram.Format.check_outcome_events
+#print axioms Figram.Format.check_step_waits_once
+#print axioms Figram.Engine.decEvent_named_key
+#print axioms Figram.Engine.startAt_fresh
+#print axioms Figram.Snapshot.accepts_named
+#print axioms Figram.Snapshot.accepts_timer
+#print axioms Figram.Snapshot.accepts_outcome
+#print axioms Figram.Snapshot.settle_outcome
+#print axioms Figram.Snapshot.consume_timer
+#print axioms Figram.Snapshot.consume_other
+#print axioms Figram.addWait_free
+#print axioms Figram.addWait_latest
+#print axioms Figram.addWait_every
+#print axioms Figram.stay_eq
+#print axioms Figram.waitNames_nil
+#print axioms Figram.waitNames_call
+#print axioms Figram.waitNames_other

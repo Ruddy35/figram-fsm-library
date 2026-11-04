@@ -5,8 +5,9 @@ import Figram.Format
 
 A generator of valid documents of various shapes: nested sections, arrows
 on messages and sections (bubbling), conditions on both sides, "resume where
-the user left off", "back to the previous section", reminders with handlers. It lets the scenarios test the
-engine on more than one bot.
+the user left off", "back to the previous section", reminders with handlers, arrows without a
+target, background actions and actions with outcomes (the latest call answered, or every call)
+with arrows on their outcomes. It lets the scenarios test the engine on more than one bot.
 -/
 
 namespace Figram.RandomDoc
@@ -21,8 +22,19 @@ def chance (p : Nat) : M Bool := do return (← rnd 100) < p
 def pick (l : List String) : M String := do return l.getD (← rnd l.length) ""
 
 def conds : List String := ["c1", "c2", "c3"]
-def calls : List String := ["k1", "k2", "k3"]
+def calls : List String := ["k1", "k2", "k3", "k4"]
+/-- `k1` plain, `k2` a background action, `k3` with outcomes (the latest call answered), `k4` a
+background action with an outcome, every call answered. -/
+def callDecl (c : String) : CallDecl :=
+  match c with
+  | "k2" => ⟨s!"Random action {c}", true, [], false, []⟩
+  | "k3" => ⟨s!"Random action {c}", false, ["ok", "no"], false, []⟩
+  | "k4" => ⟨s!"Random action {c}", true, ["done"], true, []⟩
+  | _ => ⟨s!"Random action {c}", false, [], false, []⟩
+def withOutcomes (c : String) : Bool := c == "k3" || c == "k4"
 def events : List String := ["btn:a", "btn:b", "btn:c", "msg:text"]
+def outcomeEvents : List String :=
+  ["call:k3:ok", "call:k3:no", "call:k3:failed", "call:k4:done", "call:k4:failed"]
 
 def variants (nodes secs : List String) : M (List Variant) := do
   let cnt := 1 + (← rnd 3)
@@ -30,13 +42,17 @@ def variants (nodes secs : List String) : M (List Variant) := do
   for j in List.range cnt do
     let guarded ← if j + 1 < cnt then pure true else chance 25
     let cond ← if guarded then some <$> pick conds else pure none
-    let resume ← if secs.isEmpty then pure false else chance 20
+    let stay ← chance 12
+    let resume ← if secs.isEmpty || stay then pure false else chance 20
     let to ← if resume then pick secs else pick nodes
-    let back ← chance 15
+    let back ← if stay then pure false else chance 15
     let mut cs : List String := []
     for _ in List.range (← rnd 3) do
-      cs := cs ++ [← pick calls]
-    vs := vs ++ [⟨cond, to, resume, back, cs, []⟩]
+      let k ← pick calls
+      -- an action with outcomes at most once per variant
+      unless withOutcomes k && cs.contains k do
+        cs := cs ++ [k]
+    vs := vs ++ [⟨cond, if stay then none else some to, resume, back, cs, []⟩]
   return vs
 
 def handlers (nodes secs : List String) (pool : List String) (p : Nat) :
@@ -81,20 +97,26 @@ def gen (n : Nat) : M Doc := do
   let mut on : List (String × List (EventId × List Variant)) := []
   let mut timers : List (String × List (String × Nat)) := []
   for (m, i) in msgs.zipIdx do
-    let mut hs ← handlers nodes secs events 35
+    let mut hs ← handlers nodes secs (events ++ outcomeEvents) 30
     if ← chance 30 then
       let t := s!"t{i}"
-      timers := timers ++ [(m, [(t, 1 + (← rnd 100000))])]
+      let mut ts := [(t, 1 + (← rnd 100000))]
       hs := hs ++ [(timerEvent t, ← variants nodes secs)]
+      -- sometimes a second timer: a firing handled without a move must keep it
+      if ← chance 40 then
+        let u := s!"u{i}"
+        ts := ts ++ [(u, 1 + (← rnd 100000))]
+        hs := hs ++ [(timerEvent u, ← variants nodes secs)]
+      timers := timers ++ [(m, ts)]
     on := on ++ [(m, hs)]
   for sc in secs do
-    on := on ++ [(sc, ← handlers nodes secs events 15)]
-  on := on ++ [("", ← handlers nodes secs ["cmd:start", "cmd:help"] 60)]
+    on := on ++ [(sc, ← handlers nodes secs (events ++ outcomeEvents) 15)]
+  on := on ++ [("", ← handlers nodes secs (["cmd:start", "cmd:help"] ++ outcomeEvents) 40)]
   let plan : Plan := ⟨parent, secs, on, timers⟩
   return {
     requires := [],
     conditions := conds.map fun c => (c, s!"Random condition {c}"),
-    calls := calls.map fun c => (c, s!"Random action {c}"),
+    calls := calls.map fun c => (c, callDecl c),
     variables := [],
     bot := build plan "",
     ext := [] }

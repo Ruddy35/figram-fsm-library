@@ -4,7 +4,12 @@ corresponding test red.
 The fake engines are proxies to the real engine that corrupt replies, do not
 answer everything, offer no mutations or hang.
 
-    python3 harness_selftest.py ENGINE pizza.bot.json traces.jsonl FEATURES_TRACES.jsonl
+    python3 harness_selftest.py ENGINE pizza.bot.json traces.jsonl FEATURES_TRACES.jsonl \
+        PIZZA_COVERAGE FEATURES_COVERAGE
+
+The coverage files are the stderr of `figram trace … --directed` for the two documents: the
+mutation test on the full corpus takes the unreachable variants from them (mutation.py
+--unreachable).
 """
 
 import os
@@ -15,7 +20,7 @@ import sys
 import tempfile
 import time
 
-engine, doc, traces, ftraces = (os.path.abspath(a) for a in sys.argv[1:5])
+engine, doc, traces, ftraces, cov, fcov = (os.path.abspath(a) for a in sys.argv[1:7])
 here = os.path.dirname(os.path.abspath(__file__))
 features = os.path.join(os.path.dirname(doc), "features.bot.json")
 schema = os.path.join(here, "..", "..", "schemas", "snapshot.schema.json")
@@ -25,6 +30,8 @@ import json, subprocess, sys
 p = subprocess.Popen([{engine!r}] + sys.argv[1:], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
 n = 0
 for line in sys.stdin:
+    req = json.loads(line)
+    {pre}
     p.stdin.write(line); p.stdin.flush()
     r = json.loads(p.stdout.readline())
     n += 1
@@ -34,7 +41,8 @@ for line in sys.stdin:
         print(o, flush=True)
 """
 
-# Each corruption: code that turns the reply r into the list of output lines `out`.
+# Each corruption: code that turns the reply r into the list of output lines `out`, or a pair
+# (code that rewrites the request `req` and `line` before it goes to the engine, that code).
 EMIT = 'out.append("{oops" if r is None else json.dumps(r))'
 CORRUPT = {
     "snapshot": f'if n % 7 == 3 and "snapshot" in r: r["snapshot"] = {{"at": "nowhere"}}\n    {EMIT}',
@@ -53,11 +61,32 @@ CORRUPT = {
     # "recovered" belongs only to a reply to step
     "recovered on start": f'if json.loads(line).get("op") in ("start", "restart") and "snapshot" in r: '
                           f'r["recovered"] = True\n    {EMIT}',
+    # protocol 3 (docs/format.md, section 7, decisions 11-12; section 8): the fields of `call`,
+    # the waits in the snapshot, and the engine's treatment of an outcome event
+    "call without token": f'[a.pop("token", None) for a in r.get("actions", []) if "call" in a]\n    {EMIT}',
+    "call without detached": f'[a.pop("detached", None) for a in r.get("actions", []) if "call" in a]\n    {EMIT}',
+    "snapshot without pending": f'if "snapshot" in r: r["snapshot"].pop("pending", None)\n    {EMIT}',
+    "outcome keeps the wait": f'if str(req.get("event", "")).startswith("call:") and "snapshot" in r '
+                              f'and type(req.get("snapshot")) is dict and "pending" in req["snapshot"]: '
+                              f'r["snapshot"]["pending"] = req["snapshot"]["pending"]\n    {EMIT}',
+    "stale outcome accepted": (
+        'ev = req.get("event")\n'
+        '    if type(ev) is str and ev.startswith("call:") and "token" in req and type(req.get("snapshot")) is dict:\n'
+        '        ws = [w.get("token") for w in req["snapshot"].get("pending", []) if type(w) is dict '
+        'and w.get("call") == ev[5:].rpartition(":")[0] and "token" in w]\n'
+        '        if ws: req["token"] = ws[0]; line = json.dumps(req) + "\\n"', EMIT),
+    "outcome starts a user": (
+        'if req.get("op") == "start" and str(req.get("event", "")).startswith("call:"):\n'
+        '        req.pop("event"); req.pop("guards", None); req.pop("token", None); line = json.dumps(req) + "\\n"', EMIT),
+    "restart keeps the waits": f'if req.get("op") == "restart" and "snapshot" in r and type(req.get("snapshot")) is dict '
+                               f'and "pending" in req["snapshot"]: r["snapshot"]["pending"] = req["snapshot"]["pending"]'
+                               f'\n    {EMIT}',
 }
 TOOLS = {
     "conformance": lambda fake: [fake, f"{doc}={traces}"],
     "loadtest": lambda fake: [fake, doc, traces, "8", "1"],
     "snapshot_fixtures": lambda fake: [fake, features, schema],
+    "protocol_edges": lambda fake: [fake, features, "--json-only"],
 }
 # Corruptions that do not apply to a tool: snapshot_fixtures has no need and no
 # timers; loadtest goes through the client, which catches a skipped reply by a timeout
@@ -69,6 +98,13 @@ SKIP = {("loadtest", "skipped reply"), ("loadtest", "duplicate reply"),
         ("snapshot_fixtures", "token = true"), ("snapshot_fixtures", "recovered on start"),
         ("conformance", "error without code"), ("conformance", "unknown code"),
         ("loadtest", "error without code"), ("loadtest", "unknown code")}
+# The scenarios and the snapshot fixtures never send `start` or `restart` with an outcome
+# event or waits, and the fixtures contain no actions and no outcome events: these corruptions
+# are checked on protocol_edges (and, for the outcome events, on the scenarios).
+SKIP |= {(t, c) for t in ("conformance", "loadtest", "snapshot_fixtures")
+         for c in ("outcome starts a user", "restart keeps the waits")}
+SKIP |= {("snapshot_fixtures", c) for c in ("call without token", "call without detached",
+                                            "outcome keeps the wait", "stale outcome accepted")}
 
 ok = True
 
@@ -132,7 +168,8 @@ with tempfile.TemporaryDirectory() as d:
         return path
 
     for name, code in CORRUPT.items():
-        fake = write("fake.py", PROXY.format(engine=engine, code=code))
+        pre, code = code if isinstance(code, tuple) else ("pass", code)
+        fake = write("fake.py", PROXY.format(engine=engine, pre=pre, code=code))
         for tool, args in TOOLS.items():
             if (tool, name) in SKIP:
                 continue
@@ -166,8 +203,9 @@ with tempfile.TemporaryDirectory() as d:
         rc, took = run_tool(tool, args(engine))
         report(rc == 0, f"{tool}, real engine: exit code {rc} ({took:.1f} s)")
     golden = os.path.join(os.path.dirname(doc), "golden.jsonl")
-    rc, took = run_tool("mutation", [engine, "--golden", golden, f"{doc}={traces}",
-                                     f"{features}={ftraces}"], timeout=1800)
+    rc, took = run_tool("mutation", [engine, "--unreachable", f"{doc}={cov}",
+                                     "--unreachable", f"{features}={fcov}", "--golden", golden,
+                                     f"{doc}={traces}", f"{features}={ftraces}"], timeout=1800)
     report(rc == 0, f"mutation, real engine on the full corpus: exit code {rc} ({took:.1f} s)")
 
 print("the harness catches corruption" if ok else "THE HARNESS MISSES CORRUPTION (see the FAIL lines above)")

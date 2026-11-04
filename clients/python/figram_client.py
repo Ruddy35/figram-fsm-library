@@ -56,7 +56,7 @@ import time
 import zlib
 from typing import Callable, Iterable
 
-from protocol import ProtocolError, check_reply
+from protocol import MAX_INT, PROTOCOL, ProtocolError, check_reply
 
 
 class EngineError(Exception):
@@ -69,7 +69,7 @@ class EngineError(Exception):
       an engine reply with `error` (snapshot rejected, `seq_overflow`, line not
       parsed) or an argument that cannot be sent; a retry gives the same result.
     * `code` — the machine-readable code from the engine reply (`parse_error`,
-      `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`); None if there
+      `too_large`, `bad_request`, `bad_snapshot`, `seq_overflow`, `snapshot_too_large`); None if there
       was no error reply or the reply has no `code` field (pre-release engines).
     """
 
@@ -79,7 +79,6 @@ class EngineError(Exception):
         self.retryable = retryable
 
 
-PROTOCOL = 2
 # FormatIO.maxDepth: the maximum nesting of arrays and objects in a request line.
 MAX_DEPTH = 256
 # Default maximum length of a reply line; a longer line is a protocol violation.
@@ -148,12 +147,30 @@ def _check_hello(resp: dict) -> None:
     # "mutant" — only from the corrupted test engine (FIGRAM_ALLOW_MUTANTS).
     if not {"protocol", "states"} <= keys <= {"protocol", "states", "mutant"}:
         raise ProtocolError(f"hello reply: fields {sorted(keys)}")
-    if type(resp["protocol"]) is not int or type(resp["states"]) is not int:
+    if type(resp["protocol"]) is not int or type(resp["states"]) is not int \
+            or not 0 <= resp["states"] <= MAX_INT:
         raise ProtocolError(f"hello reply: {resp!r}")
-    if "mutant" in resp and type(resp["mutant"]) is not str:
+    if "mutant" in resp and (type(resp["mutant"]) is not str or not resp["mutant"]):
         raise ProtocolError(f"hello reply: mutant {resp['mutant']!r}")
     if resp["protocol"] != PROTOCOL:
         raise ProtocolError(f"engine protocol {resp['protocol']}, the client supports only {PROTOCOL}")
+
+
+def outcome_event(action: str, outcome: str) -> str:
+    """The event `call:<action>:<outcome>` (docs/format.md, section 4): the action is a
+    non-empty name (it may contain `:`), the outcome a non-empty name without `:`."""
+    if type(action) is not str or not action:
+        raise ValueError(f"action must be a non-empty string, got {action!r}")
+    if type(outcome) is not str or not outcome or ":" in outcome:
+        raise ValueError(f"outcome must be a non-empty string without ':', got {outcome!r}")
+    return f"call:{action}:{outcome}"
+
+
+def check_token(token) -> int:
+    """The token of a `call` or `start_timer` action: an integer 0…2^53−1."""
+    if type(token) is not int or not 0 <= token <= MAX_INT:
+        raise ValueError(f"token must be an integer from 0 to {MAX_INT}, got {token!r}")
+    return token
 
 
 class _Config:
@@ -762,7 +779,8 @@ class Engine:
     ) -> dict:
         """A machine step. `guards(names)` computes the developer's conditions;
         it is called only if the engine says they are needed for this step.
-        For a timer event `timer:<name>` pass the `token` of its start_timer.
+        For a timer event `timer:<name>` pass the `token` of its start_timer;
+        for an outcome event use `outcome`.
         The whole step fits in `step_timeout` from the process becoming ready;
         the conditions function cannot be interrupted, but if it returns after
         the deadline, the second request is not sent and EngineError is raised."""
@@ -770,6 +788,27 @@ class Engine:
         if token is not None:
             request["token"] = token
         return self._conditional(self._proc(key), request, guards)
+
+    def outcome(
+        self,
+        key: str,
+        snapshot: dict,
+        action: str,
+        outcome: str,
+        token: int,
+        guards: Callable[[Iterable[str]], dict[str, bool]] | None = None,
+    ) -> dict:
+        """Deliver the outcome of an action with outcomes: the step with the event
+        `call:<action>:<outcome>` and the `token` of its `call` action
+        (docs/format.md, section 7, decision 12; docs/host-contract.md, section 2).
+        `outcome` is a declared outcome of the action or "failed" (the engine also
+        accepts an undeclared name, which only removes the wait). The engine accepts
+        it only while `snapshot["pending"]` holds a wait for the action with this
+        token; otherwise the reply is the unchanged snapshot without actions — or,
+        if the snapshot's message is no longer in the document, the plain start over
+        with `recovered: true`. A malformed argument raises ValueError before
+        anything is sent."""
+        return self.step(key, snapshot, outcome_event(action, outcome), guards, check_token(token))
 
     def _conditional(self, proc, request: dict, guards) -> dict:
         """A request that may answer `need` (`step`, `start` with an event): the

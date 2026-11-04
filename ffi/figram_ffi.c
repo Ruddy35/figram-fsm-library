@@ -29,7 +29,7 @@ extern lean_object* initialize_figram_Figram_Api(uint8_t builtin);
 extern lean_object* figram_check(lean_object* doc);
 extern lean_object* figram_fmt(lean_object* doc);
 extern lean_object* figram_load_ex(lean_object* doc);
-extern lean_object* figram_request(lean_object* m, lean_object* line);
+extern lean_object* figram_request(lean_object* m, lean_object* line, size_t limit);
 /* ffi/figram_guard.cpp: a call that catches C++ exceptions (0 — no exception). */
 int figram_guard_call(void (*fn)(void*), void* arg, char* err, unsigned long cap);
 /* ffi/figram_rt.c: system sizes for the Lean runtime (thread stack, mimalloc arena). */
@@ -425,7 +425,7 @@ static char* request_impl(void* machine, const char* line, size_t len, int have_
     return err_reply("parse_error", "request is not valid UTF-8", 0, NULL);   /* the figram-engine text */
   enter_thread();
   lean_inc(m);
-  return take_string(figram_request(m, lean_mk_string_unchecked(line, len, chars)));
+  return take_string(figram_request(m, lean_mk_string_unchecked(line, len, chars), max));
 }
 
 FIGRAM_API char* figram_request_json(void* machine, const char* line) { return request_impl(machine, line, 0, 0); }

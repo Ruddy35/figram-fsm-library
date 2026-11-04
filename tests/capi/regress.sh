@@ -85,9 +85,16 @@ check "NUL in a document" 0 "$B/contract" nul $D
 check "invalid UTF-8 in a document" 0 "$B/contract" utf8 $D
 check "init side effects report" 0 "$B/contract" side_effects
 check "64 threads on one handle" 0 "$B/contract" threads $D 64
+# Large requests do not make the resident memory grow (a mimalloc arena, ffi/figram_rt.c).
+check "1600 large requests: resident memory does not grow" 0 "$B/contract" large_rss $D
+check "control: without the arena (MIMALLOC_ARENA_RESERVE=0) it grows" 1 env MIMALLOC_ARENA_RESERVE=0 "$B/contract" large_rss $D
 # The thread stack docs/embedding.md recommends is enough at the nesting limit of the parser.
 KB=$(tr '\n' ' ' < docs/embedding.md | grep -o 'call the library at least [0-9]* KiB' | grep -o '[0-9]*')
 check "nesting limit on a thread with the documented stack (${KB:-?} KiB)" 0 "$B/contract" deep_stack "${KB:-0}"
+# Protocol 3: outcome events with their token, pending, the token and detached fields of call.
+check "protocol 3: outcomes, pending, call fields" 0 "$B/contract" protocol3 $D2
+# The new snapshot must fit into a request under the size limit of the shim (snapshot_too_large).
+check "a new snapshot over 15/16 of the request limit → snapshot_too_large" 0 "$B/contract" snapshot_limit $D2
 # The main harness and the stress test with loads and unloads of other machines.
 check "harness 16x20000 + reload" 0 "$B/harness_plain" $D memory
 check "stress 16x20000 + 4 loaders" 0 "$B/stress" $D 16 20000 4

@@ -46,6 +46,7 @@ def field (k : String) (present : Bool) (j : J) : Obj := if present then [(k, j)
 def docKeys : List String := ["figram", "requires", "conditions", "calls", "variables", "bot"]
 def nodeKeys : List String := ["initial", "children", "on", "timers"]
 def variantKeys : List String := ["if", "to", "resume", "back", "do"]
+def callKeys : List String := ["text", "detached", "outcomes", "every"]
 
 /-- The semantic extensions this reader understands. Version 1 has none. -/
 def knownFeatures : List String := []
@@ -56,8 +57,9 @@ def knownFeatures : List String := []
 structure Variant where
   /-- The name of a condition from `conditions`; none means "otherwise / always". -/
   cond : Option String
-  /-- Where to lead: a message or a section. -/
-  to : NodeId
+  /-- Where to lead: a message or a section; none — no move (decision 13 of docs/format.md,
+  section 7). -/
+  to : Option NodeId
   /-- `true` means "resume section `to` where the user left off". -/
   resume : Bool
   /-- `true` means "back to the previous section"; `to` (with `resume`) is where to lead when
@@ -75,12 +77,32 @@ inductive NodeDoc where
       (on : List (EventId × List Variant)) (ext : Obj)
   deriving Repr
 
+/-- An action: its description and its properties. -/
+structure CallDecl where
+  text : String
+  /-- A background action (decision 11). -/
+  detached : Bool
+  /-- The outcomes it reports, without `failed` (decision 12). -/
+  outcomes : List String
+  /-- Every call is answered, not only the latest. -/
+  every : Bool
+  ext : Obj
+  deriving Repr
+
+/-- An action with only a text, written as the text. -/
+def CallDecl.plain (c : CallDecl) : Bool :=
+  !c.detached && c.outcomes.isEmpty && !c.every && c.ext.isEmpty
+
+/-- Whether the machine waits for the outcomes of the action. -/
+def CallDecl.wait (c : CallDecl) : Wait :=
+  if c.outcomes.isEmpty then .free else if c.every then .every else .latest
+
 structure Doc where
   requires : List String
   /-- Conditions: name → the text the designer wrote. -/
   conditions : List (String × String)
-  /-- Actions: name → description. -/
-  calls : List (String × String)
+  /-- Actions: name → description and properties. -/
+  calls : List (String × CallDecl)
   /-- Variables: name → description. -/
   variables : List (String × String)
   /-- The whole bot is the root section. -/
@@ -93,9 +115,19 @@ structure Doc where
 def encStrMap (m : List (String × String)) : Obj := m.map fun p => (p.1, .str p.2)
 def encNatMap (m : List (String × Nat)) : Obj := m.map fun p => (p.1, .num p.2 0)
 
+def encCall (c : CallDecl) : J :=
+  if c.plain then .str c.text
+  else .obj ([("text", .str c.text)]
+    ++ field "detached" c.detached (.bool true)
+    ++ field "outcomes" (!c.outcomes.isEmpty) (.arr (c.outcomes.map .str))
+    ++ field "every" c.every (.bool true)
+    ++ c.ext)
+
+def encCalls (m : List (String × CallDecl)) : Obj := m.map fun p => (p.1, encCall p.2)
+
 def encVariant (v : Variant) : J :=
   .obj (field "if" v.cond.isSome (.str (v.cond.getD ""))
-    ++ [("to", .str v.to)]
+    ++ field "to" v.to.isSome (.str (v.to.getD ""))
     ++ field "resume" v.resume (.bool true)
     ++ field "back" v.back (.bool true)
     ++ field "do" (!v.calls.isEmpty) (.arr (v.calls.map .str))
@@ -124,7 +156,7 @@ def encode (d : Doc) : J :=
   .obj ([("figram", .num 1 0)]
     ++ field "requires" (!d.requires.isEmpty) (.arr (d.requires.map .str))
     ++ field "conditions" (!d.conditions.isEmpty) (.obj (encStrMap d.conditions))
-    ++ field "calls" (!d.calls.isEmpty) (.obj (encStrMap d.calls))
+    ++ field "calls" (!d.calls.isEmpty) (.obj (encCalls d.calls))
     ++ field "variables" (!d.variables.isEmpty) (.obj (encStrMap d.variables))
     ++ [("bot", encNode d.bot)]
     ++ d.ext)
@@ -174,8 +206,9 @@ def decVariant : J → R Variant
       | some (.str c) => pure (some c)
       | some _ => throw "`if`: expected a string"
     let to ← match get kvs "to" with
-      | some (.str t) => pure t
-      | _ => throw "variant: missing field `to`"
+      | none => pure none
+      | some (.str t) => pure (some t)
+      | some _ => throw "`to`: expected a string"
     let resume ← match get kvs "resume" with
       | none => pure false
       | some (.bool b) => pure b
@@ -245,6 +278,40 @@ def decDecl (kvs : Obj) (k : String) : R (List (String × String)) :=
   | some (.obj m) => decStrMap m
   | some _ => throw s!"`{k}` must be an object"
 
+def decFlag (kvs : Obj) (k : String) : R Bool :=
+  match get kvs k with
+  | none => pure false
+  | some (.bool b) => pure b
+  | some _ => throw s!"`{k}`: expected true or false"
+
+/-- An action: a text, or an object with the text and the properties. -/
+def decCall : J → R CallDecl
+  | .str t => pure ⟨t, false, [], false, []⟩
+  | .obj kvs => do
+    let text ← match get kvs "text" with
+      | some (.str t) => pure t
+      | _ => throw "action: missing field `text`"
+    let detached ← decFlag kvs "detached"
+    let outcomes ← match get kvs "outcomes" with
+      | none => pure []
+      | some (.arr xs) => decStrs xs
+      | some _ => throw "`outcomes`: expected a list"
+    let every ← decFlag kvs "every"
+    pure ⟨text, detached, outcomes, every, unknown callKeys kvs⟩
+  | _ => .error "action: expected a text or an object"
+
+def decCalls : Obj → R (List (String × CallDecl))
+  | [] => .ok []
+  | (k, j) :: rest => do
+    let c ← (decCall j).mapError (s!"`{k}`: " ++ ·)
+    pure ((k, c) :: (← decCalls rest))
+
+def decCallsField (kvs : Obj) : R (List (String × CallDecl)) :=
+  match get kvs "calls" with
+  | none => pure []
+  | some (.obj m) => decCalls m
+  | some _ => throw "`calls` must be an object"
+
 /-- Decoding of the structure without the `requires` check. -/
 def decodeRaw : J → R Doc
   | .obj kvs => do
@@ -256,7 +323,7 @@ def decodeRaw : J → R Doc
       | some (.arr xs) => decStrs xs
       | some _ => throw "`requires`: expected a list"
     let conds ← decDecl kvs "conditions"
-    let calls ← decDecl kvs "calls"
+    let calls ← decCallsField kvs
     let vars ← decDecl kvs "variables"
     let bot ← match get kvs "bot" with
       | some j => decNode j
@@ -279,31 +346,46 @@ def decode (j : J) : R Doc := do
 def rootId : NodeId := ""
 
 def Variant.dest (v : Variant) : Dest :=
-  let d := if v.resume then .history v.to else .node v.to
-  if v.back then .back d else d
+  match v.to with
+  | none => .stay
+  | some t =>
+    let d := if v.resume then .history t else .node t
+    if v.back then .back d else d
 
-def Variant.toBranch (v : Variant) : Branch := ⟨v.cond, v.dest, v.calls.map .call⟩
+/-- The properties of an action that the machine sees: background, and how it waits. -/
+abbrev CallOpts := String → Bool × Wait
 
-def onTrans (id : NodeId) (on : List (EventId × List Variant)) : List Transition :=
-  on.map fun p => ⟨id, p.1, p.2.map Variant.toBranch⟩
+/-- The properties of the actions of a document (an undeclared action has none). -/
+def callOpts (calls : List (String × CallDecl)) (n : String) : Bool × Wait :=
+  match lookup calls n with
+  | some c => (c.detached, c.wait)
+  | none => (false, .free)
+
+def callAction (o : CallOpts) (n : String) : Action := .call n (o n).1 (o n).2 0
+
+def Variant.toBranch (o : CallOpts) (v : Variant) : Branch :=
+  ⟨v.cond, v.dest, v.calls.map (callAction o)⟩
+
+def onTrans (o : CallOpts) (id : NodeId) (on : List (EventId × List Variant)) : List Transition :=
+  on.map fun p => ⟨id, p.1, p.2.map (Variant.toBranch o)⟩
 
 abbrev Flat := List Node × List Transition × List Timer
 
 def Flat.app (a b : Flat) : Flat := (a.1 ++ b.1, a.2.1 ++ b.2.1, a.2.2 ++ b.2.2)
 
 mutual
-def flatNode (id : NodeId) (parent : Option NodeId) : NodeDoc → Flat
+def flatNode (o : CallOpts) (id : NodeId) (parent : Option NodeId) : NodeDoc → Flat
   | .message on ts _ =>
-    ([⟨id, parent, .message⟩], onTrans id on, ts.map fun p => ⟨p.1, id, p.2⟩)
+    ([⟨id, parent, .message⟩], onTrans o id on, ts.map fun p => ⟨p.1, id, p.2⟩)
   | .sec i cs on _ =>
-    Flat.app ([⟨id, parent, .sec i⟩], onTrans id on, []) (flatChildren id cs)
-def flatChildren (parent : NodeId) : List (NodeId × NodeDoc) → Flat
+    Flat.app ([⟨id, parent, .sec i⟩], onTrans o id on, []) (flatChildren o id cs)
+def flatChildren (o : CallOpts) (parent : NodeId) : List (NodeId × NodeDoc) → Flat
   | [] => ([], [], [])
-  | (k, n) :: rest => Flat.app (flatNode k (some parent) n) (flatChildren parent rest)
+  | (k, n) :: rest => Flat.app (flatNode o k (some parent) n) (flatChildren o parent rest)
 end
 
 def Doc.toChart (d : Doc) : Chart :=
-  let f := flatNode rootId none d.bot
+  let f := flatNode (callOpts d.calls) rootId none d.bot
   ⟨f.1, rootId, f.2.1, f.2.2⟩
 
 /-! ## Checking a document
@@ -336,7 +418,8 @@ def mapErrors (whereStr : String) (keys : List String) : List String :=
   ++ (dups keys).map fun k => s!"{whereStr}: duplicate name `{k}`"
 
 def variantErrors (whereStr : String) (v : Variant) : List String :=
-  (if v.to = "" then [s!"{whereStr}: empty target `to`"] else [])
+  (if v.to = some "" then [s!"{whereStr}: empty target `to`"] else [])
+  ++ (if v.to.isNone && (v.resume || v.back) then [s!"{whereStr}: `resume` and `back` need `to`"] else [])
   ++ (if v.cond = some "" then [s!"{whereStr}: empty condition name"] else [])
   ++ (if v.calls.contains "" then [s!"{whereStr}: empty action name"] else [])
   ++ extErrors whereStr variantKeys v.ext
@@ -358,13 +441,17 @@ partial def nodeErrors (id : NodeId) : NodeDoc → List String
     ++ extErrors s!"node `{id}`" nodeKeys ext
     ++ cs.flatMap fun p => nodeErrors p.1 p.2
 
-partial def allTimers : NodeDoc → List String
-  | .message _ ts _ => ts.map (·.1)
-  | .sec _ cs _ _ => cs.flatMap fun p => allTimers p.2
-
-partial def allEvents : NodeDoc → List String
-  | .message on _ _ => on.map (·.1)
-  | .sec _ cs on _ => on.map (·.1) ++ cs.flatMap fun p => allEvents p.2
+/-- The errors of the declaration of action `n`. -/
+def callErrors (n : String) (c : CallDecl) : List String :=
+  let w := s!"action `{n}`"
+  (if c.outcomes.contains "" then [s!"{w}: empty outcome name"] else [])
+  ++ (c.outcomes.filterMap fun o =>
+      if o.contains ':' then some s!"{w}: outcome `{o}` contains `:`" else none)
+  ++ (if c.outcomes.contains "failed" then
+      [s!"{w}: `failed` is an outcome of every action with outcomes and is not listed"] else [])
+  ++ (dups c.outcomes).map (fun o => s!"{w}: duplicate outcome `{o}`")
+  ++ (if c.every && c.outcomes.isEmpty then [s!"{w}: `every` needs `outcomes`"] else [])
+  ++ extErrors w callKeys c.ext
 
 /-! ### The hypotheses of the write-and-read theorem in computable form -/
 
@@ -386,6 +473,7 @@ def Doc.wfOK (d : Doc) : Bool :=
   d.requires.all (fun f => decide (f ∈ knownFeatures)) && nodeOKb d.bot
   && (match d.bot with | .sec .. => true | .message .. => false)
   && extOKb docKeys d.ext
+  && d.calls.all (fun p => extOKb callKeys p.2.ext)
 
 def Doc.check (d : Doc) : List String :=
   let c := d.toChart
@@ -394,23 +482,40 @@ def Doc.check (d : Doc) : List String :=
     if n = "" || d.conditions.any (·.1 == n) then none
     else some s!"condition `{n}` is not described in `conditions`"
   let undeclaredCall := (branches.flatMap (·.actions)).filterMap fun
-    | .call n => if n = "" || d.calls.any (·.1 == n) then none
-                 else some s!"action `{n}` is not described in `calls`"
+    | .call n .. => if n = "" || d.calls.any (·.1 == n) then none
+                    else some s!"action `{n}` is not described in `calls`"
     | _ => none
-  let timers := allTimers d.bot
-  let badTimerEvents := (allEvents d.bot).filterMap fun e =>
+  -- the events, timers and variants of the document are those of its chart, in document order
+  let events := c.transitions.map (·.event)
+  let timers := c.timers.map (·.id)
+  let badTimerEvents := events.filterMap fun e =>
     if e.startsWith "timer:" && !(timers.contains (e.drop 6).toString) then
       some s!"event `{e}`: no such timer (the prefix `timer:` is reserved)"
     else none
+  let outcomesOf (n : String) : Option (List String) := match lookup d.calls n with
+    | some c => if c.outcomes.isEmpty then none else some ("failed" :: c.outcomes)
+    | none => none
+  let badOutcomeEvents := events.filterMap fun e =>
+    if !e.startsWith "call:" then none
+    else match splitOutcome (e.drop 5).toString with
+      | none => some s!"event `{e}`: an outcome event is `call:<action>:<outcome>` (the prefix `call:` is reserved)"
+      | some (n, o) =>
+        if (outcomesOf n).any (·.contains o) then none
+        else some s!"event `{e}`: `{n}` is not an action with the outcome `{o}` (the prefix `call:` is reserved)"
+  let twiceInDo := c.transitions.flatMap fun t => t.branches.flatMap fun b =>
+    (dups (waitNames b.actions)).map fun n =>
+      s!"`{Chart.shown t.src}` → `{t.event}`: action `{n}` with outcomes occurs twice in `do`"
   let structural :=
     (if d.requires.all (· ∈ knownFeatures) then [] else ["document requires extensions this reader does not know"])
     ++ (match d.bot with | .sec .. => [] | .message .. => ["`bot` must be a section"])
     ++ mapErrors "conditions" (d.conditions.map (·.1))
     ++ mapErrors "calls" (d.calls.map (·.1))
+    ++ d.calls.flatMap (fun p => callErrors p.1 p.2)
     ++ mapErrors "variables" (d.variables.map (·.1))
     ++ extErrors "document" docKeys d.ext
     ++ nodeErrors "bot" d.bot
   (if d.wfOK then [] else ["document violates the format rules (see the errors below)"])
-  ++ structural ++ dedup undeclaredCond ++ dedup undeclaredCall ++ dedup badTimerEvents ++ c.lint
+  ++ structural ++ dedup undeclaredCond ++ dedup undeclaredCall ++ dedup badTimerEvents
+  ++ dedup badOutcomeEvents ++ twiceInDo ++ c.lint
 
 end Figram.Format

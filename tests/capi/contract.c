@@ -75,8 +75,13 @@ static void* init_worker(void* arg) {
   pthread_barrier_wait(&bar);
   long rc = figram_init();
   void* m = figram_load_doc(g_doc);
+  /* Both threads make their first request at once, after both loads: the memory a load frees
+     is then reused by the other thread only after this barrier, which TSan sees (the Lean
+     allocator is not instrumented, and a reuse during the other thread's load was reported as a
+     race between two unrelated objects at the same address). */
+  pthread_barrier_wait(&bar);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
-  long ok = rc == 0 && m && r && strstr(r, "\"protocol\":2");
+  long ok = rc == 0 && m && r && strstr(r, "\"protocol\":3");
   if (r) figram_free(r);
   if (m) figram_unload(m);
   return (void*)ok;
@@ -321,7 +326,7 @@ static int t_lazy(const char* path) {
   void* m = figram_load_doc(doc);
   ok_if(m != NULL, "load_doc without figram_init", NULL);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
-  ok_if(r && strstr(r, "\"protocol\":2"), "request without figram_init", r);
+  ok_if(r && strstr(r, "\"protocol\":3"), "request without figram_init", r);
   if (r) figram_free(r);
   if (m) figram_unload(m);
   return n_fail != 0;
@@ -333,7 +338,7 @@ static void* lazy_worker(void* arg) {
   pthread_barrier_wait(&bar);
   void* m = figram_load_doc(g_doc);
   char* r = m ? figram_request_json(m, HELLO) : NULL;
-  long ok = m && r && strstr(r, "\"protocol\":2");
+  long ok = m && r && strstr(r, "\"protocol\":3");
   if (r) figram_free(r);
   if (m) figram_unload(m);
   return (void*)ok;
@@ -376,7 +381,7 @@ static int t_null_safe(const char* path) {
     r = figram_check_json_n(NULL, 3); ok_if(r && !strncmp(r, "error", 5), "check_json_n(NULL, 3) → error text", r); figram_free(r);
   }
   /* After all the errors the machine still works. */
-  r = figram_request_json(m, HELLO); ok_if(r && strstr(r, "\"states\":11"), "handle still works", r); figram_free(r);
+  r = figram_request_json(m, HELLO); ok_if(r && strstr(r, "\"states\":13"), "handle still works", r); figram_free(r);
   figram_unload(m);
   return n_fail != 0;
 }
@@ -395,7 +400,7 @@ static int t_lifetime(const char* path, const char* other) {
   const char* e = figram_last_error ? figram_last_error() : NULL;
   ok_if(e && *e, "double unload is detected (figram_last_error)", e);
   r = figram_request_json(k, HELLO);
-  ok_if(r && strstr(r, "\"protocol\":2"), "other handle unaffected", r);
+  ok_if(r && strstr(r, "\"protocol\":3"), "other handle unaffected", r);
   figram_free(r); figram_unload(k);
   long bad = 0;
   for (int i = 0; i < 2000; i++) {
@@ -424,14 +429,14 @@ static int t_lengths(const char* path) {
     h = figram_load_doc_n(doc, n);
     ok_if(h != NULL, "load_doc_n(doc, len) loads", NULL);
     if (h) {
-      char* r = figram_request_json(h, HELLO); ok_if(r && strstr(r, "\"states\":11"), "load_doc_n handle works", r); figram_free(r);
+      char* r = figram_request_json(h, HELLO); ok_if(r && strstr(r, "\"states\":13"), "load_doc_n handle works", r); figram_free(r);
       if (HAVE(figram_request_json_n)) {
         const char* q = "{\"id\":5,\"op\":\"hello\"}\0{\"id\":6,\"op\":\"start\"}";
         r = figram_request_json_n(h, q, 41);
         ok_if(is_error_code(r, "parse_error", 1), "request_json_n with embedded NUL → parse_error", r); figram_free(r);
         char unterminated[21]; memcpy(unterminated, "{\"id\":5,\"op\":\"hello\"}", 21);
         r = figram_request_json_n(h, unterminated, 21);
-        ok_if(r && strstr(r, "\"id\":5") && strstr(r, "\"protocol\":2"), "request_json_n without terminating NUL", r); figram_free(r);
+        ok_if(r && strstr(r, "\"id\":5") && strstr(r, "\"protocol\":3"), "request_json_n without terminating NUL", r); figram_free(r);
       }
       figram_unload(h);
     }
@@ -483,7 +488,7 @@ static int t_utf8_strict(const char* path) {
     figram_free(r);
   }
   char* r = figram_request_json(m, "{\"id\":\"пример ✓ \xf0\x9f\x8d\x95\",\"op\":\"hello\"}");
-  ok_if(r && strstr(r, "\"protocol\":2") && strstr(r, "\xf0\x9f\x8d\x95"), "valid multi-byte UTF-8 request works", r);
+  ok_if(r && strstr(r, "\"protocol\":3") && strstr(r, "\xf0\x9f\x8d\x95"), "valid multi-byte UTF-8 request works", r);
   figram_free(r);
   /* A document with invalid UTF-8: the CLI rejects such files, and so does the C ABI. */
   size_t n = strlen(doc);
@@ -522,21 +527,21 @@ static int t_limit(const char* path) {
   figram_free(r);
   char* at = req_of_size(1048576), *over = req_of_size(1048577);
   r = figram_request_json(m, at);
-  ok_if(r && strstr(r, "\"protocol\":2"), "request of exactly 1 MiB is accepted (hello)", r); figram_free(r);
+  ok_if(r && strstr(r, "\"protocol\":3"), "request of exactly 1 MiB is accepted (hello)", r); figram_free(r);
   r = figram_request_json(m, over);
   ok_if(is_error_code(r, "too_large", 1), "request of 1 MiB + 1 → too_large (default limit)", r); figram_free(r);
   if (HAVE(figram_set_max_request)) {
     size_t prev = figram_set_max_request(100);
     ok_if(prev == 1048576, "default limit is 1048576", NULL);
     char* a = req_of_size(100), *b = req_of_size(101);
-    r = figram_request_json(m, a); ok_if(r && strstr(r, "\"protocol\":2"), "limit 100: 100 bytes accepted", r); figram_free(r);
+    r = figram_request_json(m, a); ok_if(r && strstr(r, "\"protocol\":3"), "limit 100: 100 bytes accepted", r); figram_free(r);
     r = figram_request_json(m, b); ok_if(is_error_code(r, "too_large", 1), "limit 100: 101 bytes → too_large", r); figram_free(r);
     if (HAVE(figram_request_json_n)) {
       r = figram_request_json_n(m, b, 101); ok_if(is_error_code(r, "too_large", 1), "limit 100: request_json_n 101 bytes → too_large", r); figram_free(r);
     }
     ok_if(figram_set_max_request(0) == 100, "set_max_request returns the previous limit", NULL);
     char* big = req_of_size(5u << 20);
-    r = figram_request_json(m, big); ok_if(r && strstr(r, "\"protocol\":2"), "limit 0 (unlimited): 5 MiB request accepted", r); figram_free(r);
+    r = figram_request_json(m, big); ok_if(r && strstr(r, "\"protocol\":3"), "limit 0 (unlimited): 5 MiB request accepted", r); figram_free(r);
     figram_set_max_request(1048576);
   }
   figram_unload(m);
@@ -589,10 +594,10 @@ static int t_signals(const char* mode) {
 }
 
 /* The embedded runtime starts no threads and opens no file descriptors (neither in figram_init
-   nor in loads and requests), and figram_init reserves less than 8 MB of address space (the stock
-   start-up reserves about 75 MB for the libuv thread stack and its glibc malloc arena, and without
-   ffi/figram_rt.c another 1 GiB for the mimalloc arena). */
-#define MAX_INIT_VMSIZE_KB (8 * 1024)
+   nor in loads and requests), and figram_init reserves less than 8 MB of address space besides the
+   64 MiB mimalloc arena (the stock start-up reserves about 75 MB for the libuv thread stack and its
+   glibc malloc arena, and without ffi/figram_rt.c a 1 GiB mimalloc arena). */
+#define MAX_INIT_VMSIZE_KB (8 * 1024 + 64 * 1024)
 static int n_fds(void) {
   DIR* d = opendir("/proc/self/fd"); int n = 0; struct dirent* e;
   while (d && (e = readdir(d))) if (e->d_name[0] != '.') n++;
@@ -684,12 +689,114 @@ static int t_deep_stack(int kb) {
   return n_fail != 0;
 }
 
+/* Protocol 3 through the C ABI (examples/features.bot.json): hello reports version 3; an action
+   with outcomes gets the step's token and a wait in pending, a background action carries
+   detached; the outcome is accepted only with the token of the wait; start rejects an outcome
+   event, a call: event without a token or without an outcome is bad_request, a bad pending is
+   bad_snapshot (docs/format.md, section 8). */
+static int t_protocol3(const char* path) {
+  char* doc = read_all(path);
+  void* m = figram_load_doc(doc);
+  ok_if(m != NULL, "load features.bot.json", NULL);
+  if (!m) return 1;
+  static const struct { const char* req; const char* want; } C[] = {
+    {"{\"id\":1,\"op\":\"hello\"}", "{\"id\":1,\"protocol\":3,\"states\":8}"},
+    {"{\"id\":2,\"op\":\"step\",\"snapshot\":{\"at\":\"home\",\"seq\":1},\"event\":\"btn:ping\"}",
+     "{\"id\":2,\"snapshot\":{\"at\":\"home\",\"pending\":[{\"call\":\"ping\",\"token\":2}],\"seq\":2},"
+     "\"actions\":[{\"call\":\"ping\",\"token\":2,\"detached\":true}]}"},
+    {"{\"id\":3,\"op\":\"step\",\"snapshot\":{\"at\":\"home\",\"pending\":[{\"call\":\"ping\",\"token\":2}],\"seq\":2},"
+     "\"event\":\"call:ping:pong\",\"token\":2}",
+     "{\"id\":3,\"snapshot\":{\"at\":\"home\",\"seq\":3},\"actions\":[{\"call\":\"log\",\"detached\":true}]}"},
+    {"{\"id\":4,\"op\":\"step\",\"snapshot\":{\"at\":\"home\",\"pending\":[{\"call\":\"ping\",\"token\":2}],\"seq\":2},"
+     "\"event\":\"call:ping:pong\",\"token\":1}",
+     "{\"id\":4,\"snapshot\":{\"at\":\"home\",\"pending\":[{\"call\":\"ping\",\"token\":2}],\"seq\":2},\"actions\":[]}"},
+  };
+  for (size_t i = 0; i < sizeof C / sizeof *C; i++) {
+    char* r = figram_request_json_n ? figram_request_json_n(m, C[i].req, strlen(C[i].req)) : figram_request_json(m, C[i].req);
+    ok_if(r && !strcmp(r, C[i].want), C[i].want, r);
+    if (r) figram_free(r);
+  }
+  static const struct { const char* req; const char* code; } E[] = {
+    {"{\"id\":5,\"op\":\"start\",\"event\":\"call:ping:pong\"}", "bad_request"},
+    {"{\"id\":6,\"op\":\"step\",\"snapshot\":{\"at\":\"home\"},\"event\":\"call:ping:pong\"}", "bad_request"},
+    {"{\"id\":7,\"op\":\"step\",\"snapshot\":{\"at\":\"home\"},\"event\":\"call:ping\",\"token\":1}", "bad_request"},
+    {"{\"id\":8,\"op\":\"step\",\"snapshot\":{\"at\":\"home\",\"pending\":[{\"call\":\"ping\"}]},\"event\":\"x\"}", "bad_snapshot"},
+  };
+  for (size_t i = 0; i < sizeof E / sizeof *E; i++) {
+    char* r = figram_request_json(m, E[i].req);
+    ok_if(is_error_code(r, E[i].code, 0), E[i].req, r);
+    if (r) figram_free(r);
+  }
+  figram_unload(m);
+  free(doc);
+  return n_fail != 0;
+}
+
+/* ---------- memory of large requests ---------- */
+
+/* The same large step (the pizza waiting on `placing`, 4000 waits of other actions, the outcome of
+   create_order) many times: the resident memory must not grow with the number of requests. Without
+   a mimalloc arena (MIMALLOC_ARENA_RESERVE=0, the 0.3.0 audit) it grew by about 6 KB per request. */
+static int t_large_rss(const char* path) {
+  figram_init();
+  void* m = figram_load_doc(read_all(path));
+  size_t cap = 200000, len = 0;
+  char* req = malloc(cap);
+  len += (size_t)snprintf(req + len, cap - len,
+    "{\"id\":1,\"op\":\"step\",\"snapshot\":{\"at\":\"placing\",\"seq\":6,\"pending\":["
+    "{\"call\":\"create_order\",\"token\":6}");
+  for (int i = 0; i < 4000; i++)
+    len += (size_t)snprintf(req + len, cap - len, ",{\"call\":\"w%d\",\"token\":1}", i);
+  snprintf(req + len, cap - len, "]},\"event\":\"call:create_order:created\",\"token\":6}");
+  long ok = 0, rss0 = 0;
+  for (int i = 0; i < 1600; i++) {
+    if (i == 100) rss0 = status_kb("VmRSS");
+    char* r = figram_request_json(m, req);
+    ok += r && strstr(r, "\"at\":\"done\"") != NULL;
+    figram_free(r);
+  }
+  long rss1 = status_kb("VmRSS");
+  printf("large requests: %zu bytes, ok %ld of 1600, RSS after 100 %ld KB, after 1600 %ld KB (+%ld)\n",
+         strlen(req), ok, rss0, rss1, rss1 - rss0);
+  free(req);
+  figram_unload(m);
+  return !(ok == 1600 && rss1 - rss0 <= 2048);
+}
+
+/* ---------- the new snapshot under the request size limit ---------- */
+
+/* features.bot.json: `btn:ping` adds a wait (every). With figram_set_max_request(65536) a step whose
+   new snapshot takes more than 15/16 of the limit is refused with snapshot_too_large and the
+   request's id; with no limit the same step is answered. */
+static int t_snapshot_limit(const char* path) {
+  figram_init();
+  void* m = figram_load_doc(read_all(path));
+  size_t cap = 100000, len = 0;
+  char* req = malloc(cap);
+  len += (size_t)snprintf(req + len, cap - len, "{\"id\":42,\"op\":\"step\",\"snapshot\":{\"at\":\"home\",\"seq\":10000,\"pending\":[");
+  for (int i = 0; i < 2200; i++)
+    len += (size_t)snprintf(req + len, cap - len, "%s{\"call\":\"ping\",\"token\":%d}", i ? "," : "", 9999 - i);
+  snprintf(req + len, cap - len, "]},\"event\":\"btn:ping\"}");
+  size_t old = figram_set_max_request(65536);
+  char* r1 = figram_request_json(m, req);
+  figram_set_max_request(0);
+  char* r2 = figram_request_json(m, req);
+  figram_set_max_request(old);
+  ok_if(r1 != NULL && strstr(r1, "\"code\":\"snapshot_too_large\"") && strstr(r1, "\"id\":42"),
+        "limit 65536: snapshot_too_large with the request's id", r1);
+  ok_if(r2 != NULL && strstr(r2, "\"snapshot\"") != NULL, "no limit: the step is answered", r2 ? "snapshot" : "NULL");
+  printf("request %zu bytes\n", strlen(req));
+  figram_free(r1); figram_free(r2); free(req);
+  figram_unload(m);
+  return n_fail != 0;
+}
+
 static int usage(void) {
   fprintf(stderr, "usage: contract init_twice | init_race DOC | before_init check|fmt|load DOC |\n"
                   "  null check|fmt|load|line|handle|unload|free|unload_failed_load DOC |\n"
                   "  unload_twice DOC | use_after_unload DOC [OTHER] | threads DOC N |\n"
                   "  side_effects | nul DOC | utf8 DOC | signals default|custom | host_state DOC |\n"
-                  "  deep_stack KB\n");
+                  "  deep_stack KB | protocol3 FEATURES_DOC | large_rss PIZZA_DOC | snapshot_limit FEATURES_DOC\n");
   return 2;
 }
 
@@ -718,5 +825,8 @@ int main(int argc, char** argv) {
   if (!strcmp(t, "signals") && argc > 2) return t_signals(argv[2]);
   if (!strcmp(t, "host_state") && argc > 2) return t_host_state(argv[2]);
   if (!strcmp(t, "deep_stack") && argc > 2) return t_deep_stack(atoi(argv[2]));
+  if (!strcmp(t, "protocol3") && argc > 2) return t_protocol3(argv[2]);
+  if (!strcmp(t, "large_rss") && argc > 2) return t_large_rss(argv[2]);
+  if (!strcmp(t, "snapshot_limit") && argc > 2) return t_snapshot_limit(argv[2]);
   return usage();
 }

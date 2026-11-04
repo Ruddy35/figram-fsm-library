@@ -38,7 +38,7 @@ expect() {  # expect RC NAME CMD...
 cd "$here/../.."
 expect 0 a-roundtrip            python3 "$here/a_roundtrip.py" --seeds "$SEEDS" --tmp "$T"
 expect 0 a-roundtrip-strict     python3 "$here/a_roundtrip.py" --seeds 5 --strict --tmp "$T"
-for b in sort-unknown keep-resume-false keep-num-text drop-unknown; do
+for b in sort-unknown keep-resume-false keep-num-text drop-unknown to-required call-always-object keep-detached-false; do
   expect 1 "a-break-$b"         python3 "$here/a_roundtrip.py" --seeds 30 --break "$b" --tmp "$T"
 done
 expect 1 a-mutant-sut           env FIGRAM_REAL="$FIGRAM" FIGRAM="$here/mutant_figram.sh" python3 "$here/a_roundtrip.py" --seeds 30 --tmp "$T"
@@ -49,11 +49,11 @@ for b in dup-last-wins no-surrogate float; do
   expect 1 "b-break-$b"         python3 "$here/b_rfc_table.py" --random 1000 --break "$b"
 done
 expect 0 c-schema               python3 "$here/c_schema_table.py" --tmp "$T"
-for b in no-minlength const2 no-integer; do
+for b in no-minlength const2 no-integer to-required no-pending lax-call; do
   expect 1 "c-break-$b"         python3 "$here/c_schema_table.py" --break "$b" --tmp "$T"
 done
 expect 0 d-engine               python3 "$here/d_engine_requests.py"
-for b in flip lax-id; do
+for b in flip lax-id keep-wait no-detached; do
   expect 1 "d-break-$b"         python3 "$here/d_engine_requests.py" --break "$b"
 done
 expect 0 e-cli                  python3 "$here/e_cli_names.py" --tmp "$T"

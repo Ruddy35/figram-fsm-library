@@ -42,6 +42,29 @@ def mapBranches (m : Machine) (f : Nat → FBranch → FBranch) : Machine := Id.
     table := table.push (s, out.toList)
   return { m with table := table.toList }
 
+/-- Change the variants, given the message whose arrows they are and their running number. -/
+def mapBranchesAt (m : Machine) (f : NodeId → Nat → FBranch → FBranch) : Machine := Id.run do
+  let mut k := 0
+  let mut table : Array (NodeId × List Row) := #[]
+  for (s, rs) in m.table do
+    let mut out : Array Row := #[]
+    for r in rs do
+      let mut bs : Array FBranch := #[]
+      for b in r.branches do
+        bs := bs.push (f s k b)
+        k := k + 1
+      out := out.push { r with branches := bs.toList }
+    table := table.push (s, out.toList)
+  return { m with table := table.toList }
+
+/-- Change every call of action `n` (in the variants and in the first-entry actions). -/
+def mapCalls (m : Machine) (n : String) (f : Bool → Wait → Bool × Wait) : Machine :=
+  let g : Action → Action := fun
+    | .call n' d w t => if n' == n then .call n' (f d w).1 (f d w).2 t else .call n' d w t
+    | a => a
+  { mapBranches m (fun _ b => { b with actions := b.actions.map g }) with
+    initActions := m.initActions.map g }
+
 /-- Arrow mutations change neither the messages nor the exit actions. -/
 theorem mapBranches_states (m : Machine) (f : Nat → FBranch → FBranch) :
     (mapBranches m f).states = m.states := rfl
@@ -72,7 +95,14 @@ theorem mapRows_unowned_timer (m : Machine) (f : Nat → Row → Row) (s : Snaps
 
 def callNames (m : Machine) : List String :=
   let names := ((branches m).flatMap (·.actions)).filterMap fun
-    | .call n => some n
+    | .call n .. => some n
+    | _ => none
+  names.foldl (fun acc n => if acc.contains n then acc else acc ++ [n]) []
+
+/-- The names of the actions with outcomes. -/
+def waitNames (m : Machine) : List String :=
+  let names := ((branches m).flatMap (·.actions) ++ m.initActions).filterMap fun
+    | .call n _ w _ => if w != .free then some n else none
     | _ => none
   names.foldl (fun acc n => if acc.contains n then acc else acc ++ [n]) []
 
@@ -86,7 +116,7 @@ def mutants (m : Machine) : List String :=
   (callNames m).map (s!"drop-call:{·}")
   ++ (bs.filterMap fun (b, k) => match b.target with
       | .node n => if m.states.any (· != n) then some s!"redirect:{k}" else none
-      | .resume _ | .back _ => some s!"redirect:{k}")
+      | .resume _ | .back _ | .stay => some s!"redirect:{k}")
   ++ (bs.filterMap fun (b, k) => if b.actions.length ≥ 2 && b.actions.reverse != b.actions then
         some s!"reverse-actions:{k}" else none)
   ++ (bs.filterMap fun (b, k) => if b.guard.isSome then some s!"drop-guard:{k}" else none)
@@ -98,31 +128,56 @@ def mutants (m : Machine) : List String :=
   ++ (if m.resumes.any (!·.members.isEmpty) then ["resume-default"] else [])
   ++ (if m.entry.any (·.2.any fun | .startTimer .. => true | _ => false) then ["drop-timer-start"] else [])
   ++ (if m.zone.any (fun z => m.zone.any (·.2 != z.2)) then ["one-zone"] else [])
+  -- actions with outcomes and background actions: the flag, the wait and its kind
+  ++ (callNames m).map (s!"detach-flip:{·}")
+  ++ (waitNames m).map (s!"wait-free:{·}")
+  ++ (waitNames m).map (s!"wait-swap:{·}")
+  -- a variant without a target that leaves and enters its message again
+  ++ (bs.filterMap fun (b, k) => if b.target == .stay then some s!"stay-reenter:{k}" else none)
+
+/-- A mutation `<kind>` or `<kind>:<argument>`, split at the first `:` (the argument may be an
+action name, which may contain `:`). -/
+def splitSpec (spec : String) : String × Option String :=
+  match spec.splitOn ":" with
+  | [] => ("", none)
+  | [k] => (k, none)
+  | k :: rest => (k, some (":".intercalate rest))
+
+/-- The mutations whose argument is the name of an action. -/
+def namedKinds : List String := ["drop-call", "detach-flip", "wait-free", "wait-swap"]
 
 def apply (m : Machine) (spec : String) : Option Machine :=
-  match spec.splitOn ":" with
-  | ["drop-call", n] => some (mapBranches m fun _ b =>
-      { b with actions := b.actions.filter (· != .call n) })
-  | ["redirect", k] => k.toNat?.map fun k => mapBranches m fun i b =>
+  match splitSpec spec with
+  | ("drop-call", some n) => some (mapBranches m fun _ b =>
+      { b with actions := b.actions.filter fun | .call n' .. => n' != n | _ => true })
+  | ("redirect", some k) => k.toNat?.map fun k => mapBranches m fun i b =>
       if i != k then b else
       let other := (m.states.find? fun s => match b.target with
-        | .node n => s != n | .resume _ | .back _ => true).getD m.initial
+        | .node n => s != n | .resume _ | .back _ | .stay => true).getD m.initial
       { b with target := .node other }
-  | ["reverse-actions", k] => k.toNat?.map fun k => mapBranches m fun i b =>
+  | ("reverse-actions", some k) => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with actions := b.actions.reverse } else b
-  | ["drop-guard", k] => k.toNat?.map fun k => mapBranches m fun i b =>
+  | ("drop-guard", some k) => k.toNat?.map fun k => mapBranches m fun i b =>
       if i == k then { b with guard := none } else b
-  | ["swap-branches", k] => k.toNat?.map fun k => mapRows m fun i r =>
+  | ("swap-branches", some k) => k.toNat?.map fun k => mapRows m fun i r =>
       if i == k then { r with branches := r.branches.reverse } else r
-  | ["reverse-entry", k] => k.toNat?.map fun k =>
+  | ("reverse-entry", some k) => k.toNat?.map fun k =>
       { m with entry := m.entry.zipIdx.map fun (e, i) => if i == k then (e.1, e.2.reverse) else e }
-  | ["drop-exit"] => some { m with exit := m.exit.map fun e => (e.1, []) }
-  | ["drop-remember"] => some { m with entry := m.entry.map fun e =>
+  | ("drop-exit", none) => some { m with exit := m.exit.map fun e => (e.1, []) }
+  | ("drop-remember", none) => some { m with entry := m.entry.map fun e =>
       (e.1, e.2.filter fun | .remember .. => false | _ => true) }
-  | ["resume-default"] => some { m with resumes := m.resumes.map ({ · with members := [] }) }
-  | ["drop-timer-start"] => some { m with entry := m.entry.map fun e =>
+  | ("resume-default", none) => some { m with resumes := m.resumes.map ({ · with members := [] }) }
+  | ("drop-timer-start", none) => some { m with entry := m.entry.map fun e =>
       (e.1, e.2.filter fun | .startTimer .. => false | _ => true) }
-  | ["one-zone"] => some { m with zone := m.zone.map fun e => (e.1, none) }
+  | ("one-zone", none) => some { m with zone := m.zone.map fun e => (e.1, none) }
+  | ("detach-flip", some n) => some (mapCalls m n fun d w => (!d, w))
+  | ("wait-free", some n) => some (mapCalls m n fun d _ => (d, .free))
+  | ("wait-swap", some n) => some (mapCalls m n fun d w => (d, match w with
+      | .latest => .every
+      | .every => .latest
+      | .free => .free))
+  | ("stay-reenter", some k) => k.toNat?.map fun k => mapBranchesAt m fun s i b =>
+      if i == k && b.target == .stay then { b with target := .node s } else b
   | _ => none
 
 end Figram.Mutate

@@ -33,6 +33,11 @@ def guardNames (c : Chart) (s : Snapshot) (ev : Event) : List String :=
     match ev with
     | .named e => dedup ((untilUnguarded (·.guard) (c.cands (c.enter c.root) e)).filterMap (·.guard))
     | .timer .. => []
+    | .outcome .. =>
+      -- an outcome without a wait chooses nothing there
+      if s.accepts ev then
+        dedup ((untilUnguarded (·.guard) (c.cands (c.enter c.root) ev.key)).filterMap (·.guard))
+      else []
   else if s.accepts ev && ownsTimer (c.exitActs s.state) ev then
     dedup ((untilUnguarded (·.guard) (c.cands s.state ev.key)).filterMap (·.guard))
   else []
@@ -51,6 +56,7 @@ def stepJ (c : Chart) (s : Snapshot) (ev : Event) (gs : List (String × Bool)) :
   let recovered := decide (s.state ∉ c.leafIds)
   let tok : Obj := match ev with
     | .timer _ t => [("token", .num t 0)]
+    | .outcome _ _ t => [("token", .num t 0)]
     | .named _ => []
   (s', .obj ([("event", .str ev.key)] ++ tok ++
     [("guards", .obj (gs.map fun p => (p.1, .bool p.2))),
@@ -88,8 +94,17 @@ def Gen.rnd (g : Gen) (n : Nat) : Nat × Gen :=
   let r := lcg g.r
   ((r >>> 33) % max n 1, { g with r := r })
 
+/-- The outcomes of action `call` that have an arrow somewhere in the chart, and `failed`. -/
+def outcomesOf (c : Chart) (call : String) : List String :=
+  "failed" :: c.events.filterMap fun e =>
+    if e.startsWith "call:" then
+      (splitOutcome (e.drop 5).toString).bind fun (n, o) => if n == call && o != "failed" then some o else none
+    else none
+
 /-- Choosing an event: the message's own events are 8 times as likely as global ones,
-timers fire with the current or a stale token, occasionally an unknown event. -/
+timers fire with the current or a stale token, a waited-for action reports an outcome (with the
+token of its wait or a wrong one; half of the time one handled on the current message),
+occasionally an unknown event. -/
 def Gen.pickEvent (g : Gen) : Event × Gen := Id.run do
   let (roll, g) := g.rnd 100
   if roll < 15 && !g.s.timers.isEmpty then
@@ -101,11 +116,32 @@ def Gen.pickEvent (g : Gen) : Event × Gen := Id.run do
     let (id, tok) := g.s.timers.getD i ("", 0)
     return (.timer id (if tok > 0 then tok - 1 else tok + 1), g)
   if roll < 23 then return (.named "unknown:event", g)
+  if roll < 50 && !g.s.pending.isEmpty then
+    let (i, g) := g.rnd g.s.pending.length
+    let (call, tok) := g.s.pending.getD i ("", 0)
+    -- half of the time an outcome with an arrow on the current message, if there is one
+    let outs := outcomesOf g.c call
+    let L := g.s.state
+    let here := outs.filter fun o => !(g.c.cands L (outcomeEvent call o)).isEmpty
+    -- among them, preferably one with a variant not covered yet
+    let here := match here.filter (fun o => (List.range (g.c.cands L (outcomeEvent call o)).length).any
+        fun i => !g.covered.contains s!"{L}|{outcomeEvent call o}|{i}") with
+      | [] => here
+      | xs => xs
+    let (coin, g) := g.rnd 2
+    let outs := if coin == 0 && !here.isEmpty then here else outs
+    let (j, g) := g.rnd outs.length
+    let (wrong, g) := g.rnd 6
+    return (.outcome call (outs.getD j "failed") (if wrong == 0 then tok + 1 else tok), g)
   let L := g.s.state
-  let live := g.c.events.filter (fun e => !e.startsWith "timer:" && !(g.c.cands L e).isEmpty)
+  let live := g.c.events.filter (fun e =>
+    !e.startsWith "timer:" && !e.startsWith "call:" && !(g.c.cands L e).isEmpty)
   if live.isEmpty then return (.named "unknown:event", g)
+  -- coverage guidance: an event with a variant at this message not covered yet weighs 4 times more
+  let fresh (e : EventId) : Bool :=
+    (List.range (g.c.cands L e).length).any fun i => !g.covered.contains s!"{L}|{e}|{i}"
   let weighted := live.flatMap fun e =>
-    List.replicate (2 ^ (3 - min (depthOf g.c L e) 3)) e
+    List.replicate (2 ^ (3 - min (depthOf g.c L e) 3) * (if fresh e then 4 else 1)) e
   let (i, g) := g.rnd weighted.length
   return (.named (weighted.getD i "unknown:event"), g)
 
@@ -117,6 +153,19 @@ def Gen.step (g : Gen) : Gen := Id.run do
     let (b, g') := g.rnd 2
     g := g'
     gs := gs ++ [(n, b == 0)]
+  -- coverage guidance: half of the time the conditions choose the first variant not covered yet
+  let (aim, g') := g.rnd 2
+  g := g'
+  let L := g.s.state
+  if aim == 0 && L ∈ g.c.leafIds then
+    let cs := g.c.cands L ev.key
+    match (List.range cs.length).find? (fun i => !g.covered.contains s!"{L}|{ev.key}|{i}") with
+    | some i =>
+      let earlier := (cs.take i).filterMap (·.guard)
+      let mine := (cs.drop i).head?.bind (·.guard)
+      gs := gs.map fun (n, v) =>
+        if mine == some n then (n, true) else if earlier.contains n then (n, false) else (n, v)
+    | none => pure ()
   let cov := match firedIndex g.c g.s ev (envOf gs) with
     | some i => [s!"{g.s.state}|{ev.key}|{i}"]
     | none => []
@@ -124,9 +173,10 @@ def Gen.step (g : Gen) : Gen := Id.run do
   let cov2 := cov.foldl (fun acc x => if acc.contains x then acc else x :: acc) g.covered
   return { g with s := s2, steps := g.steps.push j, covered := cov2 }
 
-/-- A random scenario and the arrow variants it covers. -/
-def random (c : Chart) (len seed : Nat) : J × List String := Id.run do
-  let mut g : Gen := { c := c, s := c.start.1, r := seed }
+/-- A random scenario and the arrow variants covered by it and by `covered` (the variants covered
+by earlier scenarios, which guide the choice of events towards the rest). -/
+def random (c : Chart) (len seed : Nat) (covered : List String := []) : J × List String := Id.run do
+  let mut g : Gen := { c := c, s := c.start.1, r := seed, covered := covered }
   for _ in [0:len] do
     g := g.step
   return (.obj [("start", startJ c), ("steps", .arr g.steps.toList)], g.covered)
@@ -134,6 +184,134 @@ def random (c : Chart) (len seed : Nat) : J × List String := Id.run do
 /-- The total number of arrow variants of all messages (the denominator of coverage). -/
 def totalBranches (c : Chart) : Nat :=
   c.leafIds.foldl (fun acc L => acc + c.events.foldl (fun a e => a + (c.cands L e).length) 0) 0
+
+/-! ## Directed scenarios
+
+The random scenarios reach deep messages by chance. A breadth-first search over the places
+reachable from the first entry finds, for each arrow variant the random scenarios missed, the
+shortest list of inputs that fires it; `figram trace` adds these as scenarios of the same form. -/
+
+/-- The place of a snapshot for the search: everything but the counter and the tokens, and the
+waits as the set of waiting actions (a second wait of an `every` action accepts the same
+outcomes, so it opens no new variant; counting copies made the search grow with every call). -/
+def placeKey (s : Snapshot) : String :=
+  s!"{s.state}|{s.resume}|{s.timers.map (·.1)}|{s.back}|{(s.pending.map (·.1)).eraseDups}"
+
+/-- The conditions of a step from `s` on `ev` aimed at candidate `i`: its condition true, the
+others false (so the first candidate whose condition holds is `i`, unless an earlier one has
+no condition or the same one). -/
+def aimAt (c : Chart) (s : Snapshot) (ev : Event) (i : Nat) : List (String × Bool) :=
+  let mine := ((c.cands s.state ev.key).drop i).head?.bind (·.guard)
+  (guardNames c s ev).map fun n => (n, mine == some n)
+
+/-- The inputs tried from a snapshot: every named event, every active timer with its token,
+every outcome of every wait, each with the conditions aimed at each candidate variant. -/
+def edges (c : Chart) (s : Snapshot) : List (Event × List (String × Bool)) :=
+  let evs : List Event :=
+    (c.events.filter (fun e => !e.startsWith "timer:" && !e.startsWith "call:")).map .named
+    ++ s.timers.map (fun p => .timer p.1 p.2)
+    ++ s.pending.flatMap (fun p => (outcomesOf c p.1).map fun o => .outcome p.1 o p.2)
+  evs.flatMap fun ev =>
+    (List.range (c.cands s.state ev.key).length).map fun i => (ev, aimAt c s ev i)
+
+abbrev Path := List (Event × List (String × Bool))
+
+/-- The actions with outcomes that the chart calls. -/
+def waitCalls (c : Chart) : List String :=
+  dedup (c.transitions.flatMap fun t => t.branches.flatMap fun b => b.actions.filterMap fun
+    | .call n _ w _ => if w != .free then some n else none
+    | _ => none)
+
+/-- Breadth-first search over at most `limit` places reachable from the first entry: for each
+arrow variant not in `covered`, the shortest list of inputs found that fires it, and for each
+action of `calls`, the shortest list of inputs found after which it is waited for. The search
+stops once `want` variants and all of `calls` are found. The flag: the search went through all
+reachable places (then a variant neither covered nor found fires from no reachable snapshot:
+the place of a snapshot determines which variants can fire and the places of its successors). -/
+def search (c : Chart) (covered : List String) (limit want : Nat) (calls : List String) :
+    List (String × Path) × List (String × Path) × Bool := Id.run do
+  let s0 := c.start.1
+  let mut seen : Tab Unit := (Tab.empty 4096).insert (placeKey s0) ()
+  let mut queue : Array (Snapshot × Path) := #[(s0, [])]
+  let mut found : Tab Unit := Tab.empty 1024
+  let mut out : Array (String × Path) := #[]
+  let mut waits : Array (String × Path) := #[]
+  let mut i := 0
+  for _ in [0:limit] do
+    if h : i < queue.size ∧ (out.size < want ∨ waits.size < calls.length) then
+      let (s, rpath) := queue[i]'h.1
+      i := i + 1
+      for (ev, gs) in edges c s do
+        let rpath' := (ev, gs) :: rpath
+        if let some k := firedIndex c s ev (envOf gs) then
+          let key := s!"{s.state}|{ev.key}|{k}"
+          unless covered.contains key || found.contains key do
+            found := found.insert key ()
+            out := out.push (key, rpath'.reverse)
+        let s' := (c.step s ev (envOf gs)).1
+        let pk := placeKey s'
+        unless seen.contains pk do
+          seen := seen.insert pk ()
+          queue := queue.push (s', rpath')
+          for p in s'.pending do
+            if calls.contains p.1 && !waits.any (·.1 == p.1) then
+              waits := waits.push (p.1, rpath'.reverse)
+  return (out.toList, waits.toList, decide (i ≥ queue.size))
+
+/-- The scenario of a list of inputs from the first entry. -/
+def replay (c : Chart) (path : Path) : J := Id.run do
+  let mut s := c.start.1
+  let mut steps : Array J := #[]
+  for (ev, gs) in path do
+    let (s', j) := stepJ c s ev gs
+    steps := steps.push j
+    s := s'
+  return .obj [("start", startJ c), ("steps", .arr steps.toList)]
+
+/-- The snapshot after a list of inputs from the first entry. -/
+def endOf (c : Chart) (path : Path) : Snapshot :=
+  path.foldl (fun s (ev, gs) => (c.step s ev (envOf gs)).1) c.start.1
+
+/-- `path` followed by the events `evs`, each with the conditions aimed at its first candidate. -/
+def extend (c : Chart) (path : Path) (evs : List Event) : Path := Id.run do
+  let mut s := endOf c path
+  let mut out := path
+  for ev in evs do
+    let gs := aimAt c s ev 0
+    out := out ++ [(ev, gs)]
+    s := (c.step s ev (envOf gs)).1
+  return out
+
+/-- For each action with outcomes, from the first place found where it is waited for: each of its
+outcomes with a stale token (ignored), with the token of the wait (accepted) and again
+(ignored: the wait is gone). -/
+def waitScenarios (c : Chart) (waits : List (String × Path)) : List J :=
+  waits.flatMap fun (n, path) =>
+    let tok := (((endOf c path).pending.find? (·.1 == n)).map (·.2)).getD 0
+    (outcomesOf c n).map fun o =>
+      replay c (extend c path [.outcome n o (tok + 1), .outcome n o tok, .outcome n o tok])
+
+/-- Every arrow variant: `<message>|<event>|<index>` of each candidate of each message. -/
+def allBranches (c : Chart) : List String :=
+  c.leafIds.flatMap fun L => c.events.flatMap fun e =>
+    (List.range (c.cands L e).length).map fun i => s!"{L}|{e}|{i}"
+
+/-- Scenarios for the arrow variants not in `covered` that the search reaches and for the outcomes
+of each action with outcomes (`waitScenarios`), the variants covered then, and, if the search
+went through all reachable places, the variants that fire from no reachable snapshot (a variant
+of a section's arrow on a message where its event never comes: the outcome of an action on the
+message its other outcome leads to). -/
+def directed (c : Chart) (covered : List String) (limit : Nat := 20000) :
+    List J × List String × Option (List String) :=
+  let want := totalBranches c - covered.length
+  let calls := waitCalls c
+  if want = 0 && calls.isEmpty then ([], covered, some []) else
+  let (found, waits, all) := search c covered limit want calls
+  let cov := covered ++ found.map (·.1)
+  let missed := (allBranches c).filter (!cov.contains ·)
+  (found.map (fun p => replay c p.2) ++ waitScenarios c waits, cov,
+    if missed.isEmpty then some [] else if all then some missed else none)
+
 
 /-! ## Scripted scenario -/
 
@@ -145,6 +323,10 @@ inductive In where
   | timerNow (id : String)
   /-- A timer firing with a stale token. -/
   | timerStale (id : String) (token : Nat)
+  /-- Outcome `outcome` of the newest call of action `call` (the token of its newest wait). -/
+  | outcomeNow (call outcome : String) (guards : List (String × Bool) := [])
+  /-- Outcome `outcome` of action `call` with a given token. -/
+  | outcomeTok (call outcome : String) (token : Nat) (guards : List (String × Bool) := [])
 
 def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List In) :
     J × Snapshot × List (List Action) := Id.run do
@@ -165,6 +347,8 @@ def scripted (c : Chart) (name : String) (from? : Option Snapshot) (ins : List I
       | .ev n gs | .start n gs => (Event.named n, gs)
       | .timerNow id => (Event.timer id ((lookup s.timers id).getD 0), [])
       | .timerStale id t => (Event.timer id t, [])
+      | .outcomeNow c o gs => (Event.outcome c o (((s.pending.find? (·.1 == c)).map (·.2)).getD 0), gs)
+      | .outcomeTok c o t gs => (Event.outcome c o t, gs)
     let gs := pick (guardNames c s ev) given
     let a := (c.step s ev (envOf gs)).2
     let (s', j) := stepJ c s ev gs

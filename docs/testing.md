@@ -36,76 +36,113 @@ Steps, in order:
 3. **Reproducibility** (only with `FIGRAM_SHA256SUMS=FILE`) — the stripped `figram` and
    `figram-engine` must match the checksums in `FILE`; the release workflow uses this. Without
    the variable the step is skipped (not a waiver).
-4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 46 pinned theorems
+4. **Pinned theorems** — `tests/proofs/theorems.lean`: the statements of the 102 pinned theorems
    must equal `tests/proofs/THEOREMS.expected` and depend only on `propext`, `Quot.sound` and
    `Classical.choice`; the Lean sources must not contain `axiom`, `sorry`, `admit`,
    `native_decide`, `implemented_by`, `@[extern`, `skipKernelTC`, `ofReduceBool`,
    `ofReduceNat` ([proofs.md](proofs.md)).
-5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 194 source theorems and
+5. **Strict proof gate** — `tests/proofs/strict_gate.sh`: axioms of all 368 source theorems and
    of the whole environment, pinned statements, `leanchecker` ([proofs.md](proofs.md)).
-6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (26 scenarios) and
+6. **Golden scenarios** — `figram golden` regenerates `examples/golden.jsonl` (38 scenarios) and
    the two example documents; they must equal the committed files byte for byte.
-7. **Conformance** — `figram trace` generates 200 random reference scenarios of length 40 for
-   each example document and must cover every arrow variant; `tests/engine/conformance.py`
+7. **Warnings** — `tests/compiler/lint_warnings.py`: at least 36 documents; the warnings of
+   `figram check` contain the expected fragments, and clean documents have none.
+8. **Conformance** — `figram trace … --directed` generates 200 random reference scenarios of
+   length 40 for each example document (outcome events included: the generator delivers
+   outcomes of the waits in the snapshot, with the current or a stale token; the choice of events
+   and conditions is guided towards the variants not covered yet) and then, for the variants
+   they missed, the shortest scenarios a breadth-first search over the reachable places finds,
+   and for each action with outcomes, from the first place found where it is waited for, each
+   outcome with a stale token, with the token of the wait and once more; together they must
+   cover every arrow variant except those the search proves unreachable (it goes through all
+   reachable places: pizza handles the outcomes of `create_order` on the root, and the 8 variants
+   of those arrows on `done` and `order_failed`, where the outcomes lead, never fire because no
+   wait is pending there; `verify.sh` pins the number, 0 for features); `tests/engine/conformance.py`
    replays the golden and the random scenarios against `figram-engine` and requires zero
    mismatches. The reference scenarios come from the proved chart semantics, not from the
-   engine.
-8. **Random documents** — `tests/engine/random_docs.py`: 100 random valid documents
+   engine (the chart semantics shares the helpers of waits and variants without a target with
+   the machine, [proofs.md](proofs.md), and the scenarios are written with the engine's JSON
+   encoder `encSnapshot`/`encActions`: the independent oracle of `tests/compiler`, the committed
+   golden files and the hand-written suites cover them).
+9. **Random documents** — `tests/engine/random_docs.py`: 100 random valid documents
    (`figram random`) with 12 messages each, every one checked on 20 reference scenarios of length 30.
-9. **Mutation testing** — `tests/engine/mutation.py` runs every mutant of the compiled machine
-   (`figram-engine --mutants`, at least 118 on the two example documents) and requires that the
-   scenarios detect each one.
-10. **Host contract** — `tests/engine/host_sim.py` ([host-contract.md](host-contract.md),
-    section 7).
-11. **CLI argument errors** — invalid `figram trace` arguments must give a non-zero exit status.
-12. **Huge exponent** — a document with `1e1000000000` must be rejected with exit status 1 in
+10. **Mutation testing** — `tests/engine/mutation.py` runs every mutant of the compiled machine
+   (`figram-engine --mutants`, at least 271 on the two example documents) and requires that the
+   scenarios detect each one, and that the engine accepts each mutation (a refused one is a
+   harness error, not a detection). The 12 mutations of the unreachable variants (step 8) are
+   run too, must survive (a detected one means the variant was reached) and are not counted.
+11. **Host contract** — `tests/engine/host_sim.py` ([host-contract.md](host-contract.md),
+    section 7): the order scenario with outcomes of `create_order` (exactly one outcome event
+    per call, none lost or processed twice, no wait left), background actions that never hold
+    up a user, the lost-snapshot scenario, and their controls.
+12. **CLI argument errors** — invalid `figram trace` arguments must give a non-zero exit status.
+13. **Huge exponent** — a document with `1e1000000000` must be rejected with exit status 1 in
     under 5 seconds.
-13. **Engine memory** — `tests/engine/engine_memory.py`: the engine starts under `ulimit -v` 32,
-    64 and 256 MiB, reserves at most 64 MiB of address space, uses at most 16 MiB after 2000
-    requests, runs one thread, and aborts with Lean's stack overflow message on a tiny stack.
-14. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 30
-    snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones;
-    the `seq` boundary) and `tests/engine/protocol_edges.py` (at least 137 hand-written cases:
+14. **Engine memory** — `tests/engine/engine_memory.py`: the engine starts under `ulimit -v` 32,
+    64 and 256 MiB, reserves at most 96 MiB of address space (64 MiB of them the mimalloc arena),
+    uses at most 16 MiB after 2000 requests, grows by at most 2 MiB over 1500 large requests
+    (4000 waits each; without the arena it grew by about 6 KB per request), runs one thread, and
+    aborts with Lean's stack overflow message on a tiny stack.
+15. **Snapshots and protocol edges** — `tests/engine/snapshot_fixtures.py` (at least 49
+    snapshots: `schemas/snapshot.schema.json` and the engine accept and reject the same ones,
+    `pending` included, and an event without an arrow gives every accepted snapshot back; the
+    `seq` boundary) and `tests/engine/protocol_edges.py` (at least 256 hand-written cases:
     error codes, strict fields, tokens and `seq` by value, `start` with `seq`, "back", `restart`, `id`
-    echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating), and
+    echo, invalid UTF-8, blank lines, the size limit, reply order, the mutant gating; protocol 3:
+    outcome events accepted, stale, without an arrow, with `every`, in recovery and after
+    `restart`, malformed `call:` names, `start` with an outcome event, `pending` decoding errors,
+    the `token` and `detached` fields of `call`, arrows without a target, and the Python
+    protocol validators on hand-written replies), `tests/engine/snapshot_limit.py` (a user who
+    keeps adding waits under `--max-request 65536`: the step whose new snapshot would take more
+    than 15/16 of the limit is refused with `snapshot_too_large`, and the outcome and `restart`
+    with the last snapshot written still work; the engine before the 0.3.0 audit fails it), and
     `tests/engine/snapshot_scaling.py`: leaving a message, recovery (with and without a variant
     for the event at the initial message, and with a late timer event) and `restart` with
-    20 000 and 80 000 snapshot timers, and entering a message among as many remembered places,
-    take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
+    20 000 and 80 000 snapshot timers, entering a message among as many remembered places, and
+    an outcome and calls of actions with outcomes among as many waits, take time linear in the snapshot size (at most 8 times longer for 4 times the entries, at
     most 3 s; the quadratic engine before 0.2.0 took 42 s). The time is the CPU time of an
     engine process that answers only that request, so load on the machine does not turn the
     check red; the larger request must cancel every snapshot timer and keep every remembered
     place.
-15. **JSON text layer** — `tests/engine/json_fuzz.py`: 30 000 random inputs, `figram json`
+16. **JSON text layer** — `tests/engine/json_fuzz.py`: 30 000 random inputs, `figram json`
     against Python `json` with the format's restrictions (same accept/reject decision, same
     value, printing reads back). A deliberately lax parser must be detected (sensitivity
     control).
-16. **C shim** — `bash ffi/build.sh`; `tests/capi/c_harness.c` with the shim built under ASan
+17. **C shim** — `bash ffi/build.sh`; `tests/capi/c_harness.c` with the shim built under ASan
     and UBSan: invalid UTF-8, a 5 MB request, 16 threads calling one machine; then, in a plain
     build, 5000 loads and unloads must grow memory by less than 2 MiB, while a control run without
     unloading must grow it by more than 8 MiB.
-17. **C ABI** — `tests/capi/regress.sh`, at least 45 checks, each in its own process:
+18. **C ABI** — `tests/capi/regress.sh`, at least 49 checks, each in its own process:
     initialization under `RLIMIT_AS`, concurrent and lazy initialization (300 processes each),
     `NULL` arguments, foreign and unloaded handles, NUL bytes, strict UTF-8, the size limit,
     signal dispositions and `sigaltstack`, no threads or file descriptors from initialization,
     a malloc failure, edge cases that must not crash the host (init twice, calls before init,
-    double unload, a request after unload), 64 threads on one handle, a 16-thread stress test;
+    double unload, a request after unload), 64 threads on one handle, 1600 large requests (4000
+    waits each) without growth of the resident memory and its control without the mimalloc arena
+    (it must grow), protocol 3 (outcome events,
+    `pending`, the fields of `call`), a 16-thread stress test whose reference replies of
+    protocols 2 and 3 must equal those of `figram-engine`;
     `ffi/figram.h` must compile as C99 and as C++ without warnings.
-18. **Runtime without the libuv event loop** — see "Reachability" below.
-19. **Python client** — `tests/engine/client_faults.py`, `tests/engine/client_contract.py`,
+19. **Runtime without the libuv event loop** — see "Reachability" below.
+20. **Python client** — `tests/engine/client_faults.py`, `tests/engine/client_contract.py`,
     `tests/engine/client_robustness.py`, each with an empty stderr
     ([host-contract.md](host-contract.md), section 7).
-20. **Harness self-test** — `tests/engine/harness_selftest.py`: corrupted, incomplete, empty and
-    hanging fake engines must make the conformance, load and snapshot tests fail (at least 39
-    checks).
-21. **Load test** — `tests/engine/loadtest.py`: 64 Python threads over 2 engine processes,
+21. **Harness self-test** — `tests/engine/harness_selftest.py`: corrupted, incomplete, empty and
+    hanging fake engines must make the conformance, load, snapshot and protocol-edge tests fail
+    (at least 72 checks), including the corruptions of protocol 3: a `call` without its `token`
+    or `detached`, a snapshot without `pending`, a wait kept after its outcome, a stale outcome
+    accepted, an outcome that starts a user, `restart` that keeps the waits.
+22. **Load test** — `tests/engine/loadtest.py`: 64 Python threads over 2 engine processes,
     every step compared with the reference.
-22. **Go** — `clients/go`: the `gofig` driver (built with `--gc-sections`) and its `-race` build
-    replay the scenarios from hundreds of goroutines sharing loaded machines; zero rounds or bots
-    and 7 kinds of corrupted replies must fail; 5000 loads with `Close` must grow memory by less than
+23. **Go** — `clients/go`: the `gofig` driver (built with `--gc-sections`) and its `-race` build
+    replay the scenarios from hundreds of goroutines sharing loaded machines, and the golden
+    scenarios of both example documents (outcome events with their token); zero rounds or bots
+    and 11 kinds of corrupted replies (4 of them of protocol 3: a `call` without its token, a
+    `detached` other than true, a snapshot without `pending`, `hello` of version 2) must fail;
+    5000 loads with `Close` must grow memory by less than
     4 MiB (a control run without `Close`: more than 8 MiB);
     selected `go test -race` tests (a request map shared by goroutines, the wrapper's error
-    handling) and `TestFixInitUnderRlimitAS` (the runtime starts under `RLIMIT_AS`); a corrupted
+    handling, the checks of protocol 3) and `TestFixInitUnderRlimitAS` (the runtime starts under `RLIMIT_AS`); a corrupted
     scenario file must fail.
 
 `./verify-faults.sh full` checks the gate itself: every injected fault (a truncated golden file,
@@ -123,17 +160,24 @@ cover the build, the proofs, the C ABI and Go. Exit status: 0 — passed; 1 — 
 
 **Formats** (`tests/formats/run_all.sh [LOGDIR [SEEDS]]`, about 1.5 minutes): round trips of
 generated documents through `figram fmt`/`check`, an RFC 8259 table and random inputs against
-the text parser, a table of documents and snapshots against both JSON schemas, engine requests,
+the text parser, a table of documents and snapshots against both JSON schemas (actions with
+their properties, variants without a target, outcome events, `pending`), engine requests,
 control bytes in CLI diagnostics, and time and memory budgets of the parser on large inputs.
 Most tests also run with a deliberately broken oracle or a mutant `figram`, which must fail.
 `FIGRAM` and `FIGRAM_ENGINE` name the binaries under test (default: `.lake/build/bin`); the logs
 go to `LOGDIR` (default `tests/formats/logs`).
 
-**Compiler** (`tests/compiler/run_all.sh [ENGINE FIGRAM [LOGDIR]]`, about 8 minutes): an
+**Compiler** (`tests/compiler/run_all.sh [ENGINE FIGRAM [LOGDIR]]`, about 10 minutes): an
 independent oracle written from the prose of [format.md](format.md) and
 [host-contract.md](host-contract.md) (not from `Figram/Chart.lean`), directed and random
 differential tests, document upgrades, mutants, metamorphic tests, and red runs of the oracle
-itself with deliberately wrong readings.
+itself with deliberately wrong readings. The random documents use background actions, actions
+with outcomes (latest and `every`) and arrows without a target; the driver delivers outcomes
+with the token of a wait of `pending` and with wrong ones, and compares every reply with the
+oracle byte for byte (the key order inside `resume` and `timers` aside). Each rule of decisions
+11–13 has a hand-written case in `tests/compiler/directed.py`, and is red on a deliberately wrong
+oracle and on a deliberately broken engine (`tests/compiler/filter_bin.py` damages the replies of
+the real one).
 `tests/compiler/perf_scale.py` measures load and step time on large documents (below).
 
 **C ABI** (`tests/capi/build.sh`, `tests/capi/sanitizers.sh`, `tests/capi/mutants.sh`, under a
@@ -213,6 +257,9 @@ the repository and exits with status 0 when they agree:
 * the error codes in [format.md](format.md) equal those produced by the engine
   (`ErrCode.name` in `Figram/Engine.lean`), the C shim and the protocol validators, and every
   request field of every operation is documented;
+* the protocol version of the engine (`protocolVersion`) is the one stated by
+  [format.md](format.md), `schemas/snapshot.schema.json`, `ffi/figram.h` and the protocol
+  validators of the Python and Go clients;
 * the CLI commands documented in the README equal the commands of the usage text in `Main.lean`;
 * the functions documented in [embedding.md](embedding.md) equal those declared in
   `ffi/figram.h`, which equal those exported by `ffi/figram_ffi.c`;

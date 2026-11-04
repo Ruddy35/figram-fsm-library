@@ -39,6 +39,7 @@ structure DocWF (d : Doc) : Prop where
   bot : NodeWF d.bot
   botSec : d.bot.isSec = true
   ext : extOK docKeys d.ext
+  calls : ∀ p ∈ d.calls, extOK callKeys p.2.ext
 
 /-! ## Auxiliary lemmas -/
 
@@ -101,6 +102,45 @@ theorem field_keys (k : String) (b : Bool) (j : J) : ∀ p ∈ field k b j, p.1 
   unfold field at hp
   split at hp <;> simp_all
 
+/-- **An action is written and read back as the same action.** -/
+theorem dec_enc_call (c : CallDecl) (h : extOK callKeys c.ext) : decCall (encCall c) = .ok c := by
+  obtain ⟨text, det, outs, every, ext⟩ := c
+  simp only at h
+  unfold encCall
+  split
+  · rename_i hp
+    simp only [CallDecl.plain, Bool.and_eq_true, Bool.not_eq_eq_eq_not, Bool.not_true,
+      List.isEmpty_iff] at hp
+    obtain ⟨⟨⟨rfl, rfl⟩, rfl⟩, rfl⟩ := hp
+    rfl
+  · have hA : ∀ (A : Obj) k, k ∈ callKeys → get (A ++ ext) k = get A k :=
+      fun A k hk => get_append_ext h A hk
+    have hU : ∀ (A : Obj), (∀ p ∈ A, p.1 ∈ callKeys) → unknown callKeys (A ++ ext) = ext :=
+      fun A hAk => unknown_append_ext h A hAk
+    simp only [decCall, decFlag]
+    rw [hA _ "text" (by simp [callKeys]), hA _ "detached" (by simp [callKeys]),
+      hA _ "outcomes" (by simp [callKeys]), hA _ "every" (by simp [callKeys])]
+    rw [hU _ (by
+      intro p hp
+      simp only [List.mem_append, List.mem_singleton] at hp
+      rcases hp with ((rfl | hp) | hp) | hp
+      · simp [callKeys]
+      all_goals (rw [field_keys _ _ _ p hp]; simp [callKeys]))]
+    cases det <;> cases outs <;> cases every <;>
+      simp [field, get, decStrs_cons_map, bind, Except.bind, pure, Except.pure] <;> rfl
+
+theorem dec_enc_calls (m : List (String × CallDecl)) (h : ∀ p ∈ m, extOK callKeys p.2.ext) :
+    decCalls (encCalls m) = .ok m := by
+  induction m with
+  | nil => rfl
+  | cons p m ih =>
+    have h1 := dec_enc_call p.2 (h p (by simp))
+    have h2 := ih (fun q hq => h q (by simp [hq]))
+    simp only [encCalls, List.map_cons, decCalls, h1] at h2 ⊢
+    simp only [Except.mapError, bind, Except.bind]
+    rw [show decCalls (List.map (fun p => (p.1, encCall p.2)) m) = .ok m from h2]
+    rfl
+
 /-! ## Arrow variant -/
 
 theorem dec_enc_variant (v : Variant) (h : extOK variantKeys v.ext) :
@@ -117,14 +157,10 @@ theorem dec_enc_variant (v : Variant) (h : extOK variantKeys v.ext) :
     hA _ "do" (by simp [variantKeys])]
   rw [hU _ (by
     intro p hp
-    simp only [List.mem_append, List.mem_singleton] at hp
-    rcases hp with (((hp | rfl) | hp) | hp) | hp
-    · rw [field_keys _ _ _ p hp]; simp [variantKeys]
-    · simp [variantKeys]
-    · rw [field_keys _ _ _ p hp]; simp [variantKeys]
-    · rw [field_keys _ _ _ p hp]; simp [variantKeys]
-    · rw [field_keys _ _ _ p hp]; simp [variantKeys])]
-  cases cond <;> cases resume <;> cases back <;> cases calls <;>
+    simp only [List.mem_append] at hp
+    rcases hp with (((hp | hp) | hp) | hp) | hp <;>
+      (rw [field_keys _ _ _ p hp]; simp [variantKeys]))]
+  cases cond <;> cases to <;> cases resume <;> cases back <;> cases calls <;>
     simp [field, get, decStrs_cons_map, bind, Except.bind, pure, Except.pure] <;> rfl
 
 theorem dec_enc_variants (vs : List Variant) (h : ∀ v ∈ vs, extOK variantKeys v.ext) :
@@ -244,8 +280,8 @@ end
 
 theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d := by
   obtain ⟨req, conds, calls, vars, bot, ext⟩ := d
-  obtain ⟨hreq, hbot, hsec, hext⟩ := h
-  simp only at hreq hbot hsec hext
+  obtain ⟨hreq, hbot, hsec, hext, hcalls⟩ := h
+  simp only at hreq hbot hsec hext hcalls
   have hn := dec_enc_node bot hbot
   have ek : ∀ k ∈ docKeys, ext.find? (fun p => decide (p.1 = k)) = none :=
     fun k hk => find?_ext_none hext hk
@@ -259,7 +295,7 @@ theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d 
     ([("figram", .num 1 0)]
       ++ field "requires" (!req.isEmpty) (.arr (req.map .str))
       ++ field "conditions" (!conds.isEmpty) (.obj (encStrMap conds))
-      ++ field "calls" (!calls.isEmpty) (.obj (encStrMap calls))
+      ++ field "calls" (!calls.isEmpty) (.obj (encCalls calls))
       ++ field "variables" (!vars.isEmpty) (.obj (encStrMap vars))
       ++ [("bot", encNode bot)])
     (by
@@ -283,6 +319,18 @@ theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d 
     | cons x xs =>
       simp [decDecl, get, field, List.find?_append, gA]
       exact decStrMap_enc (x :: xs)
+  have hdc : ∀ (A B : Obj), (∀ p ∈ A, p.1 ≠ "calls") → (∀ p ∈ B, p.1 ≠ "calls") →
+      decCallsField (A ++ field "calls" (!calls.isEmpty) (.obj (encCalls calls)) ++ B) = .ok calls := by
+    intro A B hA hB
+    have gA : A.find? (fun p => decide (p.1 = "calls")) = none :=
+      List.find?_eq_none.mpr (fun p hp hpk => hA p hp (by simpa using hpk))
+    have gB : B.find? (fun p => decide (p.1 = "calls")) = none :=
+      List.find?_eq_none.mpr (fun p hp hpk => hB p hp (by simpa using hpk))
+    cases calls with
+    | nil => simp [decCallsField, get, field, List.find?_append, gA, gB, pure, Except.pure]
+    | cons x xs =>
+      simp [decCallsField, get, field, List.find?_append, gA]
+      exact dec_enc_calls (x :: xs) hcalls
   simp only [encode, decodeRaw]
   rw [hU]
   cases bot with
@@ -290,7 +338,7 @@ theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d 
   | sec i cs on bext =>
     have hc := hd "conditions" conds (by simp)
       ([("figram", .num 1 0)] ++ field "requires" (!req.isEmpty) (.arr (req.map .str)))
-      (field "calls" (!calls.isEmpty) (.obj (encStrMap calls))
+      (field "calls" (!calls.isEmpty) (.obj (encCalls calls))
         ++ field "variables" (!vars.isEmpty) (.obj (encStrMap vars))
         ++ [("bot", encNode (.sec i cs on bext))] ++ ext)
       (by intro p hp; simp only [List.mem_append, List.mem_singleton] at hp
@@ -303,7 +351,7 @@ theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d 
           · rw [field_keys _ _ _ p hp]; simp
           · simp
           · intro he; exact hext p hp (by simp [he, docKeys]))
-    have hl := hd "calls" calls (by simp)
+    have hl := hdc
       ([("figram", .num 1 0)] ++ field "requires" (!req.isEmpty) (.arr (req.map .str))
         ++ field "conditions" (!conds.isEmpty) (.obj (encStrMap conds)))
       (field "variables" (!vars.isEmpty) (.obj (encStrMap vars))
@@ -321,7 +369,7 @@ theorem decodeRaw_encode (d : Doc) (h : DocWF d) : decodeRaw (encode d) = .ok d 
     have hv := hd "variables" vars (by simp)
       ([("figram", .num 1 0)] ++ field "requires" (!req.isEmpty) (.arr (req.map .str))
         ++ field "conditions" (!conds.isEmpty) (.obj (encStrMap conds))
-        ++ field "calls" (!calls.isEmpty) (.obj (encStrMap calls)))
+        ++ field "calls" (!calls.isEmpty) (.obj (encCalls calls)))
       ([("bot", encNode (.sec i cs on bext))] ++ ext)
       (by intro p hp; simp only [List.mem_append, List.mem_singleton] at hp
           rcases hp with ((rfl | hp) | hp) | hp
@@ -393,10 +441,11 @@ def stripChildren : List (NodeId × NodeDoc) → List (NodeId × NodeDoc)
 end
 
 /-- The document without a single unknown key at any depth. -/
-def Doc.strip (d : Doc) : Doc := { d with bot := d.bot.strip, ext := [] }
+def Doc.strip (d : Doc) : Doc :=
+  { d with bot := d.bot.strip, ext := [], calls := d.calls.map fun p => (p.1, { p.2 with ext := [] }) }
 
-theorem onTrans_strip (id : NodeId) (on : List (EventId × List Variant)) :
-    onTrans id (stripOn on) = onTrans id on := by
+theorem onTrans_strip (o : CallOpts) (id : NodeId) (on : List (EventId × List Variant)) :
+    onTrans o id (stripOn on) = onTrans o id on := by
   simp only [onTrans, stripOn, List.map_map]
   apply List.map_congr_left
   intro p _
@@ -404,27 +453,48 @@ theorem onTrans_strip (id : NodeId) (on : List (EventId × List Variant)) :
   rfl
 
 mutual
-theorem flat_strip (id : NodeId) (par : Option NodeId) :
-    (n : NodeDoc) → flatNode id par n.strip = flatNode id par n
+theorem flat_strip (o : CallOpts) (id : NodeId) (par : Option NodeId) :
+    (n : NodeDoc) → flatNode o id par n.strip = flatNode o id par n
   | .message on ts ext => by
     simp only [NodeDoc.strip, flatNode, onTrans_strip]
   | .sec i cs on ext => by
-    simp only [NodeDoc.strip, flatNode, onTrans_strip, flatChildren_strip id cs]
-theorem flatChildren_strip (par : NodeId) :
-    (cs : List (NodeId × NodeDoc)) → flatChildren par (stripChildren cs) = flatChildren par cs
+    simp only [NodeDoc.strip, flatNode, onTrans_strip, flatChildren_strip o id cs]
+theorem flatChildren_strip (o : CallOpts) (par : NodeId) :
+    (cs : List (NodeId × NodeDoc)) → flatChildren o par (stripChildren cs) = flatChildren o par cs
   | [] => by simp [stripChildren, flatChildren]
   | (k, n) :: rest => by
-    simp only [stripChildren, flatChildren, flat_strip k (some par) n,
-      flatChildren_strip par rest]
+    simp only [stripChildren, flatChildren, flat_strip o k (some par) n,
+      flatChildren_strip o par rest]
 end
+
+/-- A lookup in a table whose values are mapped. -/
+theorem lookup_map_snd {β γ} (l : List (String × β)) (f : β → γ) (k : String) :
+    lookup (l.map fun p => (p.1, f p.2)) k = (lookup l k).map f := by
+  induction l with
+  | nil => rfl
+  | cons p l ih =>
+    by_cases h : p.1 = k <;> simp [lookup, h] at ih ⊢ <;> exact ih
+
+/-- Annotations of actions do not change their properties. -/
+theorem callOpts_strip (calls : List (String × CallDecl)) :
+    callOpts (calls.map fun p => (p.1, { p.2 with ext := [] })) = callOpts calls := by
+  funext n
+  have h := lookup_map_snd calls (fun c : CallDecl => { c with ext := [] }) n
+  simp only [callOpts, h]
+  cases lookup calls n <;> rfl
 
 /-- **Unknown keys do not affect the behaviour of the bot.** -/
 theorem toChart_strip (d : Doc) : d.strip.toChart = d.toChart := by
-  simp only [Doc.strip, Doc.toChart, flat_strip]
+  simp only [Doc.strip, Doc.toChart, callOpts_strip, flat_strip]
 
-/-- **Descriptions do not affect the behaviour of the bot.** -/
-theorem toChart_decls (d : Doc) (conds calls vars : List (String × String)) :
-    { d with conditions := conds, calls := calls, variables := vars }.toChart = d.toChart := rfl
+/-- **Descriptions do not affect the behaviour of the bot**: replacing the descriptions of
+conditions and variables, and the actions by ones with the same properties (`callOpts`: whether
+an action is a background action and how it waits for outcomes; its text and annotations do
+not count), gives the same chart. -/
+theorem toChart_decls (d : Doc) (conds vars : List (String × String))
+    (calls : List (String × CallDecl)) (h : callOpts calls = callOpts d.calls) :
+    { d with conditions := conds, calls := calls, variables := vars }.toChart = d.toChart := by
+  simp only [Doc.toChart, h]
 
 /-! ## The document check guarantees writing and reading back -/
 
@@ -455,8 +525,8 @@ end
 
 theorem wfOK_sound (d : Doc) (h : d.wfOK = true) : DocWF d := by
   simp only [Doc.wfOK, Bool.and_eq_true, List.all_eq_true, decide_eq_true_eq] at h
-  obtain ⟨⟨⟨hreq, hbot⟩, hsec⟩, hext⟩ := h
-  refine ⟨hreq, nodeOKb_sound _ hbot, ?_, extOKb_sound hext⟩
+  obtain ⟨⟨⟨⟨hreq, hbot⟩, hsec⟩, hext⟩, hcalls⟩ := h
+  refine ⟨hreq, nodeOKb_sound _ hbot, ?_, extOKb_sound hext, fun p hp => extOKb_sound (hcalls p hp)⟩
   cases hb : d.bot with
   | sec => rfl
   | message => rw [hb] at hsec; simp at hsec

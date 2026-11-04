@@ -13,15 +13,21 @@ for all guard values; with --oracle-opt timer_accept=owned (CC-01 fixed) also a
 step enters, and `drop-exit` when no message has two timers and no timer arrow
 is on its owner).
 
+With outcome arrows on the root (copied into every message) a large document offers thousands
+of `redirect` mutants; --max-per-kind (default 300) runs a deterministic sample of at most that
+many mutants of each kind per document (all of them below the cap; the summary prints both).
+
   python3 mutants_red.py --reclassify SURVIVORS.json [--oracle-opt ...]
 re-classifies the survivors saved by --out without running the engine."""
 
 import argparse
 import os
 import json
+import random
 import subprocess
 import sys
 import tempfile
+import time
 
 import diff_random
 from gen import dumps, to_json
@@ -79,7 +85,7 @@ def oracle_ignores(text, L, e):
     current token: the row (L, timer:X) is never taken (cross-check of owned_ok)."""
     from oracle import Bot, Options
     b = Bot(text, Options(timer_accept="owned", exit_cancels="snapshot"))
-    snap = {"at": L, "resume": {}, "timers": {e[6:]: 5}, "seq": 5, "back": None}
+    snap = {"at": L, "resume": {}, "timers": {e[6:]: 5}, "seq": 5, "back": None, "pending": []}
     r = b.step(snap, e, 5, {}, check_need=False)
     return r[0] == "ok" and r[1] == snap and r[2] == [] and not r[3]
 
@@ -103,6 +109,8 @@ def entered(bot, rows):
         for i, v in enumerate(c):
             if select_guards(c, i) is None:
                 continue
+            if v.to is None:
+                continue        # an arrow without a target enters nothing (decision 13)
             if v.resume:
                 out.add(bot.landing(v.to))
                 out |= {m for m in bot.nodes if bot.is_message(m) and m != v.to and v.to in bot.enclosing(m)}
@@ -116,8 +124,8 @@ def outcome(cands, g):
     into a section lands on its initial message), resume flag, calls."""
     for v in cands:
         if v.cond is None or g.get(v.cond):
-            to = v.to if (v.resume or BOT is None) else BOT.landing(v.to)
-            return (to, v.resume, tuple(v.calls))
+            to = v.to if (v.resume or BOT is None or v.to is None) else BOT.landing(v.to)
+            return (to, v.resume, v.back, tuple(v.calls))
     return None
 
 
@@ -129,13 +137,20 @@ def classify(bot, mutant, text=None):
     rows = compiled_rows(bot)
     flat = [(r, i) for r in rows for i in range(len(r[2]))]
     kind, _, k = mutant.partition(":")
-    if kind in ("redirect", "drop-guard", "reverse-actions"):
+    # stay-reenter:k re-enters the message instead of the variant without a target k: equivalent
+    # exactly where the variant never fires, as for redirect
+    if kind in ("redirect", "drop-guard", "reverse-actions", "stay-reenter"):
         (L, e, c), i = flat[int(k)]
         why = dead_row(bot, L, e, text)
         if why:
             return why
         if select_guards(c, i) is None:
             return "equivalent: dead variant %d of %s/%s" % (i, L, e)
+        v = c[i]
+        if kind == "redirect" and v.resume and \
+                len([m for m in bot.nodes if bot.is_message(m) and v.to in bot.enclosing(m)]) == 1:
+            # a resume into a section with ONE message always lands on it, whatever is remembered
+            return "equivalent: variant %d of %s/%s resumes %s, a section with a single message" % (i, L, e, v.to)
         if kind == "drop-guard":
             from oracle import Variant
             mc = list(c)
@@ -160,6 +175,17 @@ def classify(bot, mutant, text=None):
                 return "LIVE row %s/%s" % (L, e)
         return "equivalent: reversed row behaves identically for all guard values"
     msgs = [n for n in preorder(bot) if bot.is_message(n)]
+    if kind in ("drop-call", "detach-flip", "wait-free", "wait-swap"):
+        # the action is dropped from every variant: visible iff a selectable variant of a live
+        # row (or of the initial message's chain, for start/recovery) performs it
+        for L, e, c in rows:
+            if not owned_ok(bot, L, e):
+                continue
+            for i, v in enumerate(c):
+                if k in v.calls and select_guards(c, i) is not None:
+                    return "LIVE call %s in variant %d of %s/%s" % (k, i, L, e)
+        # (detach-flip, wait-free and wait-swap change only how action k is performed)
+        return "equivalent: no selectable variant performs %s" % k
     if kind == "reverse-entry":
         L = msgs[int(k)]
         if L not in entered(bot, rows):
@@ -184,6 +210,7 @@ def main():
     ap.add_argument("--steps", type=int, default=150)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--max-mutants", type=int, default=100000)
+    ap.add_argument("--max-per-kind", type=int, default=100)
     ap.add_argument("--out")
     ap.add_argument("--oracle-opt", action="append", default=[],
                     help="k=v ambiguity switch of oracle.Options, passed to diff_random")
@@ -202,7 +229,7 @@ def main():
                 print("SURVIVOR", x["seed"], x["mutant"], why)
         print(json.dumps({"survivors": len(sv), "non_equivalent_survivors": live}))
         sys.exit(0 if sv and not live else 1)
-    killed = total = 0
+    killed = total = offered = 0
     survivors = []
     for k in range(args.docs):
         seed = args.seed * 100003 + k
@@ -213,6 +240,16 @@ def main():
         muts = subprocess.run([args.engine, "--mutants", f.name], capture_output=True, text=True,
                               check=True, timeout=60,
                               env=dict(os.environ, FIGRAM_ALLOW_MUTANTS="1")).stdout.split()
+        offered += len(muts)
+        offered_doc = len(muts)
+        kinds = {}
+        for m in muts:
+            kinds.setdefault(m.split(":")[0], []).append(m)
+        keep = set()
+        for kind, ms in kinds.items():
+            keep |= set(ms if len(ms) <= args.max_per_kind else
+                        random.Random(seed).sample(ms, args.max_per_kind))
+        muts = [m for m in muts if m in keep]
         base = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=None,
                                   oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
         st, divs = {}, []
@@ -220,7 +257,15 @@ def main():
         if divs:
             print("REAL ENGINE DIVERGES on seed", seed, divs[0]["what"])
             sys.exit(1)
+        t_doc = time.time()
         for m in muts[: args.max_mutants]:
+            # a mutation the engine refuses would diverge everywhere and count as killed
+            hello = subprocess.run([args.engine, "--mutate", m, f.name], input='{"id":1,"op":"hello"}\n',
+                                   capture_output=True, text=True, timeout=60,
+                                   env=dict(os.environ, FIGRAM_ALLOW_MUTANTS="1"))
+            if hello.returncode != 0 or f'"mutant":{json.dumps(m)}' not in hello.stdout:
+                print(f"the engine refuses the mutation {m} (seed {seed}): a harness error, not a kill")
+                sys.exit(1)
             a = argparse.Namespace(engine=args.engine, steps=args.steps, mutate=m,
                                    oracle_bug=None, no_upgrade=True, oracle_opt=args.oracle_opt)
             st2, d2 = {}, []
@@ -232,9 +277,11 @@ def main():
                 from oracle import Bot
                 why = classify(Bot(text), m, text)
                 survivors.append({"seed": seed, "mutant": m, "why": why, "doc": text})
+        print(f"doc {k} seed {seed}: offered {offered_doc}, run {len(muts[: args.max_mutants])}, "
+              f"{time.time() - t_doc:.1f}s", file=sys.stderr, flush=True)
     equiv = [s for s in survivors if s["why"].startswith("equivalent")]
     live = [s for s in survivors if not s["why"].startswith("equivalent")]
-    print(json.dumps({"mutants": total, "killed": killed, "survivors": len(survivors),
+    print(json.dumps({"mutants_offered": offered, "mutants": total, "killed": killed, "survivors": len(survivors),
                       "equivalent_survivors": len(equiv), "non_equivalent_survivors": len(live),
                       "kill_rate_non_equivalent": round(killed / max(1, total - len(equiv)), 4)}))
     for s in live:

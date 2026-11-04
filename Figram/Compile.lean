@@ -283,6 +283,7 @@ def targetIn (st secs : Tab Unit) : Target → Bool
   | .node n => st.contains n
   | .resume sec => secs.contains sec
   | .back fb => targetIn st secs fb
+  | .stay => true
 
 /-- `wf` in linear time: membership goes through hash tables
 (`wfFast_eq : m.wfFast = m.wf` in `Figram.Correct`). -/
@@ -301,6 +302,7 @@ def toTarget (c : Chart) : Dest → Target
   | .node n => .node (c.enter n)
   | .history s => .resume s
   | .back fb => .back (c.toTarget fb)
+  | .stay => .stay
 
 def toF (c : Chart) (b : Branch) : FBranch := ⟨b.guard, c.toTarget b.target, b.actions⟩
 
@@ -368,6 +370,7 @@ def toTarget (ix : Index) : Dest → Target
   | .node n => .node (ix.enter n)
   | .history s => .resume s
   | .back fb => .back (ix.toTarget fb)
+  | .stay => .stay
 
 def toF (ix : Index) (b : Branch) : FBranch := ⟨b.guard, ix.toTarget b.target, b.actions⟩
 
@@ -387,6 +390,7 @@ def destIn (ix : Index) (leaves : Tab Unit) : Dest → Bool
   | .node n => leaves.contains (ix.enter n)
   | .history _ => true
   | .back fb => ix.destIn leaves fb
+  | .stay => true
 
 end Index
 

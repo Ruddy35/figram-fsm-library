@@ -1,4 +1,4 @@
-# Figram document format (version 1) and engine protocol (version 2)
+# Figram document format (version 1) and engine protocol (version 3)
 
 This document specifies two formats:
 
@@ -17,7 +17,8 @@ Machine-readable schemas: [`schemas/figram.schema.json`](../schemas/figram.schem
 ## 1. Setting
 
 **Model** `M` — the set of documents: a tree of sections and messages, arrows with ordered
-variants, conditions, actions and variables with text descriptions, and timers. In Lean this
+variants, conditions and variables with text descriptions, actions with a text description and
+their properties (background, outcomes), and timers. In Lean this
 is the type `Format.Doc`.
 
 **Format** — a pair of functions: `encode : M → JSON` and `decode : JSON → M ∪ {error}`.
@@ -58,7 +59,9 @@ keeping them is a special case of C1. An unknown key must start with `x-` (an an
 (b) An extension that changes meaning is declared in `requires`; a reader that does not know
 it rejects the whole document instead of misreading it. *Proved:* `decode_requires`.
 (c) A new field has a default value equal to the old behaviour, so old documents mean the
-same to a new reader.
+same to a new reader. One exception, in release 0.3.0: the event prefix `call:` became
+reserved for the outcomes of actions (decision 12 of section 7), so a document of an earlier
+release with an arrow on an event `call:…` is rejected and must rename that event.
 
 ## 3. Derivation
 
@@ -73,13 +76,14 @@ alternative.
 | 3 | The bot is the root section `bot` | A `root` field referencing a node | No "root exists" condition; global commands such as `/start` are ordinary arrows of the root | 1 |
 | 4 | Arrows live in the node: `on` is an object "event → variants" | A separate list of arrows with a `src` field | No "source exists" condition; a (node, event) pair has one place, so the variant order is unambiguous (C3c) | 2 |
 | 5 | Arrays only where order is meaning: variants of an arrow and actions | Arrays everywhere | Other collections are objects, without uniqueness conditions and without a false order (C3c; exception — `timers`, whose key order is the order of timer actions) | — |
-| 6 | One target field `to`; "resume where the user left off" and "back to the previous section" are the flags `resume` and `back` | Separate target fields (`to`, `resume_to`, `back_to`) | Exactly one target by construction; with `back`, `to` is where the arrow leads when there is no place to go back to | 1 |
+| 6 | One target field `to`; "resume where the user left off" and "back to the previous section" are the flags `resume` and `back`; no `to` — no move | Separate target fields (`to`, `resume_to`, `back_to`), a `stay` flag | At most one target by construction; with `back`, `to` is where the arrow leads when there is no place to go back to; an arrow without `to` acts without leaving the message (decision 13 of section 7) | 1 |
 | 7 | The kind of a node is given by the presence of `children` | A `kind` field | No computable field (C3a) and no "kind: message, but has children" mismatch | 1 |
 | 8 | One condition per variant: `"if": "name"` | A list of conditions | The designer writes a condition as text, and the text can say "A and B"; a list would be a second way to write the same thing (C3c) | — |
-| 9 | Texts of conditions, actions and variables live in the maps `conditions`, `calls`, `variables`; arrows use only names | Text inside the arrow | A text is written once even if the condition is used by ten arrows; two texts for one condition are impossible | 1 |
+| 9 | Texts of conditions, actions and variables live in the maps `conditions`, `calls`, `variables`, and the properties of an action (`detached`, `outcomes`, `every`) next to its text in `calls`; arrows use only names | Text and properties inside the arrow | A text is written once even if the condition is used by ten arrows; two texts for one condition, or one action that is a background action in one arrow and not in another, are impossible | 1 |
 | 10 | Timers live inside the message: `timers` | A separate list of timers with a `node` field | A timer cannot point to a missing node; the schema forbids timers on sections | 2 |
-| 11 | Defaults are omitted: `on`, `timers`, `if`, `resume: false`, `back: false`, `do`, `requires`, description maps | All fields always written | C3b; a reader also accepts an explicitly written default | — |
+| 11 | Defaults are omitted: `on`, `timers`, `if`, `resume: false`, `back: false`, `do`, `requires`, description maps; an action with only a text is written as the text | All fields always written | C3b; a reader also accepts an explicitly written default (`{"text": …}` for an action, `"detached": false`, `"outcomes": []`, `"every": false`) | — |
 | 12 | A number in the model is an exact `m · 10^e`; format fields are checked by value | Integers only | Extensions can store any number (coordinates, zoom); `7200000`, `7.2e6` and `7200000.0` are the same delay | — |
+| 13 | An action declares its outcomes (`outcomes`); an outcome arrives as the event `call:<action>:<outcome>` (the prefix `call:` is reserved) | Outcomes as ordinary events with names agreed between the designer and the host | `check` knows which events an action can produce: an arrow on an outcome the action does not have is an error, and a waiting message without an arrow for an outcome is a warning; the engine accepts only the outcome of a call it waits for (decision 12 of section 7) | 1 |
 
 **Numbers.** The number grammar is RFC 8259; the absolute value of an exponent in the text is
 at most 1000 (protection against inputs such as `1e1000000000`). Integer fields of the format
@@ -91,7 +95,8 @@ text can be read back. The model
 does not distinguish negative zero: `-0.0` is written as `0.0` (in annotations too — the sign
 of a zero is lost after `figram fmt`).
 
-Integer fields (delays, `figram`, and in the snapshot `v`, `seq` and timer tokens) are checked
+Integer fields (delays, `figram`, in the snapshot `v`, `seq`, the tokens of timers and of waits,
+and in a request `token` and the `seq` of `start`) are checked
 exactly, by the value `m · 10^e`: `1e-400`, `9007199254740990.5` and `1.0000000000000001` are
 not integers, and both `figram check` and the engine reject them. JSON Schema validators that
 read numbers as doubles (for example Python `jsonschema`) round such values to the nearest
@@ -102,19 +107,25 @@ not the schema, is authoritative.
 
 ### What remains in `V`, and why it cannot be smaller
 
-After decisions 1–12, five semantic conditions remain, and `figram check` checks them:
+After decisions 1–13, six semantic conditions remain, and `figram check` checks them:
 
 - **V1.** Node names are unique in the whole tree and non-empty.
 - **V2.** The `initial` of a section is a direct child of that section.
 - **V3.** Every `to` exists; with `resume: true` it is a section (with `back: true` as well:
-  `to` is then the fallback).
+  `to` is then the fallback). `resume` and `back` need `to`.
 - **V4.** Every `if` is described in `conditions`, every `do` entry in `calls`.
-- **V5.** An event `timer:<name>` refers to an existing timer.
+- **V5.** An event `timer:<name>` refers to an existing timer; an event `call:<action>:<outcome>`
+  refers to an action with outcomes and to one of its outcomes or `failed`.
+- **V6.** An action with outcomes occurs at most once in the `do` of a variant (a step waits for
+  at most one outcome per action).
 
 In addition, `check` verifies what holds automatically for JSON text but can be violated by a
 document built programmatically (names in maps are non-empty and unique, annotations do not
 collide with format keys), that every unknown key starts with `x-` (section 5), the value
-ranges of integer fields (a timer delay at most 2^53 − 1), and, as its last step, that the
+ranges of integer fields (a timer delay at most 2^53 − 1), that the outcomes of an action are
+non-empty names without `:`, unique and other than `failed` (which every action with outcomes
+has; `"outcomes": []` is the default, an action without outcomes), that `every` is set only
+together with a non-empty `outcomes`, and, as its last step, that the
 chart compiles to a well-formed machine (section 7). A document that passes `check` is
 guaranteed to be encoded into the JSON model `J` and decoded back (theorem `check_roundtrip`);
 the round trip through text (`print`/`parse`) is not proved and is covered by tests.
@@ -131,13 +142,31 @@ stays valid (`Doc.warnings`; warnings do not affect the engine):
 - an arrow `timer:X` sits on a message that does not start timer X, or on a section in which no
   message starts it (a firing is accepted only by the message that started the timer);
 - a timer self-loop on its own message restarts the message's other timers whose delay is not
-  smaller — they never fire.
+  smaller — they never fire;
+- a variant with an action with outcomes leads to a message (or, without `to`, stays on one)
+  where an outcome of that action, `failed` included, has no arrow on the message or its
+  sections: an outcome without an arrow is ignored, and a user waiting there would wait
+  forever. Variants with `resume` or `back` are not checked (their target depends on the
+  snapshot);
+- a "please wait" message (all arrows drawn on it are outcome arrows) handles an outcome, an
+  arrow of one of its sections (`/help`, "Cancel") leads from it to a message where that
+  outcome does not move the user (no arrow, or only variants without a target), and `back`
+  (anywhere in the document) or `resume` into a section containing it can bring the user back:
+  an outcome that comes while the user is away leaves the user there, and the user returns to
+  "please wait" with nothing to wait for. Draw on the root arrows of such an outcome that lead
+  on (decision 12). A waiting message with a button or a timer of its own is not reported: the
+  user is not stuck there, but may still see "please wait" after the outcome was handled
+  elsewhere.
 
 V1 and V3–V5 are references between parts of the document. A JSON value is a finite tree,
 while the arrow graph of a bot has cycles (menu → order → "Cancel" → menu). Arrows therefore
 cannot be expressed by nesting and must use names, and every reference by name carries the
 condition "the name exists and is unambiguous". V1, V3, V4 and V5 cannot be removed in any
 JSON format.
+
+V6 is not a reference: it says that the outcome of an action names the step that issued it. It
+could be removed only by naming every occurrence of an action in an arrow, which no designer
+needs.
 
 V2 could be removed by making the first child the initial one. The order of `children` would
 then carry meaning, children would have to be an array with a name field, and the sibling
@@ -150,9 +179,15 @@ variant keeps all node collections as objects.
 Document = { "figram": 1,
              "requires"?:   [Name],
              "conditions"?: { Name: Text },
-             "calls"?:      { Name: Text },
+             "calls"?:      { Name: Text | Call },
              "variables"?:  { Name: Text },
              "bot":         Section,
+             …annotations }
+
+Call     = { "text":       Text,
+             "detached"?:  true,                (a background action, decision 11 of section 7)
+             "outcomes"?:  [Name],              (the outcomes it reports, decision 12 of section 7)
+             "every"?:     true,                (every call is answered, not only the latest)
              …annotations }
 
 Node     = Section | Message                    (Section ⇔ has "children")
@@ -169,7 +204,7 @@ Message  = { "on"?:     Arrows,
 Arrows   = { Event: [Variant] }                 (the first matching variant wins)
 
 Variant  = { "if"?:     Name,                   (absent — "otherwise / always")
-             "to":      Name,
+             "to"?:     Name,                   (absent — no move, decision 13 of section 7)
              "resume"?: true,                   (resume where the user left off)
              "back"?:   true,                   (back to the previous section; otherwise `to`)
              "do"?:     [Name],
@@ -188,9 +223,17 @@ nested annotations reduce these numbers. A deeper document is rejected when it i
 All names (of nodes, events, timers, conditions, actions, variables) are non-empty and unique
 within their map.
 
-A timer firing arrives as the event `timer:<name>`; the prefix `timer:` is reserved. The format
-does not restrict other event names; the examples use the conventions `btn:…`, `cmd:…`,
+A timer firing arrives as the event `timer:<name>`, and an outcome of an action as the event
+`call:<action>:<outcome>`; the prefixes `timer:` and `call:` are reserved (`call:` since release
+0.3.0, section 2, C5c). An outcome name
+contains no `:`, so the event is split at its last `:` (an action name may contain `:`). The
+format does not restrict other event names; the examples use the conventions `btn:…`, `cmd:…`,
 `msg:…`, `payment:…`.
+
+An action with only a text is written as the text: `"clear_cart": "Clear the cart"` and
+`"clear_cart": {"text": "Clear the cart"}` are the same action, and `figram fmt` writes the
+first form. An action object takes annotations (`x-…` keys) like the other objects with fixed
+keys.
 
 Example: [`examples/pizza.bot.json`](../examples/pizza.bot.json).
 
@@ -199,7 +242,7 @@ Example: [`examples/pizza.bot.json`](../examples/pizza.bot.json).
 **Annotations** are everything that does not change the behaviour of the machine: canvas
 coordinates, message texts, button labels, comments. They are written under keys with the
 prefix `x-` (`x-ui`, `x-content`, `x-note`) in the objects with fixed keys: document, section,
-message, variant. In maps (`children`, `on`, `timers`, description maps) the keys are names,
+message, variant, action. In maps (`children`, `on`, `timers`, description maps) the keys are names,
 so maps carry no annotations. Format keys never start with `x-`, so annotations never collide
 with future format fields. A reader that rewrites a document must keep all unknown keys.
 Example: [`examples/annotations.bot.json`](../examples/annotations.bot.json).
@@ -211,7 +254,7 @@ document with the error ``unknown key `…` (annotation keys start with `x-`)``;
 the format keys. A misspelt optional field is therefore reported instead of silently changing
 the bot: without this rule `"tiemrs"` in a message would leave the message without timers and
 `"iff"` in a variant would leave the variant without a condition. The rule covers the
-document, sections, messages and variants; inside the value of an annotation any keys are
+document, sections, messages, variants and actions; inside the value of an annotation any keys are
 allowed. A key in `children` is a node name, not an annotation: `"x-ui": {}` there is a new
 message named `x-ui`. A reader that does not know a format field added later rejects a document
 that uses it: version 0.1.0 rejects a variant with `back` (added in 0.2.0) as an unknown key.
@@ -240,7 +283,7 @@ this way, for example a change of the meaning of an existing field.
 | C2: different documents give different JSON | `encode_injective` |
 | C5a: unknown keys do not affect behaviour | `toChart_strip` |
 | C5b: an accepted document requires only known extensions | `decode_requires` |
-| Descriptions of conditions, actions and variables do not affect behaviour | `toChart_decls` |
+| Descriptions of conditions, actions and variables do not affect behaviour (the properties of an action do) | `toChart_decls` |
 | A document that passes `check` is encoded into the model `J` and decoded back | `check_roundtrip` |
 
 Hypotheses of the theorems (`DocWF`): annotations do not use format keys, `requires` holds only
@@ -277,6 +320,9 @@ actions:
   message the user left when they last crossed a section boundary, wherever they came from;
   without such a message it leads to `to` (with `resume`, into that section where the user
   stopped).
+
+Actions (`do`) are of the core: a background action (`detached`), an action with outcomes and
+an arrow without a target (decisions 11–13) are the same in the chart and in the machine.
 
 "Resume" is an operation of the core: the place is read from the snapshot during the step, so
 "resume" adds one entry per section to the compiled machine instead of a copy of the section for
@@ -351,15 +397,59 @@ Decisions of the specification:
    the place can be in the user's own section or be the current message (`back` equal to
    `at`): "back" then leads there without crossing a boundary and keeps the place, so on that
    message "back" is a self-loop (decision 3) until the user crosses a boundary.
+11. **Sequential and background actions.** An action (`{"call": …}` for the host) is
+   *sequential* by default: the host runs it in order with the other actions of the user, and
+   the user's next step waits for it ([host-contract.md](host-contract.md), sections 1 and 2).
+   An action declared with `"detached": true` is a *background* action: its `call` carries
+   `"detached": true`, and the host may run it later, in any order relative to the other
+   actions, without holding up the user's next step; its failure never stops the user. The
+   flag changes nothing else: the snapshot and the actions of a step are the same as without
+   it.
+12. **Outcomes.** An action declared with `"outcomes": [...]` reports how it ended. The step
+   that performs it gives it a token — the step's `seq`, as for timers — and records a *wait*
+   in the snapshot (field `pending`: the action and the token). The host performs the action
+   and then sends exactly one event `call:<action>:<outcome>` with that token: one of the
+   declared outcomes (the external system answered: `created`, `rejected`), or `failed`, which
+   every action with outcomes has (the host gave up without an answer: no answer, an error of
+   the system, retries exhausted; the action may still have taken effect, so the host first
+   reconciles, [host-contract.md](host-contract.md), section 2). An outcome is accepted only with the token of a wait for
+   that action in the snapshot; accepting it removes the wait, so each wait accepts one
+   outcome and a repeated delivery is ignored. An accepted outcome is then an event like any
+   other: the arrows of the current message and of its sections decide (decision 1), so an
+   arrow on the waiting message handles it only there, and an arrow on the root section
+   handles it wherever the user is; without a matching arrow it is ignored, but its wait is
+   gone. Draw the arrows of an outcome that must reach the user on the root (the pizza example
+   does): on the waiting message alone they miss an outcome that comes while the user is on
+   `/help`, and "back" then returns the user to "please wait" with nothing to wait for
+   (`figram check` warns about such a message, section 3). Moves do not touch the waits: a
+   user who leaves the waiting message still gets the outcome, by the arrows of the message the
+   user is on then. A new call of the same action replaces its wait — only the latest call is
+   answered, and the outcome of an earlier one is ignored — unless the action is declared with
+   `"every": true`: then each call has its own wait and each of their outcomes is accepted once. `restart` clears the waits; recovery
+   (decision 8) keeps them, and an accepted outcome is matched there as a named event at the
+   initial message (decision 9), while an outcome that is not accepted chooses no variant and
+   gives the plain start over. A new user has no waits, so an outcome cannot start a user.
+   Details of an outcome (which field the external system rejected) are data of the host, as
+   the text of a message is: conditions (`"if": "address_invalid"`) and message texts read
+   them.
+13. **Arrows without a target.** A variant without `to` performs its actions without a move:
+   the message is neither left nor entered (no `cancel_timer`, `start_timer` or `send`), and the
+   remembered places and the place to go back to stay as they are; `seq` grows by 1, as in a
+   move, so its actions get the step's token and keys. A timer firing handled this way is
+   consumed: the timer is removed from the snapshot (it has fired, and it is not started
+   again; a periodic timer needs a self-loop, decision 3). A variant without a target is
+   chosen like any variant, so it stops the event from going up to the sections. In recovery
+   and in `start` with an event (decisions 8 and 9) the user has no message to stay on, and
+   such a variant leads to the initial message, as a variant into the initial message does.
 
 The correctness theorems assume `c.compile.wf`. `figram check` establishes it on the chart,
 without building the machine (the last check of `lint`; theorems `wfDirect_eq`,
 `lint_nil_wf`), and `Engine.load` checks it again on the built machine with the linear check
-`wfFast` (`wfFast_eq`). Decision 7 is enforced by the request decoder (`Engine.decEvent`): in
-the core model the event `.named "timer:x"` is accepted without a token, and the theorems do
-not exclude it.
+`wfFast` (`wfFast_eq`). Decisions 7 and 12 are enforced by the request decoder
+(`Engine.decEvent`): in the core model the events `.named "timer:x"` and `.named "call:x:y"` are
+accepted without a token, and the theorems do not exclude them.
 
-## 8. Snapshot and engine protocol, version 2
+## 8. Snapshot and engine protocol, version 3
 
 The document is the exchange format between the editor and the developer. The snapshot and the
 protocol are the exchange format between the engine and the host. The flat machine into which
@@ -377,16 +467,27 @@ Snapshot = { "v"?:      1,                       (version; absent — 1)
              "back"?:   Message,                 (the place to go back to, decision 10)
              "resume"?: { Section: Message },    (remembered places)
              "timers"?: { Timer: Token },        (active timers)
+             "pending"?: [ { "call": Action, "token": Token } ],
+                                                 (waits for outcomes, decision 12)
              "seq"?:    Integer }                (number of the last transition; absent — 0)
 ```
 
 Tokens and `seq` are integers from 0 to 2^53 − 1; `at`, `back`, the keys and values of
-`resume` and the keys of `timers` are non-empty strings. A `back` or `resume` value that is not
-a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
-[`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows; an unknown field or
+`resume`, the keys of `timers` and the actions of `pending` are non-empty strings. `pending`
+lists the waits in the engine's order (the newest first); a wait of an action that is no longer
+in the document, or no longer has outcomes, is kept and still accepts its outcome. The same
+wait listed twice (the engine never creates that, but writes back what it was given) is one
+wait: its outcome removes both entries. The engine never writes a token greater than `seq`
+either; a snapshot with such a token is accepted, and the guarantees that every call is
+answered once ([proofs.md](proofs.md)) assume it is not.
+A `back` or `resume` value that is not a message of the document is kept; "back" and "resume" then use their fallback. The snapshot is strict: the engine accepts exactly what
+[`schemas/snapshot.schema.json`](../schemas/snapshot.schema.json) allows, written in JSON text
+that the parser of section 8 accepts (no duplicate keys, no lone surrogates, exponents in
+range: otherwise `parse_error`); an unknown field or
 an unknown version is an error (such a snapshot was written by a newer engine). `seq` grows by
-1 with every transition; it is the token of the timers started in that transition and the
-basis of the host's idempotency keys ([host-contract.md](host-contract.md)).
+1 with every transition, including an arrow without a target (decision 13); it is the token of
+the timers started and the actions with outcomes performed in that transition and the basis of
+the host's idempotency keys ([host-contract.md](host-contract.md)).
 
 Integers are compared exactly, by value (`5`, `5.0` and `5e0` are the same number). Schema
 validators that read numbers as doubles are wider than the engine: they accept non-integers
@@ -403,31 +504,40 @@ returned by value (`-0` becomes `0`); a request without `id` gets a reply with `
 
 | Request | Reply |
 |---|---|
-| `{"op": "hello"}` | `{"protocol": 2, "states": N}` — N is the number of messages of the loaded document |
+| `{"op": "hello"}` | `{"protocol": 3, "states": N}` — N is the number of messages of the loaded document |
 | `{"op": "start", "seq"?: N}` | `{"snapshot": …, "actions": […]}` — first entry; the first transition gets `seq` N + 1 (without `seq` — 1) |
 | `{"op": "start", "seq"?: N, "event": "cmd:start", "guards"?: {…}}` | as above, or `{"need": [conditions]}` — first entry with the user's first event (decision 9 of section 7) |
 | `{"op": "restart", "snapshot": …}` | `{"snapshot": …, "actions": […]}` — start over without resetting the counter |
 | `{"op": "step", "snapshot": …, "event": "btn:x", "guards"?: {…}}` | `{"snapshot": …, "actions": […], "recovered"?: true}` or `{"need": [conditions]}` |
 | `{"op": "step", …, "event": "timer:<name>", "token": n}` | as above |
+| `{"op": "step", …, "event": "call:<action>:<outcome>", "token": n}` | as above |
 
 Requests are strict: only the fields in the table and `id` are allowed (`hello` — `id`, `op`;
 `start` — also `seq`, `event`, `guards`; `restart` — also `snapshot`; `step` — also
 `snapshot`, `event`, `guards`, `token`). Any other field, such as the typo `gaurds`, is a
 `bad_request` error. `event` is a non-empty string. `token` is allowed only with a timer event
-(`timer:<name>` with a non-empty name) and is required there; `start` takes no timer event and
-no `token`, and takes `guards` only with `event`. `token` and the `seq` of `start` are integers
+(`timer:<name>` with a non-empty name) or an outcome event (`call:<action>:<outcome>`, split at
+the last `:`, both parts non-empty) and is required there; an event with a reserved prefix that
+is not of this form (`timer:`, `call:x`, `call::ok`, `call:a:`) is a `bad_request` error, with
+or without `token`. `start` takes neither a timer nor an outcome event, no `token`, and
+`guards` only with `event`. `token` and the `seq` of `start` are integers
 from 0 to 2^53 − 1 by value (`5`, `5.0`, `5e0`; `-0` is 0). `guards` is an object
 "condition → true/false"; extra conditions do no harm, but every value must be a boolean.
 
 The protocol version in `hello` grows when requests are added: version 2 added `start` with
-`event` and `guards`. A host that sends them checks the version in `hello` first (the Python
-client accepts only version 2 and refuses any other). Version 2
-is not only an addition: a recovered step now processes its event and may answer `need` (rule 1
-of a step), and snapshots carry `back`, which an engine of version 1 rejects.
+`event` and `guards`, version 3 the outcome events, the field `pending` of the snapshot and the
+fields `token` and `detached` of `call`. A host checks the version in `hello` first (the Python
+client accepts only version 3 and refuses any other). Version 2 was not only an addition: a
+recovered step processes its event and may answer `need` (rule 1 of a step), and snapshots
+carry `back`, which an engine of version 1 rejects. Version 3 is not either: snapshots carry
+`pending`, which an engine of version 2 rejects, and `call` actions carry `token` and
+`detached`, which the validators of version 2 reject.
 
 Actions for the host, in execution order:
-`{"send": message}`, `{"call": action}`,
-`{"start_timer": name, "ms": delay, "token": token}`, `{"cancel_timer": name}`.
+`{"send": message}`, `{"call": action, "token"?: token, "detached"?: true}`,
+`{"start_timer": name, "ms": delay, "token": token}`, `{"cancel_timer": name}`. A `call` carries
+`token` exactly when the action has outcomes (decision 12 of section 7): the host sends its
+outcome with that token. It carries `"detached": true` for a background action (decision 11).
 
 A session with [`examples/pizza.bot.json`](../examples/pizza.bot.json):
 
@@ -439,7 +549,7 @@ $ printf '%s\n' \
 >   '{"id":4,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout"}' \
 >   '{"id":5,"op":"step","snapshot":{"at":"cart","seq":3},"event":"btn:checkout","guards":{"cart_not_empty":true}}' \
 >   | figram-engine examples/pizza.bot.json
-{"id":1,"protocol":2,"states":11}
+{"id":1,"protocol":3,"states":13}
 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
 {"id":3,"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
 {"id":4,"need":["cart_not_empty"]}
@@ -451,16 +561,21 @@ Rules of a step:
 1. If the snapshot's message is not in the document, the user starts the bot again: all of the
    user's timers are cancelled, then the event is processed as for `start` with that event
    (decisions 8 and 9 of section 7, the rules of `start` with an event below), with the
-   remembered places kept and `seq` continued; `need` can be asked as for a step. The reply
+   remembered places and the waits kept and `seq` continued — an outcome event too, if the
+   snapshot waits for it (`start` itself rejects outcome events), otherwise it chooses nothing; `need` can be asked as for a step. The reply
    carries `"recovered": true`.
 2. A timer event is ignored (the snapshot does not change, no actions) if its token differs
    from the current one or if the timer does not belong to the current message (this happens
    only with a snapshot written under a previous document version). Leaving a message cancels
-   its timers and every other timer of the snapshot.
+   its timers and every other timer of the snapshot. An outcome event is ignored if `pending`
+   has no wait for its action with its token; otherwise the wait is removed, and the outcome is
+   processed as an event (any outcome name is accepted: the engine does not keep the
+   declarations, and an undeclared outcome has no arrow, V5) (the reply carries the snapshot without the wait even if no arrow
+   matches).
 3. If a variant needs conditions that are not in `guards`, the reply is `{"need": [...]}`. The
    host computes these conditions as [host-contract.md](host-contract.md) requires (section 1,
-   step 3: on data where all `call` actions committed by earlier steps of this user are applied
-   and the actions of the current step are not) and repeats the request with the same snapshot
+   step 3: on data where all sequential `call` actions committed by earlier steps of this user
+   are applied and the actions of the current step are not) and repeats the request with the same snapshot
    and event, adding them to `guards`. `need` contains only conditions that can affect the
    choice: the conditions of the variants in order (the message's variants, then those of the
    enclosing sections) up to the first variant without a condition or the first condition
@@ -469,11 +584,37 @@ Rules of a step:
    is empty, the values of conditions that were not given do not affect the step (theorem
    `missing_nil_step`); extra conditions in `guards` do not affect it either
    (`guards_irrelevant`).
-4. An event without a matching arrow is ignored.
+4. An event without a matching arrow is ignored (an accepted outcome still loses its wait,
+   rule 2). A variant without `to` performs its actions without a move (decision 13): no exit,
+   no entry, the timers and the places stay, except that a timer firing handled this way is
+   removed from `timers`; `seq` grows by 1.
 5. If the new `seq` would exceed 2^53 − 1, the reply is the error `seq_overflow`: the engine
    never produces a snapshot it could not read back (the same holds for `restart` and for
    `start` with `seq` 2^53 − 1). At one transition per millisecond the limit is about
    285 000 years away.
+
+An action with outcomes (decision 12) in [`examples/pizza.bot.json`](../examples/pizza.bot.json):
+`payment:success` on `pay` leads to `placing` and calls `create_order`, which has the outcomes
+`created` and `rejected` (and `failed`). The call carries the token of the step, and the snapshot
+waits for it (request 1). The outcome comes back with that token, and the arrows of the root
+handle it wherever the user is (requests 2 and 3: `rejected` with the condition
+`address_rejected` leads back to the address). After that the wait is gone, so a repeated
+delivery is ignored (request 4), and so is an outcome with a token of no wait (request 5):
+
+```sh doctest
+$ printf '%s\n' \
+>   '{"id":1,"op":"step","snapshot":{"at":"pay","resume":{"order":"pay"},"seq":5},"event":"payment:success"}' \
+>   '{"id":2,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:rejected","token":6}' \
+>   '{"id":3,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:rejected","token":6,"guards":{"address_rejected":true}}' \
+>   '{"id":4,"op":"step","snapshot":{"at":"address","resume":{"order":"address"},"seq":7},"event":"call:create_order:rejected","token":6}' \
+>   '{"id":5,"op":"step","snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"event":"call:create_order:created","token":5}' \
+>   | figram-engine examples/pizza.bot.json
+{"id":1,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[{"call":"create_order","token":6},{"send":"placing"}]}
+{"id":2,"need":["address_rejected"]}
+{"id":3,"snapshot":{"at":"address","resume":{"order":"address"},"seq":7},"actions":[{"send":"address"}]}
+{"id":4,"snapshot":{"at":"address","resume":{"order":"address"},"seq":7},"actions":[]}
+{"id":5,"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6},"actions":[]}
+```
 
 Rules of `start` with an event (decision 9 of section 7):
 
@@ -495,7 +636,7 @@ $ printf '%s\n' \
 >   '{"id":3,"op":"start","event":"cmd:start"}' \
 >   | figram-engine examples/features.bot.json
 {"id":1,"need":["is_vip"]}
-{"id":2,"snapshot":{"at":"vip","seq":1},"actions":[{"send":"vip"}]}
+{"id":2,"snapshot":{"at":"vip","timers":{"nudge":1},"seq":1},"actions":[{"start_timer":"nudge","ms":30000,"token":1},{"send":"vip"}]}
 {"id":3,"snapshot":{"at":"home","timers":{"idle":1},"seq":1},"actions":[{"start_timer":"idle","ms":60000,"token":1},{"send":"home"}]}
 ```
 
@@ -522,8 +663,8 @@ Opening help from the item crosses a section boundary, so the item becomes the p
 to; "back" leads there and makes help the place in turn. Without a place (request 3), the arrow
 leads to its `to`.
 
-`restart` cancels the snapshot's timers, clears the remembered places and the place to go
-back to and performs the first-entry actions, but continues the `seq` counter. The tokens of new timers are therefore
+`restart` cancels the snapshot's timers, clears the remembered places, the place to go back to
+and the waits and performs the first-entry actions, but continues the `seq` counter. The tokens of new timers are therefore
 greater than any old token, a late event of an old timer never matches a new one, and the
 host's idempotency keys (`user:seq:index`, [host-contract.md](host-contract.md)) do not repeat.
 Starting a user over with `start` without `seq` (counter from zero) is safe only if the user
@@ -545,9 +686,22 @@ hosts decide by `code`:
 | `bad_request` | unknown operation; unknown, missing or mistyped field; invalid `event`, `token`, `seq` or `guards`; the request is JSON but not an object |
 | `bad_snapshot` | the snapshot in the request is not accepted (rules of "User snapshot") |
 | `seq_overflow` | the new `seq` would exceed 2^53 − 1 (rule 5) |
+| `snapshot_too_large` | the new snapshot would take more than 15/16 of the request size limit (below) |
 
-Repeating a request that failed with `bad_request`, `bad_snapshot`, `seq_overflow` or
-`parse_error` gives the same error ([host-contract.md](host-contract.md), section 5).
+Repeating a request that failed with `bad_request`, `bad_snapshot`, `seq_overflow`,
+`snapshot_too_large` or `parse_error` gives the same error ([host-contract.md](host-contract.md),
+section 5).
+
+The engine never writes a snapshot that requests cannot carry back. Under a request size limit
+(`figram-engine --max-request`, `figram_set_max_request` of the C ABI; 1 MiB by default, 0 — no
+limit) a reply whose new snapshot would take more than 15/16 of the limit (64 KiB to spare at
+1 MiB, for the rest of the next request) is replaced by the error `snapshot_too_large` with the
+request's `id`, and the snapshot is not changed. A snapshot grows only by its waits, timers and
+remembered places — a wait takes about 30 bytes with a short action name, some 30 000 waits fit
+into 1 MiB — so the error means waits nobody answers (host-contract.md, section 2); the stored snapshot still fits,
+so its outcomes, which remove waits, and `restart` keep working. Without this rule (before the
+0.3.0 audit) the engine wrote a snapshot whose every next request, its outcomes and `restart`
+included, was `too_large`.
 
 If a line cannot be parsed as JSON (`parse_error`) or is longer than the limit (`too_large`),
 and it starts with `{"id":` followed by a scalar value (string, number, `true`, `false`,
@@ -573,10 +727,11 @@ The `figram-engine` process reads requests as bytes:
 
 The embedded library (C, Go) takes one request per call, with the same limit and the same
 UTF-8 check; an empty request gets `parse_error` (the process skips an empty line without a
-reply). The library produces four errors itself, before parsing, always with `id: null` (no
+reply). The library produces these errors itself, before parsing, always with `id: null` (no
 `id` echo: the reply already belongs to the call): an empty request and, in the `_n` functions,
-a request with a NUL byte (`parse_error`), invalid UTF-8 (`parse_error`) and a request over the
-limit (`too_large`). All other errors, including `parse_error` for invalid JSON, are produced as
+a request with a NUL byte (`parse_error`), invalid UTF-8 (`parse_error`), a request over the
+limit (`too_large`), and a NULL handle or request, a pointer that is not a handle or an
+unloaded machine (`bad_request`, [`ffi/figram.h`](../ffi/figram.h)). All other errors, including `parse_error` for invalid JSON, are produced as
 in the process, with the `id` echo; a request of only spaces, tabs and `\r`, which the process
 skips without a reply, gets `parse_error` ("unexpected end of input"). See
 [embedding.md](embedding.md).

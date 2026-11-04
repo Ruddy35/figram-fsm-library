@@ -8,8 +8,9 @@ import Figram.Mutate
   compiles it once and serves requests line by line over stdin/stdout
   (`Figram.Engine`). A line is read as bytes: a line longer than the limit (by default
   1 MiB, 0 means no limit) gets `too_large`, a line that is not UTF-8 gets `parse_error`;
-  a line of JSON whitespace only is skipped without a reply. Replies come strictly
-  in request order.
+  a step whose new snapshot would take more than 15/16 of the limit gets `snapshot_too_large`
+  (`Engine.handleLimited`); a line of JSON whitespace only is skipped without a reply. Replies
+  come strictly in request order.
 * Test mode, only with `FIGRAM_ALLOW_MUTANTS=1` in the environment:
   `figram-engine --mutants bot.json` — the list of mutations for testing the tests;
   `figram-engine [--max-request BYTES] --mutate <mutation> bot.json` — the
@@ -51,7 +52,7 @@ partial def serve (cfg : Cfg) (m : Machine) (inp out : IO.FS.Stream) : IO Unit :
     let reply :=
       if cfg.limit != 0 && len > cfg.limit then
         Engine.errorLine (Engine.utf8Prefix b) .tooLarge (Engine.tooLargeText cfg.limit)
-      else Engine.handleBytes cfg.mutant 0 m b
+      else Engine.handleBytes cfg.mutant cfg.limit m b
     out.putStr (reply ++ "\n")
     out.flush
   serve cfg m inp out
@@ -75,19 +76,22 @@ def usage : String :=
   "       FIGRAM_ALLOW_MUTANTS=1 figram-engine [--max-request BYTES] --mutate <mutation> <bot.json>"
 
 /-- The number or name in a mutation refers to this machine: otherwise, for example,
-`redirect:999` or `drop-call:no_such_call` would silently give an unbroken engine.
+`redirect:999` or `drop-call:no_such_call` would silently give an unbroken engine. A name is an
+action of the machine (`wait-free` and `wait-swap`: an action with outcomes); it may contain `:`.
 Mutations without a number (`drop-exit` and the like) apply to any machine. -/
 def specInRange (m : Machine) (spec : String) : Bool :=
-  match spec.splitOn ":" with
-  | ["drop-call", n] => (Mutate.callNames m).contains n
-  | [kind, k] =>
-    match k.toNat? with
-    | some k =>
-      if kind == "swap-branches" then k < m.rows.length
-      else if kind == "reverse-entry" then k < m.entry.length
-      else k < (Mutate.branches m).length
-    | none => false
-  | _ => true
+  match Mutate.splitSpec spec with
+  | (kind, some n) =>
+    if kind == "wait-free" || kind == "wait-swap" then (Mutate.waitNames m).contains n
+    else if Mutate.namedKinds.contains kind then (Mutate.callNames m).contains n
+    else
+      match n.toNat? with
+      | some k =>
+        if kind == "swap-branches" then k < m.rows.length
+        else if kind == "reverse-entry" then k < m.entry.length
+        else k < (Mutate.branches m).length
+      | none => false
+  | (_, none) => true
 
 /-- The test mode of the deliberately broken engine is enabled only explicitly. -/
 def mutantsAllowed : IO Bool := return (← IO.getEnv "FIGRAM_ALLOW_MUTANTS") == some "1"

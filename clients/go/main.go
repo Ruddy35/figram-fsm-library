@@ -2,6 +2,7 @@
 // replays reference scenarios from many goroutines.
 //
 //	go build && ./gofig [-rounds N] [-bots K] bot.json traces.jsonl
+//	./gofig examples/features.bot.json examples/golden.jsonl — the golden scenarios of that document
 //	go build -race   — with the race detector (CI on a multi-core machine)
 package main
 
@@ -34,9 +35,11 @@ import "C"
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -120,7 +123,11 @@ func Load(doc string) (*Bot, error) {
 	return &Bot{m: m}, nil
 }
 
-// Close frees the machine; after it Request returns an error.
+// ErrClosed is the error of Request on a closed Bot: a goroutine that still held the old Bot of
+// a reloaded document repeats its whole step (with the condition round trip) on the new one.
+var ErrClosed = errors.New("bot is closed")
+
+// Close frees the machine; after it Request returns ErrClosed.
 func (b *Bot) Close() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -131,12 +138,16 @@ func (b *Bot) Close() {
 }
 
 // Request sends one engine protocol request. The reply is validated strictly
-// (checkReply): the id, exactly one reply variant, field types.
+// (checkReply): the id, exactly one reply variant, field types. It returns the reply, its
+// variant — "result", "need", "error" (an engine error reply: switch on its "code") or "hello" —
+// and an error only if the request could not be made or the reply violates the protocol
+// (ErrClosed on a closed Bot). A `need` and an engine error come with a nil error: check the
+// variant, not only the error.
 func (b *Bot) Request(req map[string]any) (map[string]any, string, error) {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 	if b.m == nil {
-		return nil, "", fmt.Errorf("bot is closed")
+		return nil, "", ErrClosed
 	}
 	id := b.nextID.Add(1)
 	// The caller's map is not modified: id is added to a copy of the top
@@ -190,9 +201,51 @@ var corruptions = map[string]func(map[string]any){
 		}
 	},
 	"null-snapshot": func(r map[string]any) { r["snapshot"] = nil },
+	// protocol 3: the token of an action with outcomes, the flag of a background action,
+	// the waits of the snapshot
+	"call-no-token": func(r map[string]any) {
+		if acts, ok := r["actions"].([]any); ok {
+			for _, a := range acts {
+				if m, ok := a.(map[string]any); ok {
+					if _, isCall := m["call"]; isCall {
+						delete(m, "token")
+					}
+				}
+			}
+		}
+	},
+	"detached-false": func(r map[string]any) {
+		if acts, ok := r["actions"].([]any); ok {
+			for _, a := range acts {
+				if m, ok := a.(map[string]any); ok {
+					if _, d := m["detached"]; d {
+						m["detached"] = false
+					}
+				}
+			}
+		}
+	},
+	"pending-dropped": func(r map[string]any) {
+		if s, ok := r["snapshot"].(map[string]any); ok {
+			delete(s, "pending")
+		}
+	},
+	"hello-protocol-2": func(r map[string]any) {
+		if _, ok := r["protocol"]; ok {
+			r["protocol"] = json.Number("2")
+		}
+	},
 }
 
 const maxInt = 9007199254740991
+
+// protocolVersion is the engine protocol these checks follow (docs/format.md, section 8):
+// a hello reply of another version is a protocol violation.
+const protocolVersion = "3"
+
+// figramLib is the hash of the C library linked in: verify.sh sets it with -ldflags -X, so that
+// a changed ffi/out/libfigram.a relinks the binary (Go does not track the C libraries of cgo).
+var figramLib string
 
 func natOK(v any) bool {
 	n, ok := v.(json.Number)
@@ -226,7 +279,7 @@ func checkSnapshot(v any) error {
 	}
 	for k := range s {
 		switch k {
-		case "v", "at", "back", "resume", "timers", "seq":
+		case "v", "at", "back", "resume", "timers", "pending", "seq":
 		default:
 			return fmt.Errorf("snapshot: unknown field %q", k)
 		}
@@ -262,6 +315,19 @@ func checkSnapshot(v any) error {
 			}
 		}
 	}
+	if p, ok := s["pending"]; ok {
+		// waits for outcomes (docs/format.md, section 7, decision 12): exactly {call, token}
+		ws, ok := p.([]any)
+		if !ok {
+			return fmt.Errorf("snapshot.pending is not a list")
+		}
+		for i, w := range ws {
+			m, ok := w.(map[string]any)
+			if !ok || !keysAre(m, "call", "token") || !nameOK(m["call"]) || !natOK(m["token"]) {
+				return fmt.Errorf("snapshot.pending[%d]: %v", i, w)
+			}
+		}
+	}
 	if q, ok := s["seq"]; ok && !natOK(q) {
 		return fmt.Errorf("snapshot.seq: %v", q)
 	}
@@ -285,6 +351,18 @@ func checkActions(v any) error {
 					return fmt.Errorf("action: %v", m)
 				}
 			}
+		// protocol 3: token — an action with outcomes, detached — a background action
+		// (only ever written as true)
+		case keysAre(m, "call", "token"), keysAre(m, "call", "detached"), keysAre(m, "call", "token", "detached"):
+			if !nameOK(m["call"]) {
+				return fmt.Errorf("call: %v", m)
+			}
+			if t, ok := m["token"]; ok && !natOK(t) {
+				return fmt.Errorf("call.token: %v", m)
+			}
+			if d, ok := m["detached"]; ok && d != true {
+				return fmt.Errorf("call.detached: %v", m)
+			}
 		case keysAre(m, "start_timer", "ms", "token"):
 			if !nameOK(m["start_timer"]) || !natOK(m["ms"]) || !natOK(m["token"]) {
 				return fmt.Errorf("start_timer: %v", m)
@@ -299,6 +377,7 @@ func checkActions(v any) error {
 // Error codes of the protocol (docs/format.md, section 8, "Errors").
 var errorCodes = map[string]bool{
 	"parse_error": true, "too_large": true, "bad_request": true, "bad_snapshot": true, "seq_overflow": true,
+	"snapshot_too_large": true,
 }
 
 // legacyErrorWithoutCode: an older engine replied to an error with {id, error} without code.
@@ -348,6 +427,9 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		if !natOK(rest["protocol"]) || !natOK(rest["states"]) {
 			return "", fmt.Errorf("hello: %v", rest)
 		}
+		if rest["protocol"].(json.Number) != protocolVersion {
+			return "", fmt.Errorf("hello: protocol %v, expected %s", rest["protocol"], protocolVersion)
+		}
 		if mu, ok := rest["mutant"]; ok && !nameOK(mu) {
 			return "", fmt.Errorf("hello: mutant %v", mu)
 		}
@@ -358,10 +440,13 @@ func checkReply(r map[string]any, id int64, op string) (string, error) {
 		if !ok || len(need) == 0 {
 			return "", fmt.Errorf("need: %v", rest["need"])
 		}
+		seen := map[string]bool{}
 		for _, n := range need {
-			if !nameOK(n) {
+			s, _ := n.(string)
+			if !nameOK(n) || seen[s] {
 				return "", fmt.Errorf("need: %v", n)
 			}
+			seen[s] = true
 		}
 		return "need", nil
 	}
@@ -391,6 +476,9 @@ type step struct {
 }
 
 type trace struct {
+	// Doc: the document of a golden scenario (examples/golden.jsonl); a scenario of another
+	// document than the one loaded is skipped. Reference scenarios of figram trace have none.
+	Doc   string `json:"doc"`
 	Start *struct {
 		Event    string          `json:"event"` // start with a first event, if set
 		Guards   map[string]bool `json:"guards"`
@@ -538,6 +626,10 @@ func main() {
 		if err != nil {
 			fail("%v", err)
 		}
+		// hello: the engine speaks the protocol of these checks (checkReply checks the version)
+		if r, v, err := bot.Request(map[string]any{"op": "hello"}); err != nil || v != "hello" {
+			fail("hello: %v %q %v", r, v, err)
+		}
 		loaded = append(loaded, bot)
 	}
 	f, err := os.Open(flag.Arg(1))
@@ -545,6 +637,7 @@ func main() {
 		fail("cannot open the scenarios: %v", err)
 	}
 	var traces []trace
+	skipped := 0
 	sc := bufio.NewScanner(f)
 	sc.Buffer(make([]byte, 1<<20), 1<<26)
 	line := 0
@@ -563,13 +656,17 @@ func main() {
 		if err := validateTrace(t); err != nil {
 			fail("line %d: scenario expectations violate the protocol: %v", line, err)
 		}
+		if t.Doc != "" && t.Doc != filepath.Base(flag.Arg(0)) {
+			skipped++
+			continue
+		}
 		traces = append(traces, t)
 	}
 	if err := sc.Err(); err != nil {
 		fail("error reading the scenarios: %v", err)
 	}
 	if len(traces) == 0 {
-		fail("no scenarios")
+		fail("no scenarios (of other documents: %d)", skipped)
 	}
 	expected := int64(0)
 	for _, t := range traces {

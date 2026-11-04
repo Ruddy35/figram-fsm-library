@@ -2,14 +2,22 @@
   "figram": 1,
   "conditions": {
     "cart_not_empty": "The cart has at least one pizza",
-    "in_delivery_zone": "The address is in the delivery zone"
+    "in_delivery_zone": "The address is in the delivery zone",
+    "address_rejected": "The CRM rejected the delivery address"
   },
   "calls": {
     "clear_cart": "Clear the cart",
     "save_size": "Save the chosen size",
     "add_to_cart": "Add the pizza to the cart",
     "save_address": "Save the address from the message",
-    "create_order": "Create the order in the CRM"
+    "create_order": {
+      "text": "Create the order in the CRM",
+      "outcomes": ["created", "rejected"]
+    },
+    "notify_kitchen": {
+      "text": "Tell the kitchen about the new order",
+      "detached": true
+    }
   },
   "variables": {
     "cart": "Cart contents",
@@ -26,6 +34,26 @@
       "cmd:help": [
         {
           "to": "help"
+        }
+      ],
+      "call:create_order:created": [
+        {
+          "to": "done",
+          "do": ["notify_kitchen"]
+        }
+      ],
+      "call:create_order:rejected": [
+        {
+          "if": "address_rejected",
+          "to": "address"
+        },
+        {
+          "to": "order_failed"
+        }
+      ],
+      "call:create_order:failed": [
+        {
+          "to": "order_failed"
         }
       ]
     },
@@ -154,7 +182,18 @@
             "on": {
               "payment:success": [
                 {
-                  "to": "done",
+                  "to": "placing",
+                  "do": ["create_order"]
+                }
+              ]
+            }
+          },
+          "placing": {},
+          "order_failed": {
+            "on": {
+              "btn:retry": [
+                {
+                  "to": "placing",
                   "do": ["create_order"]
                 }
               ]

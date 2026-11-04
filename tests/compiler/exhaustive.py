@@ -7,7 +7,7 @@ are counted as dead."""
 
 import random
 
-from oracle import snap_to_json
+from oracle import snap_to_json, split_outcome
 
 
 def select_guards(cands, i):
@@ -59,7 +59,12 @@ def snapshot_at(bot, L, rng, seq, memory="random"):
     msgs = [m for m in bot.nodes if bot.is_message(m)]
     r = rng.random()
     back = rng.choice(msgs) if r < 0.6 else ("gone_msg" if r < 0.7 else None)
-    return {"at": L, "resume": resume, "timers": timers, "seq": seq, "back": back}
+    # waits of the actions with outcomes (decision 12), sometimes none
+    pending = []
+    for a in sorted(bot.outcome_actions()):
+        if rng.random() < 0.3:
+            pending.append({"call": a, "token": rng.randint(0, seq)})
+    return {"at": L, "resume": resume, "timers": timers, "seq": seq, "back": back, "pending": pending}
 
 
 def cases(bot, rng):
@@ -94,4 +99,61 @@ def cases(bot, rng):
                         s["timers"][t] = seq      # stale/forged entry (not owned by L)
                         tag += "-unowned-timer"
                     tok = s["timers"][t]
+                if e.startswith("call:"):
+                    # an outcome: accepted only with the token of a wait (decision 12)
+                    a = split_outcome(e)[0]
+                    waits = [w for w in s["pending"] if w["call"] == a]
+                    if not waits:
+                        s["pending"].insert(rng.randint(0, len(s["pending"])), {"call": a, "token": seq})
+                        waits = [{"call": a, "token": seq}]
+                    tok = rng.choice(waits)["token"]
+                    if rng.random() < 0.1:
+                        tok = seq + 1                # no such wait: ignored
+                        tag += "-stale-outcome"
                 yield snap_to_json(s), e, tok, g, (tag, L, e, i)
+
+
+def initial_cases(bot, rng):
+    """Branch-exhaustive cases at the INITIAL message for a user without a message:
+    `start` with an event (decision 9) and recovery (decision 8: `at` names no message, a
+    named event or an ACCEPTED outcome is matched as at the initial message, decision 12;
+    a variant without a target leads to the initial message, decision 13).
+    Yields ("start", event, None, guards, seq, tag) and ("step", event, token, guards,
+    snapshot_json, tag)."""
+    init = bot.landing(bot.ROOT)
+    evs = []
+    for owner in [init] + bot.enclosing(init):
+        for e, _ in bot.nodes[owner].on:
+            if e not in evs and not e.startswith("timer:"):
+                evs.append(e)
+    msgs = [m for m in bot.nodes if bot.is_message(m)]
+    secs = [n for n, x in bot.nodes.items() if x.is_section and n != bot.ROOT]
+    for e in evs:
+        cands = bot.candidates(init, e)
+        for i in range(len(cands) + 1):
+            g = select_guards(cands, i) if i < len(cands) else all_false(cands)
+            if g is None:
+                continue
+            for v in cands[i + 1:]:
+                if v.cond is not None and v.cond not in g:
+                    g[v.cond] = rng.random() < 0.5
+            tag = ("init-branch" if i < len(cands) else "init-all-false",
+                   "stay" if i < len(cands) and cands[i].to is None else "move")
+            if not e.startswith("call:"):
+                yield "start", e, None, g, rng.choice([0, 0, 7]), ("start",) + tag
+            seq = rng.randint(1, 40)
+            s = snapshot_at(bot, msgs[0], rng, seq)
+            s["at"] = rng.choice(["gone_msg"] + secs)
+            s["timers"] = {t: rng.randint(0, seq) for t in rng.sample(["t0", "t1", "zz"], rng.randint(0, 2))}
+            tok = None
+            if e.startswith("call:"):
+                a = split_outcome(e)[0]
+                w = {"call": a, "token": rng.randint(0, seq)}
+                s["pending"] = [x for x in s["pending"] if x != w]
+                if rng.random() < 0.8:       # accepted; otherwise no wait: the plain start over
+                    s["pending"].insert(rng.randint(0, len(s["pending"])), w)
+                    tag = tag + ("accepted",)
+                else:
+                    tag = tag + ("not-accepted",)
+                tok = w["token"]
+            yield "step", e, tok, g, snap_to_json(s), ("recover",) + tag
