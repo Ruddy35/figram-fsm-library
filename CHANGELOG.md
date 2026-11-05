@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file. The format is b
 snapshot formats, the engine protocol (operations, JSON field names, error `code` values), the CLI
 command names and the exit statuses; the texts of messages are for humans and may change.
 
+## [Unreleased]
+
+### Changed
+
+- [docs/embedding.md](docs/embedding.md), "Go": the Go module `ffl-go` v0.3.0, published on
+  2026-11-05, bundles release 0.3.0 (protocol 3); the section points at it. This resolves the
+  known issue of 0.3.0 about `ffl-go` v0.2.0; copying `clients/go/main.go` is no longer needed.
+
 ## [0.3.0] - 2026-11-04
 
 This release follows two audit rounds (a final audit with formalization, and a second round with
