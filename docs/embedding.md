@@ -265,15 +265,15 @@ such calls on a thread of the size recommended here.
 ## Go
 
 For Go programs use the module [`github.com/Ruddy35/ffl-go`](https://github.com/Ruddy35/ffl-go)
-(`go get github.com/Ruddy35/ffl-go@v0.2.0`): a typed API (`Load`, `Start`, `StartWith`, `Step`,
-`Timer`, `Restart`, `Decide`, `Check`, `Fmt`) over this C ABI that bundles the static libraries
-of the release for linux/amd64, so no build of this repository is needed. A version of the
-module bundles one release and speaks its protocol, and its `Load` rejects a library of another
-protocol version, which `-tags figram_system` could link. This release speaks protocol 3 (outcome
-events, `pending`, `token` and `detached` in `call`); the module version that bundles it follows
-the release. v0.2.0 bundles release 0.2.0 (protocol 2) and rejects the snapshots and actions of
-protocol 3 ("unknown field"). v0.1.0 speaks protocol 1 and works only with release 0.1.0: it has
-no `start` with an event and rejects every reply whose snapshot carries `back`.
+(`go get github.com/Ruddy35/ffl-go@v0.3.0`): a typed API (`Load`, `Start`, `StartWith`, `Step`,
+`Timer`, `Outcome`, `Restart`, `Decide`, `Check`, `Fmt`) over this C ABI that bundles the static
+libraries of the release for linux/amd64, so no build of this repository is needed. A version of
+the module bundles one release and speaks its protocol, and its `Load` rejects a library of
+another protocol version, which `-tags figram_system` could link. v0.3.0 bundles this release
+(protocol 3: outcome events, `pending`, `token` and `detached` in `call`). v0.2.0 bundles release
+0.2.0 (protocol 2) and rejects the snapshots and actions of protocol 3 ("unknown field"). v0.1.0
+speaks protocol 1 and works only with release 0.1.0: it has no `start` with an event and rejects
+every reply whose snapshot carries `back`.
 
 The reference wrapper used by the tests of this repository lives in
 [`clients/go`](../clients/go). It is a cgo wrapper (`Init`, `SetMaxRequest`, `Load`,
@@ -303,10 +303,9 @@ scenarios from many goroutines. Both are one `main` package (module `gofig`).
   goroutine may move to another OS thread between two cgo calls.
 
 The package cannot be imported (`import "gofig"` fails: "is a program, not an importable
-package"). Until the `ffl-go` version for this release is published, copy `clients/go/main.go`
-into a package of your module, change its `package` line and drop the `gofig` driver (`main`
-and the functions only it uses). Pass the directory of `figram.h` and the flags from
-`ffi/out/LDFLAGS` in the environment (its `#cgo CFLAGS` line points into this repository; cgo
+package"). To embed this wrapper instead of `ffl-go`, copy `clients/go/main.go` into a package of
+your module, change its `package` line and drop the `gofig` driver (`main` and the functions only
+it uses). Pass the directory of `figram.h` and the flags from `ffi/out/LDFLAGS` in the environment (its `#cgo CFLAGS` line points into this repository; cgo
 accepts `-Wl,--gc-sections` from the environment):
 
 ```sh
