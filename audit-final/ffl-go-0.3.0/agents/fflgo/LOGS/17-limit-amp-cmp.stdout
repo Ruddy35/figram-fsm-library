@@ -1,0 +1,13 @@
+CHAIN DIFF step 251
+  ffl-go {"code":"too_large","error":"request is longer than the limit of 12000 bytes"}
+  engine {"snapshot":{"at":"home","pending":[{"call":"<ping>&co","token":253},{"call":"<ping>&co","token":252},{"call":"<ping>&co","token":251},{"call":"<ping>&co","toke
+step 251 refused: too_large (251 waits)
+CHAIN DIFF outcome of the oldest wait
+  ffl-go {"code":"too_large","error":"request is longer than the limit of 12000 bytes"}
+  engine {"snapshot":{"at":"home","pending":[{"call":"<ping>&co","token":252},{"call":"<ping>&co","token":251},{"call":"<ping>&co","token":250},{"call":"<ping>&co","toke
+Outcome with the stored snapshot: too_large
+CHAIN DIFF restart
+  ffl-go {"code":"too_large","error":"request is longer than the limit of 12000 bytes"}
+  engine {"snapshot":{"at":"home","seq":253},"actions":[{"send":"home"}]}
+Restart with the stored snapshot: too_large
+same request: 254 equal, 0 different; engine chain: 251 equal, 3 different

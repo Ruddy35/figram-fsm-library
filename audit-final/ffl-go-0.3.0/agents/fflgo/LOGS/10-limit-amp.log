@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 300 ./auditlimit /home/user/figram-audit/agents7/fflgo/docs/amp.bot.json btn:ping \<ping\>\&co 12000 
+cwd: /home/user/figram-audit/agents7/fflgo/limit
+start: 2026-11-05T00:01:33.187Z
+end: 2026-11-05T00:01:33.326Z
+exit_code: 0
+--- stdout (365 bytes, last 200 lines)
+step 251 refused: too_large (stored snapshot: 251 waits, 11977 bytes as ffl-go encodes it, limit 12000, 15/16 = 11250)
+Outcome of the oldest wait with the stored snapshot: too_large
+Restart with the stored snapshot: too_large
+Restart via Request with the engine's encoding (8247 bytes): {"id":1,"snapshot":{"at":"home","seq":253},"actions":[{"send":"home"}]} <nil>
+--- stderr (0 bytes, last 100 lines)

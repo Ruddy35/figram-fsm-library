@@ -1,0 +1,48 @@
+  58283  reply: reply key order actions,snapshot vs snapshot,actions
+         got  {"actions":[{"send":"menu"}],"snapshot":{"at":"menu","seq":1}}
+         want {"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}
+         (pizza/2)
+  12767  reply: reply key order actions,recovered,snapshot vs snapshot,actions,recovered
+         got  {"actions":[{"send":"menu"}],"recovered":true,"snapshot":{"at":"menu","back":"menu","resume":{"order":"catalog"},"seq":18}}
+         want {"snapshot":{"at":"menu","back":"menu","resume":{"order":"catalog"},"seq":18},"actions":[{"send":"menu"}],"recovered":true}
+         (pizza/93)
+  12384  snapshot: resume key order
+         got  {"at":"q","back":"aa1","resume":{"s_aa":"aa1","s_zz":"q"},"seq":7}
+         want {"at":"q","back":"aa1","resume":{"s_zz":"q","s_aa":"aa1"},"seq":7}
+         (order/9)
+   7487  reply: reply key order actions,snapshot vs snapshot,actions + HTML escaping \u003c/\u003e/\u0026
+         got  {"actions":[{"cancel_timer":"zeta"},{"cancel_timer":"alpha"},{"cancel_timer":"mid"},{"call":"a\u0026b\u003cc\u003e","token":9},{"send":"wait"}],"snapshot":{"at":"wait","back":"q","resume":{"s_aa":"aa1","s_zz":"q"},"pending":[{"cal
+         want {"snapshot":{"at":"wait","back":"q","resume":{"s_zz":"q","s_aa":"aa1"},"pending":[{"call":"a&b<c>","token":9}],"seq":9},"actions":[{"cancel_timer":"zeta"},{"cancel_timer":"alpha"},{"cancel_timer":"mid"},{"call":"a&b<c>","token":9}
+         (order/11)
+   5445  snapshot: timers key order
+         got  {"at":"home","timers":{"alpha":1,"mid":1,"zeta":1},"seq":1}
+         want {"at":"home","timers":{"mid":1,"alpha":1,"zeta":1},"seq":1}
+         (order/2)
+   4314  snapshot: HTML escaping \u003c/\u003e/\u0026
+         got  {"at":"wait","back":"aa1","resume":{"s_aa":"aa1","s_zz":"zz1"},"pending":[{"call":"a\u0026b\u003cc\u003e","token":16},{"call":"bg:log","token":12},{"call":"ns:zap","token":12}],"seq":16}
+         want {"at":"wait","back":"aa1","resume":{"s_aa":"aa1","s_zz":"zz1"},"pending":[{"call":"a&b<c>","token":16},{"call":"bg:log","token":12},{"call":"ns:zap","token":12}],"seq":16}
+         (order/34)
+   2455  snapshot: resume key order + timers key order
+         got  {"at":"home","back":"q","resume":{"s_aa":"aa1","s_zz":"q"},"timers":{"alpha":8,"mid":8,"zeta":8},"seq":8}
+         want {"at":"home","back":"q","resume":{"s_zz":"q","s_aa":"aa1"},"timers":{"mid":8,"alpha":8,"zeta":8},"seq":8}
+         (order/10)
+   2423  action: HTML escaping \u003c/\u003e/\u0026
+         got  {"call":"a\u0026b\u003cc\u003e","token":9}
+         want {"call":"a&b<c>","token":9}
+         (order/11)
+   2356  snapshot: resume key order + HTML escaping \u003c/\u003e/\u0026
+         got  {"at":"wait","back":"q","resume":{"s_aa":"aa1","s_zz":"q"},"pending":[{"call":"a\u0026b\u003cc\u003e","token":9}],"seq":9}
+         want {"at":"wait","back":"q","resume":{"s_zz":"q","s_aa":"aa1"},"pending":[{"call":"a&b<c>","token":9}],"seq":9}
+         (order/11)
+   1884  reply: reply key order actions,recovered,snapshot vs snapshot,actions,recovered + HTML escaping \u003c/\u003e/\u0026
+         got  {"actions":[{"cancel_timer":"mid"},{"cancel_timer":"alpha"},{"cancel_timer":"zeta"},{"start_timer":"zeta","ms":1000,"token":11},{"start_timer":"alpha","ms":2000,"token":11},{"start_timer":"mid","ms":3000,"token":11},{"send":"home"
+         want {"snapshot":{"at":"home","back":"q","resume":{"s_zz":"q","s_aa":"aa1"},"timers":{"mid":11,"alpha":11,"zeta":11},"pending":[{"call":"a&b<c>","token":9}],"seq":11},"actions":[{"cancel_timer":"mid"},{"cancel_timer":"alpha"},{"cancel_
+         (order/19)
+   1206  snapshot: timers key order + HTML escaping \u003c/\u003e/\u0026
+         got  {"at":"home","timers":{"alpha":3,"mid":3,"zeta":3},"pending":[{"call":"a\u0026b\u003cc\u003e","token":2}],"seq":3}
+         want {"at":"home","timers":{"mid":3,"alpha":3,"zeta":3},"pending":[{"call":"a&b<c>","token":2}],"seq":3}
+         (order/128)
+    416  snapshot: resume key order + timers key order + HTML escaping \u003c/\u003e/\u0026
+         got  {"at":"home","back":"q","resume":{"s_aa":"aa1","s_zz":"q"},"timers":{"alpha":10,"mid":10,"zeta":10},"pending":[{"call":"a\u0026b\u003cc\u003e","token":9}],"seq":10}
+         want {"at":"home","back":"q","resume":{"s_zz":"q","s_aa":"aa1"},"timers":{"mid":10,"alpha":10,"zeta":10},"pending":[{"call":"a&b<c>","token":9}],"seq":10}
+         (order/12)

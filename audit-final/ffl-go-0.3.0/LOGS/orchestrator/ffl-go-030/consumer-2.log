@@ -1,0 +1,8 @@
+command: timeout 900 bash scripts/consumer-test.sh 
+cwd: /home/user/ffl-go
+start: 2026-11-05T00:23:19.896Z
+end: 2026-11-05T00:23:21.677Z
+exit_code: 1
+--- stdout (138 bytes, last 200 lines)
+plain: unexpected output: {"snapshot":{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2},"actions":[{"send":"catalog"}]}
+--- stderr (0 bytes, last 100 lines)

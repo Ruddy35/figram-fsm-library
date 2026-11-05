@@ -1,0 +1,121 @@
+SAME-REQUEST DIFF step 370
+  ffl-go {"actions":[{"call":"ping","token":372,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":372},{"call":"ping","token":371},{"call":"ping","token":370},{"ca
+  engine {"error":"the new snapshot (10337 bytes) would not fit into a request under the limit of 11000 bytes; the snapshot is not changed","code":"snapshot_too_large"}
+CHAIN DIFF step 370
+  ffl-go {"actions":[{"call":"ping","token":372,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":372},{"call":"ping","toke
+  engine {"error":"the new snapshot (10337 bytes) would not fit into a request under the limit of 11000 bytes; the snapshot is not changed","code":"snapshot_too_large"}
+SAME-REQUEST DIFF step 371
+  ffl-go {"actions":[{"call":"ping","token":373,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":373},{"call":"ping","token":372},{"call":"ping","token":371},{"ca
+  engine {"error":"the new snapshot (10365 bytes) would not fit into a request under the limit of 11000 bytes; the snapshot is not changed","code":"snapshot_too_large"}
+CHAIN DIFF step 371
+  ffl-go {"actions":[{"call":"ping","token":373,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":373},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+SAME-REQUEST DIFF step 372
+  ffl-go {"actions":[{"call":"ping","token":374,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":374},{"call":"ping","token":373},{"call":"ping","token":372},{"ca
+  engine {"error":"the new snapshot (10393 bytes) would not fit into a request under the limit of 11000 bytes; the snapshot is not changed","code":"snapshot_too_large"}
+CHAIN DIFF step 372
+  ffl-go {"actions":[{"call":"ping","token":374,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":374},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 373
+  ffl-go {"actions":[{"call":"ping","token":375,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":375},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 374
+  ffl-go {"actions":[{"call":"ping","token":376,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":376},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 375
+  ffl-go {"actions":[{"call":"ping","token":377,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":377},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 376
+  ffl-go {"actions":[{"call":"ping","token":378,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":378},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 377
+  ffl-go {"actions":[{"call":"ping","token":379,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":379},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 378
+  ffl-go {"actions":[{"call":"ping","token":380,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":380},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 379
+  ffl-go {"actions":[{"call":"ping","token":381,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":381},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 380
+  ffl-go {"actions":[{"call":"ping","token":382,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":382},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 381
+  ffl-go {"actions":[{"call":"ping","token":383,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":383},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 382
+  ffl-go {"actions":[{"call":"ping","token":384,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":384},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 383
+  ffl-go {"actions":[{"call":"ping","token":385,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":385},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 384
+  ffl-go {"actions":[{"call":"ping","token":386,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":386},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 385
+  ffl-go {"actions":[{"call":"ping","token":387,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":387},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 386
+  ffl-go {"actions":[{"call":"ping","token":388,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":388},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 387
+  ffl-go {"actions":[{"call":"ping","token":389,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":389},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 388
+  ffl-go {"actions":[{"call":"ping","token":390,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":390},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 389
+  ffl-go {"actions":[{"call":"ping","token":391,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":391},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 390
+  ffl-go {"actions":[{"call":"ping","token":392,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":392},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 391
+  ffl-go {"actions":[{"call":"ping","token":393,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":393},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 392
+  ffl-go {"actions":[{"call":"ping","token":394,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":394},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 393
+  ffl-go {"actions":[{"call":"ping","token":395,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":395},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 394
+  ffl-go {"actions":[{"call":"ping","token":396,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":396},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 395
+  ffl-go {"actions":[{"call":"ping","token":397,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":397},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 396
+  ffl-go {"actions":[{"call":"ping","token":398,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":398},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 397
+  ffl-go {"actions":[{"call":"ping","token":399,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":399},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 398
+  ffl-go {"actions":[{"call":"ping","token":400,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":400},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 399
+  ffl-go {"actions":[{"call":"ping","token":401,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":401},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 400
+  ffl-go {"actions":[{"call":"ping","token":402,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":402},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 401
+  ffl-go {"actions":[{"call":"ping","token":403,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":403},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 402
+  ffl-go {"actions":[{"call":"ping","token":404,"detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":404},{"call":"ping","toke
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+CHAIN DIFF step 403
+  ffl-go {"code":"snapshot_too_large","error":"the new snapshot (11261 bytes) would not fit into a request under the limit of 12000 bytes; the snapshot is not changed"}
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+step 403 refused: snapshot_too_large (403 waits)
+CHAIN DIFF outcome of the oldest wait
+  ffl-go {"actions":[{"call":"log","detached":true}],"snapshot":{"at":"home","timers":{"idle":1},"pending":[{"call":"ping","token":404},{"call":"ping","token":403},{"cal
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+Outcome with the stored snapshot: ok
+CHAIN DIFF restart
+  ffl-go {"actions":[{"cancel_timer":"idle"},{"start_timer":"idle","ms":60000,"token":405},{"send":"home"}],"snapshot":{"at":"home","timers":{"idle":405},"seq":405}}
+  engine {"error":"unexpected character `}`","code":"parse_error"}
+Restart with the stored snapshot: ok
+same request: 370 equal, 36 different; engine chain: 370 equal, 36 different

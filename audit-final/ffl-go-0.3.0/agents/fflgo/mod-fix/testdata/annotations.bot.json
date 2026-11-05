@@ -1,0 +1,5 @@
+{"figram": 1, "x-editor": {"zoom": 1.0},
+ "bot": {"initial": "a", "children": {
+   "a": {"x-content": {"text": "Hello!", "buttons": [{"label": "Next", "event": "btn:next"}]},
+         "on": {"btn:next": [{"to": "b", "x-note": "main path"}]}},
+   "b": {"x-content": {"text": "Done"}}}}}

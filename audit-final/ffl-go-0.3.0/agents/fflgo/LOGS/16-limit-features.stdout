@@ -1,0 +1,4 @@
+step 403 refused: snapshot_too_large (403 waits)
+Outcome with the stored snapshot: ok
+Restart with the stored snapshot: ok
+same request: 406 equal, 0 different; engine chain: 406 equal, 0 different

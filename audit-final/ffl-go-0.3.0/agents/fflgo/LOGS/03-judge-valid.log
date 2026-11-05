@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 ./judge_all.sh /home/user/figram-audit/agents7/fflgo/corpus/valid.jsonl /home/user/figram-audit/agents7/fflgo/out/valid 
+cwd: /home/user/figram-audit/agents7/fflgo
+start: 2026-11-04T23:56:35.012Z
+end: 2026-11-04T23:56:41.888Z
+exit_code: 0
+--- stdout (209 bytes, last 200 lines)
+  99248 /home/user/figram-audit/agents7/fflgo/out/valid.fflgo.tsv
+  99248 /home/user/figram-audit/agents7/fflgo/out/valid.refgo.tsv
+  99248 /home/user/figram-audit/agents7/fflgo/out/valid.py.tsv
+ 297744 total
+--- stderr (0 bytes, last 100 lines)

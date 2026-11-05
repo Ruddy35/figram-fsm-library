@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 600 ./auditclaims limit /home/user/figram-audit-worktrees/cleanup-int/examples/features.bot.json btn:ping 12000 
+cwd: /home/user/figram-audit/agents7/fflgo/claims
+start: 2026-11-05T00:07:11.994Z
+end: 2026-11-05T00:07:13.477Z
+exit_code: 0
+--- stdout (198 bytes, last 200 lines)
+step 403 refused: snapshot_too_large (403 waits)
+Outcome with the stored snapshot: ok
+Restart with the stored snapshot: ok
+same request: 406 equal, 0 different; engine chain: 406 equal, 0 different
+--- stderr (0 bytes, last 100 lines)

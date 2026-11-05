@@ -1,0 +1,14 @@
+command: python3 -I py/compare.py out/valid corpus/valid.jsonl 
+cwd: /home/user/figram-audit/agents7/fflgo
+start: 2026-11-04T23:56:41.910Z
+end: 2026-11-04T23:56:44.002Z
+exit_code: 0
+--- stdout (256 bytes, last 200 lines)
+cases 99248
+verdict triples (fflgo, refgo, python):
+    80421 ('result', 'result', 'result')
+    18163 ('need', 'need', 'need')
+      620 ('error', 'error', 'error')
+       44 ('hello', 'hello', 'hello')
+disagreements by mutation (fflgo, refgo, python): 0
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,18 @@
+command: nice -n 10 timeout 900 ./audithost-race -workers 32 -rounds 2 -reload /home/user/figram-audit/agents7/fflgo/corpus/traces/index.tsv 
+cwd: /home/user/figram-audit/agents7/fflgo/host
+start: 2026-11-05T00:03:43.871Z
+end: 2026-11-05T00:04:20.821Z
+exit_code: 0
+--- stdout (1382 bytes, last 200 lines)
+documents 23, scenarios 1555, workers 32, rounds 2, reload true, GOMAXPROCS 4
+chain:cancel_timer-order:recovered               627
+      e.g. ffl-go {"actions":[{"cancel_timer":"t:t4"},{"cancel_timer":"t:u4"},{"start_timer":"t:t6","ms":42813,"token":9},{"send":"m6"}],"recovered":true,"snapshot":{"at":"m6","back":"m8","resume":{"s0":"m4","s1":"m9","s2":"m8"},"timers":{"t:t6":9},"pending":[{"call":"k4:","token":8}],"seq":9}}
+      engine {"snapshot":{"at":"m6","back":"m8","resume":{"s0":"m4","s2":"m8","s1":"m9"},"timers":{"t:t6":9},"pending":[{"call":"k4:","token":8}],"seq":9},"actions":[{"cancel_timer":"t:u4"},{"cancel_timer":"t:t4"},{"start_timer":"t:t6","ms":42813,"token":9},{"send":"m6"}],"recovered":true}
+chain:cancel_timer-order:restart                 1796
+      e.g. ffl-go {"actions":[{"cancel_timer":"t:t8"},{"cancel_timer":"t:u8"},{"start_timer":"t:t6","ms":91046,"token":4},{"send":"m6"}],"snapshot":{"at":"m6","timers":{"t:t6":4},"seq":4}}
+      engine {"snapshot":{"at":"m6","timers":{"t:t6":4},"seq":4},"actions":[{"cancel_timer":"t:u8"},{"cancel_timer":"t:t8"},{"start_timer":"t:t6","ms":91046,"token":4},{"send":"m6"}]}
+chain:equal                                      84453
+same-request:equal                               219030
+scenario:done                                    3110
+loads 6794, ErrClosed retries of a whole step 1355, calls 170276, 34.8s
+--- stderr (0 bytes, last 100 lines)

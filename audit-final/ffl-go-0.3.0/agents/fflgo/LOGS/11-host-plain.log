@@ -1,0 +1,18 @@
+command: nice -n 10 timeout 900 ./audithost -workers 32 -rounds 1 /home/user/figram-audit/agents7/fflgo/corpus/traces/index.tsv 
+cwd: /home/user/figram-audit/agents7/fflgo/host
+start: 2026-11-05T00:03:31.932Z
+end: 2026-11-05T00:03:38.134Z
+exit_code: 0
+--- stdout (1353 bytes, last 200 lines)
+documents 23, scenarios 1555, workers 32, rounds 1, reload false, GOMAXPROCS 4
+chain:cancel_timer-order:recovered               317
+      e.g. ffl-go {"actions":[{"cancel_timer":"t:t9"},{"cancel_timer":"t:u9"},{"call":"k4:","token":5,"detached":true},{"call":"ns:k1"},{"send":"m13"}],"recovered":true,"snapshot":{"at":"m13","back":"m1","resume":{"s0":"m13","s1":"m1","s2":"m9"},"pending":[{"call":"k4:","token":5}],"seq":5}}
+      engine {"snapshot":{"at":"m13","back":"m1","resume":{"s0":"m13","s2":"m9","s1":"m1"},"pending":[{"call":"k4:","token":5}],"seq":5},"actions":[{"cancel_timer":"t:u9"},{"cancel_timer":"t:t9"},{"call":"k4:","token":5,"detached":true},{"call":"ns:k1"},{"send":"m13"}],"recovered":true}
+chain:cancel_timer-order:restart                 899
+      e.g. ffl-go {"actions":[{"cancel_timer":"t8"},{"cancel_timer":"u8"},{"start_timer":"t6","ms":42813,"token":4},{"send":"m6"}],"snapshot":{"at":"m6","timers":{"t6":4},"seq":4}}
+      engine {"snapshot":{"at":"m6","timers":{"t6":4},"seq":4},"actions":[{"cancel_timer":"u8"},{"cancel_timer":"t8"},{"start_timer":"t6","ms":42813,"token":4},{"send":"m6"}]}
+chain:equal                                      42314
+same-request:equal                               108948
+scenario:done                                    1555
+loads 23, ErrClosed retries of a whole step 0, calls 85230, 6.0s
+--- stderr (0 bytes, last 100 lines)

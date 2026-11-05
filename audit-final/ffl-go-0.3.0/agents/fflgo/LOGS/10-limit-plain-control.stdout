@@ -1,0 +1,4 @@
+step 404 refused: snapshot_too_large (stored snapshot: 404 waits, 11241 bytes as ffl-go encodes it, limit 12000, 15/16 = 11250)
+Outcome of the oldest wait with the stored snapshot: ok
+Restart with the stored snapshot: ok
+Restart via Request with the engine's encoding (11276 bytes): {"id":1,"snapshot":{"at":"home","seq":406},"actions":[{"send":"home"}]} <nil>

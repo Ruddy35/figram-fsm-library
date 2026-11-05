@@ -1,0 +1,22 @@
+command: env AUDIT_RT_IN=/home/user/figram-audit/agents7/fflgo/corpus/valid.jsonl AUDIT_RT_OUT=/home/user/figram-audit/agents7/fflgo/out/rt.jsonl nice -n 10 timeout 900 go test -count=1 -v -run \^TestAuditRoundTrip\$ . 
+cwd: /home/user/figram-audit/agents7/fflgo/mod
+start: 2026-11-04T23:57:47.697Z
+end: 2026-11-04T23:57:54.075Z
+exit_code: 0
+--- stdout (773 bytes, last 200 lines)
+=== RUN   TestAuditRoundTrip
+    zz_audit_test.go:239: action:map-order             2423
+    zz_audit_test.go:239: action:same                  94533
+    zz_audit_test.go:239: reply:map-order              80421
+    zz_audit_test.go:239: reply:same                   18163
+    zz_audit_test.go:239: snapshot:html-escape         4314
+    zz_audit_test.go:239: snapshot:map-order           24262
+    zz_audit_test.go:239: snapshot:same                51845
+    zz_audit_test.go:239: variant:error                620
+    zz_audit_test.go:239: variant:hello                44
+    zz_audit_test.go:239: variant:need                 18163
+    zz_audit_test.go:239: variant:result               80421
+--- PASS: TestAuditRoundTrip (5.34s)
+PASS
+ok  	github.com/Ruddy35/ffl-go	5.351s
+--- stderr (0 bytes, last 100 lines)

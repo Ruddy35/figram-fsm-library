@@ -1,0 +1,11 @@
+command: ./judge_all.sh /home/user/figram-audit/agents7/fflgo/corpus/crossop.jsonl /home/user/figram-audit/agents7/fflgo/out/crossop 
+cwd: /home/user/figram-audit/agents7/fflgo
+start: 2026-11-05T00:13:04.135Z
+end: 2026-11-05T00:13:05.655Z
+exit_code: 0
+--- stdout (203 bytes, last 200 lines)
+  20 /home/user/figram-audit/agents7/fflgo/out/crossop.fflgo.tsv
+  20 /home/user/figram-audit/agents7/fflgo/out/crossop.refgo.tsv
+  20 /home/user/figram-audit/agents7/fflgo/out/crossop.py.tsv
+  60 total
+--- stderr (0 bytes, last 100 lines)

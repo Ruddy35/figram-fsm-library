@@ -1,0 +1,75 @@
+command: nice -n 10 timeout 900 ./audithost -workers 8 -rounds 1 -negctl flip-seq /home/user/figram-audit/agents7/fflgo/corpus/traces/index.tsv 
+cwd: /home/user/figram-audit/agents7/fflgo/host
+start: 2026-11-05T00:04:25.285Z
+end: 2026-11-05T00:04:32.220Z
+exit_code: 1
+--- stdout (7809 bytes, last 200 lines)
+documents 23, scenarios 1555, workers 8, rounds 1, reload false, GOMAXPROCS 4
+chain:cancel_timer-order:recovered               343
+      e.g. ffl-go {"actions":[{"cancel_timer":"t8"},{"cancel_timer":"u8"},{"start_timer":"t6","ms":42813,"token":7},{"send":"m6"}],"recovered":true,"snapshot":{"at":"m6","back":"m3","resume":{"s0":"m4","s1":"m3","s2":"m8"},"timers":{"t6":7},"pending":[{"call":"k3","token":6}],"seq":7}}
+      engine {"snapshot":{"at":"m6","back":"m3","resume":{"s2":"m8","s1":"m3","s0":"m4"},"timers":{"t6":7},"pending":[{"call":"k3","token":6}],"seq":7},"actions":[{"cancel_timer":"u8"},{"cancel_timer":"t8"},{"start_timer":"t6","ms":42813,"token":7},{"send":"m6"}],"recovered":true}
+chain:cancel_timer-order:restart                 894
+      e.g. ffl-go {"actions":[{"cancel_timer":"t:t8"},{"cancel_timer":"t:u8"},{"start_timer":"t:t6","ms":91046,"token":4},{"send":"m6"}],"snapshot":{"at":"m6","timers":{"t:t6":4},"seq":4}}
+      engine {"snapshot":{"at":"m6","timers":{"t:t6":4},"seq":4},"actions":[{"cancel_timer":"t:u8"},{"cancel_timer":"t:t8"},{"start_timer":"t:t6","ms":91046,"token":4},{"send":"m6"}]}
+chain:equal                                      42239
+same-request:DIFF:outcome                        5645
+      e.g. request {"event":"call:k3:failed","op":"step","snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":3}
+      ffl-go {"actions":[],"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":3}}
+      engine {"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"actions":[]}
+same-request:DIFF:outcome-failed                 5645
+      e.g. request {"event":"call:k3:failed","op":"step","snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":3}
+      ffl-go {"actions":[],"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":3}}
+      engine {"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"actions":[]}
+same-request:DIFF:outcome-no-outcomes            6096
+      e.g. request {"event":"call:k2::done","op":"step","snapshot":{"at":"m0","back":"m6","resume":{"s0":"m0"},"seq":2},"token":2}
+      ffl-go {"actions":[],"snapshot":{"at":"m0","back":"m6","resume":{"s0":"m0"},"seq":3}}
+      engine {"snapshot":{"at":"m0","back":"m6","resume":{"s0":"m0"},"seq":2},"actions":[]}
+same-request:DIFF:outcome-recovered              5645
+      e.g. request {"event":"call:k3:failed","op":"step","snapshot":{"at":"__gone__","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":3}
+      ffl-go {"actions":[{"send":"m6"}],"recovered":true,"snapshot":{"at":"m6","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":4}}
+      engine {"snapshot":{"at":"m6","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":3},"actions":[{"send":"m6"}],"recovered":true}
+same-request:DIFF:outcome-recovered-stale        5645
+      e.g. request {"event":"call:k3:failed","op":"step","snapshot":{"at":"__gone__","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":4}
+      ffl-go {"actions":[{"send":"m6"}],"recovered":true,"snapshot":{"at":"m6","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":4}}
+      engine {"snapshot":{"at":"m6","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":3},"actions":[{"send":"m6"}],"recovered":true}
+same-request:DIFF:outcome-repeated               5645
+      e.g. request {"event":"call:k3:failed","op":"step","snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":3}
+      ffl-go {"actions":[],"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":3}}
+      engine {"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"actions":[]}
+same-request:DIFF:outcome-stale                  5645
+      e.g. request {"event":"call:k3:failed","guards":{"c1":false},"op":"step","snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":2}
+      ffl-go {"actions":[{"send":"m7"}],"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"seq":4}}
+      engine {"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"seq":3},"actions":[{"send":"m7"}]}
+same-request:DIFF:outcome-token0                 5645
+      e.g. request {"event":"call:k3:failed","op":"step","snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"token":0}
+      ffl-go {"actions":[],"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":3}}
+      engine {"snapshot":{"at":"m7","back":"m6","resume":{"s0":"m7"},"pending":[{"call":"k3","token":2}],"seq":2},"actions":[]}
+same-request:DIFF:recovered                      3757
+      e.g. request {"event":"cmd:start","guards":{"c1":false},"op":"step","snapshot":{"at":"__gone__","back":"m5","resume":{"s3":"m11"},"seq":2}}
+      ffl-go {"actions":[{"call":"k3:x:y","token":3},{"send":"m5"}],"recovered":true,"snapshot":{"at":"m5","back":"m5","resume":{"s3":"m11"},"pending":[{"call":"k3:x:y","token":3}],"seq":4}}
+      engine {"snapshot":{"at":"m5","back":"m5","resume":{"s3":"m11"},"pending":[{"call":"k3:x:y","token":3}],"seq":3},"actions":[{"call":"k3:x:y","token":3},{"send":"m5"}],"recovered":true}
+same-request:DIFF:restart                        7595
+      e.g. request {"op":"restart","snapshot":{"at":"m6","seq":1}}
+      ffl-go {"actions":[{"send":"m6"}],"snapshot":{"at":"m6","seq":3}}
+      engine {"snapshot":{"at":"m6","seq":2},"actions":[{"send":"m6"}]}
+same-request:DIFF:start                          1555
+      e.g. request {"op":"start"}
+      ffl-go {"actions":[{"send":"m9"}],"snapshot":{"at":"m9","seq":2}}
+      engine {"snapshot":{"at":"m9","seq":1},"actions":[{"send":"m9"}]}
+same-request:DIFF:step                           23190
+      e.g. request {"event":"unknown:event","op":"step","snapshot":{"at":"m6","seq":1}}
+      ffl-go {"actions":[],"snapshot":{"at":"m6","seq":2}}
+      engine {"snapshot":{"at":"m6","seq":1},"actions":[]}
+same-request:DIFF:timer                          1734
+      e.g. request {"event":"timer:t7","guards":{"c1":false,"c3":false},"op":"step","snapshot":{"at":"m7","back":"m13","resume":{"s0":"m13","s2":"m7"},"timers":{"t7":3},"pending":[{"call":"k4","token":3}],"seq":3},"token":3}
+      ffl-go {"actions":[{"cancel_timer":"t7"},{"call":"k2","detached":true},{"send":"m4"}],"snapshot":{"at":"m4","back":"m7","resume":{"s0":"m4","s1":"m4","s2":"m7"},"pending":[{"call":"k4","token":3}],"seq":5}}
+      engine {"snapshot":{"at":"m4","back":"m7","resume":{"s0":"m4","s1":"m4","s2":"m7"},"pending":[{"call":"k4","token":3}],"seq":4},"actions":[{"cancel_timer":"t7"},{"call":"k2","detached":true},{"send":"m4"}]}
+same-request:DIFF:timer-stale                    1734
+      e.g. request {"event":"timer:t7","op":"step","snapshot":{"at":"m7","back":"m13","resume":{"s0":"m13","s2":"m7"},"timers":{"t7":3},"pending":[{"call":"k4","token":3}],"seq":3},"token":4}
+      ffl-go {"actions":[],"snapshot":{"at":"m7","back":"m13","resume":{"s0":"m13","s2":"m7"},"timers":{"t7":3},"pending":[{"call":"k4","token":3}],"seq":4}}
+      engine {"snapshot":{"at":"m7","back":"m13","resume":{"s0":"m13","s2":"m7"},"timers":{"t7":3},"pending":[{"call":"k4","token":3}],"seq":3},"actions":[]}
+same-request:equal                               23796
+scenario:done                                    1555
+loads 23, ErrClosed retries of a whole step 0, calls 85176, 6.8s
+FAIL: 85176 differences
+--- stderr (0 bytes, last 100 lines)

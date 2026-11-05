@@ -1,0 +1,5 @@
+go: creating new go.mod: module example.com/consumer
+go: to add module requirements and sums:
+	go mod tidy
+go: downloading github.com/Ruddy35/ffl-go v0.3.0
+go: added github.com/Ruddy35/ffl-go v0.3.0

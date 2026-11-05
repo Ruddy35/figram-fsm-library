@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 600 ./auditclaims limit /home/user/figram-audit/agents7/fflgo/docs/amp.bot.json btn:ping 12000 
+cwd: /home/user/figram-audit/agents7/fflgo/claims
+start: 2026-11-05T00:07:13.491Z
+end: 2026-11-05T00:07:14.145Z
+exit_code: 1
+--- stdout (958 bytes, last 200 lines)
+CHAIN DIFF step 251
+  ffl-go {"code":"too_large","error":"request is longer than the limit of 12000 bytes"}
+  engine {"snapshot":{"at":"home","pending":[{"call":"<ping>&co","token":253},{"call":"<ping>&co","token":252},{"call":"<ping>&co","token":251},{"call":"<ping>&co","toke
+step 251 refused: too_large (251 waits)
+CHAIN DIFF outcome of the oldest wait
+  ffl-go {"code":"too_large","error":"request is longer than the limit of 12000 bytes"}
+  engine {"snapshot":{"at":"home","pending":[{"call":"<ping>&co","token":252},{"call":"<ping>&co","token":251},{"call":"<ping>&co","token":250},{"call":"<ping>&co","toke
+Outcome with the stored snapshot: too_large
+CHAIN DIFF restart
+  ffl-go {"code":"too_large","error":"request is longer than the limit of 12000 bytes"}
+  engine {"snapshot":{"at":"home","seq":253},"actions":[{"send":"home"}]}
+Restart with the stored snapshot: too_large
+same request: 254 equal, 0 different; engine chain: 251 equal, 3 different
+--- stderr (0 bytes, last 100 lines)

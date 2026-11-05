@@ -1,0 +1,13 @@
+SAME-REQUEST DIFF step 251
+  ffl-go {"actions":[{"call":"\u003cping\u003e\u0026co","token":253}],"snapshot":{"at":"home","pending":[{"call":"\u003cping\u003e\u0026co","token":253},{"call":"\u003cping\u003e\u0026co","token":252},{"call":
+  engine {"error":"request is longer than the limit of 12000 bytes","code":"too_large"}
+SAME-REQUEST DIFF step 252
+  ffl-go {"actions":[{"call":"\u003cping\u003e\u0026co","token":254}],"snapshot":{"at":"home","pending":[{"call":"\u003cping\u003e\u0026co","token":254},{"call":"\u003cping\u003e\u0026co","token":253},{"call":
+  engine {"error":"request is longer than the limit of 12000 bytes","code":"too_large"}
+SAME-REQUEST DIFF step 253
+  ffl-go {"actions":[{"call":"\u003cping\u003e\u0026co","token":255}],"snapshot":{"at":"home","pending":[{"call":"\u003cping\u003e\u0026co","token":255},{"call":"\u003cping\u003e\u0026co","token":254},{"call":
+  engine {"error":"request is longer than the limit of 12000 bytes","code":"too_large"}
+step 343 refused: snapshot_too_large (343 waits)
+Outcome with the stored snapshot: ok
+Restart with the stored snapshot: ok
+same request: 251 equal, 95 different; engine chain: 346 equal, 0 different

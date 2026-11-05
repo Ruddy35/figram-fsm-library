@@ -1,0 +1,18 @@
+command: /home/user/figram-audit/agents7/fflgo/probes/engine_order.sh 
+cwd: /home/user
+start: 2026-11-05T00:05:38.193Z
+end: 2026-11-05T00:05:38.852Z
+exit_code: 0
+--- stdout (2534 bytes, last 200 lines)
+{"id":1,"snapshot":{"at":"home","timers":{"mid":1,"alpha":1,"zeta":1},"seq":1},"actions":[{"start_timer":"zeta","ms":1000,"token":1},{"start_timer":"alpha","ms":2000,"token":1},{"start_timer":"mid","ms":3000,"token":1},{"send":"home"}]}
+{"id":11,"snapshot":{"at":"zz1","back":"home","resume":{"s_zz":"zz1"},"timers":{"t1":2,"t9":2},"seq":2},"actions":[{"cancel_timer":"zeta"},{"cancel_timer":"alpha"},{"cancel_timer":"mid"},{"cancel_timer":"old2"},{"cancel_timer":"old"},{"start_timer":"t9","ms":50,"token":2},{"start_timer":"t1","ms":60,"token":2},{"send":"zz1"}]}
+{"id":12,"snapshot":{"at":"zz1","back":"home","resume":{"s_zz":"zz1"},"timers":{"t1":2,"t9":2},"seq":2},"actions":[{"cancel_timer":"zeta"},{"cancel_timer":"alpha"},{"cancel_timer":"mid"},{"cancel_timer":"old"},{"cancel_timer":"old2"},{"start_timer":"t9","ms":50,"token":2},{"start_timer":"t1","ms":60,"token":2},{"send":"zz1"}]}
+{"id":21,"snapshot":{"at":"home","timers":{"mid":2,"alpha":2,"zeta":2},"seq":2},"actions":[{"cancel_timer":"zeta"},{"cancel_timer":"alpha"},{"start_timer":"zeta","ms":1000,"token":2},{"start_timer":"alpha","ms":2000,"token":2},{"start_timer":"mid","ms":3000,"token":2},{"send":"home"}],"recovered":true}
+{"id":22,"snapshot":{"at":"home","timers":{"mid":2,"alpha":2,"zeta":2},"seq":2},"actions":[{"cancel_timer":"alpha"},{"cancel_timer":"zeta"},{"start_timer":"zeta","ms":1000,"token":2},{"start_timer":"alpha","ms":2000,"token":2},{"start_timer":"mid","ms":3000,"token":2},{"send":"home"}],"recovered":true}
+{"id":31,"snapshot":{"at":"home","timers":{"mid":2,"alpha":2,"zeta":2},"seq":2},"actions":[{"cancel_timer":"mid"},{"cancel_timer":"alpha"},{"cancel_timer":"zeta"},{"start_timer":"zeta","ms":1000,"token":2},{"start_timer":"alpha","ms":2000,"token":2},{"start_timer":"mid","ms":3000,"token":2},{"send":"home"}]}
+{"id":32,"snapshot":{"at":"home","timers":{"mid":2,"alpha":2,"zeta":2},"seq":2},"actions":[{"cancel_timer":"alpha"},{"cancel_timer":"mid"},{"cancel_timer":"zeta"},{"start_timer":"zeta","ms":1000,"token":2},{"start_timer":"alpha","ms":2000,"token":2},{"start_timer":"mid","ms":3000,"token":2},{"send":"home"}]}
+{"id":41,"snapshot":{"at":"placing","resume":{"order":"placing"},"seq":6},"actions":[]}
+{"id":42,"snapshot":{"at":"menu","resume":{"order":"placing"},"seq":7},"actions":[{"send":"menu"}],"recovered":true}
+{"id":43,"snapshot":{"at":"cart","timers":{"cart_reminder":3},"seq":3},"actions":[]}
+{"id":44,"snapshot":{"at":"menu","seq":4},"actions":[{"cancel_timer":"cart_reminder"},{"send":"menu"}],"recovered":true}
+--- stderr (0 bytes, last 100 lines)

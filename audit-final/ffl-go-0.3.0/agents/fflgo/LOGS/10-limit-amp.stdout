@@ -1,0 +1,4 @@
+step 251 refused: too_large (stored snapshot: 251 waits, 11977 bytes as ffl-go encodes it, limit 12000, 15/16 = 11250)
+Outcome of the oldest wait with the stored snapshot: too_large
+Restart with the stored snapshot: too_large
+Restart via Request with the engine's encoding (8247 bytes): {"id":1,"snapshot":{"at":"home","seq":253},"actions":[{"send":"home"}]} <nil>

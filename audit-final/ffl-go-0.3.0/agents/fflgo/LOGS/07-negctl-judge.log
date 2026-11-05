@@ -1,0 +1,11 @@
+command: nice -n 10 timeout 900 ./judge_all.sh /home/user/figram-audit/agents7/fflgo/corpus/mut.jsonl /home/user/figram-audit/agents7/fflgo/out/neg /home/user/figram-audit/agents7/fflgo/mod-neg 
+cwd: /home/user/figram-audit/agents7/fflgo
+start: 2026-11-04T23:57:33.928Z
+end: 2026-11-04T23:57:41.824Z
+exit_code: 0
+--- stdout (207 bytes, last 200 lines)
+  168353 /home/user/figram-audit/agents7/fflgo/out/neg.fflgo.tsv
+  168353 /home/user/figram-audit/agents7/fflgo/out/neg.refgo.tsv
+  168353 /home/user/figram-audit/agents7/fflgo/out/neg.py.tsv
+  505059 total
+--- stderr (0 bytes, last 100 lines)

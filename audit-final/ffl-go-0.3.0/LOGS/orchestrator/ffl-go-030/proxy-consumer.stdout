@@ -1,0 +1,6 @@
+go.mod:require github.com/Ruddy35/ffl-go v0.3.0 // indirect
+go.sum:github.com/Ruddy35/ffl-go v0.3.0 h1:5jxVbswq2PNMsXCLe7REcfMxVIuAsO2wku1Pipaqxso=
+go.sum:github.com/Ruddy35/ffl-go v0.3.0/go.mod h1:LjmOh7wKg1jNmNL9oNaM+NJ9a3H2wOHq0SDXRj07pSM=
+bundled 0.3.0 protocol 3
+{"at":"catalog","back":"menu","resume":{"order":"catalog"},"seq":2}
+send catalog

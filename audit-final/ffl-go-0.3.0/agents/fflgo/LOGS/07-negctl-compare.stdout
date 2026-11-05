@@ -1,0 +1,57 @@
+cases 168353
+verdict triples (fflgo, refgo, python):
+   131169 ('ERR', 'ERR', 'ERR')
+    15490 ('result', 'result', 'result')
+     3662 ('result', 'ERR', 'ERR')
+     3594 ('ERR', 'ERR', 'result')
+     2714 ('ERR', 'result', 'ERR')
+     2079 ('error', 'error', 'error')
+     1821 ('result', 'result', 'ERR')
+     1798 ('need', 'need', 'need')
+     1762 ('ERR', 'need', 'ERR')
+     1234 ('need', 'need', 'ERR')
+     1218 ('error', 'error', 'ERR')
+      685 ('ERR', 'error', 'ERR')
+      599 ('need', 'ERR', 'ERR')
+      176 ('hello', 'hello', 'hello')
+      132 ('ERR', 'hello', 'ERR')
+       88 ('hello', 'ERR', 'ERR')
+       88 ('hello', 'hello', 'ERR')
+       44 ('ERR', 'hello', 'hello')
+disagreements by mutation (fflgo, refgo, python): 17641
+  act:call:det1                ('result', 'ERR', 'ERR')                 n=   917 of    917  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"},{"call":"a","detached":1}]}
+  act:call:detfalse            ('result', 'ERR', 'ERR')                 n=   910 of    910  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"},{"call":"a","detached":false}]}
+  act:call:detstr              ('result', 'ERR', 'ERR')                 n=   919 of    919  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"},{"call":"a","detached":"true"}]}
+  act:call:tok+detfalse        ('result', 'ERR', 'ERR')                 n=   916 of    916  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"},{"call":"a","token":1,"detached":false}]}
+  act:call:toknegzero          ('ERR', 'ERR', 'result')                 n=   851 of    851  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"},{"call":"a","token":-0}]}
+  err:error:empty              ('error', 'error', 'ERR')                n=   233 of    233  e.g. op=step id=3821 {"id":3821,"error":"","code":"bad_snapshot"}
+  err:idnull:parse_error       ('error', 'error', 'ERR')                n=   229 of    229  e.g. op=step id=3821 {"id":null,"error":"snapshot: unknown version","code":"parse_error"}
+  err:idnull:too_large         ('error', 'error', 'ERR')                n=   231 of    231  e.g. op=step id=3821 {"id":null,"error":"snapshot: unknown version","code":"too_large"}
+  hello:mutant:ok              ('ERR', 'hello', 'hello')                n=    44 of     44  e.g. op=hello id=1 {"id":1,"protocol":3,"states":13,"mutant":"3:x"}
+  hello:protocol:2             ('hello', 'ERR', 'ERR')                  n=    44 of     44  e.g. op=hello id=1 {"id":1,"protocol":2,"states":13}
+  hello:protocol:4             ('hello', 'ERR', 'ERR')                  n=    44 of     44  e.g. op=hello id=1 {"id":1,"protocol":4,"states":13}
+  id:null                      ('error', 'error', 'ERR')                n=    65 of   1755  e.g. op=hello id=3831 {"id":null,"error":"extra text after the JSON value","code":"parse_error"}
+  need:dup                     ('need', 'ERR', 'ERR')                   n=   599 of    599  e.g. op=step id=11 {"id":11,"need":["cart_not_empty","cart_not_empty"]}
+  raw:trail:brace              ('error', 'error', 'ERR')                n=   227 of   1807  e.g. op=step id=3821 {"id":3821,"error":"snapshot: unknown version","code":"bad_snapshot"}}
+  raw:trail:brace              ('hello', 'hello', 'ERR')                n=    44 of   1807  e.g. op=hello id=1 {"id":1,"protocol":3,"states":13}}
+  raw:trail:brace              ('need', 'need', 'ERR')                  n=   633 of   1807  e.g. op=step id=11 {"id":11,"need":["cart_not_empty"]}}
+  raw:trail:brace              ('result', 'result', 'ERR')              n=   903 of   1807  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}}
+  raw:trail:bracket            ('error', 'error', 'ERR')                n=   233 of   1796  e.g. op=step id=3821 {"id":3821,"error":"snapshot: unknown version","code":"bad_snapshot"}]
+  raw:trail:bracket            ('hello', 'hello', 'ERR')                n=    44 of   1796  e.g. op=hello id=1 {"id":1,"protocol":3,"states":13}]
+  raw:trail:bracket            ('need', 'need', 'ERR')                  n=   601 of   1796  e.g. op=step id=11 {"id":11,"need":["cart_not_empty"]}]
+  raw:trail:bracket            ('result', 'result', 'ERR')              n=   918 of   1796  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}]
+  raw:trail:num                ('ERR', 'error', 'ERR')                  n=   230 of   1765  e.g. op=step id=3821 {"id":3821,"error":"snapshot: unknown version","code":"bad_snapshot"} 1
+  raw:trail:num                ('ERR', 'hello', 'ERR')                  n=    44 of   1765  e.g. op=hello id=1 {"id":1,"protocol":3,"states":13} 1
+  raw:trail:num                ('ERR', 'need', 'ERR')                   n=   586 of   1765  e.g. op=step id=11 {"id":11,"need":["cart_not_empty"]} 1
+  raw:trail:num                ('ERR', 'result', 'ERR')                 n=   905 of   1765  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]} 1
+  raw:trail:obj                ('ERR', 'error', 'ERR')                  n=   229 of   1749  e.g. op=step id=3821 {"id":3821,"error":"snapshot: unknown version","code":"bad_snapshot"}{}
+  raw:trail:obj                ('ERR', 'hello', 'ERR')                  n=    44 of   1749  e.g. op=hello id=1 {"id":1,"protocol":3,"states":13}{}
+  raw:trail:obj                ('ERR', 'need', 'ERR')                   n=   576 of   1749  e.g. op=step id=11 {"id":11,"need":["cart_not_empty"]}{}
+  raw:trail:obj                ('ERR', 'result', 'ERR')                 n=   900 of   1749  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]}{}
+  raw:trail:x                  ('ERR', 'error', 'ERR')                  n=   226 of   1779  e.g. op=step id=3821 {"id":3821,"error":"snapshot: unknown version","code":"bad_snapshot"} x
+  raw:trail:x                  ('ERR', 'hello', 'ERR')                  n=    44 of   1779  e.g. op=hello id=1 {"id":1,"protocol":3,"states":13} x
+  raw:trail:x                  ('ERR', 'need', 'ERR')                   n=   600 of   1779  e.g. op=step id=11 {"id":11,"need":["cart_not_empty"]} x
+  raw:trail:x                  ('ERR', 'result', 'ERR')                 n=   909 of   1779  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1},"actions":[{"send":"menu"}]} x
+  snap:pending:toknegzero      ('ERR', 'ERR', 'result')                 n=   925 of    925  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1,"pending":[{"call":"act","token":-0}]},"actions":[{"send":"menu"}]}
+  snap:seq:negzero             ('ERR', 'ERR', 'result')                 n=   925 of    925  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":-0},"actions":[{"send":"menu"}]}
+  snap:timers:negzero          ('ERR', 'ERR', 'result')                 n=   893 of    893  e.g. op=start id=2 {"id":2,"snapshot":{"at":"menu","seq":1,"timers":{"t":-0}},"actions":[{"send":"menu"}]}

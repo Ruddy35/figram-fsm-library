@@ -1,0 +1,7 @@
+{"figram": 1,
+ "calls": {"<ping>&co": {"text": "ping, every call answered", "outcomes": ["pong"], "every": true},
+           "ping": {"text": "same without special characters", "outcomes": ["pong"], "every": true}},
+ "bot": {"initial": "home",
+   "on": {"call:<ping>&co:pong": [{}], "call:<ping>&co:failed": [{}],
+          "call:ping:pong": [{}], "call:ping:failed": [{}]},
+   "children": {"home": {"on": {"btn:ping": [{"do": ["<ping>&co"]}], "btn:plain": [{"do": ["ping"]}]}}}}}

@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 900 python3 -I gen/gen_corpus.py /home/user/figram-audit/agents7/fflgo/corpus 1 
+cwd: /home/user/figram-audit/agents7/fflgo
+start: 2026-11-04T23:52:44.482Z
+end: 2026-11-04T23:53:13.817Z
+exit_code: 0
+--- stdout (20 bytes, last 200 lines)
+valid replies 99248
+--- stderr (0 bytes, last 100 lines)

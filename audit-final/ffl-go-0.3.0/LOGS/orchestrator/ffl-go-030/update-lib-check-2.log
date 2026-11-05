@@ -1,0 +1,24 @@
+command: timeout 300 bash scripts/update-lib.sh --check 
+cwd: /home/user/ffl-go
+start: 2026-11-05T00:23:40.775Z
+end: 2026-11-05T00:23:43.170Z
+exit_code: 0
+--- stdout (562 bytes, last 200 lines)
+figram-0.3.0-linux-x86_64.tar.gz: OK
+libfigram-0.3.0-linux-x86_64.tar.gz: OK
+ok    figram.h
+ok    lib/linux_amd64/THIRD_PARTY_NOTICES.md
+ok    lib/linux_amd64/SHA256SUMS.release
+ok    lib/linux_amd64/libInit.a
+ok    lib/linux_amd64/libc++.a
+ok    lib/linux_amd64/libc++abi.a
+ok    lib/linux_amd64/libfigram.a
+ok    lib/linux_amd64/libgmp.a
+ok    lib/linux_amd64/libleanrt.a
+ok    lib/linux_amd64/libuv.a
+ok    testdata/annotations.bot.json
+ok    testdata/features.bot.json
+ok    testdata/golden.jsonl
+ok    testdata/pizza.bot.json
+the tree equals release v0.3.0
+--- stderr (0 bytes, last 100 lines)

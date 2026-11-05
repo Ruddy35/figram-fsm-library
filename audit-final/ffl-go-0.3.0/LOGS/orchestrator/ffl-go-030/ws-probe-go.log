@@ -1,0 +1,20 @@
+command: nice -n 10 timeout 600 go test -count=1 -v -run TestZZWhitespaceProbe . 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/wsprobe/mod
+start: 2026-11-05T02:09:12.739Z
+end: 2026-11-05T02:09:14.354Z
+exit_code: 0
+--- stdout (548 bytes, last 200 lines)
+=== RUN   TestZZWhitespaceProbe
+    zz_wsprobe_test.go:13: space  accepted=true
+    zz_wsprobe_test.go:13: tab    accepted=true
+    zz_wsprobe_test.go:13: lf     accepted=true
+    zz_wsprobe_test.go:13: crlf   accepted=true
+    zz_wsprobe_test.go:13: vt     accepted=true
+    zz_wsprobe_test.go:13: ff     accepted=true
+    zz_wsprobe_test.go:13: nel    accepted=true
+    zz_wsprobe_test.go:13: nbsp   accepted=true
+    zz_wsprobe_test.go:13: x      accepted=false
+--- PASS: TestZZWhitespaceProbe (0.00s)
+PASS
+ok  	github.com/Ruddy35/ffl-go	0.003s
+--- stderr (0 bytes, last 100 lines)

@@ -1,0 +1,23 @@
+{"figram": 1,
+ "calls": {"ns:zap": {"text": "z", "outcomes": ["ok"], "every": true},
+           "a&b<c>": {"text": "html", "outcomes": ["ok"]},
+           "bg:log": {"text": "bg", "detached": true, "outcomes": ["done"]},
+           "plain": "p"},
+ "bot": {"initial": "home",
+   "on": {"cmd:z": [{"to": "s_zz", "resume": true}],
+          "cmd:a": [{"to": "s_aa", "resume": true}],
+          "call:ns:zap:ok": [{"do": ["plain"]}],
+          "call:ns:zap:failed": [{}],
+          "call:a&b<c>:ok": [{"to": "home"}],
+          "call:a&b<c>:failed": [{"to": "home"}],
+          "call:bg:log:done": [{}],
+          "call:bg:log:failed": [{}]},
+   "children": {
+     "home": {"on": {"btn:go": [{"to": "s_zz"}], "btn:z": [{"do": ["ns:zap", "bg:log"]}], "btn:h": [{"to": "wait", "do": ["a&b<c>"]}]},
+              "timers": {"zeta": 1000, "alpha": 2000, "mid": 3000}},
+     "wait": {"on": {"btn:x": [{"to": "home"}]}},
+     "s_zz": {"initial": "zz1", "on": {"btn:aa": [{"to": "s_aa"}]}, "children": {
+        "zz1": {"on": {"btn:in": [{"to": "s_zz_in"}]}, "timers": {"t9": 50, "t1": 60}},
+        "s_zz_in": {"initial": "q", "children": {"q": {"on": {"btn:home": [{"to": "home"}]}}}}}},
+     "s_aa": {"initial": "aa1", "children": {"aa1": {"on": {"btn:zz": [{"to": "s_zz", "resume": true}], "btn:home": [{"to": "home"}]}}}}
+   }}}

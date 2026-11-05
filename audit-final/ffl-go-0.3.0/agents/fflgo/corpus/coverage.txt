@@ -1,0 +1,27 @@
+call                                5412
+call name with ':'                  7466
+call+detached                       4903
+call+token                          5035
+call+token+detached                 5354
+error:bad_request                   264
+error:bad_snapshot                  44
+error:parse_error                   220
+error:seq_overflow                  89
+error:snapshot_too_large            2
+error:too_large                     1
+hello                               44
+need:step                           18163
+pending name with ':'               21040
+recovered                           14651
+req outcome event                   47015
+req outcome, action with ':'        17262
+req timer event                     6450
+result:restart                      1701
+result:start                        2747
+result:step                         75973
+snap.back                           67162
+snap.pending                        52447
+snap.pending>1                      23047
+snap.resume>1                       47548
+snap.timers>1                       9836
+total                               99248

@@ -1,0 +1,73 @@
+# Tests of the module with the bundled libraries (gcc and clang, the oldest supported and the
+# current Go), a consumer module (plain, vendored, --gc-sections and figram_system builds), the
+# wrapper mutants, and the check that the bundled files equal the Figram release.
+# Actions are pinned by commit SHA; the tag in the comment is for updating them.
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  test:
+    name: go ${{ matrix.go }}, ${{ matrix.cc }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ["1.23.x", "stable"]
+        cc: [gcc, clang]
+    env:
+      CC: ${{ matrix.cc }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e   # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: gofmt
+        run: |
+          out=$(gofmt -l .)
+          [ -z "$out" ] || { echo "not gofmt-ed: $out"; exit 1; }
+      - run: go vet ./...
+      - run: go test -count=1 -v ./...
+      - run: go test -race -count=1 ./...
+      - name: consumer module
+        run: scripts/consumer-test.sh
+
+  release-files:
+    name: bundled files equal the release, figram_system build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e   # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - name: scripts/update-lib.sh --check
+        run: scripts/update-lib.sh --check
+      - name: consumer module against the unpacked release archive (tag figram_system)
+        run: |
+          v=$(cat lib/linux_amd64/VERSION)
+          base=https://github.com/Ruddy35/figram-fsm-library/releases/download/v$v
+          cd "$RUNNER_TEMP"
+          curl -fsSL --retry 3 -O "$base/SHA256SUMS" -O "$base/libfigram-$v-linux-x86_64.tar.gz"
+          sha256sum --strict -c --ignore-missing SHA256SUMS
+          tar -xzf "libfigram-$v-linux-x86_64.tar.gz"
+          cd "$GITHUB_WORKSPACE"
+          LIBFIGRAM=$RUNNER_TEMP/libfigram-$v-linux-x86_64 scripts/consumer-test.sh
+
+  mutants:
+    name: wrapper mutants
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e   # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - run: python3 scripts/mutants.py

@@ -1,0 +1,21 @@
+PASS    (control) no change: rc=0
+SURVIVED trailing text after a reply accepted: rc=0 
+SURVIVED snapshot timers not checked: rc=0 
+SURVIVED snapshot resume values not checked: rc=0 
+SURVIVED snapshot version not checked: rc=0 
+SURVIVED snapshot at not checked: rc=0 
+killed   snapshot seq not checked: rc=1 TestCheckReply
+SURVIVED hello states not checked: rc=0 
+SURVIVED need entries not checked: rc=0 
+SURVIVED start_timer token not checked: rc=0 
+killed   pending order reversed: rc=1 TestGolden, TestGoldenConcurrent
+SURVIVED timer guards dropped: rc=0 
+SURVIVED outcome refuses an action name with ':': rc=0 
+SURVIVED snapshot loses v: rc=0 
+SURVIVED Decide loop guard removed: rc=0 
+killed   action detached written for every call: rc=1 TestActionJSON
+killed   hello protocol read as states: rc=1 TestHello
+killed   SetMaxRequest ignores its argument: rc=1 TestTooLarge, TestSnapshotTooLarge
+killed   timers dropped by toSnapshot: rc=1 TestGolden, TestGoldenConcurrent, TestStartWith
+SURVIVED need duplicates rejected (stricter, as the references): rc=0 
+done

@@ -1,0 +1,16 @@
+command: python3 -I /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/wsprobe/pyprobe.py 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/wsprobe
+start: 2026-11-05T02:09:14.369Z
+end: 2026-11-05T02:09:14.393Z
+exit_code: 0
+--- stdout (194 bytes, last 200 lines)
+space  accepted=True
+tab    accepted=True
+lf     accepted=True
+crlf   accepted=True
+vt     accepted=False
+ff     accepted=False
+nel    accepted=False
+nbsp   accepted=False
+x      accepted=False
+--- stderr (0 bytes, last 100 lines)

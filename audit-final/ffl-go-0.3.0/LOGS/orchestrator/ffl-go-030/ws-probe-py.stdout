@@ -1,0 +1,9 @@
+space  accepted=True
+tab    accepted=True
+lf     accepted=True
+crlf   accepted=True
+vt     accepted=False
+ff     accepted=False
+nel    accepted=False
+nbsp   accepted=False
+x      accepted=False

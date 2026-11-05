@@ -1,0 +1,7 @@
+command: go vet ./... 
+cwd: /home/user/ffl-go
+start: 2026-11-04T23:37:29.477Z
+end: 2026-11-04T23:37:30.935Z
+exit_code: 0
+--- stdout (0 bytes, last 200 lines)
+--- stderr (0 bytes, last 100 lines)

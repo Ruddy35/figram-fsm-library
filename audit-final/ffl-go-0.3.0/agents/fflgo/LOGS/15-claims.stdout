@@ -1,0 +1,35 @@
+[HOLDS] control: repeated outcome on a snapshot of the current document changes nothing
+      {"actions":[],"snapshot":{"at":"done","back":"placing","resume":{"order":"placing"},"seq":7}}
+[HOLDS] control: stale outcome (token 5) changes nothing
+      {"actions":[],"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6}}
+[DOES NOT HOLD] C1 repeated outcome with a snapshot whose message is no longer in the document changes nothing
+      in {"at":"gone","back":"placing","resume":{"order":"placing"},"seq":7}
+      out {"actions":[{"send":"menu"}],"recovered":true,"snapshot":{"at":"menu","back":"placing","resume":{"order":"placing"},"seq":8}}
+[HOLDS] control: stale timer token changes nothing
+      {"actions":[],"snapshot":{"at":"cart","timers":{"cart_reminder":3},"seq":3}}
+[DOES NOT HOLD] C2 stale timer token with a snapshot whose message is no longer in the document changes nothing
+      in {"at":"gone","timers":{"cart_reminder":3},"seq":3}
+      out {"actions":[{"cancel_timer":"cart_reminder"},{"send":"menu"}],"recovered":true,"snapshot":{"at":"menu","seq":4}}
+[HOLDS] C3a outcome with token 0 (no wait has it) changes nothing
+      {"actions":[],"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6}}
+[HOLDS] C3b outcome for an action without outcomes (no wait for it) changes nothing
+      {"actions":[],"snapshot":{"at":"placing","resume":{"order":"placing"},"pending":[{"call":"create_order","token":6}],"seq":6}}
+[HOLDS] C3c outcome failed is accepted and removes the wait
+      {"actions":[{"send":"order_failed"}],"snapshot":{"at":"order_failed","resume":{"order":"order_failed"},"seq":7}} ok
+[HOLDS] C3d a malformed outcome is refused before it is sent; the error is not a *ProtocolError (no Code to decide by)
+      non-protocol error: figram: outcome event: action "create_order", outcome "a:b" (both non-empty, no ':' in the outcome)
+[HOLDS] C4 Restart clears the waits (behaviour; the Restart doc comment lists timers and remembered places only)
+      {"actions":[{"send":"menu"}],"snapshot":{"at":"menu","seq":7}}
+[DOES NOT HOLD] C5 an event with invalid UTF-8 is rejected (C ABI: never replaced with U+FFFD)
+      raw request: {"id":null,"error":"request is not valid UTF-8","code":"parse_error"}
+      Step("btn:\xff"): {"actions":[],"snapshot":{"at":"menu","seq":1}} ok
+      Step("btn:\uFFFD"): {"actions":[],"snapshot":{"at":"menu","seq":1}} ok
+[DOES NOT HOLD] C5b a snapshot whose at has invalid UTF-8 is rejected (bad_snapshot or parse_error)
+      Step: {"actions":[{"send":"catalog"}],"recovered":true,"snapshot":{"at":"catalog","resume":{"order":"catalog"},"seq":2}} ok
+[DOES NOT HOLD] C6 snapshot_too_large means unanswered waits
+      SetMaxRequest(71): Step({"at":"home","seq":1}, btn:go) = snapshot_too_large with no wait in the old or the new snapshot (the new one gains back, resume and two timers)
+      engine reply to start:  {"id":1,"snapshot":{"at":"home","timers":{"mid":1,"alpha":1,"zeta":1},"seq":1},"actions":[{"start_timer":"zeta","ms":1000,"token":1},{"start_timer":"alpha","ms":2000,"token":1},{"start_timer":"mid","ms":3000,"token":1},{"send":"home"}]}
+      ffl-go stored snapshot: {"at":"home","timers":{"alpha":1,"mid":1,"zeta":1},"seq":1}
+[DOES NOT HOLD] C7 Restart through ffl-go gives the actions the engine gives for the snapshot it wrote
+      ffl-go actions [{"cancel_timer":"alpha"},{"cancel_timer":"mid"},{"cancel_timer":"zeta"},{"start_timer":"zeta","ms":1000,"token":2},{"start_timer":"alpha","ms":2000,"token":2},{"start_timer":"mid","ms":3000,"token":2},{"send":"home"}]
+      engine {"id":2,"snapshot":{"at":"home","timers":{"mid":2,"alpha":2,"zeta":2},"seq":2},"actions":[{"cancel_timer":"mid"},{"cancel_timer":"alpha"},{"cancel_timer":"zeta"},{"start_timer":"zeta","ms":1000,"token":2},{"start_timer":"alpha","ms":2000,"token":2},{"start_timer":"mid","ms":3000,"token":2},{"send":"home"}]}

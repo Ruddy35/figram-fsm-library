@@ -1,0 +1,13 @@
+=== RUN   TestZZWhitespaceProbe
+    zz_wsprobe_test.go:13: space  accepted=true
+    zz_wsprobe_test.go:13: tab    accepted=true
+    zz_wsprobe_test.go:13: lf     accepted=true
+    zz_wsprobe_test.go:13: crlf   accepted=true
+    zz_wsprobe_test.go:13: vt     accepted=true
+    zz_wsprobe_test.go:13: ff     accepted=true
+    zz_wsprobe_test.go:13: nel    accepted=true
+    zz_wsprobe_test.go:13: nbsp   accepted=true
+    zz_wsprobe_test.go:13: x      accepted=false
+--- PASS: TestZZWhitespaceProbe (0.00s)
+PASS
+ok  	github.com/Ruddy35/ffl-go	0.003s

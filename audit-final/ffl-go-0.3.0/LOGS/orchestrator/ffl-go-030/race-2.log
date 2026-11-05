@@ -1,0 +1,9 @@
+command: timeout 900 go test -race -count=1 ./... 
+cwd: /home/user/ffl-go
+start: 2026-11-05T00:23:00.724Z
+end: 2026-11-05T00:23:19.882Z
+exit_code: 0
+--- stdout (101 bytes, last 200 lines)
+ok  	github.com/Ruddy35/ffl-go	9.090s
+?   	github.com/Ruddy35/ffl-go/lib/linux_amd64	[no test files]
+--- stderr (0 bytes, last 100 lines)

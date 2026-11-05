@@ -1,0 +1,8 @@
+command: nice -n 10 timeout 600 python3 -I gen/mutate.py corpus/valid.jsonl corpus/mut.jsonl 11 
+cwd: /home/user/figram-audit/agents7/fflgo
+start: 2026-11-04T23:54:20.513Z
+end: 2026-11-04T23:55:48.695Z
+exit_code: 0
+--- stdout (41 bytes, last 200 lines)
+mutants 168353 full sweeps 688 strata 12
+--- stderr (0 bytes, last 100 lines)

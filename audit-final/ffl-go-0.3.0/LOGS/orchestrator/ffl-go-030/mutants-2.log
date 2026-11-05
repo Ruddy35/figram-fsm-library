@@ -1,0 +1,51 @@
+command: timeout 2400 python3 scripts/mutants.py 
+cwd: /home/user/ffl-go
+start: 2026-11-05T00:18:29.832Z
+end: 2026-11-05T00:20:21.154Z
+exit_code: 1
+--- stdout (3340 bytes, last 200 lines)
+killed  snapshot loses resume: rc=1 TestGolden, TestGoldenConcurrent, TestNeedAndDecide, TestRecoveredStep, TestOutcome, Example, ExampleBot_StartWith
+killed  Decide drops collected guards: rc=1 TestNeedAndDecide, TestStartWith, TestOutcome
+killed  reply id not checked: rc=1 TestCheckReply
+killed  timer token not sent: rc=1 TestGolden, TestGoldenConcurrent
+killed  start ignores seq: rc=1 TestStartSeqAndRestart, TestStartWith
+killed  recovered dropped: rc=1 TestGolden, TestGoldenConcurrent, TestRecoveredStep
+killed  action order reversed: rc=1 TestGolden, TestGoldenConcurrent, TestNeedAndDecide, TestStartWith, TestRecoveredStep, TestOutcome, ExampleDecide, ExampleBot_Outcome
+killed  check ok ignored: rc=1 TestCheckAndFmt, ExampleCheck
+killed  SIGPIPE ignored after init: rc=1 TestInitKeepsSignals
+killed  close does not stop requests: rc=1 TestCloseDuringRequests
+killed  start with an event sends no event: rc=1 TestGolden, TestGoldenConcurrent, TestStartWith, TestInvalidUTF8, ExampleBot_StartWith
+killed  start with an event drops the guards: rc=1 TestGolden, TestGoldenConcurrent, TestStartWith
+killed  need of start rejected: rc=1 TestStartWith, TestCheckReply
+killed  snapshot loses back: rc=1 TestGolden, TestGoldenConcurrent, TestRecoveredStep, Example
+killed  empty back accepted: rc=1 TestCheckReply
+killed  protocol version not checked: rc=1 TestProtocolMismatch
+killed  outcome token not sent: rc=1 TestGolden, TestGoldenConcurrent, TestOutcome, TestSnapshotTooLarge, TestOutcomeColonAction, TestSnapshotTooLargeEscapedNames, ExampleBot_Outcome
+killed  snapshot loses pending: rc=1 TestGolden, TestGoldenConcurrent, TestOutcome, TestSnapshotTooLarge, TestOutcomeColonAction, TestSnapshotTooLargeEscapedNames
+killed  call loses its token: rc=1 TestActionJSON, TestOutcome, TestOutcomeColonAction, ExampleBot_Outcome
+killed  call loses detached: rc=1 TestActionJSON, TestOutcome, ExampleBot_Outcome
+killed  pending not checked: rc=1 TestCheckReply
+killed  detached false accepted: rc=1 TestActionJSON, TestCheckReply
+killed  snapshot_too_large unknown: rc=1 TestSnapshotTooLarge, TestSnapshotTooLargeEscapedNames, TestCheckReply
+killed  requests HTML-escaped: rc=1 TestSnapshotTooLargeEscapedNames, TestEncodeLine
+killed  line separators left escaped: rc=1 TestSnapshotTooLargeEscapedNames, TestEncodeLine
+killed  invalid UTF-8 sent: rc=1 TestInvalidUTF8
+killed  duplicate need accepted: rc=1 TestCheckReply
+killed  text after the reply accepted: rc=1 TestDecodeJSON
+killed  timer guards dropped: rc=1 TestTimerGuards
+killed  outcome refuses ':' in the action: rc=1 TestOutcomeColonAction
+killed  snapshot at not checked: rc=1 TestCheckReply
+killed  snapshot version not checked: rc=1 TestCheckReply
+killed  resume values not checked: rc=1 TestCheckReply
+killed  timer tokens not checked: rc=1 TestCheckReply
+killed  start_timer token not checked: rc=1 TestCheckReply
+killed  hello states not checked: rc=1 TestCheckReply
+SURVIVED result fields in another order: rc=1 
+FAIL	github.com/Ruddy35/ffl-go [build failed]
+FAIL
+# github.com/Ruddy35/ffl-go [github.com/Ruddy35/ffl-go.test]
+./protocol.go:148:4: cannot use r.Snapshot (variable of struct type Snapshot) as []Action value in struct literal
+./protocol.go:148:16: cannot use acts (variable of type []Action) as Snapshot value in struct literal
+
+mutants 37, survived 1
+--- stderr (0 bytes, last 100 lines)

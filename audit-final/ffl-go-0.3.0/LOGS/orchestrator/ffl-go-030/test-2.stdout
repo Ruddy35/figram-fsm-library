@@ -1,0 +1,73 @@
+=== RUN   TestGolden
+--- PASS: TestGolden (0.01s)
+=== RUN   TestGoldenConcurrent
+--- PASS: TestGoldenConcurrent (0.02s)
+=== RUN   TestHello
+--- PASS: TestHello (0.00s)
+=== RUN   TestNeedAndDecide
+--- PASS: TestNeedAndDecide (0.00s)
+=== RUN   TestStartSeqAndRestart
+--- PASS: TestStartSeqAndRestart (0.00s)
+=== RUN   TestStartWith
+--- PASS: TestStartWith (0.00s)
+=== RUN   TestRecoveredStep
+--- PASS: TestRecoveredStep (0.00s)
+=== RUN   TestProtocolMismatch
+--- PASS: TestProtocolMismatch (0.00s)
+=== RUN   TestProtocolErrors
+--- PASS: TestProtocolErrors (0.00s)
+=== RUN   TestRawRequest
+--- PASS: TestRawRequest (0.00s)
+=== RUN   TestTooLarge
+--- PASS: TestTooLarge (0.05s)
+=== RUN   TestCheckAndFmt
+--- PASS: TestCheckAndFmt (0.00s)
+=== RUN   TestActionJSON
+--- PASS: TestActionJSON (0.00s)
+=== RUN   TestSnapshotJSON
+--- PASS: TestSnapshotJSON (0.00s)
+=== RUN   TestResultJSON
+--- PASS: TestResultJSON (0.00s)
+=== RUN   TestOutcome
+--- PASS: TestOutcome (0.00s)
+=== RUN   TestSnapshotTooLarge
+--- PASS: TestSnapshotTooLarge (0.59s)
+=== RUN   TestDecodeJSON
+--- PASS: TestDecodeJSON (0.00s)
+=== RUN   TestTimerGuards
+--- PASS: TestTimerGuards (0.00s)
+=== RUN   TestOutcomeColonAction
+--- PASS: TestOutcomeColonAction (0.00s)
+=== RUN   TestSnapshotTooLargeEscapedNames
+--- PASS: TestSnapshotTooLargeEscapedNames (0.30s)
+=== RUN   TestEncodeLine
+--- PASS: TestEncodeLine (0.00s)
+=== RUN   TestInvalidUTF8
+--- PASS: TestInvalidUTF8 (0.00s)
+=== RUN   TestBundledVersion
+--- PASS: TestBundledVersion (0.00s)
+=== RUN   TestCheckReply
+--- PASS: TestCheckReply (0.00s)
+=== RUN   TestCloseDuringRequests
+--- PASS: TestCloseDuringRequests (0.44s)
+=== RUN   TestLazyInit
+--- PASS: TestLazyInit (0.00s)
+=== RUN   TestInitKeepsSignals
+--- PASS: TestInitKeepsSignals (0.00s)
+=== RUN   TestInitUnderRlimitAS
+--- PASS: TestInitUnderRlimitAS (0.00s)
+=== RUN   Example
+--- PASS: Example (0.00s)
+=== RUN   ExampleBot_StartWith
+--- PASS: ExampleBot_StartWith (0.00s)
+=== RUN   ExampleDecide
+--- PASS: ExampleDecide (0.00s)
+=== RUN   ExampleCheck
+--- PASS: ExampleCheck (0.00s)
+=== RUN   ExampleBot_Timer
+--- PASS: ExampleBot_Timer (0.00s)
+=== RUN   ExampleBot_Outcome
+--- PASS: ExampleBot_Outcome (0.00s)
+PASS
+ok  	github.com/Ruddy35/ffl-go	1.431s
+?   	github.com/Ruddy35/ffl-go/lib/linux_amd64	[no test files]

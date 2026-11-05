@@ -1,0 +1,17 @@
+=== RUN   TestAuditRoundTrip
+    zz_audit_test.go:239: action:map-order             1412
+    zz_audit_test.go:239: action:other                 10257
+    zz_audit_test.go:239: action:same                  85287
+    zz_audit_test.go:239: reply:map-order              71376
+    zz_audit_test.go:239: reply:other                  9045
+    zz_audit_test.go:239: reply:same                   18163
+    zz_audit_test.go:239: snapshot:html-escape         4314
+    zz_audit_test.go:239: snapshot:map-order           24262
+    zz_audit_test.go:239: snapshot:same                51845
+    zz_audit_test.go:239: variant:error                620
+    zz_audit_test.go:239: variant:hello                44
+    zz_audit_test.go:239: variant:need                 18163
+    zz_audit_test.go:239: variant:result               80421
+--- PASS: TestAuditRoundTrip (5.12s)
+PASS
+ok  	github.com/Ruddy35/ffl-go	5.127s

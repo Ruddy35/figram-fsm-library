@@ -1,0 +1,31 @@
+command: nice -n 10 timeout 900 python3 -I /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/agentmut/agent_mutants_fixed.py /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/agentmut/src 
+cwd: /tmp/claude-0/-home-user/57129652-0dc1-5f90-93b6-ee8cd24dbb93/scratchpad/agentmut
+start: 2026-11-05T02:07:30.823Z
+end: 2026-11-05T02:08:55.258Z
+exit_code: 0
+--- stdout (1532 bytes, last 200 lines)
+PASS    (control) no change: rc=0
+N/A      trailing text after a reply accepted: text not in the code (0 matches)
+killed   snapshot timers not checked: rc=1 TestCheckReply
+killed   snapshot resume values not checked: rc=1 TestCheckReply
+killed   snapshot version not checked: rc=1 TestCheckReply
+killed   snapshot at not checked: rc=1 TestCheckReply
+killed   snapshot seq not checked: rc=1 TestCheckReply
+killed   hello states not checked: rc=1 TestCheckReply
+N/A      need entries not checked: text not in the code (0 matches)
+killed   start_timer token not checked: rc=1 TestCheckReply
+killed   pending order reversed: rc=1 TestGolden, TestGoldenConcurrent
+killed   timer guards dropped: rc=1 TestTimerGuards
+killed   outcome refuses an action name with ':': rc=1 TestOutcomeColonAction
+SURVIVED snapshot loses v: rc=0 
+SURVIVED Decide loop guard removed: rc=0 
+killed   action detached written for every call: rc=1 TestActionJSON
+killed   hello protocol read as states: rc=1 TestHello
+killed   SetMaxRequest ignores its argument: rc=1 TestTooLarge, TestSnapshotTooLarge, TestSnapshotTooLargeEscapedNames
+killed   timers dropped by toSnapshot: rc=1 TestGolden, TestGoldenConcurrent, TestStartWith, TestTimerGuards
+N/A      need duplicates rejected (stricter, as the references): text not in the code (0 matches)
+killed   (adapted) trailing text after a reply accepted: rc=1 TestDecodeJSON
+killed   (adapted) need entries not checked: rc=1 TestCheckReply
+killed   (adapted) need duplicates accepted again: rc=1 TestCheckReply
+done
+--- stderr (0 bytes, last 100 lines)

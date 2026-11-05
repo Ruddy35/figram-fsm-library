@@ -1,0 +1,195 @@
+# Release: check that the module is ready for version <version> (BundledVersion and
+# lib/linux_amd64/VERSION equal it, CHANGELOG.md has its section, the bundled files equal the Figram
+# release, gofmt, vet, the tests with and without -race, the consumer module, the wrapper mutants),
+# then create or update a DRAFT GitHub Release v<version> at the checked commit, with the CHANGELOG
+# section as its notes. Publishing the draft is left to a maintainer: it creates the tag, and with
+# it the module version. This workflow never publishes, deletes or changes a published release.
+# Two jobs: `check` runs with a read-only token; only `draft`, which checks out nothing and runs no
+# code of the repository, gets `contents: write` to create or update the draft.
+# Start: Actions -> release -> Run workflow (version, e.g. 0.2.0) on the commit to release.
+# Actions are pinned by commit SHA; the tag in the comment is for updating them.
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version without the v prefix, e.g. 0.2.0 (must equal BundledVersion in version.go)"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: release
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash                     # bash --noprofile --norc -eo pipefail {0}
+jobs:
+  check:
+    name: check the module
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      INPUT_VERSION: ${{ inputs.version }}
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      commit: ${{ steps.version.outputs.commit }}
+      artifact: ${{ steps.version.outputs.artifact }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1   # v7.0.1
+      - name: Version, CHANGELOG section, commit
+        id: version
+        run: |
+          v=$INPUT_VERSION
+          if ! [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version '$v' is not of the form X.Y.Z or X.Y.Z-suffix"; exit 1
+          fi
+          bundled=$(sed -n 's/^const BundledVersion = "\([^"]*\)"$/\1/p' version.go)
+          if [ "$v" != "$bundled" ]; then
+            echo "::error::version $v differs from BundledVersion in version.go ($bundled): run scripts/update-lib.sh $v first"; exit 1
+          fi
+          if [ "$v" != "$(cat lib/linux_amd64/VERSION)" ]; then
+            echo "::error::version $v differs from lib/linux_amd64/VERSION ($(cat lib/linux_amd64/VERSION))"; exit 1
+          fi
+          # The CHANGELOG section of this version ("## [X.Y.Z] ..." or "## X.Y.Z ..."), without link
+          # reference definitions; it becomes the release notes.
+          awk -v v="$v" '
+            /^## / { if (found) exit
+                     h = $0; sub(/^## +\[?v?/, "", h)
+                     if (substr(h, 1, length(v)) == v && substr(h, length(v) + 1, 1) ~ /^([] ]|$)/) { found = 1; next } }
+            found && !/^\[[^]]+\]: / { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' > "$RUNNER_TEMP/changelog.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/changelog.md"; then
+            echo "::error::CHANGELOG.md has no non-empty section for $v"; exit 1
+          fi
+          commit=$(git rev-parse HEAD)
+          [ "$commit" = "$GITHUB_SHA" ] || echo "::notice::HEAD $commit, GITHUB_SHA $GITHUB_SHA: releasing HEAD"
+          { echo "VERSION=$v"; echo "TAG=v$v"; echo "COMMIT=$commit"; } >> "$GITHUB_ENV"
+          { echo "version=$v"; echo "tag=v$v"; echo "commit=$commit"
+            echo "artifact=release-v$v-$GITHUB_RUN_ATTEMPT"; } >> "$GITHUB_OUTPUT"
+          echo "release v$v of $commit"
+      - name: An existing tag v<version> points at this commit
+        run: |
+          refs=$(git ls-remote --tags origin "refs/tags/$TAG" "refs/tags/$TAG^{}")
+          if [ -n "$refs" ]; then
+            # Annotated tags list the tagged commit as refs/tags/TAG^{}.
+            tagged=$(printf '%s\n' "$refs" | awk -v r="refs/tags/$TAG^{}" '$2 == r { print $1 }')
+            [ -n "$tagged" ] || tagged=$(printf '%s\n' "$refs" | awk '{ print $1 }')
+            if [ "$tagged" != "$COMMIT" ]; then
+              echo "::error::tag $TAG already exists at $tagged, not at $COMMIT"; exit 1
+            fi
+            echo "tag $TAG exists at $COMMIT"
+          else
+            echo "tag $TAG does not exist yet: it is created at $COMMIT when the draft is published"
+          fi
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e   # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - name: gofmt
+        run: |
+          out=$(gofmt -l .)
+          [ -z "$out" ] || { echo "::error::not gofmt-ed: $out"; exit 1; }
+      - run: go vet ./...
+      - run: go test -count=1 ./...
+      - run: go test -race -count=1 ./...
+      - name: The bundled files equal the Figram release (scripts/update-lib.sh --check)
+        run: scripts/update-lib.sh --check
+      - name: Consumer module (scripts/consumer-test.sh)
+        run: scripts/consumer-test.sh
+      - name: Wrapper mutants (scripts/mutants.py)
+        run: python3 scripts/mutants.py | tee "$RUNNER_TEMP/mutants.log"
+      - name: Release notes (CHANGELOG section and provenance)
+        run: |
+          module=$(sed -n 's/^module //p' go.mod)
+          src="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$COMMIT"
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT"
+          mkdir -p "$RUNNER_TEMP/dist"
+          {
+            # Relative links of CHANGELOG.md point at the sources of this commit.
+            # (trailing blank lines dropped)
+            sed -E "s#\]\((\./)?([^)#:]+)(\#[^)]*)?\)#]($src/\2\3)#g" "$RUNNER_TEMP/changelog.md" |
+              awk 'NF { for (; n > 0; n--) print ""; print; next } { n++ }'
+            echo
+            echo "Install: \`go get $module@$TAG\`. See the [README]($src/README.md)."
+            echo
+            echo "## Provenance"
+            echo
+            echo "- Commit: \`$COMMIT\` (tag \`$TAG\` at this commit when the release is published)"
+            echo "- Bundled libraries: Figram v$VERSION, equal to the release (\`scripts/update-lib.sh --check\`); the release's SHA256SUMS:"
+            echo
+            echo '```'
+            cat lib/linux_amd64/SHA256SUMS.release
+            echo '```'
+            echo
+            echo "- Checks on $(go version | cut -d' ' -f3): gofmt, go vet, \`go test\` with and without \`-race\`, \`scripts/consumer-test.sh\`, \`scripts/mutants.py\`: \`$(tail -1 "$RUNNER_TEMP/mutants.log")\`"
+            echo "- Workflow run: $run_url"
+          } > "$RUNNER_TEMP/dist/RELEASE_NOTES.md"
+          cat "$RUNNER_TEMP/dist/RELEASE_NOTES.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the notes
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9   # v7.0.2
+        with:
+          name: ${{ steps.version.outputs.artifact }}
+          path: ${{ runner.temp }}/dist/
+          if-no-files-found: error
+
+  draft:
+    # The only job with write access: it creates or updates the draft release from the notes of
+    # `check`; it checks out nothing and runs no code of the repository.
+    name: draft release
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.check.outputs.tag }}
+      VERSION: ${{ needs.check.outputs.version }}
+      COMMIT: ${{ needs.check.outputs.commit }}
+    steps:
+      - name: Download the notes
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333   # v8.0.2
+        with:
+          name: ${{ needs.check.outputs.artifact }}
+          path: ${{ runner.temp }}/dist
+      - name: Create or update the draft release
+        run: |
+          notes=$RUNNER_TEMP/dist/RELEASE_NOTES.md
+          [ -s "$notes" ] || { echo "::error::$notes is missing"; exit 1; }
+          pre=false; case "$VERSION" in *-*) pre=true;; esac
+          # Releases with this tag, drafts included (the tag lookup endpoint does not return drafts).
+          releases() {
+            gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+              --jq ".[] | select(.tag_name == \"$TAG\") | \"\(.id) \(.draft)\""
+          }
+          releases > "$RUNNER_TEMP/releases.txt"
+          case "$(wc -l < "$RUNNER_TEMP/releases.txt")" in
+            0)
+              gh release create "$TAG" --draft --prerelease="$pre" --target "$COMMIT" --title "$TAG" \
+                --notes-file "$notes"
+              echo "created draft release $TAG";;
+            1)
+              read -r id draft < "$RUNNER_TEMP/releases.txt"
+              if [ "$draft" = false ]; then
+                echo "::error::release $TAG is published; a published version is final, release a new version"
+                exit 1
+              fi
+              # `draft` is not sent: the release stays a draft, and one published in the meantime is
+              # not turned back into a draft. `tag_name` is sent: without it GitHub resets the tag name
+              # of a draft whose tag does not exist yet to `untagged-…`.
+              gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$id" -f tag_name="$TAG" -F prerelease="$pre" \
+                -f target_commitish="$COMMIT" -f name="$TAG" -F body=@"$notes" > /dev/null
+              case "$(releases)" in
+                "$id true") echo "updated draft release $TAG";;
+                *) echo "::error::release $TAG changed while it was updated (published or retagged)"; exit 1;;
+              esac;;
+            *)
+              echo "::error::several releases carry the tag $TAG; delete the extra drafts and run again"; exit 1;;
+          esac
+          url=$(gh release view "$TAG" --json url --jq .url)
+          echo "Draft release: $url" | tee -a "$GITHUB_STEP_SUMMARY"

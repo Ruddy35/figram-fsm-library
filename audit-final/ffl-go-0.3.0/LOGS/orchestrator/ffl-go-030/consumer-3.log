@@ -1,0 +1,11 @@
+command: timeout 900 bash scripts/consumer-test.sh 
+cwd: /home/user/ffl-go
+start: 2026-11-05T00:23:37.052Z
+end: 2026-11-05T00:23:40.762Z
+exit_code: 0
+--- stdout (105 bytes, last 200 lines)
+plain: ok, 16950488 bytes
+vendored: ok, 16950544 bytes
+gcsections: ok, 7314016 bytes
+consumer builds: ok
+--- stderr (0 bytes, last 100 lines)
